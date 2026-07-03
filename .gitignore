@@ -1,0 +1,36 @@
+# NOTE: .gitignore does NOT support inline comments after a pattern.
+# Keep comments on their own lines (learned the hard way).
+
+# ─── SECRETS & CREDENTIALS — NEVER COMMIT ───────────────────────────────
+.env
+*.env
+*.pem
+*.key
+vapid_private.pem
+vapid_public.txt
+*.token
+
+# secret-ish filenames
+*secret*
+*_secret*
+
+# ─── USER DATA — NEVER COMMIT (contains real emails / accounts) ─────────
+*.db
+*.sqlite
+*.sqlite3
+backups/
+state.json
+
+# ─── PYTHON ─────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+env/
+
+# ─── OS / EDITOR ────────────────────────────────────────────────────────
+.DS_Store
+*.swp
+.idea/
+.vscode/
