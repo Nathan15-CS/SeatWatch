@@ -218,8 +218,26 @@ def get_or_create_user(sub, email):
 # ------------------------------------------------------------------------- html
 PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SeatWatch — get into the class you need</title>
-<meta name="description" content="Get an instant phone alert the second a seat opens in a full college class. Free to start, 122 universities.">
+<title>SeatWatch — Get a text the second a full class opens | 122 universities</title>
+<meta name="description" content="SeatWatch alerts you the instant a seat opens in a full college class, across 122 universities. Watch the exact section you want and get the professor you want. Free to start.">
+<link rel="canonical" href="https://seatwatchapp.com/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="keywords" content="seatwatch, seat watch, course seat alert, class seat notification, college registration alert, open seat finder, coursicle alternative">
+<meta name="author" content="SeatWatch LLC">
+<meta name="application-name" content="SeatWatch">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SeatWatch">
+<meta property="og:title" content="SeatWatch — Get into the class you actually need">
+<meta property="og:description" content="Get an instant alert the second a seat opens in a full college class — across 122 universities. Watch the exact section, get the professor you want.">
+<meta property="og:url" content="https://seatwatchapp.com/">
+<meta property="og:image" content="https://seatwatchapp.com/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SeatWatch — Get into the class you actually need">
+<meta name="twitter:description" content="Get an instant alert the second a seat opens in a full college class. 122 universities. Free to start.">
+<meta name="twitter:image" content="https://seatwatchapp.com/og-image.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://seatwatchapp.com/#org","name":"SeatWatch","legalName":"SeatWatch LLC","url":"https://seatwatchapp.com/","logo":"https://seatwatchapp.com/icon-512.png","email":"support@seatwatchapp.com","description":"Instant alerts when a seat opens in a full college class, across 122 universities."},{"@type":"WebSite","@id":"https://seatwatchapp.com/#site","url":"https://seatwatchapp.com/","name":"SeatWatch","publisher":{"@id":"https://seatwatchapp.com/#org"}},{"@type":"WebApplication","name":"SeatWatch","url":"https://seatwatchapp.com/","applicationCategory":"EducationalApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"First class free"},"description":"Get an instant phone alert the second a seat opens in a full college class."}]}</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><defs><linearGradient id='b' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%233b82f6'/><stop offset='1' stop-color='%232563eb'/></linearGradient></defs><path d='M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z' fill='white' stroke='%232563eb' stroke-width='9' stroke-linejoin='round'/><rect x='42' y='32' width='28' height='24' rx='7' fill='url(%23b)'/><rect x='38' y='56' width='40' height='11' rx='5.5' fill='url(%23b)'/><rect x='42' y='67' width='8' height='15' rx='3' fill='url(%23b)'/><rect x='66' y='67' width='8' height='15' rx='3' fill='url(%23b)'/><circle cx='100' cy='20' r='11' fill='%2310b981' stroke='white' stroke-width='5'/><path d='M100 4 V1 M111 9 L114 6 M116 20 H119' stroke='%2310b981' stroke-width='4.5' stroke-linecap='round'/></svg>">
 <meta name="theme-color" content="#F8FAFC">
 <link rel="manifest" href="/manifest.json">
@@ -496,6 +514,26 @@ def _read_static(name):
 
 ICON192 = _read_static("icon-192.png")
 ICON512 = _read_static("icon-512.png")
+OG_IMAGE = _read_static("og-image.png")
+
+ROBOTS = """User-agent: *
+Allow: /
+Disallow: /auth/
+Disallow: /watch
+Disallow: /unwatch
+Disallow: /push/
+Disallow: /dev-login
+
+Sitemap: https://seatwatchapp.com/sitemap.xml
+"""
+
+SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+ <url><loc>https://seatwatchapp.com/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+ <url><loc>https://seatwatchapp.com/terms</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
+ <url><loc>https://seatwatchapp.com/privacy</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
+</urlset>
+"""
 
 # The one-tap alert setup. Shown on the success page and the signed-in card.
 PUSH_BLOCK = """<div style="margin-top:18px;border-top:1px solid #F3F4F6;padding-top:16px">
@@ -723,6 +761,15 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/icon-512.png":
             return (self._send_bytes(ICON512, "image/png") if ICON512
                     else self._send(page("<p>Not found.</p>"), 404))
+        if path == "/og-image.png":
+            return (self._send_bytes(OG_IMAGE, "image/png") if OG_IMAGE
+                    else self._send_bytes(ICON512, "image/png"))
+        if path == "/robots.txt":
+            return self._send_bytes(ROBOTS.encode(), "text/plain; charset=utf-8",
+                                    cache="public, max-age=86400")
+        if path == "/sitemap.xml":
+            return self._send_bytes(SITEMAP.encode(), "application/xml; charset=utf-8",
+                                    cache="public, max-age=86400")
         if path == "/login":
             if not GOOGLE_CLIENT_ID:
                 return self._send(form_page(
