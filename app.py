@@ -55,11 +55,12 @@ VAPID_PRIVATE_PEM = os.environ.get("VAPID_PRIVATE_PEM", os.path.join(HERE, "vapi
 VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:support@seatwatchapp.com")
 PUSH_ENABLED = bool(VAPID_PUBLIC_KEY and webpush)
 SESSION_DAYS = 90
-FREE_COURSES = 1                # per account: 1 class at a time...
-FREE_SECTIONS_PER_COURSE = 2    # ...with up to 2 sections in it
-PLAN_MSG = ("Your free plan covers 1 class at a time (up to 2 sections). "
-            "Stop watching your current class below to switch — plans for "
-            "more classes are coming soon.")
+FREE_COURSES = 1                # per account: 1 free class (ALL of its sections)
+FREE_SECTIONS_PER_COURSE = 25   # generous anti-abuse guard, NOT a pricing limit —
+                                # the free class includes every section you want
+PLAN_MSG = ("Your free plan covers 1 class — all of its sections. Stop watching "
+            "your current class below to switch, or grab more classes when paid "
+            "plans launch ($19.95 per additional course, all sections included).")
 
 # --- operator guard (so the system watches itself and pings YOU, not the users) ---
 OPERATOR_TOPIC = os.environ.get("SEATWATCH_ADMIN_TOPIC", "seatwatch-admin-q7x2k9m4")
@@ -890,7 +891,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._notice("Please add the section number(s) you want to watch — e.g. 0101.",
                                 user=user)
         if len(sections) > FREE_SECTIONS_PER_COURSE:
-            return self._notice("The free plan covers up to 2 sections per class — pick your top 2.",
+            return self._notice(f"That's a lot of sections at once — you can watch up to "
+                                f"{FREE_SECTIONS_PER_COURSE} sections of a class. Trim the list a bit.",
                                 user=user)
 
         # (3) per-school FORMAT validation — no junk reaches a fetch
@@ -937,8 +939,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._notice("You're already watching those sections.", user=user)
             if len(have) + len(new) > FREE_SECTIONS_PER_COURSE:
                 return self._notice(
-                    f"The free plan covers up to {FREE_SECTIONS_PER_COURSE} sections in your "
-                    f"class, and you already have {len(have)} — stop one below to swap.",
+                    f"You're watching {len(have)} sections of this class already — that's near "
+                    f"the {FREE_SECTIONS_PER_COURSE}-section cap. Stop a few below to add more.",
                     user=user)
 
             # (6) store — alerts go to the account's one stable private channel
