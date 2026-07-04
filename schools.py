@@ -1084,6 +1084,10 @@ class Vincennes(Banner):
     id = "vincennes"; name = "Vincennes University"
     example = "MATH 102"; host = "banssb.vinu.edu"; term = "202710"
 
+class NortheasternStateOK(Banner):
+    id = "nsuok"; name = "Northeastern State University"
+    example = "MATH 1513"; host = "banner.nsuok.edu"; term = "202720"
+
 class ArkansasTech(Banner):
     id = "atu"; name = "Arkansas Tech University"
     example = "MATH 1113"; host = "reg-prod.ec.atu.edu"; term = "202670"
@@ -1207,6 +1211,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SouthAlabama(), TennesseeState(), Stockton(),
                              AlbanyStateGA(), SIUE(),
                              SanJacinto(), DMACC(), PimaCC(), JohnsonCountyCC(), Vincennes(),
+                             NortheasternStateOK(),
                              ArkansasTech(), UtahTech(), MontanaTech(), NMHighlands(),
                              WesternNM(), WesternOregon(), OregonTech(),
                              NJIT(), Lehigh(), TexasSouthern(),
