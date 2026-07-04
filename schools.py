@@ -1193,6 +1193,9 @@ class BishopState(ACCS):
 class CoastalAlabama(ACCS):
     id = "coastal-al"; name = "Coastal Alabama Community College"; example = "MTH 099"; mep = "COASTL"
 
+class ReidState(ACCS):
+    id = "reid"; name = "Reid State Technical College"; example = "MTH 100"; mep = "RSTC"
+
 class ColoradoStateFC(Banner):
     id = "csu"; name = "Colorado State University"
     example = "CS 150B"; host = "reg-sis.colostate.edu"; term = "202690"; mep = "CSU"
@@ -1327,7 +1330,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              RiverParishes(), SOWELA(), Nunez(),
                              ChattahoocheeValley(), WallaceDothan(), GadsdenState(),
                              SheltonState(), CalhounCC(), SouthernUnion(), BishopState(),
-                             CoastalAlabama(), ColoradoStateFC(),
+                             CoastalAlabama(), ReidState(), ColoradoStateFC(),
                              ArkansasTech(), UtahTech(), MontanaTech(), NMHighlands(),
                              WesternNM(), WesternOregon(), OregonTech(),
                              NJIT(), Lehigh(), TexasSouthern(),
