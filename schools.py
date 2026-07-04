@@ -814,6 +814,10 @@ class Fordham(Banner):
     id = "fordham"; name = "Fordham University"
     example = "CISC 1600"; host = "reg-prod.ec.fordham.edu"; term = "202710"
 
+# PARKED (2026-07-04): bannerxe.appstate.edu intermittently returns EMPTY even under
+# gentle sequential polling (verified 34,34,34,0,0) — fail-safe keeps it from sending
+# false data, but the flakiness risks MISSING openings. Removed per reliability-first
+# rule. Re-add only if the host proves consistently stable.
 class AppalachianState(Banner):
     id = "appstate"; name = "Appalachian State University"
     example = "CIS 1060"; host = "bannerxe.appstate.edu"; term = "202640"
@@ -1166,7 +1170,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              ColumbusState(), GeorgiaCollege(), MiddleGeorgia(), ClaytonState(),
                              VCU(), OldDominion(), ConnecticutState(), LouisianaLafayette(),
                              GrandValley(), Radford(), Fordham(),
-                             AppalachianState(), SouthernUtah(), UtahState(), MiamiOhio(),
+                             SouthernUtah(), UtahState(), MiamiOhio(),
                              MississippiState(), Skidmore(), Montclair(), MaryWashington(),
                              UNCCharlotte(), WesternMichigan(), WichitaState(), TexasTech(),
                              UCRiverside(), UTSA(), UTEP(), Memphis(), BuffaloState(), CCSF(),
