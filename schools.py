@@ -1092,6 +1092,52 @@ class YoungstownState(Banner):
     id = "ysu"; name = "Youngstown State University"
     example = "MATH 1510"; host = "ssb.oci.ysu.edu"; term = "202640"
 
+class USFSanFrancisco(Banner):
+    id = "usfca"; name = "University of San Francisco"
+    example = "CS 686"; host = "reg-prod.ec.usfca.edu"; term = "202640"
+
+# --- Pennsylvania State System (PASSHE): ONE shared Ellucian-cloud host serving all
+# --- campuses, distinguished by mepCode (6-digit federal OPEID). All verified clean
+# --- (distinct section sequence numbers — no Pasadena-style collapse). Term 202630.
+class PASSHE(Banner):
+    host = "reg-prod.ec.passhe.edu"; term = "202630"
+
+class IUP(PASSHE):
+    id = "iup"; name = "Indiana University of Pennsylvania"
+    example = "MATH 117"; mep = "003277"
+
+class Bloomsburg(PASSHE):
+    id = "bloomsburg"; name = "Bloomsburg University (Commonwealth U)"
+    example = "MATH 118"; mep = "003315"
+
+class CaliforniaPA(PASSHE):
+    id = "calu"; name = "California University of Pennsylvania (PennWest)"
+    example = "MATH 1010"; mep = "003316"
+
+class Cheyney(PASSHE):
+    id = "cheyney"; name = "Cheyney University"
+    example = "MATH 1108"; mep = "003317"
+
+class EastStroudsburg(PASSHE):
+    id = "esu"; name = "East Stroudsburg University"
+    example = "MATH 110"; mep = "003320"
+
+class Kutztown(PASSHE):
+    id = "kutztown"; name = "Kutztown University"
+    example = "MATH 103"; mep = "003322"
+
+class Millersville(PASSHE):
+    id = "millersville"; name = "Millersville University"
+    example = "MATH 101"; mep = "003325"
+
+class Shippensburg(PASSHE):
+    id = "ship"; name = "Shippensburg University"
+    example = "MATH 100"; mep = "003326"
+
+class SlipperyRock(PASSHE):
+    id = "sru"; name = "Slippery Rock University"
+    example = "MATH 117"; mep = "003327"
+
 class ArkansasTech(Banner):
     id = "atu"; name = "Arkansas Tech University"
     example = "MATH 1113"; host = "reg-prod.ec.atu.edu"; term = "202670"
@@ -1215,7 +1261,9 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SouthAlabama(), TennesseeState(), Stockton(),
                              AlbanyStateGA(), SIUE(),
                              SanJacinto(), DMACC(), PimaCC(), JohnsonCountyCC(), Vincennes(),
-                             NortheasternStateOK(), YoungstownState(),
+                             NortheasternStateOK(), YoungstownState(), USFSanFrancisco(),
+                             IUP(), Bloomsburg(), CaliforniaPA(), Cheyney(), EastStroudsburg(),
+                             Kutztown(), Millersville(), Shippensburg(), SlipperyRock(),
                              ArkansasTech(), UtahTech(), MontanaTech(), NMHighlands(),
                              WesternNM(), WesternOregon(), OregonTech(),
                              NJIT(), Lehigh(), TexasSouthern(),
