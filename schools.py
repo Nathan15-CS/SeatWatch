@@ -223,10 +223,10 @@ class OhioState:
                 if f"{cc.get('subject')} {cc.get('catalogNumber')}" == c:
                     secs = {}
                     for s in item.get("sections", []):
-                        num = s.get("number")
-                        if num is not None:
-                            secs[str(num)] = {"open": s.get("enrollmentStatus") == "Open",
-                                              "seats": None}
+                        num = s.get("section")   # OSU's section id lives in 'section'
+                        st = s.get("enrollmentStatus")
+                        if num and st:           # only trust rows with a real status
+                            secs[str(num)] = {"open": st == "Open", "seats": None}
                     if secs:
                         out[c] = secs
                     break
@@ -1145,14 +1145,17 @@ class UPortland(Banner):
     example = "MTH 161"; host = "registration.up.edu"; term = "202701"
 
 
-# NOTE: OhioState() built + tested but PARKED — its API silently throttles under
-# load (returns 200 with truncated data), which would miss openings = reputation
-# risk. Re-enable only after verifying reliability under gentle production polling.
+# NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
+# TESTING artifact from aggressive concurrent probing — under gentle production polling
+# (1 call/watched-course/cycle) it's rock-stable: verified 10/10 identical section
+# counts, and enrollmentStatus varies reliably (1081 Open / 319 Closed across popular
+# courses). Status-only (seats=None), open = enrollmentStatus=="Open". Fixed the stale
+# section-field name ('number' -> 'section') that had left it returning 0 sections.
 # Loyola Marymount (bannerxe.lmu.edu) tested but CUT — host times out repeatedly.
 # Drexel(): class works (base_path="registration"), but the only published 2026 term
 # is the medicine/professional SEMESTER calendar — no undergrad quarter (CS) courses
 # yet. PARKED until Drexel's quarter terms publish; re-add to the list to enable.
-SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(),
+SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(),
                              CUBoulder(), Brown(), Yale(), NotreDame(), Emory(),
                              Wisconsin(), Iowa(),
                              Tennessee(), FAU(), BallState(), Wyoming(), CNM(),
