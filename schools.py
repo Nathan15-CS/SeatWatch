@@ -308,7 +308,8 @@ class Fose:
 
     @staticmethod
     def _norm(course):
-        m = re.match(r"^([A-Za-z]{2,5})[\s-]*(\d{3,4}[A-Za-z]?)$", course.strip())
+        # 3-5 digit numbers: Emory "CS 170", CU/Brown/Yale 4-digit, Notre Dame "CSE 20110"
+        m = re.match(r"^([A-Za-z]{2,5})[\s-]*(\d{3,5}[A-Za-z]?)$", course.strip())
         return f"{m.group(1).upper()} {m.group(2).upper()}" if m else None
 
     def valid_course(self, course):
@@ -359,6 +360,16 @@ class Yale(Fose):
     id = "yale"; name = "Yale University"
     example = "CPSC 2230"; srcdb = "202603"    # Fall 2026 (verified via term list)
     api = "https://courses.yale.edu/api/?page=fose&route=search"
+
+class NotreDame(Fose):
+    id = "notredame"; name = "University of Notre Dame"
+    example = "CSE 20110"; srcdb = "202610"    # Fall 2026 (verified via term list)
+    api = "https://classsearch.nd.edu/api/?page=fose&route=search"
+
+class Emory(Fose):
+    id = "emory"; name = "Emory University"
+    example = "CS 170"; srcdb = "5269"         # Fall 2026 (verified via term list)
+    api = "https://atlas.emory.edu/api/?page=fose&route=search"
 
 
 class Iowa:
@@ -1142,7 +1153,8 @@ class UPortland(Banner):
 # is the medicine/professional SEMESTER calendar — no undergrad quarter (CS) courses
 # yet. PARKED until Drexel's quarter terms publish; re-add to the list to enable.
 SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(),
-                             CUBoulder(), Brown(), Yale(), Wisconsin(), Iowa(),
+                             CUBoulder(), Brown(), Yale(), NotreDame(), Emory(),
+                             Wisconsin(), Iowa(),
                              Tennessee(), FAU(), BallState(), Wyoming(), CNM(),
                              GeorgiaTech(), Northeastern(), EmpireState(), TexasState(),
                              Temple(), Villanova(), CofC(), SouthFlorida(), Oklahoma(),
