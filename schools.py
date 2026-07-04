@@ -1064,6 +1064,26 @@ class SIUE(Banner):
     id = "siue"; name = "Southern Illinois University Edwardsville"
     example = "CS 140"; host = "banner.siue.edu"; term = "202635"
 
+class SanJacinto(Banner):
+    id = "sanjac"; name = "San Jacinto College"
+    example = "COSC 1436"; host = "reg-prod.ec.sanjac.edu"; term = "202710"
+
+class DMACC(Banner):
+    id = "dmacc"; name = "Des Moines Area Community College"
+    example = "CSC 116"; host = "reg-prod.ec.dmacc.edu"; term = "202701"
+
+class PimaCC(Banner):
+    id = "pima"; name = "Pima Community College"
+    example = "CIS 120"; host = "ssb.pima.edu"; term = "202710"
+
+class JohnsonCountyCC(Banner):
+    id = "jccc"; name = "Johnson County Community College"
+    example = "CS 134"; host = "reg-prod.ec.jccc.edu"; term = "202608"
+
+class Vincennes(Banner):
+    id = "vincennes"; name = "Vincennes University"
+    example = "MATH 102"; host = "banssb.vinu.edu"; term = "202710"
+
 class ArkansasTech(Banner):
     id = "atu"; name = "Arkansas Tech University"
     example = "MATH 1113"; host = "reg-prod.ec.atu.edu"; term = "202670"
@@ -1186,6 +1206,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              ColoradoMesa(), EasternWashington(),
                              SouthAlabama(), TennesseeState(), Stockton(),
                              AlbanyStateGA(), SIUE(),
+                             SanJacinto(), DMACC(), PimaCC(), JohnsonCountyCC(), Vincennes(),
                              ArkansasTech(), UtahTech(), MontanaTech(), NMHighlands(),
                              WesternNM(), WesternOregon(), OregonTech(),
                              NJIT(), Lehigh(), TexasSouthern(),
