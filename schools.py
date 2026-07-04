@@ -1138,6 +1138,58 @@ class SlipperyRock(PASSHE):
     id = "sru"; name = "Slippery Rock University"
     example = "MATH 117"; mep = "003327"
 
+# --- Louisiana Community & Technical College System: shared host, letter mepCodes.
+# --- Only campuses that pass the section-collapse screen are included.
+class LCTCS(Banner):
+    host = "reg-prod.ec.lctcs.edu"; term = "202710"
+
+class BatonRougeCC(LCTCS):
+    id = "brcc"; name = "Baton Rouge Community College"; example = "MATH 0213"; mep = "BRCC"
+
+class Delgado(LCTCS):
+    id = "delgado"; name = "Delgado Community College"; example = "MATH 030"; mep = "DCC"
+
+class SouthLouisianaCC(LCTCS):
+    id = "slcc-la"; name = "South Louisiana Community College"; example = "MATH 0088"; mep = "SLCC"
+
+class BossierParish(LCTCS):
+    id = "bpcc"; name = "Bossier Parish Community College"; example = "MATH 102"; mep = "BPCC"
+
+class RiverParishes(LCTCS):
+    id = "rpcc"; name = "River Parishes Community College"; example = "MATH 1203"; mep = "RPCC"
+
+class SOWELA(LCTCS):
+    id = "sowela"; name = "SOWELA Technical Community College"; example = "MATH 1106"; mep = "SOWELA"
+
+class Nunez(LCTCS):
+    id = "nunez"; name = "Nunez Community College"; example = "MATH 1310"; mep = "NUNEZ"
+
+# --- Alabama Community College System: shared host, letter mepCodes. Half the campuses
+# --- collapse sections (rejected); only the clean ones are here.
+class ACCS(Banner):
+    host = "reg-prod.ec.accs.edu"; term = "202710"
+
+class ChattahoocheeValley(ACCS):
+    id = "cvcc"; name = "Chattahoochee Valley Community College"; example = "MTH 099"; mep = "CVCC"
+
+class WallaceDothan(ACCS):
+    id = "wcc-al"; name = "Wallace Community College (Dothan)"; example = "MTH 100"; mep = "WCC"
+
+class GadsdenState(ACCS):
+    id = "gscc"; name = "Gadsden State Community College"; example = "MTH 100"; mep = "GSCC"
+
+class SheltonState(ACCS):
+    id = "sscc"; name = "Shelton State Community College"; example = "MTH 100"; mep = "SSCC"
+
+class CalhounCC(ACCS):
+    id = "calhoun"; name = "Calhoun Community College"; example = "MTH 100"; mep = "CCC"
+
+class SouthernUnion(ACCS):
+    id = "suscc"; name = "Southern Union State Community College"; example = "MTH 100"; mep = "SUSCC"
+
+class BishopState(ACCS):
+    id = "bishop"; name = "Bishop State Community College"; example = "MTH 100"; mep = "BISHOP"
+
 class ArkansasTech(Banner):
     id = "atu"; name = "Arkansas Tech University"
     example = "MATH 1113"; host = "reg-prod.ec.atu.edu"; term = "202670"
@@ -1264,6 +1316,10 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              NortheasternStateOK(), YoungstownState(), USFSanFrancisco(),
                              IUP(), Bloomsburg(), CaliforniaPA(), Cheyney(), EastStroudsburg(),
                              Kutztown(), Millersville(), Shippensburg(), SlipperyRock(),
+                             BatonRougeCC(), Delgado(), SouthLouisianaCC(), BossierParish(),
+                             RiverParishes(), SOWELA(), Nunez(),
+                             ChattahoocheeValley(), WallaceDothan(), GadsdenState(),
+                             SheltonState(), CalhounCC(), SouthernUnion(), BishopState(),
                              ArkansasTech(), UtahTech(), MontanaTech(), NMHighlands(),
                              WesternNM(), WesternOregon(), OregonTech(),
                              NJIT(), Lehigh(), TexasSouthern(),
