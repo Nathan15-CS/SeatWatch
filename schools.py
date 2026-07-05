@@ -1356,6 +1356,22 @@ class RaritanValley(Banner):
     id = "raritan"; name = "Raritan Valley Community College"
     example = "COMP 102"; host = "reg-prod.ec.raritanval.edu"; term = "202710"
 
+class Drake(Banner):
+    id = "drake"; name = "Drake University"
+    example = "CS 065"; host = "registrationssb.drake.edu"; term = "202710"
+
+class IllinoisWesleyan(Banner):
+    id = "iwu"; name = "Illinois Wesleyan University"
+    example = "CS 170"; host = "reg-prod.ec.iwu.edu"; term = "202610"
+
+class Canisius(Banner):
+    id = "canisius"; name = "Canisius University"
+    example = "CSC 511"; host = "banner.canisius.edu"; term = "202630"
+
+class IncarnateWord(Banner):
+    id = "uiw"; name = "University of the Incarnate Word"
+    example = "CIS 1100"; host = "reg-prod.ec.uiw.edu"; term = "202740"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -1414,7 +1430,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              MissouriWestern(), WestfieldState(), EasternIllinois(),
                              SUNYBroome(), DutchessCC(), JeffersonCC(), AdirondackCC(),
                              GeneseeCC(), UlsterCC(), CorningCC(), Concord(),
-                             RaritanValley()]}
+                             RaritanValley(), Drake(), IllinoisWesleyan(),
+                             Canisius(), IncarnateWord()]}
 
 
 def refresh_all_terms(log=None):
