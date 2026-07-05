@@ -1356,6 +1356,10 @@ class RaritanValley(Banner):
     id = "raritan"; name = "Raritan Valley Community College"
     example = "COMP 102"; host = "reg-prod.ec.raritanval.edu"; term = "202710"
 
+class NassauCC(Banner):
+    id = "nassau"; name = "Nassau Community College"
+    example = "CSC 104"; host = "banner.ncc.edu"; term = "202710"
+
 class IllinoisWesleyan(Banner):
     id = "iwu"; name = "Illinois Wesleyan University"
     example = "CS 170"; host = "reg-prod.ec.iwu.edu"; term = "202610"
@@ -1428,7 +1432,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              MissouriWestern(), WestfieldState(), EasternIllinois(),
                              SUNYBroome(), DutchessCC(), JeffersonCC(), AdirondackCC(),
                              GeneseeCC(), UlsterCC(), CorningCC(), Concord(),
-                             RaritanValley(), IllinoisWesleyan(),
+                             RaritanValley(), NassauCC(), IllinoisWesleyan(),
                              Canisius(), IncarnateWord()]}
 
 
