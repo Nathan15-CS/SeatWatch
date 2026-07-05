@@ -1284,6 +1284,42 @@ class UPortland(Banner):
     id = "uportland"; name = "University of Portland"
     example = "MTH 161"; host = "registration.up.edu"; term = "202701"
 
+class AuburnMontgomery(Banner):
+    id = "aum"; name = "Auburn University at Montgomery"
+    example = "CSCI 2000"; host = "ssb9.aum.edu"; term = "202701"
+
+class SUNYOswego(Banner):
+    id = "suny-oswego"; name = "SUNY Oswego"
+    example = "CSC 212"; host = "banner-prod.oswego.edu"; term = "202609"
+
+class SUNYBrockport(Banner):
+    id = "suny-brockport"; name = "SUNY Brockport"
+    example = "CSC 120"; host = "bannerprod.brockport.edu"; term = "202609"
+
+class SUNYCobleskill(Banner):
+    id = "suny-cobleskill"; name = "SUNY Cobleskill"
+    example = "MATH 111"; host = "bannerprod.cobleskill.edu"; term = "202609"
+
+class SUNYCortland(Banner):
+    id = "suny-cortland"; name = "SUNY Cortland"
+    example = "CAP 100"; host = "banner.cortland.edu"; term = "202690"
+
+class SUNYNewPaltz(Banner):
+    id = "suny-newpaltz"; name = "SUNY New Paltz"
+    example = "CPS 210"; host = "banner.newpaltz.edu"; term = "202609"
+
+class MissouriWestern(Banner):
+    id = "missouriwestern"; name = "Missouri Western State University"
+    example = "CSC 450"; host = "reg-prod.ec.missouriwestern.edu"; term = "202710"
+
+class WestfieldState(Banner):
+    id = "westfield"; name = "Westfield State University"
+    example = "MATH 0108"; host = "myssb.westfield.ma.edu"; term = "202690"
+
+class EasternIllinois(Banner):
+    id = "eiu"; name = "Eastern Illinois University"
+    example = "CSM 1000"; host = "banner.eiu.edu"; term = "202690"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -1336,7 +1372,10 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              NJIT(), Lehigh(), TexasSouthern(),
                              SUNYMaritime(), Providence(), Samford(), Belmont(),
                              DetroitMercy(), Kettering(), Andrews(), JohnCarroll(),
-                             Otterbein(), StEdwards(), UPortland()]}
+                             Otterbein(), StEdwards(), UPortland(),
+                             AuburnMontgomery(), SUNYOswego(), SUNYBrockport(),
+                             SUNYCobleskill(), SUNYCortland(), SUNYNewPaltz(),
+                             MissouriWestern(), WestfieldState(), EasternIllinois()]}
 
 
 def refresh_all_terms(log=None):
