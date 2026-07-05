@@ -1320,6 +1320,42 @@ class EasternIllinois(Banner):
     id = "eiu"; name = "Eastern Illinois University"
     example = "CSM 1000"; host = "banner.eiu.edu"; term = "202690"
 
+class SUNYBroome(Banner):
+    id = "suny-broome"; name = "SUNY Broome Community College"
+    example = "CST 117"; host = "banner.sunybroome.edu"; term = "202630"
+
+class DutchessCC(Banner):
+    id = "suny-dutchess"; name = "SUNY Dutchess Community College"
+    example = "CIS 111"; host = "banner.sunydutchess.edu"; term = "202609"
+
+class JeffersonCC(Banner):
+    id = "suny-jefferson"; name = "SUNY Jefferson Community College"
+    example = "CIS 110"; host = "banner.sunyjefferson.edu"; term = "202608"
+
+class AdirondackCC(Banner):
+    id = "suny-adirondack"; name = "SUNY Adirondack"
+    example = "CIS 125"; host = "banner.sunyacc.edu"; term = "202610"
+
+class GeneseeCC(Banner):
+    id = "genesee-cc"; name = "Genesee Community College"
+    example = "CIS 117"; host = "bannerprod.genesee.edu"; term = "202609"
+
+class UlsterCC(Banner):
+    id = "suny-ulster"; name = "SUNY Ulster County Community College"
+    example = "CSC 131"; host = "banner.sunyulster.edu"; term = "202608"
+
+class CorningCC(Banner):
+    id = "corning-cc"; name = "Corning Community College"
+    example = "MATH 1310"; host = "banner.corning-cc.edu"; term = "202710"
+
+class Concord(Banner):
+    id = "concord"; name = "Concord University"
+    example = "CS 272"; host = "ssb.concord.edu"; term = "202701"
+
+class RaritanValley(Banner):
+    id = "raritan"; name = "Raritan Valley Community College"
+    example = "COMP 102"; host = "reg-prod.ec.raritanval.edu"; term = "202710"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -1375,7 +1411,10 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              Otterbein(), StEdwards(), UPortland(),
                              AuburnMontgomery(), SUNYOswego(), SUNYBrockport(),
                              SUNYCobleskill(), SUNYCortland(), SUNYNewPaltz(),
-                             MissouriWestern(), WestfieldState(), EasternIllinois()]}
+                             MissouriWestern(), WestfieldState(), EasternIllinois(),
+                             SUNYBroome(), DutchessCC(), JeffersonCC(), AdirondackCC(),
+                             GeneseeCC(), UlsterCC(), CorningCC(), Concord(),
+                             RaritanValley()]}
 
 
 def refresh_all_terms(log=None):
