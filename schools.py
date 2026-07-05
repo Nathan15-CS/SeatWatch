@@ -1356,10 +1356,6 @@ class RaritanValley(Banner):
     id = "raritan"; name = "Raritan Valley Community College"
     example = "COMP 102"; host = "reg-prod.ec.raritanval.edu"; term = "202710"
 
-class Drake(Banner):
-    id = "drake"; name = "Drake University"
-    example = "CS 065"; host = "registrationssb.drake.edu"; term = "202710"
-
 class IllinoisWesleyan(Banner):
     id = "iwu"; name = "Illinois Wesleyan University"
     example = "CS 170"; host = "reg-prod.ec.iwu.edu"; term = "202610"
@@ -1380,6 +1376,8 @@ class IncarnateWord(Banner):
 # courses). Status-only (seats=None), open = enrollmentStatus=="Open". Fixed the stale
 # section-field name ('number' -> 'section') that had left it returning 0 sections.
 # Loyola Marymount (bannerxe.lmu.edu) tested but CUT — host times out repeatedly.
+# Drake (registrationssb.drake.edu) tested but CUT — every fetch takes ~137s (host
+# throttles or cold-starts per session); would stall a poller worker each cycle.
 # Drexel(): class works (base_path="registration"), but the only published 2026 term
 # is the medicine/professional SEMESTER calendar — no undergrad quarter (CS) courses
 # yet. PARKED until Drexel's quarter terms publish; re-add to the list to enable.
@@ -1430,7 +1428,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              MissouriWestern(), WestfieldState(), EasternIllinois(),
                              SUNYBroome(), DutchessCC(), JeffersonCC(), AdirondackCC(),
                              GeneseeCC(), UlsterCC(), CorningCC(), Concord(),
-                             RaritanValley(), Drake(), IllinoisWesleyan(),
+                             RaritanValley(), IllinoisWesleyan(),
                              Canisius(), IncarnateWord()]}
 
 
