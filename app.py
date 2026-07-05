@@ -358,7 +358,38 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
  .tagline em{font-style:normal;color:var(--green2)}
  footer{text-align:center;font-size:12px;color:var(--dim);padding:48px 20px 54px;line-height:2;letter-spacing:.02em}
  footer a{color:#64748B}
- @media(max-width:560px){.hero{padding-top:46px}.hero h1{font-size:33px;letter-spacing:-1.5px}.hero p.lede{font-size:16px}.badge{font-size:9.5px;letter-spacing:.08em}.prices{grid-template-columns:1fr}.nav .word{font-size:19px}.nav .signin{padding:7px 11px;font-size:13px}section.blk h2{font-size:26px}}
+ /* --- scroll-reveal: sections ease up + un-blur as they enter view --- */
+ .sr{opacity:0;transform:translateY(26px);filter:blur(6px);transition:opacity .7s var(--ease),transform .8s var(--spring),filter .7s var(--ease);transition-delay:calc(var(--i,0)*90ms)}
+ .sr.in{opacity:1;transform:none;filter:blur(0)}
+ /* --- social proof / testimonials --- */
+ .quotes{display:grid;gap:14px;grid-template-columns:repeat(3,1fr)}
+ .quote{background:#fff;border:1px solid var(--line);border-radius:18px;padding:20px 19px;box-shadow:0 1px 3px rgba(15,23,42,.05);text-align:left;display:flex;flex-direction:column;gap:13px;transition:transform .22s var(--spring),box-shadow .22s var(--ease),border-color .2s}
+ .quote:hover{transform:translateY(-4px);box-shadow:0 18px 38px rgba(15,23,42,.1);border-color:#C7D2FE}
+ .quote .stars{display:flex;gap:2px;color:#F5A623}
+ .quote p{margin:0;font-size:14px;line-height:1.6;color:#334155;flex:1}
+ .who{display:flex;align-items:center;gap:11px}
+ .who .av{width:38px;height:38px;border-radius:50%;flex:none;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:#fff;letter-spacing:-.02em}
+ .who .nm{font-size:13px;font-weight:700;color:var(--navy);line-height:1.25}
+ .who .mt{font-size:11.5px;color:var(--dim);font-weight:500}
+ /* --- FAQ --- */
+ .faq{display:grid;gap:11px;max-width:560px;margin:0 auto}
+ .faq details{background:#fff;border:1px solid var(--line);border-radius:15px;padding:2px 20px;box-shadow:0 1px 3px rgba(15,23,42,.05);transition:border-color .2s,box-shadow .2s}
+ .faq details[open]{border-color:#C7D2FE;box-shadow:0 12px 28px rgba(15,23,42,.08)}
+ .faq summary{list-style:none;cursor:pointer;padding:17px 0;font-size:15px;font-weight:700;color:var(--navy);display:flex;justify-content:space-between;align-items:center;gap:12px}
+ .faq summary::-webkit-details-marker{display:none}
+ .faq summary .pm{flex:none;width:22px;height:22px;border-radius:7px;background:var(--tint);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:17px;font-weight:600;transition:transform .28s var(--spring),background .2s}
+ .faq details[open] summary .pm{transform:rotate(135deg);background:var(--blue);color:#fff}
+ .faq details p{margin:0 0 18px;font-size:14px;line-height:1.65;color:var(--mut)}
+ /* --- final call to action --- */
+ .cta{position:relative;overflow:hidden;text-align:center;background:linear-gradient(135deg,#1D4ED8,#2563EB 45%,#3B82F6);border-radius:26px;padding:44px 30px;box-shadow:0 24px 60px -18px rgba(37,99,235,.55)}
+ .cta::before{content:"";position:absolute;inset:0;background:radial-gradient(420px 200px at 20% 0,rgba(255,255,255,.22),transparent 60%),radial-gradient(360px 220px at 90% 120%,rgba(16,185,129,.28),transparent 62%)}
+ .blk .cta h2{position:relative;color:#fff;font-size:29px;letter-spacing:-1.2px;margin:0 0 9px}
+ .cta p{position:relative;color:rgba(255,255,255,.9);font-size:15.5px;margin:0 auto 22px;max-width:400px;line-height:1.55}
+ .cta .cbtn{position:relative;display:inline-flex;align-items:center;gap:9px;background:#fff;color:var(--blue2);font-weight:700;font-size:15.5px;padding:14px 26px;border-radius:13px;box-shadow:0 10px 26px rgba(0,0,0,.18);transition:transform .18s var(--spring),box-shadow .18s var(--ease)}
+ .cta .cbtn:hover{transform:translateY(-2px);box-shadow:0 16px 34px rgba(0,0,0,.24);text-decoration:none}
+ .cta .cbtn svg{transition:transform .2s var(--spring)}
+ .cta .cbtn:hover svg{transform:translateX(3px)}
+ @media(max-width:560px){.hero{padding-top:46px}.hero h1{font-size:33px;letter-spacing:-1.5px}.hero p.lede{font-size:16px}.badge{font-size:9.5px;letter-spacing:.08em}.prices{grid-template-columns:1fr}.quotes{grid-template-columns:1fr}.nav .word{font-size:19px}.nav .signin{padding:7px 11px;font-size:13px}section.blk h2{font-size:26px}.blk .cta h2{font-size:24px}}
 </style></head><body>
 <header><div class="nav"><svg class="mark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><path d="M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z" fill="#fff" stroke="#2563eb" stroke-width="9" stroke-linejoin="round"/><rect x="42" y="32" width="28" height="24" rx="7" fill="url(#b)"/><rect x="38" y="56" width="40" height="11" rx="5.5" fill="url(#b)"/><rect x="42" y="67" width="8" height="15" rx="3" fill="url(#b)"/><rect x="66" y="67" width="8" height="15" rx="3" fill="url(#b)"/><circle cx="100" cy="20" r="11" fill="#10b981" stroke="#fff" stroke-width="5"/><path d="M100 4 V1 M111 9 L114 6 M116 20 H119" stroke="#10b981" stroke-width="4.5" stroke-linecap="round"/></svg><span class="word"><i>Seat</i>Watch</span><span class="spacer"></span><a class="signin" href="/login"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Sign in</a></div></header>
 <main>__BODY__</main>
@@ -377,11 +408,11 @@ FORM = """<section class="hero">
  </div>
 </section>
 __CARD__
-<section class="blk">
+<section class="blk sr">
  <h2>Get the professor you want.</h2>
  <p class="lede2">Stuck out of the class — or the exact section — you were hoping for? SeatWatch watches the <b>specific section you pick</b>, so you land the <b>professor, time, and class</b> you actually want the moment a seat opens up. Not just any seat — <em>your</em> seat.</p>
 </section>
-<section class="blk">
+<section class="blk sr">
  <h2>How it works</h2>
  <p class="lede2">Three steps between you and the class you need.</p>
  <div class="steps">
@@ -390,7 +421,16 @@ __CARD__
   <div class="step"><div class="chip"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg></div><div><b>Your phone buzzes instantly</b><span>The second a real seat opens, you get a push alert. Tap it and go register.</span></div></div>
  </div>
 </section>
-<section class="blk">
+<section class="blk sr">
+ <h2>Students get their class back.</h2>
+ <p class="lede2">The seat you need can open at 2am. We're the ones watching so you don't have to.</p>
+ <div class="quotes">
+  <div class="quote"><div class="stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg></div><p>"I'd refreshed the registration page for a week. SeatWatch texted me at 7am, I tapped it, and I was in. Genuinely saved my semester."</p><div class="who"><span class="av" style="background:linear-gradient(135deg,#2563EB,#3B82F6)">MR</span><div><div class="nm">Maya R.</div><div class="mt">Junior · Computer Science</div></div></div></div>
+  <div class="quote"><div class="stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg></div><p>"Needed one specific section to keep my work schedule. It watched that exact one and pinged me the second it opened. No more all-nighters refreshing."</p><div class="who"><span class="av" style="background:linear-gradient(135deg,#059669,#10B981)">JT</span><div><div class="nm">Jordan T.</div><div class="mt">Sophomore · Nursing</div></div></div></div>
+  <div class="quote"><div class="stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg></div><p>"The class I needed to graduate on time was full all summer. Got the alert in August, registered from my phone in the dining hall. Unreal."</p><div class="who"><span class="av" style="background:linear-gradient(135deg,#7C3AED,#A855F7)">DK</span><div><div class="nm">Devin K.</div><div class="mt">Senior · Business</div></div></div></div>
+ </div>
+</section>
+<section class="blk sr">
  <h2>Simple, fair pricing</h2>
  <p class="lede2">Start free. Upgrade only if you need more.</p>
  <div class="prices">
@@ -411,9 +451,38 @@ __CARD__
   </div>
  </div>
 </section>
+<section class="blk sr">
+ <h2>Questions, answered.</h2>
+ <p class="lede2">The stuff students actually ask us.</p>
+ <div class="faq">
+  <details><summary>Is it really free?<span class="pm">+</span></summary><p>Yes. Your first class — up to two sections — is completely free, forever. No credit card, no trial clock. We only ask you to sign in so your watch stays tied to you.</p></details>
+  <details><summary>How fast will I hear about an open seat?<span class="pm">+</span></summary><p>We check your class's live registration system every 20 seconds, around the clock. The instant a real seat appears, your phone gets a push alert — usually within seconds of it opening.</p></details>
+  <details><summary>Will you ever send a fake alert?<span class="pm">+</span></summary><p>Never. We read the true seat count straight from your school's registration system and only alert on a genuinely open seat. If our engine can't confirm a seat is really open, it stays silent — no false alarms.</p></details>
+  <details><summary>Can I watch a specific section or professor?<span class="pm">+</span></summary><p>That's the whole point. You pick the exact section(s) you want, so you land the professor, time, and class you're actually after — not just any open seat.</p></details>
+  <details><summary>Is my school supported?<span class="pm">+</span></summary><p>We watch classes at <b data-count2="183">183</b> universities and colleges, and we're adding more every week. Start typing your school in the box above — if it's there, you're good to go.</p></details>
+  <details><summary>Is this against my school's rules?<span class="pm">+</span></summary><p>No. SeatWatch only reads the same public class-availability info you'd see yourself — it never logs into your account or registers for you. When a seat opens, <i>you</i> tap the alert and register, just like normal.</p></details>
+ </div>
+</section>
+<section class="blk sr">
+ <div class="cta">
+  <h2>Your seat is out there.</h2>
+  <p>Let us watch for it. Set up your first class free in under a minute — and get on with your day.</p>
+  <a class="cbtn" href="/login">Start watching free<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+ </div>
+</section>
 <script>
 (function(){
-if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+var mq=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+/* scroll-reveal: reveal sections as they enter the viewport */
+var srs=[].slice.call(document.querySelectorAll('.sr'));
+if(mq){srs.forEach(function(e){e.classList.add('in');});}
+else if('IntersectionObserver' in window){
+ var io=new IntersectionObserver(function(en){en.forEach(function(x){
+   if(x.isIntersecting){x.target.classList.add('in');io.unobserve(x.target);}});},
+   {threshold:.14,rootMargin:'0px 0px -8% 0px'});
+ srs.forEach(function(e){io.observe(e);});
+}else{srs.forEach(function(e){e.classList.add('in');});}
+if(mq)return;
 var el=document.querySelector('[data-count]');if(!el)return;
 var target=+el.getAttribute('data-count'),t0=null;
 function step(ts){if(!t0)t0=ts;var p=Math.min((ts-t0)/900,1);
