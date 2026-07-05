@@ -1360,6 +1360,18 @@ class NassauCC(Banner):
     id = "nassau"; name = "Nassau Community College"
     example = "CSC 104"; host = "banner.ncc.edu"; term = "202710"
 
+class Walsh(Banner):
+    id = "walsh"; name = "Walsh University"
+    example = "CS 108"; host = "ssb9.walsh.edu"; term = "202701"
+
+class ConcordiaWI(Banner):
+    id = "concordia-wi"; name = "Concordia University Wisconsin"
+    example = "CSC 1010"; host = "ssb.cuw.edu"; term = "202710"
+
+class Curry(Banner):
+    id = "curry"; name = "Curry College"
+    example = "CS 3500"; host = "ssb.curry.edu"; term = "202609"
+
 class IllinoisWesleyan(Banner):
     id = "iwu"; name = "Illinois Wesleyan University"
     example = "CS 170"; host = "reg-prod.ec.iwu.edu"; term = "202610"
@@ -1432,8 +1444,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              MissouriWestern(), WestfieldState(), EasternIllinois(),
                              SUNYBroome(), DutchessCC(), JeffersonCC(), AdirondackCC(),
                              GeneseeCC(), UlsterCC(), CorningCC(), Concord(),
-                             RaritanValley(), NassauCC(), IllinoisWesleyan(),
-                             Canisius(), IncarnateWord()]}
+                             RaritanValley(), NassauCC(), Walsh(), ConcordiaWI(), Curry(),
+                             IllinoisWesleyan(), Canisius(), IncarnateWord()]}
 
 
 def refresh_all_terms(log=None):
