@@ -1469,6 +1469,147 @@ class IncarnateWord(Banner):
     example = "CIS 1100"; host = "reg-prod.ec.uiw.edu"; term = "202740"
 
 
+# ===========================================================================
+class PeopleSoft:
+    """Oracle PeopleSoft Campus Solutions 'Class Search and Enroll' fetcher.
+
+    Many schools (incl. big publics) run PeopleSoft, NOT Banner. PeopleSoft exposes a
+    PUBLIC guest class-search JSON API (no login) at an identical set of IScript endpoints
+    — only host + site + institution + term change, so each school is a ~4-line subclass.
+    We read the authoritative `enrl_stat` ('O'=Open ONLY) and the true
+    `enrollment_available` count. Wait List ('W') and Closed ('C') are NOT open, so we
+    NEVER fabricate an opening. On ANY failure returns {} (the engine treats {} as skip).
+
+    Subclass sets: id, name, example, host, site, inst, term (PeopleSoft 'strm' code).
+    """
+    _active_term = None
+    _SUBJ_RE = re.compile(r"^([A-Za-z]{2,5})\s*(\d{2,4}[A-Za-z]?)$")
+
+    def _norm(self, course):
+        m = self._SUBJ_RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        return (f"https://{self.host}/psp/{self.site}/EMPLOYEE/SA/s/"
+                "WEBLIB_HCX_CM.H_BROWSE_CLASSES.FieldFormula.IScript_Main")
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def _cs(self):
+        return (f"https://{self.host}/psc/{self.site}/EMPLOYEE/SA/s/"
+                "WEBLIB_HCX_CM.H_CLASS_SEARCH.FieldFormula")
+
+    def _session(self):
+        """Establish a guest session (no login) — the browse-classes page hands out the
+        cookies the class-search IScript needs."""
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", UA), ("Accept", "application/json")]
+        op.open(f"https://{self.host}/psp/{self.site}/EMPLOYEE/SA/s/"
+                "WEBLIB_HCX_CM.H_BROWSE_CLASSES.FieldFormula.IScript_Main", timeout=20).read()
+        return op
+
+    def resolve_term(self):
+        """Auto-detect the nearest UPCOMING main term's strm from the options endpoint;
+        None on failure. Anchored on the human 'Fall 2026'-style descr (strm codes aren't
+        portable across schools), so it self-maintains across semesters."""
+        try:
+            op = self._session()
+            d = json.loads(op.open(self._cs() + ".IScript_ClassSearchOptions?institution="
+                                   + self.inst, timeout=20).read().decode("utf-8", "replace"))
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for t in d.get("terms", []):
+                m = re.search(r"(spring|summer|fall|autumn|winter)\D{0,6}(20\d\d)",
+                              (t.get("descr") or ""), re.I)
+                if not m:
+                    continue
+                season = m.group(1).lower()
+                mon = _SEASON.get(season if season != "autumn" else "fall", 8)
+                delta = (int(m.group(2)) - today.year) * 12 + (mon - today.month)
+                if delta < -1:                          # skip clearly-past terms
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, t.get("strm")
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        """Adopt a newly-detected term ONLY after verifying it returns live data; else keep
+        last-known-good. Self-maintaining across semesters WITHOUT risking accuracy."""
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example)) if getattr(self, "example", "") else False
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        """One structured search per course (exact subject+catalog). Keyed by input string.
+        Sections keyed by class_section; if a course has duplicate section ids (collapse
+        risk) we skip it rather than merge — accuracy over coverage."""
+        try:
+            op = self._session()
+        except Exception:
+            return {}
+        out = {}
+        for course in courses:
+            subj, cat = self._norm(course)
+            if not subj:
+                continue
+            try:
+                rows, page = [], 1
+                while page <= 6:
+                    u = self._cs() + ".IScript_ClassSearch?" + urllib.parse.urlencode(
+                        {"institution": self.inst, "term": self.cur_term(),
+                         "subject": subj, "catalog_nbr": cat, "page": str(page)})
+                    d = json.loads(op.open(u, timeout=30).read().decode("utf-8", "replace"))
+                    rows += d.get("classes") or []
+                    if page >= int(d.get("pageCount") or 1):
+                        break
+                    page += 1
+            except Exception:
+                continue
+            secs, dup = {}, False
+            for r in rows:
+                if (r.get("subject") or "").upper() != subj:            # exact course only
+                    continue
+                if str(r.get("catalog_nbr") or "").upper() != cat:
+                    continue
+                try:
+                    av = int(r.get("enrollment_available"))             # true count; no count -> skip
+                except (TypeError, ValueError):
+                    continue
+                sec = str(r.get("class_section"))
+                if sec in secs:                                         # duplicate id -> collapse
+                    dup = True
+                    break
+                # open ONLY when PeopleSoft says 'O' (Open). 'W'/'C' => not open, never false-alert.
+                secs[sec] = {"open": r.get("enrl_stat") == "O", "seats": max(av, 0)}
+            if dup or not secs:
+                continue
+            out[course] = secs
+        return out
+
+
+class Towson(PeopleSoft):
+    id = "towson"; name = "Towson University"
+    example = "COSC 236"; host = "tuclasssearch.towson.edu"; site = "CS9PRD"
+    inst = "TOWSN"; term = "1264"      # Fall 2026 (auto-refreshes via ClassSearchOptions)
+
+
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
 # (1 call/watched-course/cycle) it's rock-stable: verified 10/10 identical section
@@ -1535,15 +1676,16 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              NortheastMississippi(), Itawamba(), MississippiDelta(),
                              LindseyWilson(), BartonCC(), Centenary(), Catawba(),
                              Walsh(), ConcordiaWI(), Curry(),
-                             IllinoisWesleyan(), Canisius(), IncarnateWord()]}
+                             IllinoisWesleyan(), Canisius(), IncarnateWord(),
+                             Towson()]}
 
 
 def refresh_all_terms(log=None):
-    """Self-maintenance: let every Banner school auto-roll to the new semester's term.
-    Safe — each school verifies live data before adopting, else keeps last-known-good.
-    Call this periodically (e.g. daily) from the app."""
+    """Self-maintenance: let every Banner AND PeopleSoft school auto-roll to the new
+    semester's term. Safe — each school verifies live data before adopting, else keeps
+    last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, Banner):
+        if isinstance(s, (Banner, PeopleSoft)):
             try:
                 s.refresh_term(log)
             except Exception:
