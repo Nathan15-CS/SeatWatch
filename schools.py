@@ -1653,6 +1653,16 @@ class UVA(PeopleSoft):
     example = "CS 1110"; host = "sisuva.admin.virginia.edu"; site = "ihprd"
     node = "UVSS"; inst = "UVA01"; term = "1268"       # Fall 2026
 
+class USM(PeopleSoft):
+    id = "usm"; name = "University of Southern Mississippi"
+    example = "CSC 101"; host = "soar.usm.edu"; site = "guest_1"
+    inst = "USM01"; term = "4271"                       # Fall 2026
+
+class Palomar(PeopleSoft):
+    id = "palomar"; name = "Palomar College"
+    example = "CS 101"; host = "my.palomar.edu"; site = "palc9prd"
+    inst = "PALCC"; term = "2267"                       # Fall 2026
+
 
 class CtcLink(PeopleSoft):
     """Washington State ctcLink: ONE PeopleSoft host (csprd.ctclink.us) serves 30+
@@ -1770,7 +1780,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              IllinoisWesleyan(), Canisius(), IncarnateWord(),
                              ConcordiaTX(), TAMUSanAntonio(), TAMUCentralTexas(), UDallas(),
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
-                             Towson(), UVA()] + [CtcLink(*t) for t in _CTCLINK]}
+                             Towson(), UVA(), USM(), Palomar()]
+                            + [CtcLink(*t) for t in _CTCLINK]}
 
 
 def refresh_all_terms(log=None):
