@@ -1959,6 +1959,10 @@ class McLennan(Colleague):
     id = "mclennan"; name = "McLennan Community College"
     example = "MATH 0308"; host = "selfservice.mclennan.edu"
 
+class Roanoke(Colleague):
+    id = "roanoke"; name = "Roanoke College"
+    example = "MATH 111"; host = "selfservice.roanoke.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2037,7 +2041,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC(),
                              TarrantCounty(), Allegheny(), Macomb(), MidMichigan(),
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
-                             EasternIowaCC(), McLennan()]
+                             EasternIowaCC(), McLennan(), Roanoke()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
