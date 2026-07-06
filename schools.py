@@ -1368,6 +1368,58 @@ class Wentworth(Banner):
     id = "wit"; name = "Wentworth Institute of Technology"
     example = "COMP 1000"; host = "selfservice.wit.edu"; term = "202710"
 
+class Pellissippi(Banner):
+    id = "pstcc"; name = "Pellissippi State Community College"
+    example = "MATH 0030"; host = "ssbprod.pstcc.edu"; term = "202680"
+
+class VolunteerState(Banner):
+    id = "volstate"; name = "Volunteer State Community College"
+    example = "MATH 1010"; host = "ssb.volstate.edu"; term = "202680"
+
+class JacksonStateTN(Banner):
+    id = "jscctn"; name = "Jackson State Community College (TN)"
+    example = "MATH 0530"; host = "ssbprod.jscc.edu"; term = "202680"
+
+class ColumbiaState(Banner):
+    id = "columbiastate"; name = "Columbia State Community College"
+    example = "COP 201"; host = "ssb.columbiastate.edu"; term = "202680"
+
+class NortheastState(Banner):
+    id = "northeaststate"; name = "Northeast State Community College"
+    example = "MATH 1530"; host = "ssb.northeaststate.edu"; term = "202680"
+
+class PiedmontTech(Banner):
+    id = "piedmonttech"; name = "Piedmont Technical College"
+    example = "MAT 120"; host = "banner.ptc.edu"; term = "202610"
+
+class NortheastMississippi(Banner):
+    id = "nemcc"; name = "Northeast Mississippi Community College"
+    example = "CSC 1123"; host = "reg-prod.ec.nemcc.edu"; term = "202720"
+
+class Itawamba(Banner):
+    id = "iccms"; name = "Itawamba Community College"
+    example = "CSC 1113"; host = "ssb9.iccms.edu"; term = "202710"
+
+class MississippiDelta(Banner):
+    id = "msdelta"; name = "Mississippi Delta Community College"
+    example = "CSC 1123"; host = "selfservice.msdelta.edu"; term = "202710"
+
+class LindseyWilson(Banner):
+    id = "lindsey"; name = "Lindsey Wilson College"
+    example = "MATH 1003"; host = "banner.lindsey.edu"; term = "202701"
+
+class BartonCC(Banner):
+    id = "bartoncc"; name = "Barton Community College"
+    example = "MATH 1824"; host = "reg-prod.ec.bartonccc.edu"; term = "202701"
+
+class Centenary(Banner):
+    id = "centenary"; name = "Centenary College of Louisiana"
+    example = "CSC 207"; host = "bannerweb.centenary.edu"; term = "202710"
+
+class Catawba(Banner):
+    id = "catawba"; name = "Catawba College"
+    example = "CIS 2501"; host = "reg-prod.ec.catawba.edu"; term = "202710"
+
 class EasternFlorida(Banner):
     id = "efsc"; name = "Eastern Florida State College"
     example = "CIS 2381"; host = "bannerweb.easternflorida.edu"; term = "202640"
@@ -1478,7 +1530,11 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              GeneseeCC(), UlsterCC(), CorningCC(), Concord(),
                              RaritanValley(), NassauCC(), MichiganFlint(), Harding(),
                              Spelman(), Ramapo(), Wentworth(), EasternFlorida(), Oakton(),
-                             Washtenaw(), Walsh(), ConcordiaWI(), Curry(),
+                             Washtenaw(), Pellissippi(), VolunteerState(), JacksonStateTN(),
+                             ColumbiaState(), NortheastState(), PiedmontTech(),
+                             NortheastMississippi(), Itawamba(), MississippiDelta(),
+                             LindseyWilson(), BartonCC(), Centenary(), Catawba(),
+                             Walsh(), ConcordiaWI(), Curry(),
                              IllinoisWesleyan(), Canisius(), IncarnateWord()]}
 
 
