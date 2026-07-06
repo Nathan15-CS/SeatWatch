@@ -1847,6 +1847,14 @@ class SalveRegina(Colleague):
     id = "salve"; name = "Salve Regina University"
     example = "ENG 329"; host = "selfservice.salve.edu"
 
+class Cornerstone(Colleague):
+    id = "cornerstone"; name = "Cornerstone University"
+    example = "EGR 226"; host = "selfservice.cornerstone.edu"
+
+class NorthPark(Colleague):
+    id = "northpark"; name = "North Park University"
+    example = "MATH 1150"; host = "selfservice.northpark.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -1919,7 +1927,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
                              Towson(), UVA(), USM(), Palomar(),
                              LoyolaNO(), UnionNY(), ManchesterU(), Whitman(), Linfield(),
-                             FranklinU(), Ursinus(), SalveRegina()]
+                             FranklinU(), Ursinus(), SalveRegina(), Cornerstone(), NorthPark()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
