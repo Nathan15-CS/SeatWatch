@@ -1432,6 +1432,38 @@ class Washtenaw(Banner):
     id = "washtenaw"; name = "Washtenaw Community College"
     example = "CIS 110"; host = "banner.wccnet.edu"; term = "202609"
 
+class ConcordiaTX(Banner):
+    id = "concordia-tx"; name = "Concordia University Texas"
+    example = "CSC 1401"; host = "banssb.concordia.edu"; term = "202710"
+
+class TAMUSanAntonio(Banner):
+    id = "tamusa"; name = "Texas A&M University–San Antonio"
+    example = "CSCI 1436"; host = "banner.tamusa.edu"; term = "202710"
+
+class TAMUCentralTexas(Banner):
+    id = "tamuct"; name = "Texas A&M University–Central Texas"
+    example = "COSC 4301"; host = "reg-prod.ec.tamuct.edu"; term = "202608"
+
+class UDallas(Banner):
+    id = "udallas"; name = "University of Dallas"
+    example = "MAT 2305"; host = "reg-prod.ec.udallas.edu"; term = "202670"
+
+class Immaculata(Banner):
+    id = "immaculata"; name = "Immaculata University"
+    example = "CIS 218"; host = "reg-prod.ec.immaculata.edu"; term = "202690"
+
+class RoseHulman(Banner):
+    id = "rosehulman"; name = "Rose-Hulman Institute of Technology"
+    example = "CSSE 494"; host = "bannerweb.rose-hulman.edu"; term = "202710"
+
+class Earlham(Banner):
+    id = "earlham"; name = "Earlham College"
+    example = "CS 266"; host = "ssb.earlham.edu"; term = "202710"
+
+class EmporiaState(Banner):
+    id = "emporia"; name = "Emporia State University"
+    example = "CS 360"; host = "bannerssb.emporia.edu"; term = "202650"
+
 class Harding(Banner):
     id = "harding"; name = "Harding University"
     example = "COSC 2010"; host = "ssb.harding.edu"; term = "202690"
@@ -1677,6 +1709,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              LindseyWilson(), BartonCC(), Centenary(), Catawba(),
                              Walsh(), ConcordiaWI(), Curry(),
                              IllinoisWesleyan(), Canisius(), IncarnateWord(),
+                             ConcordiaTX(), TAMUSanAntonio(), TAMUCentralTexas(), UDallas(),
+                             Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
                              Towson()]}
 
 
