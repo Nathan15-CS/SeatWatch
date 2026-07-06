@@ -1364,6 +1364,18 @@ class MichiganFlint(Banner):
     id = "umflint"; name = "University of Michigan–Flint"
     example = "CSC 137"; host = "ssb.umflint.edu"; term = "202710"
 
+class Harding(Banner):
+    id = "harding"; name = "Harding University"
+    example = "COSC 2010"; host = "ssb.harding.edu"; term = "202690"
+
+class Spelman(Banner):
+    id = "spelman"; name = "Spelman College"
+    example = "HCSC 435"; host = "reg-prod.ec.spelman.edu"; term = "202609"
+
+class Ramapo(Banner):
+    id = "ramapo"; name = "Ramapo College of New Jersey"
+    example = "CMPS 147"; host = "myssb.ramapo.edu"; term = "202640"
+
 class Walsh(Banner):
     id = "walsh"; name = "Walsh University"
     example = "CS 108"; host = "ssb9.walsh.edu"; term = "202701"
@@ -1448,8 +1460,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              MissouriWestern(), WestfieldState(), EasternIllinois(),
                              SUNYBroome(), DutchessCC(), JeffersonCC(), AdirondackCC(),
                              GeneseeCC(), UlsterCC(), CorningCC(), Concord(),
-                             RaritanValley(), NassauCC(), MichiganFlint(), Walsh(),
-                             ConcordiaWI(), Curry(),
+                             RaritanValley(), NassauCC(), MichiganFlint(), Harding(),
+                             Spelman(), Ramapo(), Walsh(), ConcordiaWI(), Curry(),
                              IllinoisWesleyan(), Canisius(), IncarnateWord()]}
 
 
