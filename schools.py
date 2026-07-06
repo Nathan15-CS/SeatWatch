@@ -1855,6 +1855,42 @@ class NorthPark(Colleague):
     id = "northpark"; name = "North Park University"
     example = "MATH 1150"; host = "selfservice.northpark.edu"
 
+class Gannon(Colleague):
+    id = "gannon"; name = "Gannon University"
+    example = "MATH 115"; host = "selfservice.gannon.edu"
+
+class Mercyhurst(Colleague):
+    id = "mercyhurst"; name = "Mercyhurst University"
+    example = "COMP 120"; host = "selfservice.mercyhurst.edu"
+
+class SaintVincent(Colleague):
+    id = "stvincent"; name = "Saint Vincent College"
+    example = "CS 312"; host = "selfservice.stvincent.edu"
+
+class Maryville(Colleague):
+    id = "maryville-mo"; name = "Maryville University"
+    example = "COMP 101"; host = "selfservice.maryville.edu"
+
+class AshevilleBuncombe(Colleague):
+    id = "abtech"; name = "Asheville-Buncombe Technical Community College"
+    example = "CSC 113"; host = "selfservice.abtech.edu"
+
+class DurhamTech(Colleague):
+    id = "durhamtech"; name = "Durham Technical Community College"
+    example = "CSC 121"; host = "selfservice.durhamtech.edu"
+
+class CravenCC(Colleague):
+    id = "cravencc"; name = "Craven Community College"
+    example = "CSC 113"; host = "selfservice.cravencc.edu"
+
+class KirkwoodCC(Colleague):
+    id = "kirkwood"; name = "Kirkwood Community College"
+    example = "ENG 108"; host = "selfservice.kirkwood.edu"
+
+class SoutheasternIA(Colleague):
+    id = "scc-iowa"; name = "Southeastern Community College (Iowa)"
+    example = "ENG 067"; host = "selfservice.scciowa.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -1927,7 +1963,10 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
                              Towson(), UVA(), USM(), Palomar(),
                              LoyolaNO(), UnionNY(), ManchesterU(), Whitman(), Linfield(),
-                             FranklinU(), Ursinus(), SalveRegina(), Cornerstone(), NorthPark()]
+                             FranklinU(), Ursinus(), SalveRegina(), Cornerstone(), NorthPark(),
+                             Gannon(), Mercyhurst(), SaintVincent(), Maryville(),
+                             AshevilleBuncombe(), DurhamTech(), CravenCC(), KirkwoodCC(),
+                             SoutheasternIA()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
