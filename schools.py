@@ -1711,6 +1711,131 @@ _CTCLINK = [
 ]
 
 
+# ===========================================================================
+class Colleague:
+    """Ellucian Colleague Self-Service — Ellucian's OTHER SIS (many schools run it
+    instead of Banner). PUBLIC course-catalog JSON API (no login): GET /Student/Courses
+    for an antiforgery token, POST /PostSearchCriteria (keyword) for the course + its
+    MatchingSectionIds, POST /Sections for section availability. We read the authoritative
+    `AvailabilityStatus` ('Open' ONLY) + true `Available` count, and ONLY when
+    `AreSeatCountsAvailable` is set — Waitlisted/Closed/unknown are never 'open', so we
+    never false-alert. {} on any failure. Self-maintaining term (nearest upcoming Fall/
+    Spring from ActivePlanTerms). Subclass sets: id, name, example, host."""
+    _SUBJ_RE = re.compile(r"^([A-Za-z]{2,5})[ \-]?([A-Za-z]?\d{2,4}[A-Za-z]?)$")
+
+    def _norm(self, course):
+        m = self._SUBJ_RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        return f"https://{self.host}/Student/Courses"
+
+    def _session(self):
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", UA)]
+        body = op.open(f"https://{self.host}/Student/Courses", timeout=20).read().decode("utf-8", "replace")
+        m = re.search(r'name="__RequestVerificationToken"[^>]*value="([^"]+)"', body)
+        return op, (m.group(1) if m else None)
+
+    def _post(self, op, tok, path, payload):
+        req = urllib.request.Request(f"https://{self.host}{path}", data=json.dumps(payload).encode())
+        req.add_header("Content-Type", "application/json")
+        req.add_header("X-Requested-With", "XMLHttpRequest")
+        if tok:
+            req.add_header("__RequestVerificationToken", tok)
+        return json.loads(op.open(req, timeout=25).read().decode("utf-8", "replace"))
+
+    def _pick_term(self, terms):
+        """Nearest upcoming main term Description (e.g. 'Fall 2026') from ActivePlanTerms."""
+        today = datetime.date.today()
+        best, best_delta = None, None
+        for t in terms:
+            desc = (t.get("Description") or "")
+            m = re.search(r"(spring|summer|fall|autumn|winter)\D{0,4}(20\d\d)", desc, re.I)
+            if not m:
+                continue
+            season = m.group(1).lower()
+            mon = _SEASON.get(season if season != "autumn" else "fall", 8)
+            delta = (int(m.group(2)) - today.year) * 12 + (mon - today.month)
+            if delta < -1:
+                continue
+            if best_delta is None or delta < best_delta:
+                best_delta, best = delta, desc
+        return best
+
+    def fetch(self, courses):
+        try:
+            op, tok = self._session()
+        except Exception:
+            return {}
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            try:
+                d = self._post(op, tok, "/Student/Courses/PostSearchCriteria", {"Keyword": f"{subj} {num}"})
+                term = self._pick_term(d.get("ActivePlanTerms") or [])
+                if not term:
+                    continue
+                match = None
+                for c in d.get("CourseFullModels") or []:
+                    if (c.get("SubjectCode") or "").upper() == subj and (c.get("Number") or "").upper() == num:
+                        match = c
+                        break
+                if not match or not match.get("MatchingSectionIds"):
+                    continue
+                sd = self._post(op, tok, "/Student/Courses/Sections",
+                                {"sectionIds": match["MatchingSectionIds"], "courseId": match["Id"]})
+                secs = {}
+                for tm in (sd.get("SectionsRetrieved") or {}).get("TermsAndSections") or []:
+                    if term.lower() not in ((tm.get("Term") or {}).get("Description") or "").lower():
+                        continue
+                    for wrap in tm.get("Sections") or []:
+                        s = wrap.get("Section") or wrap
+                        if not s.get("AreSeatCountsAvailable"):      # counts not published -> skip
+                            continue
+                        try:
+                            av = int(s.get("Available"))            # true count; no count -> skip
+                        except (TypeError, ValueError):
+                            continue
+                        key = str(s.get("Number") or s.get("SectionNameDisplay"))
+                        if key in secs:                             # collapse guard
+                            continue
+                        # open ONLY when Colleague says 'Open'; Waitlisted/Closed => not open
+                        secs[key] = {"open": s.get("AvailabilityStatus") == "Open", "seats": max(av, 0)}
+                if secs:
+                    out[course] = secs
+            except Exception:
+                continue
+        return out
+
+
+class LoyolaNO(Colleague):
+    id = "loyno"; name = "Loyola University New Orleans"
+    example = "COSC A211"; host = "loyno-ss.colleague.elluciancloud.com"
+
+class UnionNY(Colleague):
+    id = "union-ny"; name = "Union College (NY)"
+    example = "CEE 301"; host = "selfservice.union.edu"
+
+class ManchesterU(Colleague):
+    id = "manchester"; name = "Manchester University"
+    example = "INTD 130"; host = "mu-ss.colleague.elluciancloud.com"
+
+class Whitman(Colleague):
+    id = "whitman"; name = "Whitman College"
+    example = "BIOL 250"; host = "selfservice.whitman.edu"
+
+class Linfield(Colleague):
+    id = "linfield"; name = "Linfield University"
+    example = "COMP 262L"; host = "selfservice.linfield.edu"
+
+
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
 # (1 call/watched-course/cycle) it's rock-stable: verified 10/10 identical section
@@ -1780,7 +1905,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              IllinoisWesleyan(), Canisius(), IncarnateWord(),
                              ConcordiaTX(), TAMUSanAntonio(), TAMUCentralTexas(), UDallas(),
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
-                             Towson(), UVA(), USM(), Palomar()]
+                             Towson(), UVA(), USM(), Palomar(),
+                             LoyolaNO(), UnionNY(), ManchesterU(), Whitman(), Linfield()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
