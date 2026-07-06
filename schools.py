@@ -1927,6 +1927,38 @@ class Allegheny(Colleague):
     id = "ccac"; name = "Community College of Allegheny County"
     example = "MAT 106"; host = "selfservice.ccac.edu"
 
+class Macomb(Colleague):
+    id = "macomb"; name = "Macomb Community College"
+    example = "MATH 1050"; host = "selfservice.macomb.edu"
+
+class MidMichigan(Colleague):
+    id = "midmich"; name = "Mid Michigan College"
+    example = "MAT 104"; host = "selfservice.midmich.edu"
+
+class GuilfordTech(Colleague):
+    id = "gtcc"; name = "Guilford Technical Community College"
+    example = "BUS 121"; host = "selfservice.gtcc.edu"
+
+class StanlyCC(Colleague):
+    id = "stanly"; name = "Stanly Community College"
+    example = "MAT 045P"; host = "selfservice.stanly.edu"
+
+class HaywoodCC(Colleague):
+    id = "haywood"; name = "Haywood Community College"
+    example = "MAT 025"; host = "selfservice.haywood.edu"
+
+class Cedarville(Colleague):
+    id = "cedarville"; name = "Cedarville University"
+    example = "MATH 2740"; host = "selfservice.cedarville.edu"
+
+class EasternIowaCC(Colleague):
+    id = "eicc"; name = "Eastern Iowa Community Colleges"
+    example = "HSC 137"; host = "selfservice.eicc.edu"
+
+class McLennan(Colleague):
+    id = "mclennan"; name = "McLennan Community College"
+    example = "MATH 0308"; host = "selfservice.mclennan.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2003,7 +2035,9 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              Gannon(), Mercyhurst(), SaintVincent(), Maryville(),
                              AshevilleBuncombe(), DurhamTech(), CravenCC(), KirkwoodCC(),
                              SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC(),
-                             TarrantCounty(), Allegheny()]
+                             TarrantCounty(), Allegheny(), Macomb(), MidMichigan(),
+                             GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
+                             EasternIowaCC(), McLennan()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
