@@ -1756,15 +1756,22 @@ class Colleague:
         full-semester main term, not an 8-week/branch/sub-session variant. This avoids
         only covering a branch campus's sections."""
         today = datetime.date.today()
+        seasons = ("spring", "summer", "fall", "autumn", "winter")
         best, best_key = None, None
         for t in terms:
             desc = (t.get("Description") or "")
-            m = re.search(r"(spring|summer|fall|autumn|winter)\D{0,4}(20\d\d)", desc, re.I)
+            # handle BOTH 'Fall 2026' and '2026 Fall', and longer gaps ('Fall Semester 2026')
+            m = (re.search(r"(spring|summer|fall|autumn|winter)\D{0,12}(20\d\d)", desc, re.I) or
+                 re.search(r"(20\d\d)\D{0,12}(spring|summer|fall|autumn|winter)", desc, re.I))
             if not m:
                 continue
-            season = m.group(1).lower()
+            g = m.groups()
+            if g[0].lower() in seasons:
+                season, year = g[0].lower(), int(g[1])
+            else:
+                season, year = g[1].lower(), int(g[0])
             mon = _SEASON.get(season if season != "autumn" else "fall", 8)
-            delta = (int(m.group(2)) - today.year) * 12 + (mon - today.month)
+            delta = (year - today.year) * 12 + (mon - today.month)
             if delta < -1:
                 continue
             key = (delta, len(desc))            # nearest term; tie -> shortest (=main) desc
@@ -1912,6 +1919,14 @@ class BladenCC(Colleague):
     id = "bladencc"; name = "Bladen Community College"
     example = "CSC 118"; host = "selfservice.bladencc.edu"
 
+class TarrantCounty(Colleague):
+    id = "tccd"; name = "Tarrant County College"
+    example = "MATH 0190"; host = "selfservice.tccd.edu"
+
+class Allegheny(Colleague):
+    id = "ccac"; name = "Community College of Allegheny County"
+    example = "MAT 106"; host = "selfservice.ccac.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -1987,7 +2002,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              FranklinU(), Ursinus(), SalveRegina(), Cornerstone(), NorthPark(),
                              Gannon(), Mercyhurst(), SaintVincent(), Maryville(),
                              AshevilleBuncombe(), DurhamTech(), CravenCC(), KirkwoodCC(),
-                             SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC()]
+                             SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC(),
+                             TarrantCounty(), Allegheny()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
