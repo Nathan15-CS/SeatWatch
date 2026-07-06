@@ -1835,6 +1835,18 @@ class Linfield(Colleague):
     id = "linfield"; name = "Linfield University"
     example = "COMP 262L"; host = "selfservice.linfield.edu"
 
+class FranklinU(Colleague):
+    id = "franklin-oh"; name = "Franklin University"
+    example = "COMP 294"; host = "selfservice.franklin.edu"
+
+class Ursinus(Colleague):
+    id = "ursinus"; name = "Ursinus College"
+    example = "GER 201"; host = "selfservice.ursinus.edu"
+
+class SalveRegina(Colleague):
+    id = "salve"; name = "Salve Regina University"
+    example = "ENG 329"; host = "selfservice.salve.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -1906,7 +1918,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              ConcordiaTX(), TAMUSanAntonio(), TAMUCentralTexas(), UDallas(),
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
                              Towson(), UVA(), USM(), Palomar(),
-                             LoyolaNO(), UnionNY(), ManchesterU(), Whitman(), Linfield()]
+                             LoyolaNO(), UnionNY(), ManchesterU(), Whitman(), Linfield(),
+                             FranklinU(), Ursinus(), SalveRegina()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
