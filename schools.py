@@ -1360,6 +1360,10 @@ class NassauCC(Banner):
     id = "nassau"; name = "Nassau Community College"
     example = "CSC 104"; host = "banner.ncc.edu"; term = "202710"
 
+class MichiganFlint(Banner):
+    id = "umflint"; name = "University of Michigan–Flint"
+    example = "CSC 137"; host = "ssb.umflint.edu"; term = "202710"
+
 class Walsh(Banner):
     id = "walsh"; name = "Walsh University"
     example = "CS 108"; host = "ssb9.walsh.edu"; term = "202701"
@@ -1444,7 +1448,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              MissouriWestern(), WestfieldState(), EasternIllinois(),
                              SUNYBroome(), DutchessCC(), JeffersonCC(), AdirondackCC(),
                              GeneseeCC(), UlsterCC(), CorningCC(), Concord(),
-                             RaritanValley(), NassauCC(), Walsh(), ConcordiaWI(), Curry(),
+                             RaritanValley(), NassauCC(), MichiganFlint(), Walsh(),
+                             ConcordiaWI(), Curry(),
                              IllinoisWesleyan(), Canisius(), IncarnateWord()]}
 
 
