@@ -1750,9 +1750,13 @@ class Colleague:
         return json.loads(op.open(req, timeout=25).read().decode("utf-8", "replace"))
 
     def _pick_term(self, terms):
-        """Nearest upcoming main term Description (e.g. 'Fall 2026') from ActivePlanTerms."""
+        """Nearest upcoming MAIN term Description (e.g. 'Fall 2026') from ActivePlanTerms.
+        When several terms share the same season+year (e.g. 'Fall 2026', 'Fall 1 2026',
+        'Esperanza Fall 2026'), prefer the PLAINEST one — the shortest description is the
+        full-semester main term, not an 8-week/branch/sub-session variant. This avoids
+        only covering a branch campus's sections."""
         today = datetime.date.today()
-        best, best_delta = None, None
+        best, best_key = None, None
         for t in terms:
             desc = (t.get("Description") or "")
             m = re.search(r"(spring|summer|fall|autumn|winter)\D{0,4}(20\d\d)", desc, re.I)
@@ -1763,8 +1767,9 @@ class Colleague:
             delta = (int(m.group(2)) - today.year) * 12 + (mon - today.month)
             if delta < -1:
                 continue
-            if best_delta is None or delta < best_delta:
-                best_delta, best = delta, desc
+            key = (delta, len(desc))            # nearest term; tie -> shortest (=main) desc
+            if best_key is None or key < best_key:
+                best_key, best = key, desc
         return best
 
     def fetch(self, courses):
@@ -1891,6 +1896,22 @@ class SoutheasternIA(Colleague):
     id = "scc-iowa"; name = "Southeastern Community College (Iowa)"
     example = "ENG 067"; host = "selfservice.scciowa.edu"
 
+class EasternU(Colleague):
+    id = "eastern-pa"; name = "Eastern University"
+    example = "CSCI 110"; host = "selfservice.eastern.edu"
+
+class Nichols(Colleague):
+    id = "nichols"; name = "Nichols College"
+    example = "MATH 150"; host = "selfservice.nichols.edu"
+
+class Elms(Colleague):
+    id = "elms"; name = "Elms College"
+    example = "SPA 2206"; host = "selfservice.elms.edu"
+
+class BladenCC(Colleague):
+    id = "bladencc"; name = "Bladen Community College"
+    example = "CSC 118"; host = "selfservice.bladencc.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -1966,7 +1987,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              FranklinU(), Ursinus(), SalveRegina(), Cornerstone(), NorthPark(),
                              Gannon(), Mercyhurst(), SaintVincent(), Maryville(),
                              AshevilleBuncombe(), DurhamTech(), CravenCC(), KirkwoodCC(),
-                             SoutheasternIA()]
+                             SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
