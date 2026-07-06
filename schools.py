@@ -1364,6 +1364,10 @@ class MichiganFlint(Banner):
     id = "umflint"; name = "University of Michigan–Flint"
     example = "CSC 137"; host = "ssb.umflint.edu"; term = "202710"
 
+class Wentworth(Banner):
+    id = "wit"; name = "Wentworth Institute of Technology"
+    example = "COMP 1000"; host = "selfservice.wit.edu"; term = "202710"
+
 class EasternFlorida(Banner):
     id = "efsc"; name = "Eastern Florida State College"
     example = "CIS 2381"; host = "bannerweb.easternflorida.edu"; term = "202640"
@@ -1473,8 +1477,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SUNYBroome(), DutchessCC(), JeffersonCC(), AdirondackCC(),
                              GeneseeCC(), UlsterCC(), CorningCC(), Concord(),
                              RaritanValley(), NassauCC(), MichiganFlint(), Harding(),
-                             Spelman(), Ramapo(), EasternFlorida(), Oakton(), Washtenaw(),
-                             Walsh(), ConcordiaWI(), Curry(),
+                             Spelman(), Ramapo(), Wentworth(), EasternFlorida(), Oakton(),
+                             Washtenaw(), Walsh(), ConcordiaWI(), Curry(),
                              IllinoisWesleyan(), Canisius(), IncarnateWord()]}
 
 
