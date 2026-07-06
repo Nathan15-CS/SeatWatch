@@ -1515,7 +1515,8 @@ class PeopleSoft:
     Subclass sets: id, name, example, host, site, inst, term (PeopleSoft 'strm' code).
     """
     _active_term = None
-    _SUBJ_RE = re.compile(r"^([A-Za-z]{2,5})\s*(\d{2,4}[A-Za-z]?)$")
+    node = "EMPLOYEE"          # PeopleSoft portal node; most use EMPLOYEE, some differ (UVA=UVSS)
+    _SUBJ_RE = re.compile(r"^([A-Za-z]{1,6}&?)\s*(\d{2,4}[A-Za-z]?)$")
 
     def _norm(self, course):
         m = self._SUBJ_RE.match(course.strip())
@@ -1525,14 +1526,14 @@ class PeopleSoft:
         return self._norm(course)[0] is not None
 
     def reg_url(self, course):
-        return (f"https://{self.host}/psp/{self.site}/EMPLOYEE/SA/s/"
+        return (f"https://{self.host}/psp/{self.site}/{self.node}/SA/s/"
                 "WEBLIB_HCX_CM.H_BROWSE_CLASSES.FieldFormula.IScript_Main")
 
     def cur_term(self):
         return self._active_term or self.term
 
     def _cs(self):
-        return (f"https://{self.host}/psc/{self.site}/EMPLOYEE/SA/s/"
+        return (f"https://{self.host}/psc/{self.site}/{self.node}/SA/s/"
                 "WEBLIB_HCX_CM.H_CLASS_SEARCH.FieldFormula")
 
     def _session(self):
@@ -1541,7 +1542,7 @@ class PeopleSoft:
         cj = http.cookiejar.CookieJar()
         op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
         op.addheaders = [("User-Agent", UA), ("Accept", "application/json")]
-        op.open(f"https://{self.host}/psp/{self.site}/EMPLOYEE/SA/s/"
+        op.open(f"https://{self.host}/psp/{self.site}/{self.node}/SA/s/"
                 "WEBLIB_HCX_CM.H_BROWSE_CLASSES.FieldFormula.IScript_Main", timeout=20).read()
         return op
 
@@ -1556,13 +1557,19 @@ class PeopleSoft:
             today = datetime.date.today()
             best, best_delta = None, None
             for t in d.get("terms", []):
-                m = re.search(r"(spring|summer|fall|autumn|winter)\D{0,6}(20\d\d)",
-                              (t.get("descr") or ""), re.I)
+                desc = (t.get("descr") or "")
+                # handle BOTH 'Fall 2026' and '2026 Fall' orderings
+                m = (re.search(r"(spring|summer|fall|autumn|winter)\D{0,6}(20\d\d)", desc, re.I) or
+                     re.search(r"(20\d\d)\D{0,6}(spring|summer|fall|autumn|winter)", desc, re.I))
                 if not m:
                     continue
-                season = m.group(1).lower()
+                g = m.groups()
+                if g[0].lower() in ("spring", "summer", "fall", "autumn", "winter"):
+                    season, year = g[0].lower(), int(g[1])
+                else:
+                    season, year = g[1].lower(), int(g[0])
                 mon = _SEASON.get(season if season != "autumn" else "fall", 8)
-                delta = (int(m.group(2)) - today.year) * 12 + (mon - today.month)
+                delta = (year - today.year) * 12 + (mon - today.month)
                 if delta < -1:                          # skip clearly-past terms
                     continue
                 if best_delta is None or delta < best_delta:
@@ -1641,6 +1648,58 @@ class Towson(PeopleSoft):
     example = "COSC 236"; host = "tuclasssearch.towson.edu"; site = "CS9PRD"
     inst = "TOWSN"; term = "1264"      # Fall 2026 (auto-refreshes via ClassSearchOptions)
 
+class UVA(PeopleSoft):
+    id = "uva"; name = "University of Virginia"
+    example = "CS 1110"; host = "sisuva.admin.virginia.edu"; site = "ihprd"
+    node = "UVSS"; inst = "UVA01"; term = "1268"       # Fall 2026
+
+
+class CtcLink(PeopleSoft):
+    """Washington State ctcLink: ONE PeopleSoft host (csprd.ctclink.us) serves 30+
+    community/technical colleges, isolated by institution code. Isolation verified —
+    institution=WAxxx returns ONLY that college's classes (acad_org prefix matches). An
+    INVALID code silently returns ANOTHER college's data, so we hardcode ONLY the
+    authoritative institution codes (from the system's own institutions list) — never a
+    guessed one. Each college is one row: (id, name, inst, example)."""
+    host = "csprd.ctclink.us"; site = "csprd"; node = "EMPLOYEE"; term = "2267"  # Fall 2026
+
+    def __init__(self, id, name, inst, example):
+        self.id = id; self.name = name; self.inst = inst; self.example = example
+
+_CTCLINK = [
+    ("wa-peninsula", "Peninsula College", "WA010", "CS 100"),
+    ("wa-grays-harbor", "Grays Harbor College", "WA020", "CS 141"),
+    ("wa-olympic", "Olympic College", "WA030", "CS 110"),
+    ("wa-skagit-valley", "Skagit Valley College", "WA040", "CS 101"),
+    ("wa-everett-cc", "Everett Community College", "WA050", "CS 110"),
+    ("wa-seattle-central", "Seattle Central College", "WA062", "CSC 110"),
+    ("wa-north-seattle", "North Seattle College", "WA063", "CSC 110"),
+    ("wa-south-seattle", "South Seattle College", "WA064", "CSC 110"),
+    ("wa-shoreline-cc", "Shoreline Community College", "WA070", "CS 110"),
+    ("wa-bellevue", "Bellevue College", "WA080", "CS 210"),
+    ("wa-highline", "Highline College", "WA090", "CIS 150"),
+    ("wa-green-river", "Green River College", "WA100", "CS 121"),
+    ("wa-pierce", "Pierce College (WA)", "WA110", "CS 202"),
+    ("wa-centralia", "Centralia College", "WA120", "CS& 131"),
+    ("wa-lower-columbia", "Lower Columbia College", "WA130", "CS 110"),
+    ("wa-clark", "Clark College", "WA140", "MATH 111"),
+    ("wa-wenatchee-valley", "Wenatchee Valley College", "WA150", "CSC 151"),
+    ("wa-yakima-valley", "Yakima Valley College", "WA160", "CS& 141"),
+    ("wa-spokane-falls-cc", "Spokane Falls Community College", "WA172", "CS 211"),
+    ("wa-big-bend-cc", "Big Bend Community College", "WA180", "CS 103"),
+    ("wa-columbia-basin", "Columbia Basin College", "WA190", "CS 101"),
+    ("wa-walla-walla-cc", "Walla Walla Community College", "WA200", "CS 110"),
+    ("wa-whatcom-cc", "Whatcom Community College", "WA210", "CS 101"),
+    ("wa-tacoma-cc", "Tacoma Community College", "WA220", "CS 142"),
+    ("wa-edmonds", "Edmonds College", "WA230", "CS 115"),
+    ("wa-south-puget-sound-cc", "South Puget Sound Community College", "WA240", "CS 142"),
+    ("wa-bellingham-tech", "Bellingham Technical College", "WA250", "IT 101"),
+    ("wa-lake-washington-tech", "Lake Washington Institute of Technology", "WA260", "CS 143"),
+    ("wa-renton-tech", "Renton Technical College", "WA270", "CS 142"),
+    ("wa-bates-tech", "Bates Technical College", "WA280", "MATH 172"),
+    ("wa-cascadia", "Cascadia College", "WA300", "MATH 95"),
+]
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -1711,7 +1770,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              IllinoisWesleyan(), Canisius(), IncarnateWord(),
                              ConcordiaTX(), TAMUSanAntonio(), TAMUCentralTexas(), UDallas(),
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
-                             Towson()]}
+                             Towson(), UVA()] + [CtcLink(*t) for t in _CTCLINK]}
 
 
 def refresh_all_terms(log=None):
