@@ -1364,6 +1364,18 @@ class MichiganFlint(Banner):
     id = "umflint"; name = "University of Michigan–Flint"
     example = "CSC 137"; host = "ssb.umflint.edu"; term = "202710"
 
+class EasternFlorida(Banner):
+    id = "efsc"; name = "Eastern Florida State College"
+    example = "CIS 2381"; host = "bannerweb.easternflorida.edu"; term = "202640"
+
+class Oakton(Banner):
+    id = "oakton"; name = "Oakton College"
+    example = "CSC 157"; host = "banner.oakton.edu"; term = "202630"
+
+class Washtenaw(Banner):
+    id = "washtenaw"; name = "Washtenaw Community College"
+    example = "CIS 110"; host = "banner.wccnet.edu"; term = "202609"
+
 class Harding(Banner):
     id = "harding"; name = "Harding University"
     example = "COSC 2010"; host = "ssb.harding.edu"; term = "202690"
@@ -1461,7 +1473,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SUNYBroome(), DutchessCC(), JeffersonCC(), AdirondackCC(),
                              GeneseeCC(), UlsterCC(), CorningCC(), Concord(),
                              RaritanValley(), NassauCC(), MichiganFlint(), Harding(),
-                             Spelman(), Ramapo(), Walsh(), ConcordiaWI(), Curry(),
+                             Spelman(), Ramapo(), EasternFlorida(), Oakton(), Washtenaw(),
+                             Walsh(), ConcordiaWI(), Curry(),
                              IllinoisWesleyan(), Canisius(), IncarnateWord()]}
 
 
