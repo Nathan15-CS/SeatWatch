@@ -85,7 +85,7 @@ DRILL_EVERY_HOURS = 168        # automated end-to-end fire drill, weekly
 DRILL_SCHOOLS = ["umd", "gatech", "utsa", "usf", "vcu", "txst", "memphis"]
 
 # --- input hardening / abuse protection ---
-COURSE_RE = re.compile(r"^[A-Z]{2,4}\d{3,4}[A-Z]?$")   # e.g. CMSC216, MATH140, AMST334A
+COURSE_RE = re.compile(r"^[A-Z]{2,4}\d{3,4}[A-Z]?$")   # e.g. ENG101, MATH140, BIOL2020
 SECTION_RE = re.compile(r"^[A-Z0-9]{1,20}$")            # 0101, FC01, 83510, LEC002LAB324
 _RATE = {}                                             # ip -> [timestamps]
 RATE_MAX, RATE_WINDOW = 15, 3600                       # max 15 submissions / IP / hour
@@ -414,7 +414,7 @@ FORM = """<section class="hero">
  <div class="badge reveal"><span class="dotlive"></span>LIVE — WATCHING 336 UNIVERSITIES</div>
  <h1 class="reveal d1">Get into the class you <span class="grad">actually need</span>.</h1>
  <p class="lede reveal d2">That full class you're stuck on? We watch it around the clock and buzz your phone the instant a seat opens — free to start, and we never show fake openings.</p>
- <div class="notif reveal d3" aria-hidden="true"><svg class="nicon" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z" fill="#fff" stroke="#2563eb" stroke-width="9" stroke-linejoin="round"/><rect x="42" y="32" width="28" height="24" rx="7" fill="url(#b)"/><rect x="38" y="56" width="40" height="11" rx="5.5" fill="url(#b)"/><rect x="42" y="67" width="8" height="15" rx="3" fill="url(#b)"/><rect x="66" y="67" width="8" height="15" rx="3" fill="url(#b)"/><circle cx="100" cy="20" r="11" fill="#10b981" stroke="#fff" stroke-width="5"/></svg><div class="nbody"><div class="nrow"><b>SeatWatch</b><span class="live"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>now</span></div><p>Seat open: <b>CMSC216-0101</b> — 2 seats just opened. Tap to register!</p></div></div>
+ <div class="notif reveal d3" aria-hidden="true"><svg class="nicon" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z" fill="#fff" stroke="#2563eb" stroke-width="9" stroke-linejoin="round"/><rect x="42" y="32" width="28" height="24" rx="7" fill="url(#b)"/><rect x="38" y="56" width="40" height="11" rx="5.5" fill="url(#b)"/><rect x="42" y="67" width="8" height="15" rx="3" fill="url(#b)"/><rect x="66" y="67" width="8" height="15" rx="3" fill="url(#b)"/><circle cx="100" cy="20" r="11" fill="#10b981" stroke="#fff" stroke-width="5"/></svg><div class="nbody"><div class="nrow"><b>SeatWatch</b><span class="live"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>now</span></div><p>Seat open: <b>ENG101-0101</b> — 2 seats just opened. Tap to register!</p></div></div>
  <div class="stats reveal d4">
   <div class="stat"><div class="chip"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div><b data-count="336">336</b><span>universities</span></div>
   <div class="stat"><div class="chip"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><b>20s</b><span>check interval</span></div>
@@ -523,7 +523,7 @@ __NOTICE__
   <div id="schoolList" class="dropdown"></div>
  </div>
  <label>Course code <small id="ex"></small></label>
- <input name="course" id="course" placeholder="e.g. CMSC216" required>
+ <input name="course" id="course" placeholder="e.g. ENG101" required>
  <label>Section number(s) <small>— up to 2, comma-separated</small></label>
  <input name="sections" placeholder="e.g. 0101, 0102" required>
  <button type="submit">Watch this class<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
