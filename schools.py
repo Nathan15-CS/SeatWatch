@@ -1500,6 +1500,26 @@ class IncarnateWord(Banner):
     id = "uiw"; name = "University of the Incarnate Word"
     example = "CIS 1100"; host = "reg-prod.ec.uiw.edu"; term = "202740"
 
+class Citrus(Banner):
+    id = "citrus"; name = "Citrus College"
+    example = "CS 111"; host = "ssb.citruscollege.edu"; term = "202720"
+
+class Cochise(Banner):
+    id = "cochise"; name = "Cochise College"
+    example = "CIS 116"; host = "ssb.cochise.edu"; term = "202640"
+
+class AllanHancock(Banner):
+    id = "hancock"; name = "Allan Hancock College"
+    example = "CS 102"; host = "ssb.hancockcollege.edu"; term = "202720"
+
+class LakeSumter(Banner):
+    id = "lssc"; name = "Lake-Sumter State College"
+    example = "CIS 2252"; host = "banner.lssc.edu"; term = "202710"
+
+class NorthwestFlorida(Banner):
+    id = "nwfsc"; name = "Northwest Florida State College"
+    example = "CIS 1000"; host = "selfservice.nwfsc.edu"; term = "202710"
+
 
 # ===========================================================================
 class PeopleSoft:
@@ -2042,6 +2062,10 @@ class GrandView(Colleague):
     id = "grandview"; name = "Grand View University"
     example = "MATH 340"; host = "selfservice.grandview.edu"
 
+class ElCamino(Colleague):
+    id = "elcamino"; name = "El Camino College"
+    example = "CSCI 14"; host = "selfservice.elcamino.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2110,6 +2134,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              LindseyWilson(), BartonCC(), Centenary(), Catawba(),
                              Walsh(), ConcordiaWI(), Curry(),
                              IllinoisWesleyan(), Canisius(), IncarnateWord(),
+                             Citrus(), Cochise(), AllanHancock(), LakeSumter(), NorthwestFlorida(),
                              ConcordiaTX(), TAMUSanAntonio(), TAMUCentralTexas(), UDallas(),
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
                              Towson(), UVA(), USM(), Palomar(),
@@ -2120,7 +2145,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC(),
                              TarrantCounty(), Allegheny(), Macomb(), MidMichigan(),
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
-                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView()]
+                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView(), ElCamino()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
