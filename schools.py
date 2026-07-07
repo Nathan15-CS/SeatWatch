@@ -585,7 +585,14 @@ class Banner:
     def refresh_term(self, log=None):
         """Adopt a newly-detected term ONLY after verifying it returns live data; otherwise
         keep the last-known-good term. Makes each school self-maintaining across semesters
-        WITHOUT ever risking accuracy."""
+        WITHOUT ever risking accuracy.
+
+        Schools that run PARALLEL same-season terms (e.g. a "Fall 2026 Semester" undergrad
+        term alongside a "Fall 2026 Quarter" grad term) set `auto_term = False`: the term
+        picker can't tell those apart, and auto-adopting the wrong one would silently point
+        the school at the wrong population. Those schools pin `term` and bump it manually."""
+        if not getattr(self, "auto_term", True):
+            return
         new = self.resolve_term()
         if not new or new == self.cur_term():
             return
@@ -2353,6 +2360,13 @@ class NationalLouis(Banner):
     id = "nlu"; name = "National Louis University"
     example = "CIS 540"; host = "banner.nl.edu"; term = "202690"
 
+class MercyUniversity(Banner):
+    # Runs parallel Fall terms (Semester/Trimester/Quarter). 202630 = Fall Semester
+    # (the main undergrad term). auto_term pinned so the refresher can't drift it onto
+    # the Quarter/grad term, which the season-only picker can't distinguish.
+    id = "mercyny"; name = "Mercy University (New York)"
+    example = "CISC 120"; host = "reg-prod.ec.mercy.edu"; term = "202630"; auto_term = False
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2444,7 +2458,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              ConnecticutCollege(), BunkerHill(), Denison(), KentuckyState(),
                              TCLowcountry(), MarsHill(), WesternPiedmont(), MitchellCC(),
                              SUNYPurchase(), SUNYESF(), NorthGATech(), Colgate(), UIndy(),
-                             Northwood(), Rowan(), Roosevelt(), NationalLouis()]
+                             Northwood(), Rowan(), Roosevelt(), NationalLouis(), MercyUniversity()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
