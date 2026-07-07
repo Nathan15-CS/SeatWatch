@@ -602,8 +602,12 @@ class Banner:
 
     @staticmethod
     def _code(course):
-        # Handles contiguous ("CSCI 220") AND spaced ("C S 2334") subject codes.
-        m = re.match(r"^([A-Za-z][A-Za-z ]*?)\s*(\d{3,4}[A-Za-z]?)$", course.strip())
+        # Handles contiguous ("CSCI 220"), spaced ("C S 2334"), and the full range of
+        # real course-number widths: 1-2 digits (CA CCs: "MATH 1A"), 3-4 (most schools),
+        # and 5 (Rowan "CS 01104", some SUNYs). Widening this is accuracy-SAFE: fetch
+        # always re-queries the school's live API with the exact subject+number, so a
+        # wrong format just returns nothing (never a false alert).
+        m = re.match(r"^([A-Za-z][A-Za-z ]*?)\s*(\d{1,5}[A-Za-z]?)$", course.strip())
         if not m:
             return (None, None)
         return (re.sub(r"\s+", " ", m.group(1).strip()).upper(), m.group(2).upper())
@@ -2333,6 +2337,12 @@ class Northwood(Colleague):
     id = "northwood"; name = "Northwood University"
     example = "CS 4000"; host = "selfservice.northwood.edu"
 
+class Rowan(Banner):
+    # Rowan numbers courses with 5 digits ("CS 01104") — only reachable after the
+    # Banner._code parser was widened to accept 1-5 digit numbers.
+    id = "rowan"; name = "Rowan University"
+    example = "CS 01104"; host = "ssb.rowan.edu"; term = "202640"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2424,7 +2434,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              ConnecticutCollege(), BunkerHill(), Denison(), KentuckyState(),
                              TCLowcountry(), MarsHill(), WesternPiedmont(), MitchellCC(),
                              SUNYPurchase(), SUNYESF(), NorthGATech(), Colgate(), UIndy(),
-                             Northwood()]
+                             Northwood(), Rowan()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
