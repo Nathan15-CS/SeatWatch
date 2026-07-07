@@ -371,6 +371,11 @@ class Emory(Fose):
     example = "CS 170"; srcdb = "5269"         # Fall 2026 (verified via term list)
     api = "https://atlas.emory.edu/api/?page=fose&route=search"
 
+class Dartmouth(Fose):
+    id = "dartmouth"; name = "Dartmouth College"
+    example = "COSC 001"; srcdb = "202609"     # Fall 2026
+    api = "https://courses.dartmouth.edu/api/?page=fose&route=search"
+
 
 class Iowa:
     """Bespoke adapter for the University of Iowa's public MAUI API. One call per
@@ -2092,7 +2097,7 @@ class Grossmont(Colleague):
 # is the medicine/professional SEMESTER calendar — no undergrad quarter (CS) courses
 # yet. PARKED until Drexel's quarter terms publish; re-add to the list to enable.
 SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(),
-                             CUBoulder(), Brown(), Yale(), NotreDame(), Emory(),
+                             CUBoulder(), Brown(), Yale(), NotreDame(), Emory(), Dartmouth(),
                              Wisconsin(), Iowa(),
                              Tennessee(), FAU(), BallState(), Wyoming(), CNM(),
                              GeorgiaTech(), Northeastern(), EmpireState(), TexasState(),
