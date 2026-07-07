@@ -2175,6 +2175,18 @@ class EssexCC(Banner):
     id = "essexcc"; name = "Essex County College"
     example = "CSC 104"; host = "bannerprod.essex.edu"; term = "202702"
 
+class DelawareTech(Banner):
+    id = "dtcc"; name = "Delaware Technical Community College"
+    example = "CSC 114"; host = "banner.dtcc.edu"; term = "202751"
+
+class WesternNewEngland(Colleague):
+    id = "wne"; name = "Western New England University"
+    example = "CS 490"; host = "selfservice.wne.edu"
+
+class SaintMichaels(Colleague):
+    id = "smcvt"; name = "Saint Michael's College"
+    example = "CS 407"; host = "selfservice.smcvt.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2256,7 +2268,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
                              EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView(), ElCamino(), Triton(), Canyons(), Grossmont(), PrinceGeorges(), GovernorsState(), CarrollCCMD(), BergenCC(), CincinnatiState(), JolietJC(), LewisClarkCC(), MortonCollege(), McHenry(), WesternIdaho(),
                              FingerLakesCC(), HockingCollege(), OklahomaChristian(), LincolnLandCC(),
-                             RhodesState(), Regent(), ButteCollege(), EssexCC()]
+                             RhodesState(), Regent(), ButteCollege(), EssexCC(),
+                             DelawareTech(), WesternNewEngland(), SaintMichaels()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
