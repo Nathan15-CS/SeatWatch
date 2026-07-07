@@ -1076,8 +1076,39 @@ class Handler(BaseHTTPRequestHandler):
 
 # ----------------------------------------------------------------- health guard
 health = {}            # course -> {fails, alerted, last_count}  (in-memory)
-_last_summary = [0.0]  # mutable holder for the daily-summary timestamp
-_last_drill = [0.0]    # mutable holder for the fire-drill timestamp
+
+# The daily-summary and weekly-drill timers are PERSISTED to a small state file so
+# they survive restarts. Without this, every restart reset them to 0 and re-fired both
+# operator alerts immediately — so a day of frequent redeploys spammed the operator with
+# duplicate "drill PASSED" / "daily check" texts. Persisting means they truly fire on
+# their real schedule (daily / weekly) regardless of how often the service restarts.
+STATE_PATH = os.environ.get("SEATWATCH_STATE", DB + ".state.json")
+
+
+def _load_state():
+    try:
+        with open(STATE_PATH) as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _save_state(**kv):
+    """Atomically merge keys into the state file. Best-effort — never raises."""
+    try:
+        cur = _load_state()
+        cur.update(kv)
+        tmp = STATE_PATH + ".tmp"
+        with open(tmp, "w") as f:
+            json.dump(cur, f)
+        os.replace(tmp, STATE_PATH)
+    except Exception:
+        pass
+
+
+_st = _load_state()
+_last_summary = [float(_st.get("last_summary", 0.0))]  # persisted daily-summary timestamp
+_last_drill = [float(_st.get("last_drill", 0.0))]      # persisted fire-drill timestamp
 
 
 ADMIN_USER_ID = int(os.environ.get("SEATWATCH_ADMIN_USER", "0") or 0)
@@ -1110,6 +1141,7 @@ def maybe_daily_summary():
     if now - _last_summary[0] < SUMMARY_EVERY_HOURS * 3600:
         return
     _last_summary[0] = now
+    _save_state(last_summary=now)
     with db() as c:
         n_watches = c.execute("SELECT COUNT(*) FROM watches").fetchone()[0]
         n_users = c.execute("SELECT COUNT(DISTINCT topic) FROM watches").fetchone()[0]
@@ -1127,8 +1159,14 @@ def run_fire_drill():
     if now - _last_drill[0] < DRILL_EVERY_HOURS * 3600:
         return
     _last_drill[0] = now
+    _save_state(last_drill=now)
     tested = []
-    for sid in DRILL_SCHOOLS:
+    # Rotate the starting school each week so the drill proves a DIFFERENT school over time
+    # (it still returns on the first that passes — this just varies which one that is, so the
+    # operator sees variety instead of the same school every week).
+    wk = int(now // (7 * 86400))
+    rot = DRILL_SCHOOLS[wk % len(DRILL_SCHOOLS):] + DRILL_SCHOOLS[:wk % len(DRILL_SCHOOLS)]
+    for sid in rot:
         s = schools.SCHOOLS.get(sid)
         if not s:
             continue
