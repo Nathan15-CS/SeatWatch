@@ -1998,6 +1998,26 @@ class Juniata(Colleague):
     id = "juniata"; name = "Juniata College"
     example = "CS 485"; host = "selfservice.juniata.edu"
 
+class SWOklahomaState(Colleague):
+    id = "swosu"; name = "Southwestern Oklahoma State University"
+    example = "COMSC 4943"; host = "selfservice.swosu.edu"
+
+class LuzerneCC(Colleague):
+    id = "luzerne"; name = "Luzerne County Community College"
+    example = "ENG 102"; host = "selfservice.luzerne.edu"
+
+class EastCentralOK(Colleague):
+    id = "ecok"; name = "East Central University"
+    example = "ENG 0211"; host = "selfservice.ecok.edu"
+
+class USAOklahoma(Colleague):
+    id = "usao"; name = "University of Science & Arts of Oklahoma"
+    example = "CSCI 3003"; host = "selfservice.usao.edu"
+
+class Hartwick(Colleague):
+    id = "hartwick"; name = "Hartwick College"
+    example = "MATH 108"; host = "selfservice.hartwick.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2076,7 +2096,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC(),
                              TarrantCounty(), Allegheny(), Macomb(), MidMichigan(),
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
-                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata()]
+                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
