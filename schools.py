@@ -2030,6 +2030,14 @@ class NorthArkansas(Colleague):
     id = "northark"; name = "North Arkansas College"
     example = "HVAC 1112"; host = "selfservice.northark.edu"
 
+class Aquinas(Colleague):
+    id = "aquinas"; name = "Aquinas College"
+    example = "CIS 111"; host = "selfservice.aquinas.edu"
+
+class Alma(Colleague):
+    id = "alma"; name = "Alma College"
+    example = "CSC 240"; host = "selfservice.alma.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2108,7 +2116,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC(),
                              TarrantCounty(), Allegheny(), Macomb(), MidMichigan(),
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
-                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas()]
+                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
