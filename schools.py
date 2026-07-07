@@ -2187,6 +2187,10 @@ class SaintMichaels(Colleague):
     id = "smcvt"; name = "Saint Michael's College"
     example = "CS 407"; host = "selfservice.smcvt.edu"
 
+class Evansville(Colleague):
+    id = "evansville"; name = "University of Evansville"
+    example = "CS 350"; host = "selfservice.evansville.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2269,7 +2273,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView(), ElCamino(), Triton(), Canyons(), Grossmont(), PrinceGeorges(), GovernorsState(), CarrollCCMD(), BergenCC(), CincinnatiState(), JolietJC(), LewisClarkCC(), MortonCollege(), McHenry(), WesternIdaho(),
                              FingerLakesCC(), HockingCollege(), OklahomaChristian(), LincolnLandCC(),
                              RhodesState(), Regent(), ButteCollege(), EssexCC(),
-                             DelawareTech(), WesternNewEngland(), SaintMichaels()]
+                             DelawareTech(), WesternNewEngland(), SaintMichaels(), Evansville()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
