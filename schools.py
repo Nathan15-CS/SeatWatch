@@ -2304,6 +2304,31 @@ class MitchellCC(Colleague):
     id = "mitchellcc"; name = "Mitchell Community College"
     example = "CSC 151"; host = "selfservice.mitchellcc.edu"
 
+class SUNYPurchase(Banner):
+    id = "purchase"; name = "SUNY Purchase"
+    example = "MAT 1060"; host = "ssb.purchase.edu"; term = "202640"
+
+class SUNYESF(Banner):
+    id = "esf"; name = "SUNY College of Environmental Science and Forestry"
+    example = "APM 105"; host = "banner.esf.edu"; term = "202720"
+
+class NorthGATech(Banner):
+    id = "northgatech"; name = "North Georgia Technical College"
+    example = "ENGL 1101"; host = "banner.northgatech.edu"; term = "202712"
+
+class Colgate(Banner):
+    # Fall term is published "(View Only)" until registration opens — same live Banner
+    # data underneath. Auto-term can't parse the tag, so the term is pinned here and
+    # needs a manual bump each semester (like the VT-style customs).
+    id = "colgate"; name = "Colgate University"
+    example = "COSC 482"; host = "banner.colgate.edu"; term = "202601"
+
+class UIndy(Banner):
+    # UIndy names terms "Semester I 2026-2027" (no season word), which the auto-term
+    # parser can't read — term pinned, manual bump each semester.
+    id = "uindy"; name = "University of Indianapolis"
+    example = "CSCI 155"; host = "banner.uindy.edu"; term = "202610"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2393,7 +2418,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              StFrancisIL(), ColumbiaGreene(), FDU(), CentenaryNJ(), StFrancisBK(),
                              LakeMichigan(), MVNU(), WashingtonStateOH(),
                              ConnecticutCollege(), BunkerHill(), Denison(), KentuckyState(),
-                             TCLowcountry(), MarsHill(), WesternPiedmont(), MitchellCC()]
+                             TCLowcountry(), MarsHill(), WesternPiedmont(), MitchellCC(),
+                             SUNYPurchase(), SUNYESF(), NorthGATech(), Colgate(), UIndy()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
