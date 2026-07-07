@@ -2219,6 +2219,10 @@ class EasternWyoming(Colleague):
     id = "ewc"; name = "Eastern Wyoming College"
     example = "COMP 2000"; host = "selfservice.ewc.wy.edu"
 
+class MissouriValley(Colleague):
+    id = "moval"; name = "Missouri Valley College"
+    example = "ENGL 130"; host = "selfservice.moval.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2303,7 +2307,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              RhodesState(), Regent(), ButteCollege(), EssexCC(),
                              DelawareTech(), WesternNewEngland(), SaintMichaels(), Evansville(),
                              DenmarkTech(), Tulsa(), CarlAlbert(), RedlandsCC(), SoutheastCCNE(),
-                             Coconino(), EasternWyoming()]
+                             Coconino(), EasternWyoming(), MissouriValley()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
