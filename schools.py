@@ -1800,7 +1800,8 @@ class Colleague:
     _SUBTERM_RE = re.compile(
         r"\bgraduate\b|\bgrad\b|continuing|cont\.? ?ed|weekend|evening|\bonline\b|"
         r"\d+\s*week|8wk|session|part of term|part-of-term|esperanza|express|dynamic|"
-        r"late start|accelerated|\bii+\b|module|flex|doctoral|law\b|\bce\b|noncredit|non-credit",
+        r"late start|accelerated|\bii+\b|module|flex|doctoral|law\b|\bce\b|noncredit|non-credit|"
+        r"\bmini\b|clinical",
         re.I)
 
     def _pick_term(self, terms):
@@ -2287,6 +2288,22 @@ class KentuckyState(Banner):
     id = "kysu"; name = "Kentucky State University"
     example = "MAT 115"; host = "reg-prod.ec.kysu.edu"; term = "202710"
 
+class TCLowcountry(Colleague):
+    id = "tcl"; name = "Technical College of the Lowcountry"
+    example = "ENG 101"; host = "selfservice.tcl.edu"
+
+class MarsHill(Colleague):
+    id = "mhu"; name = "Mars Hill University"
+    example = "CS 220"; host = "selfservice.mhu.edu"
+
+class WesternPiedmont(Colleague):
+    id = "wpcc"; name = "Western Piedmont Community College"
+    example = "CTI 110"; host = "selfservice.wpcc.edu"
+
+class MitchellCC(Colleague):
+    id = "mitchellcc"; name = "Mitchell Community College"
+    example = "CSC 151"; host = "selfservice.mitchellcc.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2375,7 +2392,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              UAHuntsville(), Whittier(), SimpsonU(), WestAlabama(),
                              StFrancisIL(), ColumbiaGreene(), FDU(), CentenaryNJ(), StFrancisBK(),
                              LakeMichigan(), MVNU(), WashingtonStateOH(),
-                             ConnecticutCollege(), BunkerHill(), Denison(), KentuckyState()]
+                             ConnecticutCollege(), BunkerHill(), Denison(), KentuckyState(),
+                             TCLowcountry(), MarsHill(), WesternPiedmont(), MitchellCC()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
