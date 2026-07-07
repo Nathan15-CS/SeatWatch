@@ -2223,6 +2223,22 @@ class MissouriValley(Colleague):
     id = "moval"; name = "Missouri Valley College"
     example = "ENGL 130"; host = "selfservice.moval.edu"
 
+class UAHuntsville(Banner):
+    id = "uah"; name = "University of Alabama in Huntsville"
+    example = "CS 104"; host = "registration.uah.edu"; term = "202609"
+
+class Whittier(Banner):
+    id = "whittier"; name = "Whittier College"
+    example = "COSC 120"; host = "registration.whittier.edu"; term = "202609"
+
+class SimpsonU(Colleague):
+    id = "simpsonu"; name = "Simpson University"
+    example = "BUSS 1830"; host = "selfservice.simpsonu.edu"
+
+class WestAlabama(Colleague):
+    id = "uwa"; name = "University of West Alabama"
+    example = "SAL 305"; host = "selfservice.uwa.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2307,7 +2323,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              RhodesState(), Regent(), ButteCollege(), EssexCC(),
                              DelawareTech(), WesternNewEngland(), SaintMichaels(), Evansville(),
                              DenmarkTech(), Tulsa(), CarlAlbert(), RedlandsCC(), SoutheastCCNE(),
-                             Coconino(), EasternWyoming(), MissouriValley()]
+                             Coconino(), EasternWyoming(), MissouriValley(),
+                             UAHuntsville(), Whittier(), SimpsonU(), WestAlabama()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
