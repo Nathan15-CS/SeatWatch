@@ -2211,6 +2211,14 @@ class SoutheastCCNE(Colleague):
     id = "southeastccne"; name = "Southeast Community College (Nebraska)"
     example = "CSCI 1010"; host = "selfservice.southeast.edu"
 
+class Coconino(Banner):
+    id = "coconino"; name = "Coconino Community College"
+    example = "CIS 120"; host = "registration.coconino.edu"; term = "202680"
+
+class EasternWyoming(Colleague):
+    id = "ewc"; name = "Eastern Wyoming College"
+    example = "COMP 2000"; host = "selfservice.ewc.wy.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2294,7 +2302,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              FingerLakesCC(), HockingCollege(), OklahomaChristian(), LincolnLandCC(),
                              RhodesState(), Regent(), ButteCollege(), EssexCC(),
                              DelawareTech(), WesternNewEngland(), SaintMichaels(), Evansville(),
-                             DenmarkTech(), Tulsa(), CarlAlbert(), RedlandsCC(), SoutheastCCNE()]
+                             DenmarkTech(), Tulsa(), CarlAlbert(), RedlandsCC(), SoutheastCCNE(),
+                             Coconino(), EasternWyoming()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
