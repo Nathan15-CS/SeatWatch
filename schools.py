@@ -2329,6 +2329,10 @@ class UIndy(Banner):
     id = "uindy"; name = "University of Indianapolis"
     example = "CSCI 155"; host = "banner.uindy.edu"; term = "202610"
 
+class Northwood(Colleague):
+    id = "northwood"; name = "Northwood University"
+    example = "CS 4000"; host = "selfservice.northwood.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2419,7 +2423,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              LakeMichigan(), MVNU(), WashingtonStateOH(),
                              ConnecticutCollege(), BunkerHill(), Denison(), KentuckyState(),
                              TCLowcountry(), MarsHill(), WesternPiedmont(), MitchellCC(),
-                             SUNYPurchase(), SUNYESF(), NorthGATech(), Colgate(), UIndy()]
+                             SUNYPurchase(), SUNYESF(), NorthGATech(), Colgate(), UIndy(),
+                             Northwood()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
