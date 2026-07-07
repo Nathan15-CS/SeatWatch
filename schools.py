@@ -2066,6 +2066,18 @@ class ElCamino(Colleague):
     id = "elcamino"; name = "El Camino College"
     example = "CSCI 14"; host = "selfservice.elcamino.edu"
 
+class Triton(Colleague):
+    id = "triton"; name = "Triton College"
+    example = "RHT 101"; host = "selfservice.triton.edu"
+
+class Canyons(Colleague):
+    id = "canyons"; name = "College of the Canyons"
+    example = "POLS 250"; host = "selfservice.canyons.edu"
+
+class Grossmont(Colleague):
+    id = "gcccd"; name = "Grossmont & Cuyamaca Colleges"
+    example = "CS 119L"; host = "selfservice.gcccd.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2145,7 +2157,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC(),
                              TarrantCounty(), Allegheny(), Macomb(), MidMichigan(),
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
-                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView(), ElCamino()]
+                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView(), ElCamino(), Triton(), Canyons(), Grossmont()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
