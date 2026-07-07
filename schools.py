@@ -2143,6 +2143,26 @@ class WesternIdaho(Colleague):
     id = "cwi"; name = "College of Western Idaho"
     example = "MATH 118"; host = "selfservice.cwi.edu"
 
+class FingerLakesCC(Colleague):
+    id = "flcc"; name = "Finger Lakes Community College"
+    example = "CSC 248"; host = "selfservice.flcc.edu"
+
+class HockingCollege(Colleague):
+    id = "hocking"; name = "Hocking College"
+    example = "MATH 1113"; host = "selfservice.hocking.edu"
+
+class OklahomaChristian(Colleague):
+    id = "oc"; name = "Oklahoma Christian University"
+    example = "CMSC 2011"; host = "selfservice.oc.edu"
+
+class LincolnLandCC(Colleague):
+    id = "llcc"; name = "Lincoln Land Community College"
+    example = "CSC 170"; host = "selfservice.llcc.edu"
+
+class RhodesState(Banner):
+    id = "rhodesstate"; name = "Rhodes State College"
+    example = "MTH 1260"; host = "banner-prod.rhodesstate.edu"; term = "202620"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2222,7 +2242,9 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC(),
                              TarrantCounty(), Allegheny(), Macomb(), MidMichigan(),
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
-                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView(), ElCamino(), Triton(), Canyons(), Grossmont(), PrinceGeorges(), GovernorsState(), CarrollCCMD(), BergenCC(), CincinnatiState(), JolietJC(), LewisClarkCC(), MortonCollege(), McHenry(), WesternIdaho()]
+                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView(), ElCamino(), Triton(), Canyons(), Grossmont(), PrinceGeorges(), GovernorsState(), CarrollCCMD(), BergenCC(), CincinnatiState(), JolietJC(), LewisClarkCC(), MortonCollege(), McHenry(), WesternIdaho(),
+                             FingerLakesCC(), HockingCollege(), OklahomaChristian(), LincolnLandCC(),
+                             RhodesState()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
