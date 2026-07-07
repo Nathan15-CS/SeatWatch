@@ -623,18 +623,18 @@ PUSH_BLOCK = """<div style="margin-top:18px;border-top:1px solid #F3F4F6;padding
  <button type="button" id="pushBtn" class="pushbtn" style="margin-top:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>Turn on phone alerts</button>
  <p class="note" id="pushStatus">One tap — alerts come straight to this device. No app to install.</p>
  <div id="iosHint" class="iosHint">
-  <b style="display:block;font-size:13.5px;margin-bottom:11px;color:#1E3A5F">On iPhone? 3 quick steps — no App Store needed:</b>
-  <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+  <b style="display:block;font-size:14px;margin-bottom:12px;color:#1E3A5F">📲 On iPhone? Turn on alerts in 3 quick steps <span style="font-weight:500;color:#4B6B9A">(about 15 seconds)</span>:</b>
+  <div style="display:flex;gap:11px;align-items:flex-start;margin-bottom:12px">
    <span class="tnum">1</span>
-   <div style="font-size:13px;line-height:1.45;color:#1E3A5F">Tap the <b>Share</b> button <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> at the bottom of Safari</div>
+   <div style="font-size:13.5px;line-height:1.5;color:#1E3A5F">Tap the <b>Share</b> icon <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> at the bottom of Safari (the box with an up-arrow).</div>
   </div>
-  <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+  <div style="display:flex;gap:11px;align-items:flex-start;margin-bottom:12px">
    <span class="tnum">2</span>
-   <div style="font-size:13px;line-height:1.45;color:#1E3A5F">Tap <b>Add to Home Screen</b></div>
+   <div style="font-size:13.5px;line-height:1.5;color:#1E3A5F">Scroll down and tap <b>Add to Home Screen</b>, then tap <b>Add</b> in the top corner.</div>
   </div>
-  <div style="display:flex;gap:10px;align-items:center">
+  <div style="display:flex;gap:11px;align-items:flex-start">
    <span class="tnum">3</span>
-   <div style="font-size:13px;line-height:1.45;color:#1E3A5F">Open <b>SeatWatch</b> from your home screen, then tap <b>Turn on alerts</b></div>
+   <div style="font-size:13.5px;line-height:1.5;color:#1E3A5F">Open <b>SeatWatch</b> from your Home Screen and tap <b>Turn on phone alerts</b>. That's it — you're covered. ✅</div>
   </div>
  </div>
 </div>
@@ -647,13 +647,20 @@ function s(m){st.textContent=m;}
 var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
 var standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone;
 function b64(u){var p='='.repeat((4-u.length%4)%4);var b=atob((u+p).replace(/-/g,'+').replace(/_/g,'/'));var a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+// iPhone-in-Safari: push physically can't turn on until the site is added to the Home Screen
+// (an Apple rule we can't change). So show the steps upfront and hide the button that would
+// only dead-end here — no guessing, nothing to discover, nobody gets stuck.
+if(isIOS&&!standalone){
+  ios.style.display='block';
+  btn.style.display='none';
+  s('Follow the 3 steps below to get alerts on your iPhone:');
+  return;
+}
 if(!('serviceWorker' in navigator)||!('PushManager' in window)){
-  if(isIOS&&!standalone){ios.style.display='block';}
-  else{s('This browser does not support push — try Chrome or Safari 16.4+.');btn.disabled=true;}
+  s('This browser does not support push — try Chrome or Safari 16.4+.');btn.disabled=true;return;
 }
 btn.onclick=async function(){
   try{
-    if(isIOS&&!standalone){ios.style.display='block';s('One quick step first — see the iPhone note below.');return;}
     var reg=await navigator.serviceWorker.register('/sw.js');
     var perm=await Notification.requestPermission();
     if(perm!=='granted'){s('Notifications are blocked — allow them for seatwatchapp.com in settings, then retry.');return;}
