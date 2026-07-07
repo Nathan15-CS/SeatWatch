@@ -2018,6 +2018,18 @@ class Hartwick(Colleague):
     id = "hartwick"; name = "Hartwick College"
     example = "MATH 108"; host = "selfservice.hartwick.edu"
 
+class CaldwellCC(Colleague):
+    id = "cccti"; name = "Caldwell Community College & Technical Institute"
+    example = "MEC 231"; host = "selfservice.cccti.edu"
+
+class RoanokeChowan(Colleague):
+    id = "roanokechowan"; name = "Roanoke-Chowan Community College"
+    example = "CIS 110"; host = "selfservice.roanokechowan.edu"
+
+class NorthArkansas(Colleague):
+    id = "northark"; name = "North Arkansas College"
+    example = "HVAC 1112"; host = "selfservice.northark.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2096,7 +2108,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC(),
                              TarrantCounty(), Allegheny(), Macomb(), MidMichigan(),
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
-                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick()]
+                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
