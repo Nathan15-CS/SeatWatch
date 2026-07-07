@@ -2279,6 +2279,14 @@ class BunkerHill(Colleague):
     id = "bhcc"; name = "Bunker Hill Community College"
     example = "CSC 242"; host = "selfservice.bhcc.edu"
 
+class Denison(Banner):
+    id = "denison"; name = "Denison University"
+    example = "CS 451"; host = "banner.denison.edu"; term = "202640"
+
+class KentuckyState(Banner):
+    id = "kysu"; name = "Kentucky State University"
+    example = "MAT 115"; host = "reg-prod.ec.kysu.edu"; term = "202710"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2367,7 +2375,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              UAHuntsville(), Whittier(), SimpsonU(), WestAlabama(),
                              StFrancisIL(), ColumbiaGreene(), FDU(), CentenaryNJ(), StFrancisBK(),
                              LakeMichigan(), MVNU(), WashingtonStateOH(),
-                             ConnecticutCollege(), BunkerHill()]
+                             ConnecticutCollege(), BunkerHill(), Denison(), KentuckyState()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
