@@ -2207,6 +2207,10 @@ class RedlandsCC(Colleague):
     id = "redlandscc"; name = "Redlands Community College"
     example = "MATH 2193"; host = "selfservice.redlandscc.edu"
 
+class SoutheastCCNE(Colleague):
+    id = "southeastccne"; name = "Southeast Community College (Nebraska)"
+    example = "CSCI 1010"; host = "selfservice.southeast.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2290,7 +2294,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              FingerLakesCC(), HockingCollege(), OklahomaChristian(), LincolnLandCC(),
                              RhodesState(), Regent(), ButteCollege(), EssexCC(),
                              DelawareTech(), WesternNewEngland(), SaintMichaels(), Evansville(),
-                             DenmarkTech(), Tulsa(), CarlAlbert(), RedlandsCC()]
+                             DenmarkTech(), Tulsa(), CarlAlbert(), RedlandsCC(), SoutheastCCNE()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
