@@ -2343,6 +2343,16 @@ class Rowan(Banner):
     id = "rowan"; name = "Rowan University"
     example = "CS 01104"; host = "ssb.rowan.edu"; term = "202640"
 
+class Roosevelt(Banner):
+    id = "roosevelt"; name = "Roosevelt University"
+    example = "CST 480"; host = "banner.roosevelt.edu"; term = "202710"
+
+class NationalLouis(Banner):
+    # Fall 2026 published "(View Only)" — same live Banner data; term pinned, needs a
+    # manual bump each semester (auto-term can't parse the View Only tag).
+    id = "nlu"; name = "National Louis University"
+    example = "CIS 540"; host = "banner.nl.edu"; term = "202690"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2434,7 +2444,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              ConnecticutCollege(), BunkerHill(), Denison(), KentuckyState(),
                              TCLowcountry(), MarsHill(), WesternPiedmont(), MitchellCC(),
                              SUNYPurchase(), SUNYESF(), NorthGATech(), Colgate(), UIndy(),
-                             Northwood(), Rowan()]
+                             Northwood(), Rowan(), Roosevelt(), NationalLouis()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
