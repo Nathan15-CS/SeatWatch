@@ -2367,6 +2367,14 @@ class MercyUniversity(Banner):
     id = "mercyny"; name = "Mercy University (New York)"
     example = "CISC 120"; host = "reg-prod.ec.mercy.edu"; term = "202630"; auto_term = False
 
+class Pasadena(Banner):
+    id = "pasadena"; name = "Pasadena City College"
+    example = "CS 002"; host = "reg-prod.ec.pasadena.edu"; term = "202670"
+
+class SanJoseEvergreen(Colleague):
+    id = "sjeccd"; name = "San Jose-Evergreen Community College District"
+    example = "CGID 001"; host = "selfservice.sjeccd.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2458,7 +2466,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              ConnecticutCollege(), BunkerHill(), Denison(), KentuckyState(),
                              TCLowcountry(), MarsHill(), WesternPiedmont(), MitchellCC(),
                              SUNYPurchase(), SUNYESF(), NorthGATech(), Colgate(), UIndy(),
-                             Northwood(), Rowan(), Roosevelt(), NationalLouis(), MercyUniversity()]
+                             Northwood(), Rowan(), Roosevelt(), NationalLouis(), MercyUniversity(), Pasadena(), SanJoseEvergreen()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
