@@ -2239,6 +2239,26 @@ class WestAlabama(Colleague):
     id = "uwa"; name = "University of West Alabama"
     example = "SAL 305"; host = "selfservice.uwa.edu"
 
+class StFrancisIL(Banner):
+    id = "stfrancisil"; name = "University of St. Francis (Illinois)"
+    example = "COMP 440"; host = "bannerxe.stfrancis.edu"; term = "202710"
+
+class ColumbiaGreene(Banner):
+    id = "sunycgcc"; name = "SUNY Columbia-Greene Community College"
+    example = "CS 126"; host = "banner.sunycgcc.edu"; term = "202680"
+
+class FDU(Colleague):
+    id = "fdu"; name = "Fairleigh Dickinson University"
+    example = "CSCI 7789"; host = "selfservice.fdu.edu"
+
+class CentenaryNJ(Colleague):
+    id = "centenarynj"; name = "Centenary University (New Jersey)"
+    example = "EDU 3073"; host = "selfservice.centenaryuniversity.edu"
+
+class StFrancisBK(Colleague):
+    id = "sfcbk"; name = "St. Francis College (Brooklyn)"
+    example = "CS 6001"; host = "selfservice.sfc.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2324,7 +2344,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              DelawareTech(), WesternNewEngland(), SaintMichaels(), Evansville(),
                              DenmarkTech(), Tulsa(), CarlAlbert(), RedlandsCC(), SoutheastCCNE(),
                              Coconino(), EasternWyoming(), MissouriValley(),
-                             UAHuntsville(), Whittier(), SimpsonU(), WestAlabama()]
+                             UAHuntsville(), Whittier(), SimpsonU(), WestAlabama(),
+                             StFrancisIL(), ColumbiaGreene(), FDU(), CentenaryNJ(), StFrancisBK()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
