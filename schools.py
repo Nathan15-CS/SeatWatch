@@ -1749,12 +1749,22 @@ class Colleague:
             req.add_header("__RequestVerificationToken", tok)
         return json.loads(op.open(req, timeout=25).read().decode("utf-8", "replace"))
 
+    # secondary/sub-population term qualifiers — a term carrying one of these is NOT the
+    # primary full-semester UNDERGRADUATE term most seat-watchers want. \bgraduate\b does
+    # NOT match inside 'undergraduate' (no word boundary), so undergrad stays un-penalized.
+    _SUBTERM_RE = re.compile(
+        r"\bgraduate\b|\bgrad\b|continuing|cont\.? ?ed|weekend|evening|\bonline\b|"
+        r"\d+\s*week|8wk|session|part of term|part-of-term|esperanza|express|dynamic|"
+        r"late start|accelerated|\bii+\b|module|flex|doctoral|law\b|\bce\b|noncredit|non-credit",
+        re.I)
+
     def _pick_term(self, terms):
-        """Nearest upcoming MAIN term Description (e.g. 'Fall 2026') from ActivePlanTerms.
-        When several terms share the same season+year (e.g. 'Fall 2026', 'Fall 1 2026',
-        'Esperanza Fall 2026'), prefer the PLAINEST one — the shortest description is the
-        full-semester main term, not an 8-week/branch/sub-session variant. This avoids
-        only covering a branch campus's sections."""
+        """Nearest upcoming PRIMARY term (e.g. 'Fall 2026', 'Fall 2026 Undergraduate') from
+        ActivePlanTerms. Ranking: (1) nearest upcoming date, then (2) FEWEST secondary
+        qualifiers — a plain full-semester undergraduate term beats 'Graduate', '8 Week',
+        'Continuing Ed', a branch campus, etc. (matters: 'Fall 2026 Graduate' is SHORTER than
+        'Fall 2026 Undergraduate', so length alone would wrongly pick Graduate), then
+        (3) shortest description as a final tiebreak. Prevents covering only a sub-population."""
         today = datetime.date.today()
         seasons = ("spring", "summer", "fall", "autumn", "winter")
         best, best_key = None, None
@@ -1774,7 +1784,8 @@ class Colleague:
             delta = (year - today.year) * 12 + (mon - today.month)
             if delta < -1:
                 continue
-            key = (delta, len(desc))            # nearest term; tie -> shortest (=main) desc
+            subpenalty = 1 if self._SUBTERM_RE.search(desc) else 0
+            key = (delta, subpenalty, len(desc))   # nearest; then primary/undergrad; then plainest
             if best_key is None or key < best_key:
                 best_key, best = key, desc
         return best
