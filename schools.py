@@ -2271,6 +2271,14 @@ class WashingtonStateOH(Colleague):
     id = "wscc"; name = "Washington State College of Ohio"
     example = "ENGL 1520"; host = "selfservice.wscc.edu"
 
+class ConnecticutCollege(Banner):
+    id = "conncoll"; name = "Connecticut College"
+    example = "MAT 112"; host = "reg-prod.ec.conncoll.edu"; term = "202690"
+
+class BunkerHill(Colleague):
+    id = "bhcc"; name = "Bunker Hill Community College"
+    example = "CSC 242"; host = "selfservice.bhcc.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2358,7 +2366,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              Coconino(), EasternWyoming(), MissouriValley(),
                              UAHuntsville(), Whittier(), SimpsonU(), WestAlabama(),
                              StFrancisIL(), ColumbiaGreene(), FDU(), CentenaryNJ(), StFrancisBK(),
-                             LakeMichigan(), MVNU(), WashingtonStateOH()]
+                             LakeMichigan(), MVNU(), WashingtonStateOH(),
+                             ConnecticutCollege(), BunkerHill()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
