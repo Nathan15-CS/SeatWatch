@@ -2259,6 +2259,18 @@ class StFrancisBK(Colleague):
     id = "sfcbk"; name = "St. Francis College (Brooklyn)"
     example = "CS 6001"; host = "selfservice.sfc.edu"
 
+class LakeMichigan(Banner):
+    id = "lakemichigan"; name = "Lake Michigan College"
+    example = "CIS 100"; host = "ssbprod.lakemichigancollege.edu"; term = "202720"
+
+class MVNU(Colleague):
+    id = "mvnu"; name = "Mount Vernon Nazarene University"
+    example = "CSC 1020"; host = "selfservice.mvnu.edu"
+
+class WashingtonStateOH(Colleague):
+    id = "wscc"; name = "Washington State College of Ohio"
+    example = "ENGL 1520"; host = "selfservice.wscc.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2345,7 +2357,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              DenmarkTech(), Tulsa(), CarlAlbert(), RedlandsCC(), SoutheastCCNE(),
                              Coconino(), EasternWyoming(), MissouriValley(),
                              UAHuntsville(), Whittier(), SimpsonU(), WestAlabama(),
-                             StFrancisIL(), ColumbiaGreene(), FDU(), CentenaryNJ(), StFrancisBK()]
+                             StFrancisIL(), ColumbiaGreene(), FDU(), CentenaryNJ(), StFrancisBK(),
+                             LakeMichigan(), MVNU(), WashingtonStateOH()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
