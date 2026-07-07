@@ -21,9 +21,13 @@ import secrets
 import shutil
 import sqlite3
 import threading
+import smtplib
+import ssl
 import time
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
+from email.message import EmailMessage
+from email.utils import formataddr
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlencode, urlparse
 
@@ -54,6 +58,15 @@ VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
 VAPID_PRIVATE_PEM = os.environ.get("VAPID_PRIVATE_PEM", os.path.join(HERE, "vapid_private.pem"))
 VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:support@seatwatchapp.com")
 PUSH_ENABLED = bool(VAPID_PUBLIC_KEY and webpush)
+# --- Email alerts (the zero-setup default channel). SMTP creds come from the server env
+# and work with any provider — Gmail app-password, Resend, SES, etc. If unset, email is
+# quietly disabled and nothing breaks (push/ntfy still run). ---
+SMTP_HOST = os.environ.get("SMTP_HOST", "")
+SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
+SMTP_USER = os.environ.get("SMTP_USER", "")
+SMTP_PASS = os.environ.get("SMTP_PASS", "")
+SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USER)   # the visible "from" address
+EMAIL_ENABLED = bool(SMTP_HOST and SMTP_USER and SMTP_PASS)
 SESSION_DAYS = 90
 FREE_COURSES = 1                # per account: 1 free class (ALL of its sections)
 FREE_SECTIONS_PER_COURSE = 25   # generous anti-abuse guard, NOT a pricing limit —
@@ -353,7 +366,8 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
  .feat li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--mut);line-height:1.45;margin-bottom:9px}
  .feat li svg{flex:none;margin-top:1px;color:var(--green)}
  .price:not(.free) .feat li svg{color:var(--blue3)}
- .iosHint{display:none;background:var(--tint);border:1px solid #C7D2FE;border-radius:13px;padding:14px;font-size:13.5px;line-height:1.65;color:#1E3A5F;margin-top:10px}
+ .iosHint{display:none;background:var(--tint);border:1px solid #C7D2FE;border-radius:13px;padding:15px;font-size:13.5px;line-height:1.65;color:#1E3A5F;margin-top:10px}
+ .tnum{flex:none;width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
  .tagline{font-size:13px;font-weight:700;color:var(--navy);letter-spacing:-.1px}
  .tagline em{font-style:normal;color:var(--green2)}
  footer{text-align:center;font-size:12px;color:var(--dim);padding:48px 20px 54px;line-height:2;letter-spacing:.02em}
@@ -608,7 +622,19 @@ PUSH_BLOCK = """<div style="margin-top:18px;border-top:1px solid #F3F4F6;padding
  <button type="button" id="pushBtn" class="pushbtn" style="margin-top:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>Turn on phone alerts</button>
  <p class="note" id="pushStatus">One tap — alerts come straight to this device. No app to install.</p>
  <div id="iosHint" class="iosHint">
-  <b>iPhone one-time step:</b> tap Safari's <b>Share</b> button → <b>Add to Home Screen</b> → open <b>SeatWatch</b> from your home screen (sign in) → tap the alerts button there.
+  <b style="display:block;font-size:13.5px;margin-bottom:11px;color:#1E3A5F">On iPhone? 3 quick steps — no App Store needed:</b>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+   <span class="tnum">1</span>
+   <div style="font-size:13px;line-height:1.45;color:#1E3A5F">Tap the <b>Share</b> button <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> at the bottom of Safari</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
+   <span class="tnum">2</span>
+   <div style="font-size:13px;line-height:1.45;color:#1E3A5F">Tap <b>Add to Home Screen</b></div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center">
+   <span class="tnum">3</span>
+   <div style="font-size:13px;line-height:1.45;color:#1E3A5F">Open <b>SeatWatch</b> from your home screen, then tap <b>Turn on alerts</b></div>
+  </div>
  </div>
 </div>
 <script>
@@ -646,7 +672,7 @@ btn.onclick=async function(){
 DONE = """<div class="hero" style="padding-top:34px;padding-bottom:0"><h1 class="reveal" style="font-size:34px;letter-spacing:-1.4px">You're all set 🎉</h1></div>
 <div class="card reveal d2">
 <div class="ok"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/></svg><span>Now watching <b>__WHAT__</b>.</span></div>
-<p style="font-weight:700;margin:18px 0 4px">Last step — get the alert on your phone:</p>
+__ALERTINTRO__
 __PUSHBLOCK__
 <a href="/" style="display:block;text-align:center;margin-top:18px;font-weight:700">← Back to your watches</a>
 </div>"""
@@ -742,9 +768,26 @@ def form_page(notice="", user=None):
     return page(FORM.replace("__CARD__", card))
 
 
+def alert_intro(user):
+    """The line(s) above the phone-alert widget. When email is the live default channel we
+    reassure the student they're ALREADY covered (zero setup) and frame push as optional;
+    otherwise phone alerts are the primary 'last step'."""
+    if EMAIL_ENABLED:
+        return ("<div class='ok'><svg width='18' height='18' viewBox='0 0 24 24' fill='none' "
+                "stroke='currentColor' stroke-width='2' stroke-linecap='round' "
+                "stroke-linejoin='round'><rect x='2' y='4' width='20' height='16' rx='2'/>"
+                "<path d='m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7'/></svg><span>We'll email "
+                f"you at <b>{html.escape(user['email'])}</b> the second a seat opens — nothing "
+                "else to do.</span></div>"
+                "<p style='font-weight:700;margin:18px 0 4px'>Want an instant buzz on your "
+                "phone too? <span style='font-weight:500;color:var(--dim)'>(optional)</span></p>")
+    return "<p style='font-weight:700;margin:18px 0 4px'>Last step — get the alert on your phone:</p>"
+
+
 def done_page(what, user):
     tok = csrf_token(user["id"])
     body = (DONE.replace("__WHAT__", html.escape(what))
+                .replace("__ALERTINTRO__", alert_intro(user))
                 .replace("__PUSHBLOCK__", push_block(tok) or
                          "<p class='note' style='text-align:left'>Phone alerts are being "
                          "set up — check back shortly.</p>"))
@@ -1234,15 +1277,46 @@ def send_web_push(user_id, title, body, url):
     return sent
 
 
+def send_email(to, subject, body_text, url):
+    """The zero-setup default alert channel. Sends a plain, unmissable email via SMTP.
+    Returns True if handed off to the mail server. If SMTP isn't configured (EMAIL_ENABLED
+    False) or no address, it's a silent no-op — the other channels still fire, nothing breaks."""
+    if not EMAIL_ENABLED or not to:
+        return False
+    try:
+        msg = EmailMessage()
+        msg["Subject"] = subject
+        msg["From"] = formataddr(("SeatWatch", SMTP_FROM))
+        msg["To"] = to
+        msg.set_content(f"{body_text}\n\nRegister now: {url}\n\n"
+                        f"— SeatWatch\nYou're getting this because you asked us to watch this class. "
+                        f"Reply STOP-style requests to support@seatwatchapp.com.")
+        with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
+            s.starttls(context=ssl.create_default_context())
+            s.login(SMTP_USER, SMTP_PASS)
+            s.send_message(msg)
+        return True
+    except Exception as e:
+        sw.log(f"  [email] send failed to {to}: {type(e).__name__}: {str(e)[:80]}")
+        return False
+
+
 def _alert(r, message, url):
     ok = sw.notify(f"Seat open: {r['course']}",
                    message + " Tap to register — go now.",
                    click_url=url, topic=r["topic"])
-    pushed = send_web_push(r["user_id"] if "user_id" in r.keys() else None,
-                           f"Seat open: {r['course']}",
+    uid = r["user_id"] if "user_id" in r.keys() else None
+    pushed = send_web_push(uid, f"Seat open: {r['course']}",
                            message + " Tap to register — go now.", url)
+    emailed = False
+    if EMAIL_ENABLED and uid:
+        with db() as c:
+            row = c.execute("SELECT email FROM users WHERE id=?", (uid,)).fetchone()
+        if row and row["email"]:
+            emailed = send_email(row["email"], f"Seat open: {r['course']} — go register",
+                                 message + " Register now before it fills again.", url)
     sw.log(f"  ALERT {r['course']}-{r['section'] or 'ALL'} -> {r['topic']} "
-           f"(ntfy {'sent' if ok else 'FAILED'}; web-push {pushed})")
+           f"(ntfy {'sent' if ok else 'FAILED'}; web-push {pushed}; email {'sent' if emailed else 'off'})")
 
 
 def _set_alerted(watch_id, val):
