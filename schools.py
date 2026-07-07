@@ -2171,6 +2171,10 @@ class ButteCollege(Colleague):
     id = "butte"; name = "Butte College"
     example = "CSCI 21"; host = "selfservice.butte.edu"
 
+class EssexCC(Banner):
+    id = "essexcc"; name = "Essex County College"
+    example = "CSC 104"; host = "bannerprod.essex.edu"; term = "202702"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2252,7 +2256,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
                              EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView(), ElCamino(), Triton(), Canyons(), Grossmont(), PrinceGeorges(), GovernorsState(), CarrollCCMD(), BergenCC(), CincinnatiState(), JolietJC(), LewisClarkCC(), MortonCollege(), McHenry(), WesternIdaho(),
                              FingerLakesCC(), HockingCollege(), OklahomaChristian(), LincolnLandCC(),
-                             RhodesState(), Regent(), ButteCollege()]
+                             RhodesState(), Regent(), ButteCollege(), EssexCC()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
