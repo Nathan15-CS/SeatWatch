@@ -1537,6 +1537,10 @@ class Gavilan(Banner):
     id = "gavilan"; name = "Gavilan College"
     example = "CSIS 571A"; host = "reg-prod.ec.gavilan.edu"; term = "202670"
 
+class JeffersonCollegeMO(Banner):
+    id = "jeffco"; name = "Jefferson College (MO)"
+    example = "CIS 125"; host = "ssb.jeffco.edu"; term = "202702"
+
 
 # ===========================================================================
 class PeopleSoft:
@@ -2111,6 +2115,22 @@ class BergenCC(Colleague):
     id = "bergen"; name = "Bergen Community College"
     example = "CIS 288"; host = "selfservice.bergen.edu"
 
+class CincinnatiState(Colleague):
+    id = "cincystate"; name = "Cincinnati State Technical & Community College"
+    example = "AMT 100"; host = "selfservice.cincinnatistate.edu"
+
+class JolietJC(Colleague):
+    id = "joliet"; name = "Joliet Junior College"
+    example = "CIS 122"; host = "selfservice.jjc.edu"
+
+class LewisClarkCC(Colleague):
+    id = "lewisclark"; name = "Lewis & Clark Community College"
+    example = "ADCG 144"; host = "selfservice.lc.edu"
+
+class MortonCollege(Colleague):
+    id = "morton"; name = "Morton College"
+    example = "MUS 023"; host = "selfservice.morton.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2179,7 +2199,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              LindseyWilson(), BartonCC(), Centenary(), Catawba(),
                              Walsh(), ConcordiaWI(), Curry(),
                              IllinoisWesleyan(), Canisius(), IncarnateWord(),
-                             Citrus(), Cochise(), AllanHancock(), LakeSumter(), NorthwestFlorida(), AntelopeValley(), Harford(), Gavilan(),
+                             Citrus(), Cochise(), AllanHancock(), LakeSumter(), NorthwestFlorida(), AntelopeValley(), Harford(), Gavilan(), JeffersonCollegeMO(),
                              ConcordiaTX(), TAMUSanAntonio(), TAMUCentralTexas(), UDallas(),
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
                              Towson(), UVA(), USM(), Palomar(),
@@ -2190,7 +2210,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC(),
                              TarrantCounty(), Allegheny(), Macomb(), MidMichigan(),
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
-                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView(), ElCamino(), Triton(), Canyons(), Grossmont(), PrinceGeorges(), GovernorsState(), CarrollCCMD(), BergenCC()]
+                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView(), ElCamino(), Triton(), Canyons(), Grossmont(), PrinceGeorges(), GovernorsState(), CarrollCCMD(), BergenCC(), CincinnatiState(), JolietJC(), LewisClarkCC(), MortonCollege()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
