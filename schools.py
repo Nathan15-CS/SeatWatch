@@ -1978,6 +1978,18 @@ class HardinSimmons(Colleague):
     id = "hsutx"; name = "Hardin-Simmons University"
     example = "CSCI 1320"; host = "selfservice.hsutx.edu"
 
+class Elmhurst(Colleague):
+    id = "elmhurst"; name = "Elmhurst University"
+    example = "CS 420"; host = "selfservice.elmhurst.edu"
+
+class Bellarmine(Colleague):
+    id = "bellarmine"; name = "Bellarmine University"
+    example = "CS 310"; host = "selfservice.bellarmine.edu"
+
+class Wittenberg(Colleague):
+    id = "wittenberg"; name = "Wittenberg University"
+    example = "COMP 305"; host = "selfservice.wittenberg.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -2056,7 +2068,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SoutheasternIA(), EasternU(), Nichols(), Elms(), BladenCC(),
                              TarrantCounty(), Allegheny(), Macomb(), MidMichigan(),
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
-                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons()]
+                             EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
