@@ -20,3 +20,28 @@ One public search serves all 33 MN State colleges/universities. Verified live Ju
 - Sections keyed by "Sec" column ("01","54"); verified unique per (subj,num) incl. two-campus Anoka-Ramsey. Row order: ID#(6-digit), Subj, #, Sec, ..., status span.
 - Subject dropdown scrape (per campus): `basic.html?campusid={CID}&searchrcid={RCID}&searchcampusid={CID}&yrtr=20273` — searchrcid param is REQUIRED or you get the slim no-campus page.
 - Native waitlist exists but is per-department opt-in, email-only, 24h claim window (same posture as CUNY -> shipped anyway).
+
+## KCTCS (Kentucky, 16 colleges) — probing IN PROGRESS (this section: July 8, 2026)
+
+**Public JSON API found**: `https://class-search.kctcsweb.com/api` (the official kctcs.edu/class-search.aspx widget backend, Laravel, no auth):
+- `/terms` -> `{term_code: 4264, term_description: "Fall 2026"}` (also 4256 Spring, 4262 Summer 2026)
+- `/subjects?college={NAME}&term=4264`, `/courses?college=...&term=...&subject=BIO` (catalog numbers)
+- `/search?college={NAME}&term=4264&subject=BIO&page=N` — 20/page fixed, ordered by catalog_number,
+  rows have EVERYTHING: section, number (PS class nbr), catalog_number, **enrolled, max_enrollment,
+  enrollment_status (O/C)**, instructor, meeting info. (cat,section) unique; dedupe rows by `number`
+  (multi-meeting rows repeat with meeting_number>1).
+- College keys = uppercase names: ASHLAND, BIG SANDY, BLUEGRASS, ELIZABETHTOWN, GATEWAY, HAZARD,
+  HENDERSON, HOPKINSVILLE, JEFFERSON, MADISONVILLE, MAYSVILLE, OWENSBORO, SOMERSET, SOUTHCENTRAL,
+  SOUTHEAST, WEST KENTUCKY. `kctcs_subjects.json` = Fall 2026 subject maps for all 16.
+
+**⚠️ FRESHNESS UNRESOLVED — DO NOT BUILD ON THIS YET**: every row (1,462 sampled across all 16
+colleges) has created_at == updated_at == 2026-05-05. Either a dead May snapshot (fails
+[[flawless-accuracy-nonnegotiable]]) or a sync that bulk-upserts without touching timestamps.
+Delta-watch running (enrollment diffs over ~2h of active fall registration) — verdict pending.
+
+**Live-PeopleSoft fallback (if mirror is dead)**: students.kctcs.edu/psc/stdsaprd/EMPLOYEE/SA/c/
+SSR_STUDENT_FL.SSR_CLSRCH_MAIN_FL.GBL loads as guest (no login) incl. deep-link params, but results
+render via ICAJAX; blind replay attempts got blank envelopes (state advances, no content). Needs a
+real browser session to capture the exact ICAction/payload (Chrome extension was disconnected).
+Classic CLASS_SEARCH.CLASS_SEARCH.GBL is also a JS shell. COMMUNITY_ACCESS.K_OLA_LANDING_FL.GBL is
+just the application portal — dead end.
