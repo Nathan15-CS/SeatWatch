@@ -1842,6 +1842,11 @@ _CTCLINK = [
     ("wa-renton-tech", "Renton Technical College", "WA270", "CS 142"),
     ("wa-bates-tech", "Bates Technical College", "WA280", "MATH 172"),
     ("wa-cascadia", "Cascadia College", "WA300", "MATH 95"),
+    # Last 2 of 33 addressable ctcLink institutions (per SBCTC's own "College Codes
+    # (Numeric Order)" doc, rev. 2023-07-31) — confirmed live in ctcLink's own
+    # per-term institutions[] list alongside every school above (Fall 2026 = "2267").
+    ("wa-spokane-cc", "Spokane Community College", "WA171", "ENGL& 101"),
+    ("wa-clover-park-tech", "Clover Park Technical College", "WA290", "ENGL& 101"),
 ]
 
 
