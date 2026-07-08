@@ -67,7 +67,23 @@ alert at ANY Banner school). Fail-closed: if totalCount can't be fully read, ski
 Old erpdnssb.cccs.edu (Banner 8) is dead/unreachable — selfservice.cccs.edu is the live host.
 
 
-## IPEDS-sourced verified schools (research handoff, July 8 2026) — READY TO BUILD
+## IPEDS-sourced schools — ✅ BUILT & SHIPPED July 8 2026: 60 of 78 added (469->529)
+Gate results (every school through the PRODUCTION fetcher; examples from each school's own
+search API; raw section-collapse screen; latency cut >30s):
+- Banner 29/34 added. EXCLUDED: UNC Charlotte (already live as `uncc` — dedup miss),
+  Drake (re-cut at 136.8s — same cold-start as original cut), Morehouse College,
+  NMSU, Wilkes, Central Carolina Tech, South Texas, Virginia State, Middlebury (term
+  picker lands on MIIS grad entity), Blackhawk Tech, Waukesha County Tech (subject
+  catalogs return numeric codes / seats hidden — adapter-incompatible without rework).
+- Colleague 22/29 added. EXCLUDED: Victor Valley, Colorado Mountain, Columbia MO,
+  Campbell (term-filtered fetch empty / counts unpublished), Loras (dotted subjects),
+  Southwestern TX (numbering), Washington Adventist (unreachable).
+- Fose 3/3 added (UArk, SLU, South Carolina).
+- CA districts 6/6 added via new `CACCD(Banner)` subclass — CA letter-prefixed course
+  numbers (ENGL A101 / B1A) need a district-only _code override; campus-token isolation
+  verified by full ENGL pagination on both hosts (Orange/Golden/Coastline, BC/CC/Porterville).
+
+## Original handoff (for reference) — READY TO BUILD
 
 Source: US Dept. of Education IPEDS public directory (public domain, no legal exposure — Coursicle was NOT used as a data source, only as approach confirmation). Every school below was verified LIVE Fall 2026 through the PRODUCTION adapter's own term-picker. Deduplicated against schools.py at time of writing. Each must still clear the section-collapse accuracy screen at add time.
 

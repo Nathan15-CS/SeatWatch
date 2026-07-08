@@ -376,6 +376,21 @@ class Dartmouth(Fose):
     example = "COSC 001"; srcdb = "202609"     # Fall 2026
     api = "https://courses.dartmouth.edu/api/?page=fose&route=search"
 
+class UArk(Fose):
+    id = "uark"; name = "University of Arkansas"
+    example = "ENGL 10103"; srcdb = "1269"     # Fall 2026 (verified live)
+    api = "https://classes.uark.edu/api/?page=fose&route=search"
+
+class SLU(Fose):
+    id = "slu"; name = "Saint Louis University"
+    example = "ENGL 1900"; srcdb = "202710"    # Fall 2026 (verified live)
+    api = "https://courses.slu.edu/api/?page=fose&route=search"
+
+class SouthCarolina(Fose):
+    id = "southcarolina"; name = "University of South Carolina"
+    example = "ENGL 101"; srcdb = "202608"     # Fall 2026 (verified live)
+    api = "https://classes.sc.edu/api/?page=fose&route=search"
+
 
 class Iowa:
     """Bespoke adapter for the University of Iowa's public MAUI API. One call per
@@ -1635,6 +1650,170 @@ class MeridianCC(Banner):
     example = "CSC 1123"; host = "ssb.meridiancc.edu"; term = "202610"
 
 
+# --- July 8 2026 IPEDS batch (each verified through the production fetcher: live
+# term auto-resolved, example discovered from the school's own search API, raw
+# section-collapse screen clean, latency < 3s). Drake re-tested and re-CUT at 136.8s
+# (identical to its original cut — host still cold-starts per session).
+class SCAD(Banner):
+    id = "scad"; name = "Savannah College of Art and Design"
+    example = "ENGL 142"; host = "ssb.scad.edu"; term = "202710"
+
+class NWMissouri(Banner):
+    id = "nwmissouri"; name = "Northwest Missouri State University"
+    example = "ENGL 10111"; host = "banprod.nwmissouri.edu"; term = "202710"
+
+class NortheastNE(Banner):
+    id = "northeastne"; name = "Northeast Community College (NE)"
+    example = "ENGL 0955"; host = "reg-prod.ec.northeast.edu"; term = "202710"
+
+class AlfredU(Banner):
+    id = "alfred"; name = "Alfred University"
+    example = "ENGL 101"; host = "banweb.alfred.edu"; term = "202690"
+
+class FITNYC(Banner):
+    id = "fit"; name = "Fashion Institute of Technology"
+    example = "CS 211"; host = "banner.fitnyc.edu"; term = "202701"
+
+class Hofstra(Banner):
+    id = "hofstra"; name = "Hofstra University"
+    example = "ENGL 020"; host = "xe.hofstra.edu"; term = "202609"
+
+class JamestownCC(Banner):
+    id = "sunyjcc"; name = "Jamestown Community College"
+    example = "ENG 1540"; host = "banprod.sunyjcc.edu"; term = "202612"
+
+class SUNYCanton(Banner):
+    id = "sunycanton"; name = "SUNY Canton"
+    example = "ENGL 101"; host = "banweb.canton.edu"; term = "202609"
+
+class SUNYSchenectady(Banner):
+    id = "sunysccc"; name = "SUNY Schenectady"
+    example = "ENG 123"; host = "banprod.sunysccc.edu"; term = "202609"
+
+class UpstateMedical(Banner):
+    id = "upstate"; name = "SUNY Upstate Medical University"
+    example = "ENGL 325"; host = "bannerweb.upstate.edu"; term = "202680"
+
+class Presbyterian(Banner):
+    id = "presby"; name = "Presbyterian College"
+    example = "ENGL 1001"; host = "banprod.presby.edu"; term = "202601"
+
+# Prairie View A&M (myssb.pvamu.edu) tested and CUT — passed one gate fetch then went
+# consistently empty (0 sections, fast responses): host serves inconsistent data.
+
+class Gonzaga(Banner):
+    id = "gonzaga"; name = "Gonzaga University"
+    example = "ENGL 101"; host = "xe.gonzaga.edu"; term = "202710"
+
+class PacificLutheran(Banner):
+    id = "plu"; name = "Pacific Lutheran University"
+    example = "ENGL 214"; host = "banweb.plu.edu"; term = "202674"
+
+class CollegeOfTheSequoias(Banner):
+    id = "cos"; name = "College of the Sequoias"
+    example = "ACCT 210"; host = "banweb.cos.edu"; term = "202710"
+
+class UCMerced(Banner):
+    id = "ucmerced"; name = "UC Merced"
+    example = "BIOE 021"; host = "reg-prod.ec.ucmerced.edu"; term = "202630"
+
+class UOPacific(Banner):
+    id = "pacific"; name = "University of the Pacific"
+    example = "NURS 200"; host = "reg-prod.ec.pacific.edu"; term = "202684"
+
+class UDC(Banner):
+    id = "udc"; name = "University of the District of Columbia"
+    example = "ACCT 201"; host = "reg-prod.ec.udc.edu"; term = "202710"
+
+class MorehouseSOM(Banner):
+    id = "msm"; name = "Morehouse School of Medicine"
+    example = "NURS 602"; host = "reg-prod.ec.msm.edu"; term = "202701"
+
+class BethelMN(Banner):
+    id = "bethelmn"; name = "Bethel University (MN)"
+    example = "BT 510"; host = "banner.bethel.edu"; term = "202713"
+
+class MohawkValley(Banner):
+    id = "mvcc"; name = "Mohawk Valley Community College"
+    example = "AC 115"; host = "banprod.mvcc.edu"; term = "202608"
+
+class RocklandCC(Banner):
+    id = "sunyrockland"; name = "Rockland Community College"
+    example = "BLR 30000"; host = "banner.sunyrockland.edu"; term = "202685"
+
+class NewSchool(Banner):
+    id = "newschool"; name = "The New School"
+    example = "NURP 6900"; host = "selfservice.newschool.edu"; term = "202610"
+
+# USG Georgia state colleges on the shared gabest.usg.edu Banner infra (same
+# pattern as GeorgiaSouthern/WestGeorgia/etc; term 202608 = Fall 2026 systemwide).
+class ABAC(Banner):
+    id = "abac"; name = "Abraham Baldwin Agricultural College"
+    example = "ENGL 1101"; host = "abac.gabest.usg.edu"; term = "202608"
+
+class AtlantaMetro(Banner):
+    id = "atlm"; name = "Atlanta Metropolitan State College"
+    example = "ENGL 1101"; host = "atlm.gabest.usg.edu"; term = "202608"
+
+class CoastalGeorgia(Banner):
+    id = "ccga"; name = "College of Coastal Georgia"
+    example = "ENGL 0999"; host = "ccga.gabest.usg.edu"; term = "202608"
+
+class GordonState(Banner):
+    id = "gordonstate"; name = "Gordon State College"
+    example = "ENGL 1101"; host = "gordon.gabest.usg.edu"; term = "202608"
+
+class SouthGeorgiaState(Banner):
+    id = "sgsc"; name = "South Georgia State College"
+    example = "ENGL 1101"; host = "sgsc.gabest.usg.edu"; term = "202608"
+
+class DaltonState(Banner):
+    id = "daltonstate"; name = "Dalton State College"
+    example = "ACCT 2101"; host = "daltonstate.gabest.usg.edu"; term = "202608"
+
+
+class CACCD(Banner):
+    """California multi-college district on ONE Ellucian Cloud Banner host, isolated by
+    the campus filter (SD-regental pattern: first token of campusDescription — verified
+    live: Coast CCD tokens Orange/Golden/Coastline, Kern CCD tokens BC/CC/Porterville,
+    full ENGL pagination shows no other token on either host). CA course numbers carry
+    a campus letter PREFIX ("ENGL A101", "ENGL B1A"), which the base Banner._code can't
+    split, so _code is overridden HERE ONLY — a required space keeps it unambiguous and
+    the base class (200+ live schools) is untouched. fetch() then exact-matches the full
+    lettered number against the API's own courseNumber, so a bad parse returns nothing
+    rather than the wrong course."""
+    _CODE_RE = re.compile(r"^([A-Za-z]{2,6})\s+([A-Za-z]?\d{1,4}[A-Za-z]{0,2})$")
+
+    @classmethod
+    def _code(cls, course):
+        m = cls._CODE_RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+class OrangeCoast(CACCD):
+    id = "orangecoast"; name = "Orange Coast College"
+    example = "ENGL A101"; host = "reg-prod.ec.cccd.edu"; term = "202670"; campus = "Orange"
+
+class GoldenWest(CACCD):
+    id = "goldenwest"; name = "Golden West College"
+    example = "ENGL G100S"; host = "reg-prod.ec.cccd.edu"; term = "202670"; campus = "Golden"
+
+class Coastline(CACCD):
+    id = "coastline"; name = "Coastline College"
+    example = "ENGL C102"; host = "reg-prod.ec.cccd.edu"; term = "202670"; campus = "Coastline"
+
+class Bakersfield(CACCD):
+    id = "bakersfield"; name = "Bakersfield College"
+    example = "ENGL B1A"; host = "reg-prod.ec.kccd.edu"; term = "202670"; campus = "BC"
+
+class CerroCoso(CACCD):
+    id = "cerrocoso"; name = "Cerro Coso Community College"
+    example = "ENGL C101"; host = "reg-prod.ec.kccd.edu"; term = "202670"; campus = "CC"
+
+class Porterville(CACCD):
+    id = "porterville"; name = "Porterville College"
+    example = "ENGL P101A"; host = "reg-prod.ec.kccd.edu"; term = "202670"; campus = "Porterville"
+
+
 # ===========================================================================
 class PeopleSoft:
     """Oracle PeopleSoft Campus Solutions 'Class Search and Enroll' fetcher.
@@ -2632,6 +2811,101 @@ class SanJoseEvergreen(Colleague):
     id = "sjeccd"; name = "San Jose-Evergreen Community College District"
     example = "CGID 001"; host = "selfservice.sjeccd.edu"
 
+# --- July 8 2026 IPEDS batch (each verified through the production fetcher: live
+# sections, clean int seat counts, latency < 5s; examples discovered from each
+# school's own search API). Excluded from the same handoff after failing the gate:
+# Victor Valley, Colorado Mountain, Columbia College MO, Campbell (sections exist
+# but term-filtered fetch returns none / counts unpublished), Loras (dotted subject
+# codes the adapter can't parse), Southwestern TX (non-standard numbering),
+# Washington Adventist (host unreachable).
+class CollegeOfTheDesert(Colleague):
+    id = "codesert"; name = "College of the Desert"
+    example = "ENG 005B"; host = "ss.collegeofthedesert.edu"
+
+class Guam(Colleague):
+    id = "guam"; name = "University of Guam"
+    example = "CEE 404"; host = "selfservice.uog.edu"
+
+class SimpsonCollegeIA(Colleague):
+    id = "simpsoncollege"; name = "Simpson College"
+    example = "MATH 130"; host = "ss.simpson.edu"
+
+class Kankakee(Colleague):
+    id = "kankakee"; name = "Kankakee Community College"
+    example = "ENGL 1613"; host = "selfservice.kcc.edu"
+
+class Midway(Colleague):
+    id = "midway"; name = "Midway University"
+    example = "ENG 100"; host = "ss.midway.edu"
+
+class WorWic(Colleague):
+    id = "worwic"; name = "Wor-Wic Community College"
+    example = "ENG 101"; host = "selfservice.worwic.edu"
+
+class DeltaMI(Colleague):
+    id = "deltami"; name = "Delta College"
+    example = "ENG 111C"; host = "ss.delta.edu"
+
+class WilliamJewell(Colleague):
+    id = "jewell"; name = "William Jewell College"
+    example = "BIO 380"; host = "ss.jewell.edu"
+
+class JamesSprunt(Colleague):
+    id = "jamessprunt"; name = "James Sprunt Community College"
+    example = "ENG 111"; host = "ss.jamessprunt.edu"
+
+class LeesMcRae(Colleague):
+    id = "leesmcrae"; name = "Lees-McRae College"
+    example = "ENG 499"; host = "selfservice.lmc.edu"
+
+class LenoirCC(Colleague):
+    id = "lenoircc"; name = "Lenoir Community College"
+    example = "ENG 112"; host = "ss.lenoircc.edu"
+
+class PiedmontNC(Colleague):
+    id = "piedmontnc"; name = "Piedmont Community College (NC)"
+    example = "ENG 111"; host = "ss.piedmontcc.edu"
+
+class SampsonCC(Colleague):
+    id = "sampsoncc"; name = "Sampson Community College"
+    example = "ENG 111"; host = "ss.sampsoncc.edu"
+
+class SouthwesternCCNC(Colleague):
+    id = "southwesterncc"; name = "Southwestern Community College (NC)"
+    example = "ENG 111"; host = "ss.southwesterncc.edu"
+
+class Daemen(Colleague):
+    id = "daemen"; name = "Daemen University"
+    example = "LIT 147"; host = "selfservice.daemen.edu"
+
+class EasternOKState(Colleague):
+    id = "eosc"; name = "Eastern Oklahoma State College"
+    example = "ENGL 1113"; host = "ss.eosc.edu"
+
+class SoutheasternOKState(Colleague):
+    id = "seosu"; name = "Southeastern Oklahoma State University"
+    example = "ENG 4990"; host = "selfservice.se.edu"
+
+class WesternOKState(Colleague):
+    id = "wosc"; name = "Western Oklahoma State College"
+    example = "ENGL 1213"; host = "selfservice.wosc.edu"
+
+class HolyFamily(Colleague):
+    id = "holyfamily"; name = "Holy Family University"
+    example = "MATH 109"; host = "selfservice.holyfamily.edu"
+
+class MontgomeryCountyCC(Colleague):
+    id = "mc3"; name = "Montgomery County Community College"
+    example = "ENG 101"; host = "selfservice.mc3.edu"
+
+class WestminsterUT(Colleague):
+    id = "westminsterut"; name = "Westminster University"
+    example = "LMW 326"; host = "ss.westminstercollege.edu"
+
+class WesternWyoming(Colleague):
+    id = "westernwyoming"; name = "Western Wyoming Community College"
+    example = "ENGL 1010"; host = "selfservice.westernwyoming.edu"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -3079,6 +3353,25 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              Northwood(), Rowan(), Roosevelt(), NationalLouis(), MercyUniversity(), Pasadena(), SanJoseEvergreen(),
                              Baruch(), BMCC(), HunterCUNY(), QueensCUNY(),
                              BronxCC(), StatenIsland(), CityCollege(), GuttmanCC(), HostosCC(), KingsboroughCC(), JohnJayCUNY(), LaGuardiaCC(), MedgarEvers(), LehmanCUNY(), CityTech(), Queensborough(), YorkCUNY(), CunySPS(), BrooklynCUNY()]
+                            + [SCAD(), NWMissouri(), NortheastNE(), AlfredU(),
+                               FITNYC(), Hofstra(), JamestownCC(), SUNYCanton(),
+                               SUNYSchenectady(), UpstateMedical(), Presbyterian(),
+                               Gonzaga(), PacificLutheran(),
+                               CollegeOfTheSequoias(), UCMerced(), UOPacific(),
+                               UDC(), MorehouseSOM(), BethelMN(), MohawkValley(),
+                               RocklandCC(), NewSchool(),
+                               ABAC(), AtlantaMetro(), CoastalGeorgia(),
+                               GordonState(), SouthGeorgiaState(), DaltonState()]
+                            + [UArk(), SLU(), SouthCarolina(),
+                               CollegeOfTheDesert(), Guam(), SimpsonCollegeIA(),
+                               Kankakee(), Midway(), WorWic(), DeltaMI(),
+                               WilliamJewell(), JamesSprunt(), LeesMcRae(),
+                               LenoirCC(), PiedmontNC(), SampsonCC(),
+                               SouthwesternCCNC(), Daemen(), EasternOKState(),
+                               SoutheasternOKState(), WesternOKState(), HolyFamily(),
+                               MontgomeryCountyCC(), WestminsterUT(), WesternWyoming(),
+                               OrangeCoast(), GoldenWest(), Coastline(),
+                               Bakersfield(), CerroCoso(), Porterville()]
                             + [CtcLink(*t) for t in _CTCLINK]
                             + [MinnState(*t) for t in _MINNSTATE]
                             + [VCCS(*t) for t in _VCCS]}
