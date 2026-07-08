@@ -65,3 +65,102 @@ SIDE FIX shipped with it: `Banner.fetch` now PAGINATES searchResults (was silent
 100 rows/course — FRCC ENG 1021 has 129 sections; watched sections past row 100 could never
 alert at ANY Banner school). Fail-closed: if totalCount can't be fully read, skip the course.
 Old erpdnssb.cccs.edu (Banner 8) is dead/unreachable — selfservice.cccs.edu is the live host.
+
+
+## IPEDS-sourced verified schools (research handoff, July 8 2026) — READY TO BUILD
+
+Source: US Dept. of Education IPEDS public directory (public domain, no legal exposure — Coursicle was NOT used as a data source, only as approach confirmation). Every school below was verified LIVE Fall 2026 through the PRODUCTION adapter's own term-picker. Deduplicated against schools.py at time of writing. Each must still clear the section-collapse accuracy screen at add time.
+
+
+### Banner adapter — 34 schools (host + term auto-detected)
+
+- College of the Sequoias (CA) — `banweb.cos.edu`
+- University of California-Merced (CA) — `reg-prod.ec.ucmerced.edu`
+- University of the Pacific (CA) — `reg-prod.ec.pacific.edu`
+- University of the District of Columbia (DC) — `reg-prod.ec.udc.edu`
+- Morehouse College (GA) — `reg-prod.ec.morehouse.edu`
+- Morehouse School of Medicine (GA) — `reg-prod.ec.msm.edu`
+- Savannah College of Art and Design (GA) — `ssb.scad.edu`
+- Drake University (IA) — `registrationssb.drake.edu`
+- Bethel University (MN) — `banner.bethel.edu`
+- Northwest Missouri State University (MO) — `banprod.nwmissouri.edu`
+- University of North Carolina at Charlotte (NC) — `selfservice.charlotte.edu`
+- Northeast Community College (NE) — `reg-prod.ec.northeast.edu`
+- New Mexico State University-Main Campus (NM) — `banner.nmsu.edu`
+- Alfred University (NY) — `banweb.alfred.edu`
+- Fashion Institute of Technology (NY) — `banner.fitnyc.edu`
+- Hofstra University (NY) — `xe.hofstra.edu`
+- Jamestown Community College (NY) — `banprod.sunyjcc.edu`
+- Mohawk Valley Community College (NY) — `banprod.mvcc.edu`
+- Rockland Community College (NY) — `banner.sunyrockland.edu`
+- SUNY College of Technology at Canton (NY) — `banweb.canton.edu`
+- Schenectady County Community College (NY) — `banprod.sunysccc.edu`
+- The New School (NY) — `selfservice.newschool.edu`
+- Upstate Medical University (NY) — `bannerweb.upstate.edu`
+- Wilkes University (PA) — `reg-prod.ec.wilkes.edu`
+- Central Carolina Technical College (SC) — `ssb.cctech.edu`
+- Presbyterian College (SC) — `banprod.presby.edu`
+- Prairie View A & M University (TX) — `myssb.pvamu.edu`
+- South Texas College (TX) — `registration.southtexascollege.edu`
+- Virginia State University (VA) — `reg-prod.ec.vsu.edu`
+- Middlebury College (VT) — `reg-prod.ec.middlebury.edu`
+- Gonzaga University (WA) — `xe.gonzaga.edu`
+- Pacific Lutheran University (WA) — `banweb.plu.edu`
+- Blackhawk Technical College (WI) — `reg-prod.ec.blackhawk.edu`
+- Waukesha County Technical College (WI) — `reg-prod.ec.wctc.edu`
+
+### Colleague adapter — 29 schools (term auto-detected)
+
+- College of the Desert (CA) — `ss.collegeofthedesert.edu`
+- Victor Valley College (CA) — `selfservice.vvc.edu`
+- Colorado Mountain College (CO) — `selfservice.coloradomtn.edu`
+- University of Guam (GU) — `selfservice.uog.edu`
+- Loras College (IA) — `selfservice.loras.edu`
+- Simpson College (IA) — `ss.simpson.edu`
+- Kankakee Community College (IL) — `selfservice.kcc.edu`
+- Midway University (KY) — `ss.midway.edu`
+- Washington Adventist University (MD) — `ss.wau.edu`
+- Wor-Wic Community College (MD) — `selfservice.worwic.edu`
+- Delta College (MI) — `ss.delta.edu`
+- Columbia College (MO) — `selfservice.ccis.edu`
+- William Jewell College (MO) — `ss.jewell.edu`
+- Campbell University (NC) — `ss.campbell.edu`
+- James Sprunt Community College (NC) — `ss.jamessprunt.edu`
+- Lees-McRae College (NC) — `selfservice.lmc.edu`
+- Lenoir Community College (NC) — `ss.lenoircc.edu`
+- Piedmont Community College (NC) — `ss.piedmontcc.edu`
+- Sampson Community College (NC) — `ss.sampsoncc.edu`
+- Southwestern Community College (NC) — `ss.southwesterncc.edu`
+- Daemen University (NY) — `selfservice.daemen.edu`
+- Eastern Oklahoma State College (OK) — `ss.eosc.edu`
+- Southeastern Oklahoma State University (OK) — `selfservice.se.edu`
+- Western Oklahoma State College (OK) — `selfservice.wosc.edu`
+- Holy Family University (PA) — `selfservice.holyfamily.edu`
+- Montgomery County Community College (PA) — `selfservice.mc3.edu`
+- Southwestern University (TX) — `selfservice.southwestern.edu`
+- Westminster University (UT) — `ss.westminstercollege.edu`
+- Western Wyoming Community College (WY) — `selfservice.westernwyoming.edu`
+
+### Fose adapter — 3 schools
+
+- University of Arkansas (AR) — `classes.uark.edu` srcdb=1269 (api=https://classes.uark.edu/api/?page=fose&route=search)
+- Saint Louis University (MO) — `courses.slu.edu` srcdb=202710 (api=https://courses.slu.edu/api/?page=fose&route=search)
+- University of South Carolina-Columbia (SC) — `classes.sc.edu` srcdb=202608 (api=https://classes.sc.edu/api/?page=fose&route=search)
+
+### USG Georgia (shared gabest Banner, term=202608, ex 'ENGL 1101') — 6 schools
+
+- Abraham Baldwin Agricultural College (GA) — `abac.gabest.usg.edu`
+- Atlanta Metropolitan State College (GA) — `atlm.gabest.usg.edu`
+- College of Coastal Georgia (GA) — `ccga.gabest.usg.edu`
+- Dalton State College (GA) — `daltonstate.gabest.usg.edu`
+- Gordon State College (GA) — `gordon.gabest.usg.edu`
+- South Georgia State College (GA) — `sgsc.gabest.usg.edu`
+
+### California districts (Banner, campus= filter, term=202670) — 2 hosts = 6 colleges
+
+- Coast CCD — `reg-prod.ec.cccd.edu` → Orange Coast, Golden West, Coastline
+- Kern CCD — `reg-prod.ec.kccd.edu` → Bakersfield (BC), Cerro Coso (CC), Porterville
+
+**TOTAL: 78 net-new verified schools → 469 to 547.**
+
+Still in progress (separate): CT-log (certspotter) discovery over the ~2,580 schools that matched no hostname pattern — finds hidden registration hosts. Results appended when complete. KCTCS confirmed DEAD (stale May-5 snapshot, 4/4 delta checks zero movement — do not add).
