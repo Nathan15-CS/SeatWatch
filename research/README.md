@@ -188,7 +188,7 @@ Only 2 with open guest Banner search, both verified live:
 - North Georgia Technical College (GA) — `banner.northgatech.edu`
 - Piedmont Technical College (SC) — `banner.ptc.edu`
 
-### University of Illinois Urbana-Champaign — new adapter type, 1 school (but flagship-size, ~35k+ students)
+### University of Illinois Urbana-Champaign — ✅ BUILT & SHIPPED July 8 2026 (528->529)
 Public "Course Explorer" (courses.illinois.edu), fully guest-accessible, server-rendered HTML
 (no login, no AJAX API — confirmed via manual DevTools Network inspection, 0 relevant XHR
 requests fired; page is plain HTTP-rendered). robots.txt allows the /schedule/ path we need
@@ -207,4 +207,14 @@ Treat Pending/Unknown as NOT open (conservative — never-false-alert rule).
 
 NOTE: UIC (Chicago) and UIS (Springfield) do NOT use this system — checked, different platform,
 not yet identified. This is UIUC only. Still a strong single add given its size.
-Still needs section-collapse accuracy screen before going live.
+
+New `UIUC` class in schools.py. Fixed one real bug caught during the gate: the naive
+term picker computed delta-months wrong and resolved "2026/summer" (an in-progress term)
+instead of "2026/fall" while mid-Fall-registration — since refresh_all_terms() runs daily
+and adopts ANY term that returns data (not just the RIGHT term), this would have silently
+mis-pointed the school at the wrong semester. Rewrote resolve_term() to use the same
+delta>=1-skip-in-progress logic as every other adapter's term picker. CRNs are paired
+with their own row's Availability status (not by parallel-list order, which would
+silently misalign on a missing field); verified with a synthetic duplicate-CRN test that
+the collapse guard actually fires. Live-verified: CS 101 (18 sections), CS 225
+cross-listed (12 sections, "CrossListOpen (Restricted)" correctly read as open).

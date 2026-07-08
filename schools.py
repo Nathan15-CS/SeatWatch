@@ -392,6 +392,118 @@ class SouthCarolina(Fose):
     api = "https://classes.sc.edu/api/?page=fose&route=search"
 
 
+class UIUC:
+    """University of Illinois Urbana-Champaign 'Course Explorer' (courses.illinois.edu)
+    — a plain server-rendered, guest-accessible schedule page (no login, no AJAX API).
+    robots.txt allows /schedule/ (only blocks /cisapp/, /cisdocs/, /search/, /user/,
+    PDFs). Page states 'Section Status updates every 10 minutes'.
+
+    One GET per course: https://courses.illinois.edu/schedule/{year}/{term}/{SUBJ}/{NUM}
+    Each section's CRN is embedded in its own 'favorite' link
+    (/userredirect/favorite/{year}/{term}/{SUBJ}/{NUM}/{CRN}); its Availability sits in
+    the SAME per-row chunk (<dt>Availability:</dt><dd>{status}</dd>), so sections are
+    paired by ROW, never by parallel-list order (a row with a missing field would
+    silently misalign a global zip).
+
+    Status enum (from the page's own legend): Closed, Open, Open (Restricted), Pending,
+    Unknown. Cross-listed sections render concatenated: 'CrossListOpen (Restricted)'.
+    TRUE-OPEN RULE: status contains 'Open' AND does NOT contain 'Closed' -> open.
+    Pending/Unknown are conservatively NOT open (never a false alert). No seat counts
+    published -> seats=None. A course with literally 'No Sections' on the page, or a
+    duplicate CRN (collapse guard), is skipped rather than guessed."""
+    id = "uiuc"; name = "University of Illinois Urbana-Champaign"
+    example = "CS 101"
+    term = "2026/fall"                    # {year}/{season}; auto-rolls via refresh_term
+    _active_term = None
+    _CODE_RE = re.compile(r"^([A-Za-z]{2,4})\s+(\d{2,3}[A-Za-z]?)$")
+    _ANCHOR_FMT = "/userredirect/favorite/{term}/{subj}/{num}/(\\d+)"
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def _norm(self, course):
+        m = self._CODE_RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        subj, num = self._norm(course)
+        return f"https://courses.illinois.edu/schedule/{self.cur_term()}/{subj}/{num}"
+
+    def _fetch_term(self, term, course):
+        subj, num = self._norm(course)
+        if not subj:
+            return None
+        try:
+            html = _http(f"https://courses.illinois.edu/schedule/{term}/{subj}/{num}")
+        except Exception:
+            return None
+        if "No Sections" in html:
+            return {}
+        pat = re.compile(self._ANCHOR_FMT.format(term=term, subj=subj, num=num))
+        anchors = list(pat.finditer(html))
+        if not anchors:
+            return None                          # unexpected shape — don't guess
+        secs, dup = {}, False
+        for i, m in enumerate(anchors):
+            crn = m.group(1)
+            if crn in secs:
+                dup = True
+                break
+            start = m.end()
+            end = anchors[i + 1].start() if i + 1 < len(anchors) else len(html)
+            sm = re.search(r"<dt>Availability:</dt>\s*<dd>([^<]*)</dd>", html[start:end])
+            status = sm.group(1) if sm else ""
+            secs[crn] = {"open": "Open" in status and "Closed" not in status, "seats": None}
+        return None if dup else secs
+
+    def resolve_term(self):
+        """Nearest UPCOMING term as {year}/{season} — same delta-months-ahead logic as
+        every other adapter's term picker (_pick_current_term, PeopleSoft.resolve_term):
+        skip anything already in progress (delta < 1), pick the smallest remaining
+        delta. Existence/live-data is verified separately by refresh_term's own fetch
+        of the example course before adopting — this method only computes the
+        calendar-correct candidate, so it never hands back an in-progress term like
+        the current summer session just because its page happens to load."""
+        today = datetime.date.today()
+        best, best_delta = None, None
+        for season, mon in _SEASON.items():
+            if season == "autumn":
+                continue
+            for year in (today.year, today.year + 1):
+                delta = (year - today.year) * 12 + (mon - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, f"{year}/{season}"
+        return best
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self._fetch_term(new, self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            secs = self._fetch_term(self.cur_term(), course)
+            if secs:
+                out[course] = secs
+        return out
+
+
 class Iowa:
     """Bespoke adapter for the University of Iowa's public MAUI API. One call per
     DEPARTMENT returns every section with an authoritative sectionStatus
@@ -3353,6 +3465,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              Northwood(), Rowan(), Roosevelt(), NationalLouis(), MercyUniversity(), Pasadena(), SanJoseEvergreen(),
                              Baruch(), BMCC(), HunterCUNY(), QueensCUNY(),
                              BronxCC(), StatenIsland(), CityCollege(), GuttmanCC(), HostosCC(), KingsboroughCC(), JohnJayCUNY(), LaGuardiaCC(), MedgarEvers(), LehmanCUNY(), CityTech(), Queensborough(), YorkCUNY(), CunySPS(), BrooklynCUNY()]
+                            + [UIUC()]
                             + [SCAD(), NWMissouri(), NortheastNE(), AlfredU(),
                                FITNYC(), Hofstra(), JamestownCC(), SUNYCanton(),
                                SUNYSchenectady(), UpstateMedical(), Presbyterian(),
@@ -3382,7 +3495,7 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, (Banner, PeopleSoft, MinnState)):
+        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC)):
             try:
                 s.refresh_term(log)
             except Exception:
