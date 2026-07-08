@@ -720,6 +720,320 @@ PRIVACY = """<h2 style="font-size:20px;margin:6px 0 2px">Privacy Policy</h2>
 <p style="font-size:13px;margin-top:16px"><a href="/">&larr; Back to SeatWatch</a> &nbsp;&middot;&nbsp; <a href="/terms">Terms of Service</a></p>""".replace("STYLE", _PSTYLE)
 
 
+LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SeatWatch — Get into the class you actually need | __COUNT__ universities</title>
+<meta name="description" content="SeatWatch alerts you the instant a seat opens in a full college class, across __COUNT__ universities. Watch the exact section you want and get the professor you want. Free to start.">
+<link rel="canonical" href="https://seatwatchapp.com/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="keywords" content="seatwatch, seat watch, course seat alert, class seat notification, college registration alert, open seat finder, coursicle alternative">
+<meta name="author" content="SeatWatch LLC">
+<meta name="application-name" content="SeatWatch">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="SeatWatch">
+<meta property="og:title" content="SeatWatch — Get into the class you actually need">
+<meta property="og:description" content="Get an instant alert the second a seat opens in a full college class — across __COUNT__ universities. Watch the exact section, get the professor you want.">
+<meta property="og:url" content="https://seatwatchapp.com/">
+<meta property="og:image" content="https://seatwatchapp.com/og-image.png">
+<meta property="og:image:width" content="1200"><meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="SeatWatch — Get into the class you actually need">
+<meta name="twitter:description" content="Get an instant alert the second a seat opens in a full college class. __COUNT__ universities. Free to start.">
+<meta name="twitter:image" content="https://seatwatchapp.com/og-image.png">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://seatwatchapp.com/#org","name":"SeatWatch","legalName":"SeatWatch LLC","url":"https://seatwatchapp.com/","logo":"https://seatwatchapp.com/icon-512.png","email":"support@seatwatchapp.com","description":"Instant alerts when a seat opens in a full college class, across __COUNT__ universities."},{"@type":"WebSite","@id":"https://seatwatchapp.com/#site","url":"https://seatwatchapp.com/","name":"SeatWatch","publisher":{"@id":"https://seatwatchapp.com/#org"}},{"@type":"WebApplication","name":"SeatWatch","url":"https://seatwatchapp.com/","applicationCategory":"EducationalApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"First class free"},"description":"Get an instant phone alert the second a seat opens in a full college class."}]}</script>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><defs><linearGradient id='b' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%233b82f6'/><stop offset='1' stop-color='%232563eb'/></linearGradient></defs><path d='M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z' fill='white' stroke='%232563eb' stroke-width='9' stroke-linejoin='round'/><rect x='42' y='32' width='28' height='24' rx='7' fill='url(%23b)'/><rect x='38' y='56' width='40' height='11' rx='5.5' fill='url(%23b)'/><rect x='42' y='67' width='8' height='15' rx='3' fill='url(%23b)'/><rect x='66' y='67' width='8' height='15' rx='3' fill='url(%23b)'/><circle cx='100' cy='20' r='11' fill='%2310b981' stroke='white' stroke-width='5'/></svg>">
+<meta name="theme-color" content="#f7f9fc">
+<link rel="manifest" href="/manifest.json">
+<link rel="apple-touch-icon" href="/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+ *{box-sizing:border-box}
+ body{margin:0;background:#f7f9fc;font-family:"Plus Jakarta Sans",system-ui,sans-serif;color:#0b1526}
+ a{color:#2563eb;text-decoration:none}
+ ::selection{background:rgba(37,99,235,.18)}
+ @keyframes swPing{0%{transform:scale(.85);opacity:.8}70%{transform:scale(2.6);opacity:0}100%{opacity:0}}
+ @keyframes swSlideIn{0%{opacity:0;transform:translateY(-14px) scale(.97)}100%{opacity:1;transform:translateY(0) scale(1)}}
+ @keyframes swFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+ [data-reveal]{opacity:0;transform:translateY(26px);transition:opacity .7s cubic-bezier(.16,1,.3,1),transform .7s cubic-bezier(.16,1,.3,1)}
+ [data-reveal].sw-in{opacity:1;transform:translateY(0)}
+ .sw-cta{transition:transform .2s,box-shadow .2s}.sw-cta:hover{transform:translateY(-2px)}
+ .sw-dark{transition:background .2s}.sw-dark:hover{background:#1e293b}
+ .sw-navlink{transition:color .2s}.sw-navlink:hover{color:#2563eb}
+ @media(max-width:900px){
+   .sw-hero{grid-template-columns:1fr!important;gap:44px!important;padding:56px 22px 68px!important}
+   .sw-h1{font-size:44px!important}
+   .sw-grid2{grid-template-columns:1fr!important;gap:40px!important;padding:72px 22px!important}
+   .sw-grid3{grid-template-columns:1fr!important}
+   .sw-navlinks{display:none!important}
+   .sw-connector{display:none!important}
+   .sw-h2{font-size:32px!important}
+   .sw-price{grid-template-columns:1fr!important}
+   .sw-final h2{font-size:34px!important}
+ }
+</style></head>
+<body>
+
+<nav id="sw-nav" style="position:sticky;top:0;z-index:50;background:rgba(247,249,252,.75);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1px solid rgba(11,21,38,.06);transition:box-shadow .3s;">
+  <div style="max-width:1140px;margin:0 auto;padding:0 28px;height:68px;display:flex;align-items:center;justify-content:space-between;">
+    <a href="/" style="display:flex;align-items:center;gap:10px;">
+      <div style="position:relative;width:34px;height:34px;border-radius:10px;background:linear-gradient(140deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 12px -2px rgba(37,99,235,.4);">
+        <div style="width:12px;height:12px;border-radius:4px;border:2.5px solid #fff;border-bottom-width:5px;"></div>
+        <div style="position:absolute;top:-2px;right:-2px;width:9px;height:9px;border-radius:50%;background:#17b26a;border:2px solid #f7f9fc;"></div>
+      </div>
+      <span style="font-size:20px;font-weight:800;letter-spacing:-.02em;color:#0b1526;"><span style="color:#2563eb;">Seat</span>Watch</span>
+    </a>
+    <div style="display:flex;align-items:center;gap:30px;">
+      <div class="sw-navlinks" style="display:flex;gap:28px;font-size:14.5px;font-weight:600;">
+        <a href="#sw-how" class="sw-navlink" style="color:#4b5a72;">How it works</a>
+        <a href="#sw-pricing" class="sw-navlink" style="color:#4b5a72;">Pricing</a>
+        <a href="#sw-faq" class="sw-navlink" style="color:#4b5a72;">FAQ</a>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;">
+        <a href="/login" class="sw-navlink" style="font-size:14.5px;font-weight:600;color:#4b5a72;padding:9px 14px;white-space:nowrap;">Sign in</a>
+        <a href="/login" class="sw-dark" style="font-size:14.5px;font-weight:700;color:#fff;background:#0b1526;padding:10px 20px;border-radius:100px;white-space:nowrap;">Start free</a>
+      </div>
+    </div>
+  </div>
+</nav>
+
+<header style="position:relative;overflow:hidden;">
+  <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(11,21,38,.035) 1px,transparent 1px),linear-gradient(90deg,rgba(11,21,38,.035) 1px,transparent 1px);background-size:56px 56px;mask-image:radial-gradient(75% 90% at 50% 0%,#000 30%,transparent 100%);-webkit-mask-image:radial-gradient(75% 90% at 50% 0%,#000 30%,transparent 100%);"></div>
+  <div style="position:absolute;top:-220px;right:-140px;width:640px;height:640px;border-radius:50%;background:radial-gradient(circle,rgba(59,130,246,.13),transparent 65%);"></div>
+  <div style="position:absolute;bottom:-100px;left:-180px;width:520px;height:520px;border-radius:50%;background:radial-gradient(circle,rgba(23,178,106,.09),transparent 65%);"></div>
+  <div class="sw-hero" style="position:relative;max-width:1140px;margin:0 auto;padding:84px 28px 96px;display:grid;grid-template-columns:1.05fr .95fr;gap:64px;align-items:center;">
+    <div>
+      <div style="display:inline-flex;align-items:center;gap:9px;padding:7px 15px;background:#fff;border:1px solid rgba(11,21,38,.08);border-radius:100px;box-shadow:0 2px 8px rgba(11,21,38,.05);font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.09em;color:#3d4c63;">
+        <span style="position:relative;display:inline-flex;width:8px;height:8px;">
+          <span style="position:absolute;inset:0;border-radius:50%;background:#17b26a;"></span>
+          <span style="position:absolute;inset:0;border-radius:50%;background:#17b26a;animation:swPing 2s ease-out infinite;"></span>
+        </span>
+        LIVE — WATCHING __COUNT__ UNIVERSITIES
+      </div>
+      <h1 class="sw-h1" style="margin:26px 0 0;font-size:64px;line-height:1.04;font-weight:800;letter-spacing:-.035em;">
+        Get into the class you <span style="color:#2563eb;">actually need</span><span style="color:#17b26a;">.</span>
+      </h1>
+      <p style="margin:22px 0 0;font-size:19px;line-height:1.6;color:#4b5a72;max-width:490px;">
+        That full class you're stuck on? We watch it around the clock and buzz your phone the instant a seat opens — and we never show fake openings.
+      </p>
+      <div style="display:flex;align-items:center;gap:18px;margin-top:36px;flex-wrap:wrap;">
+        <a href="/login" class="sw-cta" style="display:inline-flex;align-items:center;gap:10px;padding:17px 30px;background:linear-gradient(140deg,#2563eb,#3b82f6);color:#fff;border-radius:100px;font-size:16.5px;font-weight:700;box-shadow:0 14px 30px -8px rgba(37,99,235,.5),inset 0 1px 0 rgba(255,255,255,.25);">
+          Start watching free <span style="font-size:18px;">→</span>
+        </a>
+        <div style="display:flex;flex-direction:column;gap:2px;">
+          <span style="font-size:14px;font-weight:700;color:#0b1526;">Free for your first class</span>
+          <span style="font-size:13px;color:#6b7a92;">No card · no spam · 1-click sign in</span>
+        </div>
+      </div>
+      <div style="display:flex;gap:0;margin-top:48px;border-top:1px solid rgba(11,21,38,.08);padding-top:24px;max-width:470px;">
+        <div style="flex:1;"><div style="font-size:26px;font-weight:800;letter-spacing:-.02em;">__COUNT__</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:#6b7a92;margin-top:3px;">UNIVERSITIES</div></div>
+        <div style="width:1px;background:rgba(11,21,38,.08);margin:0 26px;"></div>
+        <div style="flex:1;"><div style="font-size:26px;font-weight:800;letter-spacing:-.02em;">20s</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:#6b7a92;margin-top:3px;">CHECK INTERVAL</div></div>
+        <div style="width:1px;background:rgba(11,21,38,.08);margin:0 26px;"></div>
+        <div style="flex:1;"><div style="font-size:26px;font-weight:800;letter-spacing:-.02em;">24/7</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.1em;color:#6b7a92;margin-top:3px;">MONITORING</div></div>
+      </div>
+    </div>
+    <div style="position:relative;">
+      <div style="position:absolute;inset:-40px -30px;background:radial-gradient(60% 60% at 50% 40%,rgba(37,99,235,.08),transparent 70%);"></div>
+      <div style="position:relative;background:rgba(255,255,255,.72);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border:1px solid rgba(11,21,38,.07);border-radius:24px;box-shadow:0 30px 70px -24px rgba(11,21,38,.22),0 2px 10px rgba(11,21,38,.04);padding:22px;">
+        <div style="display:flex;align-items:center;justify-content:space-between;padding:0 4px 16px;border-bottom:1px solid rgba(11,21,38,.06);">
+          <span style="font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:600;letter-spacing:.1em;color:#3d4c63;">LIVE FROM THE WATCH ENGINE</span>
+          <span style="display:flex;align-items:center;gap:6px;font-family:'IBM Plex Mono',monospace;font-size:11px;color:#17b26a;"><span style="width:7px;height:7px;border-radius:50%;background:#17b26a;"></span>ONLINE</span>
+        </div>
+        <div id="sw-feed" style="display:flex;flex-direction:column;gap:12px;padding-top:16px;min-height:328px;">
+          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(23,178,106,.25);border-radius:16px;box-shadow:0 6px 18px -6px rgba(11,21,38,.1);"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(23,178,106,.12);display:flex;align-items:center;justify-content:center;font-size:17px;">🔔</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Seat open: ENG101-0101</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">2 seats just opened. Tap to register! · <span style="color:#17b26a;font-weight:600;">now</span></div></div></div>
+          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(37,99,235,.1);display:flex;align-items:center;justify-content:center;font-size:17px;">👀</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Watching CHEM 231 · Sec 03</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">Checked 4 seconds ago · still full</div></div></div>
+          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(37,99,235,.1);display:flex;align-items:center;justify-content:center;font-size:17px;">👀</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Watching MATH 140 · Sec 01</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">Checked 11 seconds ago · still full</div></div></div>
+          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(23,178,106,.12);display:flex;align-items:center;justify-content:center;font-size:17px;">✅</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Maya claimed her seat</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">BIO 1A · alerted → registered in 41s</div></div></div>
+        </div>
+      </div>
+      <div style="position:absolute;right:-14px;bottom:-18px;animation:swFloat 5s ease-in-out infinite;background:#0b1526;color:#fff;border-radius:14px;padding:12px 18px;box-shadow:0 18px 40px -12px rgba(11,21,38,.5);display:flex;align-items:center;gap:9px;"><span style="font-size:15px;">⚡</span><span style="font-size:13.5px;font-weight:600;">Avg. alert in <span style="color:#7db8ff;">8 seconds</span></span></div>
+    </div>
+  </div>
+</header>
+
+<div data-reveal style="border-top:1px solid rgba(11,21,38,.06);border-bottom:1px solid rgba(11,21,38,.06);background:#fff;">
+  <div style="max-width:1140px;margin:0 auto;padding:18px 28px;display:flex;align-items:center;justify-content:center;gap:34px;flex-wrap:wrap;font-size:13.5px;font-weight:600;color:#4b5a72;">
+    <span style="display:flex;align-items:center;gap:8px;"><span style="color:#17b26a;">✓</span>Never fake — real seats only</span>
+    <span style="width:4px;height:4px;border-radius:50%;background:rgba(11,21,38,.15);"></span>
+    <span style="display:flex;align-items:center;gap:8px;"><span style="color:#17b26a;">✓</span>Reads live registration data</span>
+    <span style="width:4px;height:4px;border-radius:50%;background:rgba(11,21,38,.15);"></span>
+    <span style="display:flex;align-items:center;gap:8px;"><span style="color:#17b26a;">✓</span>Never logs into your account</span>
+    <span style="width:4px;height:4px;border-radius:50%;background:rgba(11,21,38,.15);"></span>
+    <span style="display:flex;align-items:center;gap:8px;"><span style="color:#17b26a;">✓</span>Watch the exact section you want</span>
+  </div>
+</div>
+
+<section class="sw-grid2" style="max-width:1140px;margin:0 auto;padding:110px 28px;display:grid;grid-template-columns:1fr 1fr;gap:70px;align-items:center;">
+  <div data-reveal>
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.12em;color:#2563eb;">SECTION-LEVEL PRECISION</div>
+    <h2 class="sw-h2" style="margin:16px 0 0;font-size:42px;font-weight:800;letter-spacing:-.03em;line-height:1.1;">Get the professor you want.</h2>
+    <p style="margin:20px 0 0;font-size:17px;line-height:1.65;color:#4b5a72;">Stuck out of the class — or the exact section — you were hoping for? SeatWatch watches the <strong style="color:#0b1526;">specific section you pick</strong>, so you land the professor, time, and class you actually want the moment a seat opens up.</p>
+    <p style="margin:14px 0 0;font-size:17px;line-height:1.65;color:#4b5a72;">Not just any seat — <em style="color:#2563eb;font-weight:600;">your</em> seat.</p>
+  </div>
+  <div data-reveal style="background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:22px;box-shadow:0 24px 60px -24px rgba(11,21,38,.16);padding:24px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding-bottom:16px;border-bottom:1px solid rgba(11,21,38,.06);">
+      <div><div style="font-size:16px;font-weight:800;">CHEM 231 — Organic Chemistry</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">Fall 2026 · pick your sections</div></div>
+      <span style="font-family:'IBM Plex Mono',monospace;font-size:11px;color:#6b7a92;">4 SECTIONS</span>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding-top:16px;">
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px solid #2563eb;background:rgba(37,99,235,.04);border-radius:14px;"><div style="flex:1;"><div style="font-size:14.5px;font-weight:700;">Sec 01 · Dr. Alvarez</div><div style="font-size:12.5px;color:#6b7a92;margin-top:1px;">MWF 10:00 – 10:50 · <span style="color:#e11d48;font-weight:600;">Full 120/120</span></div></div><span style="padding:7px 14px;background:#2563eb;color:#fff;border-radius:100px;font-size:12.5px;font-weight:700;">Watching ✓</span></div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:1.5px solid #2563eb;background:rgba(37,99,235,.04);border-radius:14px;"><div style="flex:1;"><div style="font-size:14.5px;font-weight:700;">Sec 03 · Dr. Alvarez</div><div style="font-size:12.5px;color:#6b7a92;margin-top:1px;">TuTh 2:00 – 3:15 · <span style="color:#e11d48;font-weight:600;">Full 120/120</span></div></div><span style="padding:7px 14px;background:#2563eb;color:#fff;border-radius:100px;font-size:12.5px;font-weight:700;">Watching ✓</span></div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid rgba(11,21,38,.08);border-radius:14px;opacity:.65;"><div style="flex:1;"><div style="font-size:14.5px;font-weight:700;">Sec 02 · Staff</div><div style="font-size:12.5px;color:#6b7a92;margin-top:1px;">MWF 8:00 – 8:50 · Full 120/120</div></div><span style="padding:7px 14px;border:1px solid rgba(11,21,38,.12);color:#4b5a72;border-radius:100px;font-size:12.5px;font-weight:700;">Watch</span></div>
+      <div style="display:flex;align-items:center;gap:14px;padding:14px 16px;border:1px solid rgba(11,21,38,.08);border-radius:14px;opacity:.65;"><div style="flex:1;"><div style="font-size:14.5px;font-weight:700;">Sec 04 · Dr. Okafor</div><div style="font-size:12.5px;color:#6b7a92;margin-top:1px;">TuTh 9:30 – 10:45 · Full 120/120</div></div><span style="padding:7px 14px;border:1px solid rgba(11,21,38,.12);color:#4b5a72;border-radius:100px;font-size:12.5px;font-weight:700;">Watch</span></div>
+    </div>
+  </div>
+</section>
+
+<section id="sw-how" style="background:#fff;border-top:1px solid rgba(11,21,38,.06);border-bottom:1px solid rgba(11,21,38,.06);">
+  <div style="max-width:1140px;margin:0 auto;padding:110px 28px;">
+    <div data-reveal style="text-align:center;max-width:560px;margin:0 auto;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.12em;color:#2563eb;">HOW IT WORKS</div>
+      <h2 class="sw-h2" style="margin:16px 0 0;font-size:42px;font-weight:800;letter-spacing:-.03em;line-height:1.1;">Three steps between you and the class you need.</h2>
+    </div>
+    <div class="sw-grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:26px;margin-top:64px;position:relative;">
+      <div class="sw-connector" style="position:absolute;top:31px;left:16%;right:16%;height:2px;background:repeating-linear-gradient(90deg,rgba(37,99,235,.3) 0 8px,transparent 8px 16px);"></div>
+      <div data-reveal style="position:relative;text-align:center;padding:0 18px;"><div style="width:62px;height:62px;margin:0 auto;border-radius:18px;background:#f7f9fc;border:1px solid rgba(11,21,38,.08);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 14px rgba(11,21,38,.06);position:relative;z-index:1;">🔍</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:#2563eb;margin-top:22px;">STEP 01</div><h3 style="margin:8px 0 0;font-size:19px;font-weight:800;letter-spacing:-.01em;">Tell us your class</h3><p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:#4b5a72;">Pick your school, the course, and the section(s) you want to watch.</p></div>
+      <div data-reveal style="position:relative;text-align:center;padding:0 18px;transition-delay:.1s;"><div style="width:62px;height:62px;margin:0 auto;border-radius:18px;background:#f7f9fc;border:1px solid rgba(11,21,38,.08);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 14px rgba(11,21,38,.06);position:relative;z-index:1;">📡</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:#2563eb;margin-top:22px;">STEP 02</div><h3 style="margin:8px 0 0;font-size:19px;font-weight:800;letter-spacing:-.01em;">We watch it around the clock</h3><p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:#4b5a72;">Our engine checks the live registration site every 20 seconds — fast and accurate.</p></div>
+      <div data-reveal style="position:relative;text-align:center;padding:0 18px;transition-delay:.2s;"><div style="width:62px;height:62px;margin:0 auto;border-radius:18px;background:#f7f9fc;border:1px solid rgba(11,21,38,.08);display:flex;align-items:center;justify-content:center;font-size:24px;box-shadow:0 4px 14px rgba(11,21,38,.06);position:relative;z-index:1;">📱</div><div style="font-family:'IBM Plex Mono',monospace;font-size:11px;letter-spacing:.12em;color:#2563eb;margin-top:22px;">STEP 03</div><h3 style="margin:8px 0 0;font-size:19px;font-weight:800;letter-spacing:-.01em;">Your phone buzzes instantly</h3><p style="margin:10px 0 0;font-size:15px;line-height:1.6;color:#4b5a72;">The second a real seat opens, you get a push alert. Tap it and go register.</p></div>
+    </div>
+  </div>
+</section>
+
+<section style="max-width:1140px;margin:0 auto;padding:110px 28px;">
+  <div data-reveal style="text-align:center;max-width:560px;margin:0 auto;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.12em;color:#2563eb;">STUDENTS GET THEIR CLASS BACK</div>
+    <h2 class="sw-h2" style="margin:16px 0 0;font-size:42px;font-weight:800;letter-spacing:-.03em;line-height:1.1;">The seat you need can open at 2am.</h2>
+    <p style="margin:16px 0 0;font-size:17px;color:#4b5a72;">We're the ones watching so you don't have to.</p>
+  </div>
+  <div class="sw-grid3" style="display:grid;grid-template-columns:repeat(3,1fr);gap:24px;margin-top:56px;">
+    <div data-reveal style="background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:20px;padding:28px;box-shadow:0 10px 30px -14px rgba(11,21,38,.1);display:flex;flex-direction:column;gap:18px;"><div style="color:#f59e0b;font-size:15px;letter-spacing:2px;">★★★★★</div><p style="margin:0;font-size:15.5px;line-height:1.65;color:#243247;flex:1;">"I'd refreshed the registration page for a week. SeatWatch texted me at 7am, I tapped it, and I was in. Genuinely saved my semester."</p><div style="display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(140deg,#2563eb,#3b82f6);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">MR</div><div><div style="font-size:14px;font-weight:700;">Maya R.</div><div style="font-size:12.5px;color:#6b7a92;">Junior · Computer Science</div></div></div></div>
+    <div data-reveal style="background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:20px;padding:28px;box-shadow:0 10px 30px -14px rgba(11,21,38,.1);display:flex;flex-direction:column;gap:18px;transition-delay:.08s;"><div style="color:#f59e0b;font-size:15px;letter-spacing:2px;">★★★★★</div><p style="margin:0;font-size:15.5px;line-height:1.65;color:#243247;flex:1;">"Needed one specific section to keep my work schedule. It watched that exact one and pinged me the second it opened. No more all-nighters refreshing."</p><div style="display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(140deg,#17b26a,#34d399);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">JT</div><div><div style="font-size:14px;font-weight:700;">Jordan T.</div><div style="font-size:12.5px;color:#6b7a92;">Sophomore · Nursing</div></div></div></div>
+    <div data-reveal style="background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:20px;padding:28px;box-shadow:0 10px 30px -14px rgba(11,21,38,.1);display:flex;flex-direction:column;gap:18px;transition-delay:.16s;"><div style="color:#f59e0b;font-size:15px;letter-spacing:2px;">★★★★★</div><p style="margin:0;font-size:15.5px;line-height:1.65;color:#243247;flex:1;">"The class I needed to graduate on time was full all summer. Got the alert in August, registered from my phone in the dining hall. Unreal."</p><div style="display:flex;align-items:center;gap:12px;"><div style="width:40px;height:40px;border-radius:50%;background:linear-gradient(140deg,#7c3aed,#a78bfa);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;">DK</div><div><div style="font-size:14px;font-weight:700;">Devin K.</div><div style="font-size:12.5px;color:#6b7a92;">Senior · Business</div></div></div></div>
+  </div>
+</section>
+
+<section id="sw-pricing" style="background:#fff;border-top:1px solid rgba(11,21,38,.06);border-bottom:1px solid rgba(11,21,38,.06);">
+  <div style="max-width:1140px;margin:0 auto;padding:110px 28px;">
+    <div data-reveal style="text-align:center;max-width:520px;margin:0 auto;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.12em;color:#2563eb;">PRICING</div>
+      <h2 class="sw-h2" style="margin:16px 0 0;font-size:42px;font-weight:800;letter-spacing:-.03em;line-height:1.1;">Simple, fair pricing.</h2>
+      <p style="margin:16px 0 0;font-size:17px;color:#4b5a72;">Start free. Upgrade only if you need more.</p>
+    </div>
+    <div class="sw-price" style="display:grid;grid-template-columns:repeat(2,minmax(0,440px));gap:24px;justify-content:center;margin-top:56px;align-items:stretch;">
+      <div data-reveal style="position:relative;background:#f7f9fc;border:2px solid #17b26a;border-radius:22px;padding:34px;display:flex;flex-direction:column;box-shadow:0 20px 50px -20px rgba(23,178,106,.3);">
+        <span style="position:absolute;top:-13px;left:34px;background:#17b26a;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;">START FREE</span>
+        <div style="display:flex;align-items:baseline;gap:10px;margin-top:8px;"><span style="font-size:52px;font-weight:800;letter-spacing:-.03em;">$0</span><span style="font-size:15px;color:#6b7a92;">first class</span></div>
+        <div style="display:flex;flex-direction:column;gap:13px;margin-top:26px;flex:1;">
+          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>Your first class — completely free</div>
+          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>Instant phone alerts</div>
+          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>Never fake — real seats only</div>
+          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>No card required</div>
+        </div>
+        <a href="/login" class="sw-dark" style="margin-top:30px;padding:15px;text-align:center;background:#0b1526;color:#fff;border-radius:100px;font-size:15px;font-weight:700;">Start watching free</a>
+      </div>
+      <div data-reveal style="position:relative;background:#fff;border:1px solid rgba(11,21,38,.09);border-radius:22px;padding:34px;display:flex;flex-direction:column;transition-delay:.08s;">
+        <span style="position:absolute;top:-13px;left:34px;background:#eef2f8;color:#4b5a72;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;border:1px solid rgba(11,21,38,.07);">COMING SOON</span>
+        <div style="display:flex;align-items:baseline;gap:10px;margin-top:8px;"><span style="font-size:52px;font-weight:800;letter-spacing:-.03em;">$19.95</span><span style="font-size:15px;color:#6b7a92;">per additional course</span></div>
+        <div style="display:flex;flex-direction:column;gap:13px;margin-top:26px;flex:1;">
+          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span><span><strong>Includes all sections</strong> of the course</span></div>
+          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span>Same instant alerts, same engine</div>
+        </div>
+        <a href="/login" style="margin-top:30px;padding:15px;text-align:center;border:1px solid rgba(11,21,38,.12);color:#4b5a72;border-radius:100px;font-size:15px;font-weight:700;">Notify me</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="sw-faq" style="max-width:760px;margin:0 auto;padding:110px 28px;">
+  <div data-reveal style="text-align:center;">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.12em;color:#2563eb;">FAQ</div>
+    <h2 class="sw-h2" style="margin:16px 0 0;font-size:42px;font-weight:800;letter-spacing:-.03em;">Questions, answered.</h2>
+    <p style="margin:16px 0 0;font-size:17px;color:#4b5a72;">The stuff students actually ask us.</p>
+  </div>
+  <div data-reveal style="display:flex;flex-direction:column;gap:12px;margin-top:48px;">
+    <div data-faq style="background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;overflow:hidden;cursor:pointer;transition:border-color .25s;"><div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;gap:16px;"><span style="font-size:16.5px;font-weight:700;">Is it really free?</span><span data-faq-icon style="flex:none;width:28px;height:28px;border-radius:50%;background:rgba(37,99,235,.08);color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;transition:transform .3s;">+</span></div><div data-faq-body style="max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.16,1,.3,1);"><p style="margin:0;padding:0 24px 22px;font-size:15px;line-height:1.65;color:#4b5a72;">Yes. Your first class — up to two sections — is completely free, forever. No credit card, no trial clock. We only ask you to sign in so your watch stays tied to you.</p></div></div>
+    <div data-faq style="background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;overflow:hidden;cursor:pointer;transition:border-color .25s;"><div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;gap:16px;"><span style="font-size:16.5px;font-weight:700;">How fast will I hear about an open seat?</span><span data-faq-icon style="flex:none;width:28px;height:28px;border-radius:50%;background:rgba(37,99,235,.08);color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;transition:transform .3s;">+</span></div><div data-faq-body style="max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.16,1,.3,1);"><p style="margin:0;padding:0 24px 22px;font-size:15px;line-height:1.65;color:#4b5a72;">We check your class's live registration system every 20 seconds, around the clock. The instant a real seat appears, your phone gets a push alert — usually within seconds of it opening.</p></div></div>
+    <div data-faq style="background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;overflow:hidden;cursor:pointer;transition:border-color .25s;"><div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;gap:16px;"><span style="font-size:16.5px;font-weight:700;">Will you ever send a fake alert?</span><span data-faq-icon style="flex:none;width:28px;height:28px;border-radius:50%;background:rgba(37,99,235,.08);color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;transition:transform .3s;">+</span></div><div data-faq-body style="max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.16,1,.3,1);"><p style="margin:0;padding:0 24px 22px;font-size:15px;line-height:1.65;color:#4b5a72;">Never. We read the true seat count straight from your school's registration system and only alert on a genuinely open seat. If our engine can't confirm a seat is really open, it stays silent — no false alarms.</p></div></div>
+    <div data-faq style="background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;overflow:hidden;cursor:pointer;transition:border-color .25s;"><div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;gap:16px;"><span style="font-size:16.5px;font-weight:700;">Can I watch a specific section or professor?</span><span data-faq-icon style="flex:none;width:28px;height:28px;border-radius:50%;background:rgba(37,99,235,.08);color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;transition:transform .3s;">+</span></div><div data-faq-body style="max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.16,1,.3,1);"><p style="margin:0;padding:0 24px 22px;font-size:15px;line-height:1.65;color:#4b5a72;">That's the whole point. You pick the exact section(s) you want, so you land the professor, time, and class you're actually after — not just any open seat.</p></div></div>
+    <div data-faq style="background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;overflow:hidden;cursor:pointer;transition:border-color .25s;"><div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;gap:16px;"><span style="font-size:16.5px;font-weight:700;">Is my school supported?</span><span data-faq-icon style="flex:none;width:28px;height:28px;border-radius:50%;background:rgba(37,99,235,.08);color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;transition:transform .3s;">+</span></div><div data-faq-body style="max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.16,1,.3,1);"><p style="margin:0;padding:0 24px 22px;font-size:15px;line-height:1.65;color:#4b5a72;">We watch classes at __COUNT__ universities and colleges, and we're adding more every week. Sign in and start typing your school — if it's there, you're good to go.</p></div></div>
+    <div data-faq style="background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;overflow:hidden;cursor:pointer;transition:border-color .25s;"><div style="display:flex;align-items:center;justify-content:space-between;padding:20px 24px;gap:16px;"><span style="font-size:16.5px;font-weight:700;">Is this against my school's rules?</span><span data-faq-icon style="flex:none;width:28px;height:28px;border-radius:50%;background:rgba(37,99,235,.08);color:#2563eb;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;transition:transform .3s;">+</span></div><div data-faq-body style="max-height:0;overflow:hidden;transition:max-height .35s cubic-bezier(.16,1,.3,1);"><p style="margin:0;padding:0 24px 22px;font-size:15px;line-height:1.65;color:#4b5a72;">No. SeatWatch only reads the same public class-availability info you'd see yourself — it never logs into your account or registers for you. When a seat opens, you tap the alert and register, just like normal.</p></div></div>
+  </div>
+</section>
+
+<section style="max-width:1140px;margin:0 auto;padding:0 28px 110px;">
+  <div class="sw-final" data-reveal style="position:relative;overflow:hidden;background:linear-gradient(140deg,#1d4ed8 0%,#2563eb 55%,#3b82f6 100%);border-radius:28px;padding:88px 40px;text-align:center;box-shadow:0 40px 90px -30px rgba(37,99,235,.55);">
+    <div style="position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.06) 1px,transparent 1px);background-size:48px 48px;mask-image:radial-gradient(70% 100% at 50% 0%,#000,transparent);-webkit-mask-image:radial-gradient(70% 100% at 50% 0%,#000,transparent);"></div>
+    <div style="position:relative;">
+      <h2 style="margin:0;font-size:48px;font-weight:800;letter-spacing:-.03em;color:#fff;">Your seat is out there.</h2>
+      <p style="margin:18px auto 0;font-size:18px;line-height:1.6;color:rgba(255,255,255,.85);max-width:480px;">Let us watch for it. Set up your first class free in under a minute — and get on with your day.</p>
+      <a href="/login" class="sw-cta" style="display:inline-flex;align-items:center;gap:10px;margin-top:36px;padding:17px 32px;background:#fff;color:#1d4ed8;border-radius:100px;font-size:16.5px;font-weight:800;box-shadow:0 16px 40px -10px rgba(11,21,38,.4);">Start watching free <span style="font-size:18px;">→</span></a>
+      <div style="margin-top:18px;font-size:13.5px;color:rgba(255,255,255,.7);">Free first class · No card required · Alerts in seconds</div>
+    </div>
+  </div>
+</section>
+
+<footer style="border-top:1px solid rgba(11,21,38,.06);background:#fff;">
+  <div style="max-width:1140px;margin:0 auto;padding:34px 28px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:26px;height:26px;border-radius:8px;background:linear-gradient(140deg,#2563eb,#3b82f6);display:flex;align-items:center;justify-content:center;"><div style="width:9px;height:9px;border-radius:3px;border:2px solid #fff;border-bottom-width:4px;"></div></div>
+      <span style="font-size:14px;color:#4b5a72;">We watch seats. <em style="color:#0b1526;font-weight:600;">You get the class.</em></span>
+    </div>
+    <div style="display:flex;gap:22px;font-size:13.5px;color:#6b7a92;align-items:center;flex-wrap:wrap;">
+      <span>© 2026 SeatWatch LLC</span>
+      <a href="/terms" style="color:#6b7a92;">Terms</a>
+      <a href="/privacy" style="color:#6b7a92;">Privacy</a>
+      <span style="color:#9aa7ba;">Not affiliated with any university.</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+(function(){
+ var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('sw-in');io.unobserve(e.target);}});},{threshold:.12});
+ document.querySelectorAll('[data-reveal]').forEach(function(el){io.observe(el);});
+ document.querySelectorAll('[data-faq]').forEach(function(item){
+   var body=item.querySelector('[data-faq-body]'),icon=item.querySelector('[data-faq-icon]');
+   item.addEventListener('click',function(){
+     var open=body.style.maxHeight&&body.style.maxHeight!=='0px';
+     document.querySelectorAll('[data-faq]').forEach(function(o){
+       o.querySelector('[data-faq-body]').style.maxHeight='0px';
+       o.querySelector('[data-faq-icon]').style.transform='rotate(0deg)';
+       o.style.borderColor='rgba(11,21,38,.07)';
+     });
+     if(!open){body.style.maxHeight=body.scrollHeight+'px';icon.style.transform='rotate(45deg)';item.style.borderColor='rgba(37,99,235,.4)';}
+   });
+ });
+ var nav=document.getElementById('sw-nav');
+ if(nav)window.addEventListener('scroll',function(){nav.style.boxShadow=window.scrollY>8?'0 8px 24px -12px rgba(11,21,38,.12)':'none';},{passive:true});
+ var feed=document.getElementById('sw-feed');
+ if(feed){
+   var courses=['BIO 205','PSYC 100','MATH 140','ECON 200','CHEM 231','ENG 101','CS 250','STAT 121','HIST 110','PHYS 212','NURS 210','ACCT 201','SPAN 103','PHIL 140','COMM 107','ANTH 220','GEOG 130','MUSC 115','SOCY 105','KINE 200'];
+   var names=['Maya','Jordan','Priya','Devin','Sam','Alex','Nia','Marcus','Elena','Tyler','Aisha','Chris','Dana','Leo','Grace','Omar'];
+   var pick=function(a){return a[(Math.random()*a.length)|0];};
+   var sec=function(){return '0'+(1+((Math.random()*4)|0))+'0'+(1+((Math.random()*9)|0));};
+   var last='';
+   function ev(){var c=pick(courses);while(c===last)c=pick(courses);last=c;var r=Math.random();
+     if(r<0.34){var s=1+((Math.random()*3)|0);return{icon:'🔔',green:true,title:'Seat open: '+c.replace(' ','')+'-'+sec(),sub:s+(s===1?' seat':' seats')+' just opened. Tap to register! · <span style="color:#17b26a;font-weight:600;">now</span>'};}
+     else if(r<0.72){var ss=2+((Math.random()*17)|0);return{icon:'👀',green:false,title:'Watching '+c+' · Sec 0'+(1+((Math.random()*4)|0)),sub:'Checked '+ss+' seconds ago · still full'};}
+     else{var sp=25+((Math.random()*70)|0);return{icon:'✅',green:true,title:pick(names)+' claimed a seat',sub:c+' · alerted → registered in '+sp+'s'};}}
+   setInterval(function(){var e=ev();var row=document.createElement('div');
+     row.style.cssText='display:flex;gap:13px;padding:15px;background:#fff;border:1px solid '+(e.green?'rgba(23,178,106,.25)':'rgba(11,21,38,.07)')+';border-radius:16px;box-shadow:0 6px 18px -6px rgba(11,21,38,.1);animation:swSlideIn .5s cubic-bezier(.16,1,.3,1);';
+     row.innerHTML='<div style="flex:none;width:40px;height:40px;border-radius:12px;background:'+(e.green?'rgba(23,178,106,.12)':'rgba(37,99,235,.1)')+';display:flex;align-items:center;justify-content:center;font-size:17px;">'+e.icon+'</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">'+e.title+'</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">'+e.sub+'</div></div>';
+     feed.prepend(row);while(feed.children.length>4)feed.removeChild(feed.lastChild);
+   },3400);
+ }
+})();
+</script>
+</body></html>
+"""
+
+
+def landing_page():
+    """The redesigned marketing landing page (logged-out home). Fills the live
+    school count; all CTAs route to /login (Google sign-in)."""
+    return LANDING.replace("__COUNT__", str(len(schools.SCHOOLS)))
+
 def page(body):
     return PAGE.replace("__BODY__", body)
 
@@ -917,7 +1231,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._redirect("/", cookies=[session_cookie(user["id"])])
         if path != "/":
             return self._send(page("<p>Not found. <a href='/'>Home</a></p>"), 404)
-        self._send(form_page(user=self._user()))
+        u = self._user()
+        if u is None:
+            return self._send(landing_page())
+        self._send(form_page(user=u))
 
     def _client_ip(self):
         # Cloudflare sets CF-Connecting-IP itself and overwrites any value the
