@@ -801,6 +801,22 @@ class ClaytonState(Banner):
     id = "clayton"; name = "Clayton State University"
     example = "CSCI 1301"; host = "clayton.gabest.usg.edu"; term = "202608"
 
+class GeorgiaSouthwestern(Banner):
+    id = "gsw"; name = "Georgia Southwestern State University"
+    example = "CSCI 1301"; host = "gsw.gabest.usg.edu"; term = "202608"
+
+class FortValleyState(Banner):
+    id = "fvsu"; name = "Fort Valley State University"
+    example = "ENGL 1101"; host = "fvsu.gabest.usg.edu"; term = "202608"
+
+class AlbanyState(Banner):
+    id = "asurams"; name = "Albany State University"
+    example = "CSCI 1301"; host = "asuramspc.gabest.usg.edu"; term = "202608"
+
+class AugustaUniversity(Banner):
+    id = "augusta"; name = "Augusta University"
+    example = "CSCI 1301"; host = "pounce.augusta.edu"; term = "202608"
+
 # --- Ellucian-cloud-hosted (reg-prod.ec.{domain}) + individually verified ---
 class VCU(Banner):
     id = "vcu"; name = "Virginia Commonwealth University"
@@ -2918,6 +2934,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              GeorgiaState(), PortlandState(),
                              GeorgiaSouthern(), WestGeorgia(), Valdosta(), GeorgiaGwinnett(),
                              ColumbusState(), GeorgiaCollege(), MiddleGeorgia(), ClaytonState(),
+                             GeorgiaSouthwestern(), FortValleyState(), AlbanyState(),
+                             AugustaUniversity(),
                              VCU(), OldDominion(), ConnecticutState(), LouisianaLafayette(),
                              GrandValley(), Radford(), Fordham(),
                              SouthernUtah(), UtahState(), MiamiOhio(),
