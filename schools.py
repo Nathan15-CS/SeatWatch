@@ -2388,6 +2388,119 @@ class SanJoseEvergreen(Colleague):
 # Drexel(): class works (base_path="registration"), but the only published 2026 term
 # is the medicine/professional SEMESTER calendar — no undergrad quarter (CS) courses
 # yet. PARKED until Drexel's quarter terms publish; re-add to the list to enable.
+_CUNY_MAPS = {
+    "BAR01": {"AAS":"ASAM", "ACC":"ACCT", "AMS":"AMST", "ANT":"ANTH", "ARB":"ARAB", "ART":"ARTX", "BIO":"BIOL", "BLS":"BLST", "BUS":"BUAD", "CHI":"CHIN", "CHM":"CHEM", "CIS":"CMIS", "CMP":"COLI", "COM":"COMM", "COOP":"COOP", "ECO":"ECON", "ENG":"ENGL", "ENT":"ENTR", "ENV":"EVSC", "FIN":"FINA", "FLM":"FILM", "FPA":"ARFP", "FRE":"FREN", "FYS":"FROR", "HIS":"HIST", "IBS":"BUIT", "IDC":"INTE", "INS":"INSU", "ITL":"ITAL", "JPN":"JAPA", "JRN":"JOUR", "JWS":"JWST", "LACS":"LACS", "LAW":"LAW", "LIB":"LISC", "LTS":"LAST", "MAM":"MAOM", "MGT":"MANA", "MKT":"MARK", "MSC":"MUSI", "MTH":"MATH", "NMA":"ARNM", "OPM":"OPMA", "OPR":"OPRE", "PAF":"PUAF", "PHI":"PHIL", "PHY":"PHYS", "POL":"POSC", "POR":"PORT", "PSY":"PSYC", "QNT":"QUME", "RES":"REES", "SOC":"SOCI", "SPA":"SPAN", "STA":"STAT", "TAX":"TAXA", "THE":"THEA", "TRA":"TROR", "WST":"WKST"},   # Baruch College
+    "BMC01": {"ACC":"ACCT", "ACL":"ACLS", "AFL":"AFST", "AFN":"AFST", "ANI":"ANMG", "ANT":"ANTH", "ARB":"ARAB", "ART":"ARTX", "ASL":"ASLG", "ASN":"ASAM", "AST":"ASTR", "BIO":"BIOL", "BTE":"BIOT", "BUS":"BUSI", "CED":"EDCO", "CHE":"CHEM", "CHI":"CHIN", "CIS":"CMIS", "COM":"COMM", "CRJ":"CJST", "CRT":"CTTN", "CSC":"CMSC", "CYS":"EDCS", "ECE":"EDEC", "ECO":"ECON", "EDB":"EDBL", "EDS":"EDSE", "EDU":"EDUC", "EMC":"PARA", "ENG":"ENGL", "ESC":"ENSC", "ESL":"ENSL", "ETH":"ETHN", "FNB":"FINA", "FRN":"FREN", "FYE":"FROR", "GEO":"GEOG", "GIS":"GEIS", "GLS":"GLST", "GWS":"WGST", "HIS":"HIST", "HIT":"MDTC", "HSD":"HEST", "HTT":"TRTO", "HUM":"HUSE", "ITL":"ITAL", "LAT":"LAST", "LIN":"LING", "LPN":"NURS", "MAR":"MARK", "MAT":"MATH", "MEA":"MATC", "MES":"MATC", "MMA":"MMDE", "MMP":"MMDE", "MUS":"MUSI", "NUR":"NURS", "PAN":"PUNA", "PHI":"PHIL", "PHY":"PHYS", "POL":"POSC", "PRT":"PORT", "PSY":"PSYC", "RTT":"RETH", "SBE":"BUSE", "SCI":"SCIE", "SOC":"SOCI", "SPE":"SPEE", "SPN":"SPAN", "THE":"THEA", "TRS":"TRAS", "URB":"UBST", "VAT":"VATC", "WLI":"WOFL"},   # Borough of Manhattan CC
+    "HTR01": {"ACC":"ACCT", "ACCP":"ACCT", "ACSK":"DESK", "ADSUP":"CUTE", "AFPRL":"APLS", "ANTH":"ANTH", "ANTHC":"ANTC", "ANTHP":"ANTP", "ARB":"ARAB", "ARTCR":"ARTC", "ARTED":"EDAR", "ARTH":"ARTH", "ARTLA":"ARTL", "ASIAN":"ASAM", "ASTRO":"ASTR", "BILED":"EDBL", "BIOCH":"BICH", "BIOL":"BISC", "BUS":"BUSI", "CEDC":"CUTE", "CEDF":"EDFO", "CHEM":"CHEM", "CHIN":"CHIN", "CHND":"EDCN", "CLA":"CCAR", "CLARC":"CCAR", "CLASS":"EDLE", "COCO":"COUN", "COMPL":"COLI", "COMSC":"COSC", "COUNM":"EDMH", "COUNR":"EDRC", "COUNS":"COUN", "CSCI":"CMSC", "DAN":"DANC", "DANED":"EDDA", "DYSLX":"EDSP", "ECC":"EDEC", "ECF":"EDFO", "ECO":"ECON", "EDABA":"EDAB", "EDDIL":"EDUC", "EDESL":"EDES", "EDF":"EDFO", "EDLIT":"EDLI", "EDPS":"EDFO", "EDUC":"CUTE", "ENGL":"ENGL", "FILM":"FILM", "FILMP":"FILM", "FILPL":"FILM", "FREN":"FREN", "FYS":"FROR", "GEOG":"GEOG", "GEOL":"GEOL", "GERMN":"GERM", "GRK":"GREK", "GSR":"GRSR", "GTECH":"GETE", "HEBR":"HEBR", "HED":"EDHP", "HIST":"HIST", "HMBIO":"HUBI", "HONS":"HONS", "HR":"HURI", "HUM":"HUMA", "IMA":"ARIM", "ITAL":"ITAL", "JPN":"JAPA", "JS":"JWST", "LACS":"LACS", "LAT":"LATI", "LATED":"EDLT", "LIBR":"LISC", "LING":"LING", "MATH":"MATH", "MEDIA":"MEST", "MEDP":"MEST", "MEDPL":"MEST", "MLS":"MELS", "MLSP":"MELS", "MUS":"MUSI", "MUSED":"MUSI", "MUSHL":"MUSI", "MUSIN":"MUSI", "MUSPF":"MUSI", "MUSTH":"MUSI", "NFS":"NUFS", "NURS":"NURS", "NUTR":"NUTR", "PERM":"PERM", "PGEOG":"GEGE", "PH":"PUHE", "PHILO":"PHIL", "PHYS":"PHYS", "POL":"POLI", "POLSC":"POSC", "PORT":"PORT", "PSYCH":"PSYC", "PT":"PHTH", "PUPOL":"PUPO", "QSTA":"CUTE", "QSTAP":"CUTE", "QSTB":"EDFO", "QSTP":"EDFO", "RAS":"RUAS", "REL":"RELI", "RUSS":"RUSS", "SEDC":"CUTE", "SEDCP":"EDUC", "SEDF":"EDFO", "SOC":"SOCI", "SPAN":"SPAN", "SPED":"EDSP", "SPEDE":"EDEC", "SSW":"SCSW", "STABD":"STAB", "STAT":"STAT", "SW":"SOWO", "THC":"THEA", "THEA":"THEA", "TRN":"TRAS", "TRNC":"CHIN", "TRNS":"SPAN", "UKR":"UKRA", "URBG":"UBAF", "URBP":"UBPL", "URBS":"UBST", "WGS":"WGST", "WGSA":"WGST", "WGSC":"WGST", "WGSI":"WGST", "WGSL":"WGST", "WGSP":"WGST", "WGSS":"WGST", "WGST":"WGST"},   # Hunter College
+    "QNS01": {"ACCT":"ACCT", "AFST":"AFST", "ANTH":"ANTH", "ARAB":"ARAB", "ARTH":"ARTH", "ARTS":"ARTS", "ASTR":"ASTR", "BALA":"BULA", "BIOL":"BIOL", "BUS":"BUSI", "CHEM":"CHEM", "CHIN":"CHIN", "CLAS":"CLAS", "CMLIT":"COLI", "COOP":"EDCO", "CSCI":"CMSC", "DANCE":"DANC", "DATA":"DAAN", "DESN":"DESI", "DRAM":"DRAT", "EAST":"EAST", "ECON":"ECON", "ECPCE":"CUED", "ECPEL":"EDIL", "ECPSE":"SPED", "ECPSP":"SCPS", "EECE":"EECE", "ENGL":"ENGL", "ENSCI":"EVSC", "EURO":"EURO", "FASH":"FASH", "FNES":"FNES", "FREN":"FREN", "GEOL":"GEOL", "GERM":"GERM", "GRKMD":"GRKM", "GRKST":"BMGS", "HEBRW":"HEBR", "HIST":"HIST", "HMNS":"INTE", "HNRS":"INTE", "HSS":"INTE", "HTH":"INTE", "INFO":"LISC", "ITAL":"ITAL", "ITAST":"IAST", "JAZZ":"JAZZ", "JEWST":"JWST", "JOURN":"MEST", "JPNS":"JAPA", "KOR":"KORE", "LABST":"LBST", "LALS":"LAST", "LATIN":"LATI", "LCD":"LING", "LIBR":"LIBR", "MATH":"MATH", "MEDST":"MEST", "MES":"MEAS", "MUSIC":"MUSI", "PHIL":"PHIL", "PHOTO":"PHOT", "PHYS":"PHYS", "PORT":"PORT", "PSCI":"POSC", "PSYCH":"PSYC", "QNS":"FROR", "RLGST":"RELI", "RM":"ECON", "RUSS":"RUSS", "SEEK":"SEEK", "SEYS":"EDSE", "SOC":"SOCI", "SPAN":"SPAN", "SPST":"INTE", "URBST":"UBST", "WGS":"WGST"},   # Queens College
+}
+
+
+# ===========================================================================
+_CUNY_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16 Safari/605.1.15"
+
+class CUNY:
+    """CUNY Global Search (globalsearch.cuny.edu) — ONE public guest search serving all
+    CUNY colleges. Stateful 3-request form flow per subject search: GET search.jsp (session
+    cookie) -> POST institution+term -> POST subject (open_class=O). Results carry CUNY's OWN
+    authoritative Open/Closed/WaitList status via status_*.gif images; NO seat numbers ->
+    seats=None. We read OPEN only, so we can NEVER false-alert (worst case is a miss, caught
+    by the health guard). CUNY DISPLAYS course codes differently from the codes you SEARCH
+    with (student sees "ACC 10100" but the search subject is "ACCT"); each college has a
+    validated, CONFLICT-FREE display->search map in _CUNY_MAPS, so a student's typed code
+    always resolves to exactly one search. Course numbers are 3-5 digits. Subclass sets id,
+    name, inst, example. Fail-safe: {} on any error / format change. term shared (Fall = 1269;
+    bump manually each semester like the other custom adapters)."""
+    base = "https://globalsearch.cuny.edu/CFGlobalSearchTool/"
+    term = "1269"; term_name = "2026 Fall Term"
+    example = "BIOL 10200"
+    _RE = re.compile(r"^([A-Za-z]{2,6})\s*(\d{2,5}[A-Za-z]?)$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        subj, _ = self._norm(course)
+        return bool(subj) and subj in _CUNY_MAPS.get(self.inst, {})
+
+    def reg_url(self, course):
+        return self.base + "search.jsp"
+
+    def _search(self, search_subject):
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", _CUNY_UA)]
+        op.open(self.base + "search.jsp", timeout=15).read()
+        d2 = op.open(urllib.request.Request(self.base + "CFSearchToolController",
+            data=urllib.parse.urlencode({"inst_selection": self.inst,
+                "selectedTermName": self.term_name, "term_value": self.term,
+                "next_btn": "Next"}).encode()), timeout=20).read().decode("latin-1")
+        form = d2[d2.find('name="class_search_form"'):]
+        if not form:
+            return None
+        fields = {}
+        for m in re.finditer(r'<input[^>]*>', form):
+            t = m.group(0)
+            if re.search(r'type=["\']?(submit|button|reset|checkbox|radio)', t):
+                continue
+            nm = re.search(r'name=["\']?([\w\[\]]+)', t)
+            if not nm:
+                continue
+            val = re.search(r'value=["\']?([^"\'>]*)', t)
+            fields[nm.group(1)] = val.group(1) if val else ""
+        for m in re.finditer(r'<select[^>]*name=["\']?(\w+)', form):
+            fields.setdefault(m.group(1), "")
+        fields.update({"subject_name": search_subject, "selectedSubjectName": search_subject,
+                       "open_class": "O", "search_btn_search": "Search"})
+        return op.open(urllib.request.Request(self.base + "CFSearchToolController",
+            data=urllib.parse.urlencode(fields).encode()), timeout=25).read().decode("latin-1")
+
+    def _parse(self, html, disp, num):
+        html = re.sub(r'<script.*?</script>', ' ', html, flags=re.S)
+        m = re.search(re.escape(disp) + r'(?:&nbsp;|\s)+' + re.escape(num) + r'(?:&nbsp;|\s)+-', html)
+        if not m:
+            return {}
+        start = m.end()
+        nxt = re.search(r'[A-Z]{2,6}(?:&nbsp;|\s)+\d{2,5}[A-Za-z]?(?:&nbsp;|\s)+-', html[start + 5:])
+        block = html[start: start + 5 + nxt.start()] if nxt else html[start:]
+        secs = {}
+        for row in re.finditer(r'>(\d{4,6})</a>(.*?)status_(open|closed|waiting)\.gif', block, re.S):
+            secs[row.group(1)] = {"open": row.group(3) == "open", "seats": None}
+        return secs
+
+    def fetch(self, courses):
+        cmap = _CUNY_MAPS.get(self.inst, {})
+        by_search = {}
+        for c in courses:
+            subj, num = self._norm(c)
+            ss = cmap.get(subj) if subj else None
+            if ss:
+                by_search.setdefault(ss, []).append((c, subj, num))
+        out = {}
+        for ss, items in by_search.items():
+            try:
+                html = self._search(ss)
+            except Exception:
+                continue
+            if not html or "class section(s) found" not in html:
+                continue
+            for c, disp, num in items:
+                secs = self._parse(html, disp, num)
+                out[c] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+
+class Baruch(CUNY):
+    id = "cuny-baruch"; name = "Baruch College (CUNY)"; inst = "BAR01"; example = "BIO 1012"
+class BMCC(CUNY):
+    id = "cuny-bmcc"; name = "Borough of Manhattan CC (CUNY)"; inst = "BMC01"; example = "BIO 108"
+class HunterCUNY(CUNY):
+    id = "cuny-hunter"; name = "Hunter College (CUNY)"; inst = "HTR01"; example = "BIOL 10200"
+class QueensCUNY(CUNY):
+    id = "cuny-queens"; name = "Queens College (CUNY)"; inst = "QNS01"; example = "BIOL 105"
+
+
 SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(),
                              CUBoulder(), Brown(), Yale(), NotreDame(), Emory(), Dartmouth(),
                              Wisconsin(), Iowa(),
@@ -2466,7 +2579,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              ConnecticutCollege(), BunkerHill(), Denison(), KentuckyState(),
                              TCLowcountry(), MarsHill(), WesternPiedmont(), MitchellCC(),
                              SUNYPurchase(), SUNYESF(), NorthGATech(), Colgate(), UIndy(),
-                             Northwood(), Rowan(), Roosevelt(), NationalLouis(), MercyUniversity(), Pasadena(), SanJoseEvergreen()]
+                             Northwood(), Rowan(), Roosevelt(), NationalLouis(), MercyUniversity(), Pasadena(), SanJoseEvergreen(),
+                             Baruch(), BMCC(), HunterCUNY(), QueensCUNY()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
