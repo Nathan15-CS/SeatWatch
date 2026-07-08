@@ -2586,6 +2586,188 @@ _CUNY_MAPS = {
 
 
 # ===========================================================================
+class VCCS:
+    """Virginia Community College System: ONE shared PeopleSoft guest class search
+    (ps-sis.vccs.edu, S92GUEST site, NO login) serves all 23 Virginia community
+    colleges, isolated by institution code.
+
+    Mechanics — the page is PeopleSoft Fluid, i.e. stateful: GET the public entry URL
+    (hands out guest cookies + the ICSID token), then ICAJAX POSTs run the search and
+    page through results (25 rows/page; the '<N> results' counter and the pager's
+    row-action id are parsed from each response, never hardcoded).
+
+    Accuracy model (each point live-verified before launch):
+    - Isolation: institution codes come ONLY from the system's own 'VCCS Colleges and
+      Codes' KB table. Same trap as ctcLink: an INVALID code silently returns ANOTHER
+      college's data, so codes are never guessed, and each college's entry page
+      (which displays its own name) was checked against its code.
+    - Status is authoritative per section: ONLY an 'Open' badge counts as open.
+      'Wait List', 'Closed', or anything unrecognized => not open — never a false
+      alert. The list view shows no seat counts, so like the Fose/VT adapters we
+      report status only (seats None).
+    - Fail closed: missing badge, duplicate section id, pager missing while rows
+      remain, or results containing a DIFFERENT course => skip the course entirely.
+    - Term: the guest search serves exactly ONE term — the active registration term
+      (verified via the single-value term facet) — so it self-maintains across
+      semesters; there is no term code to adopt or get wrong.
+    """
+    _BASE = "https://ps-sis.vccs.edu/psc/S92GUEST/EMPLOYEE/SA/c/VX_CUSTOM_SR.VX_SSR_CLSRCH_FL.GBL"
+    _CRS_RE = re.compile(r"^([A-Za-z]{2,4})\s*(\d{1,3}[A-Za-z]?)$")
+
+    def __init__(self, id, name, inst, example):
+        self.id = id; self.name = name; self.inst = inst; self.example = example
+
+    def _norm(self, course):
+        m = self._CRS_RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        return f"https://m.sis.vccs.edu/app/catalog/classSearch?institution={self.inst}"
+
+    def _session(self):
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", UA)]
+        page = Banner._retry(lambda: op.open(self.reg_url(""), timeout=30)
+                             .read().decode("utf-8", "replace"))
+        m = re.search(r"name='ICSID' id='ICSID' value='([^']+)'", page)
+        if not m:
+            raise RuntimeError("vccs: no ICSID (page shape changed)")
+        return op, m.group(1)
+
+    def _post(self, op, icsid, state, action, extra=None):
+        form = {"ICAJAX": "1", "ICType": "Panel", "ICElementNum": "0",
+                "ICStateNum": str(state), "ICAction": action, "ICSID": icsid,
+                "ICModelCancel": "0"}
+        if extra:
+            form.update(extra)
+        req = urllib.request.Request(self._BASE,
+                                     data=urllib.parse.urlencode(form).encode())
+        return Banner._retry(lambda: op.open(req, timeout=30)
+                             .read().decode("utf-8", "replace"))
+
+    @staticmethod
+    def _next_state(page, cur):
+        m = (re.search(r"id='ICStateNum'[^>]*>(?:<!\[CDATA\[)?(\d+)", page) or
+             re.search(r"name='ICStateNum'[^>]*value='(\d+)'", page))
+        return int(m.group(1)) if m else cur + 1
+
+    @staticmethod
+    def _rows(page):
+        """(row_index, section_id) for each rendered result row."""
+        return re.findall(r"id='win0divVX_RSLT_NAV_WK_HTMLAREA2\$(\d+)'"
+                          r".{0,400}?<small>Section (\S+) / Class Nbr \d+",
+                          page, re.S)
+
+    @staticmethod
+    def _badges(page):
+        """row_index -> status text, from the per-row card-header element series."""
+        out = {}
+        for m in re.finditer(r"id='win0divVX_RSLT_NAV_WK_HTMLAREA1\$\d+\$\$(\d+)'"
+                             r"(.{0,1500}?)<!-- End HTML Area", page, re.S):
+            blob = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", m.group(2))).strip()
+            sm = re.search(r"(Open|Wait List|Closed)$", blob)
+            if sm:
+                out[m.group(1)] = sm.group(1)
+        return out
+
+    def fetch(self, courses):
+        try:
+            op, icsid = self._session()
+        except Exception:
+            return {}
+        out, state = {}, 1
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            try:
+                page = self._post(op, icsid, state, "VX_CLSRCH_WRK_SSR_PB_SEARCH",
+                                  {"VX_CLSRCH_WRK2_SUBJECT": subj,
+                                   "VX_CLSRCH_WRK2_CATALOG_NBR": num})
+                state = self._next_state(page, state)
+            except Exception:
+                continue
+            if "The search returns no results" in page:
+                continue                        # course not offered this term
+            mt = re.search(r">(\d+) results?<", page)
+            total = int(mt.group(1)) if mt else None
+            secs, ok = {}, True
+            for _ in range(10):                 # hard page cap (25 rows/page)
+                text = re.sub(r"\s+", " ", re.sub(r"<[^>]+>", " ", page))
+                # results must be OUR course only — a foreign header means the
+                # search matched something else; can't trust pairing => skip
+                heads = set(re.findall(r"\b([A-Z]{2,4}) (\d{1,3}[A-Z]?):\s", text))
+                if heads - {(subj, num)}:
+                    ok = False
+                    break
+                rows, badges = self._rows(page), self._badges(page)
+                if not rows:
+                    ok = False
+                    break
+                for idx, sec in rows:
+                    st = badges.get(idx)
+                    if st is None or sec in secs:   # missing badge / dup section id
+                        ok = False
+                        break
+                    secs[sec] = {"open": st == "Open", "seats": None}
+                if not ok:
+                    break
+                if total is None or len(secs) >= total:
+                    break
+                pm = re.search(r"OnRowAction\(this,'(VX_RSLT_NAV_WK_SEARCH_"
+                               r"CONDITION2\$\d+\$)'", page)
+                if not pm:                      # more rows exist but no pager
+                    ok = False
+                    break
+                try:
+                    page = self._post(op, icsid, state, pm.group(1))
+                    state = self._next_state(page, state)
+                except Exception:
+                    ok = False
+                    break
+            if ok and secs and (total is None or len(secs) == total):
+                out[course] = secs
+        return out
+
+
+# Authoritative SIS IDs from the system's own 'VCCS Colleges and Codes' table
+# (help.vccs.edu KB 156820); 7 of 23 independently cross-checked against the
+# colleges' OWN published class-search links. NEVER add a guessed code — an
+# invalid code silently serves another college's data.
+_VCCS = [
+    ("va-brightpoint", "Brightpoint Community College", "JT290", "ENG 111"),
+    ("va-blue-ridge", "Blue Ridge Community College (VA)", "BR291", "ENG 111"),
+    ("va-camp", "Camp Community College", "PC277", "ENG 111"),
+    ("va-central-virginia", "Central Virginia Community College", "CV292", "ENG 111"),
+    ("va-danville", "Danville Community College", "DC279", "ENG 111"),
+    ("va-eastern-shore", "Eastern Shore Community College", "ES284", "ENG 111"),
+    ("va-germanna", "Germanna Community College", "GC297", "ENG 111"),
+    ("va-laurel-ridge", "Laurel Ridge Community College", "LF298", "ENG 111"),
+    ("va-mountain-empire", "Mountain Empire Community College", "ME299", "ENG 111"),
+    ("va-mountain-gateway", "Mountain Gateway Community College", "DL287", "ENG 111"),
+    ("va-new-river", "New River Community College", "NR275", "ENG 111"),
+    ("va-nova", "Northern Virginia Community College (NOVA)", "NV280", "ENG 111"),
+    ("va-patrick-henry", "Patrick & Henry Community College", "PH285", "ENG 111"),
+    ("va-piedmont", "Piedmont Virginia Community College", "PV282", "ENG 111"),
+    ("va-rappahannock", "Rappahannock Community College", "RC278", "ENG 111"),
+    # Reynolds: ENG 111 reuses section id 15OA across two sessions (collapse guard
+    # correctly skips it) — example is a verified-clean course instead
+    ("va-reynolds", "Reynolds Community College", "SR283", "BIO 101"),
+    ("va-southside", "Southside Virginia Community College", "SV276", "ENG 111"),
+    ("va-southwest", "Southwest Virginia Community College", "SW294", "ENG 111"),
+    ("va-tidewater", "Tidewater Community College", "TC295", "ENG 111"),
+    ("va-virginia-highlands", "Virginia Highlands Community College", "VH296", "ENG 111"),
+    ("va-virginia-peninsula", "Virginia Peninsula Community College", "TN293", "ENG 111"),
+    ("va-virginia-western", "Virginia Western Community College", "VW286", "ENG 111"),
+    ("va-wytheville", "Wytheville Community College", "WC288", "ENG 111"),
+]
+
+
+# ===========================================================================
 _CUNY_UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/16 Safari/605.1.15"
 
 class CUNY:
@@ -2809,7 +2991,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              Baruch(), BMCC(), HunterCUNY(), QueensCUNY(),
                              BronxCC(), StatenIsland(), CityCollege(), GuttmanCC(), HostosCC(), KingsboroughCC(), JohnJayCUNY(), LaGuardiaCC(), MedgarEvers(), LehmanCUNY(), CityTech(), Queensborough(), YorkCUNY(), CunySPS(), BrooklynCUNY()]
                             + [CtcLink(*t) for t in _CTCLINK]
-                            + [MinnState(*t) for t in _MINNSTATE]}
+                            + [MinnState(*t) for t in _MINNSTATE]
+                            + [VCCS(*t) for t in _VCCS]}
 
 
 def refresh_all_terms(log=None):
