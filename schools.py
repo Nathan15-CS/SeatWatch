@@ -2407,6 +2407,7 @@ _CUNY_MAPS = {
     "QCC01": {"ANTH":"ANTH", "ARCH":"ARCH", "ARTH":"ARTH", "ARTS":"ARTS", "BE":"DESK", "BI":"BIOL", "BU":"BUSI", "CD":"CODI", "CH":"CHEM", "CIS":"CMIS", "CN":"CNOW", "CRIM":"CJST", "CS":"CMSC", "CST":"STRT", "DAN":"DANC", "ECON":"ECON", "EDUC":"EDUC", "EE":"EGEL", "ENGL":"ENGL", "ET":"EGEC", "FMP":"MEDI", "GE":"GEOL", "HA":"MSTH", "HE":"EDHE", "HIST":"HIST", "IS":"INTE", "LA":"ARAB", "LC":"CHIN", "LF":"FREN", "LI":"ITAL", "LS":"SPAN", "MA":"MATH", "MP":"MUSI", "MT":"EGMT", "MUS":"MUSI", "NU":"NURS", "PE":"PHED", "PH":"PHYS", "PHIL":"PHIL", "PLSC":"POSC", "PSYC":"PSYC", "RAD":"RASA", "SOCY":"SOCI", "SP":"SPEC", "ST":"STAF", "TECH":"TECH", "TH":"THEA", "UBST":"UBST"},   # Queensborough Community College (CUNY)
     "YRK01": {"AC":"DESK", "ACC":"ACCT", "ANTH":"ANTH", "ARAB":"ARAB", "ASTR":"ASTR", "AVIA":"AVMA", "BENG":"BENG", "BIO":"BIOL", "BLST":"BLST", "BTEC":"BIOT", "BUS":"BUAD", "CHEM":"CHEM", "CHIN":"CHIN", "CLDV":"CUDI", "CLS":"CLLS", "CRE":"CREO", "CS":"CMSC", "CT":"COMT", "CTM":"CLTM", "ECON":"ECON", "EDUC":"EDUC", "EHS":"EVHC", "ENG":"ENGL", "ESL":"ENSL", "FA":"ARFI", "FINC":"FINA", "FREN":"FREN", "GEOL":"GEOL", "GERO":"GESS", "HE":"HLED", "HIST":"HIST", "HPGC":"HPGC", "HPPA":"PHAS", "HS":"HESC", "HUM":"HUMA", "IS":"INTE", "ITAL":"ITAL", "JOUR":"JOUR", "MATH":"MATH", "MKT":"MARK", "MS":"MOSC", "MSCI":"MILI", "MUS":"MUSI", "NURS":"NURS", "OT":"OCTH", "PE":"PHED", "PH":"PUHE", "PHIL":"PHIL", "PHS":"PMSC", "PHYS":"PHYS", "POL":"POSC", "PRST":"PRST", "PSY":"PSYC", "SCWK":"SOWO", "SD":"STDV", "SKCS":"SEEK", "SOC":"SOCI", "SPAN":"SPAN", "SPCH":"SPEC", "TA":"THAR", "WLIT":"WOLI", "WRIT":"WRIT"},   # York College (CUNY)
     "SPS01": {"AMER":"AMST", "ANTH":"ANTH", "AST":"ASTR", "BIO":"BIOL", "BUS":"BUSI", "CHEM":"CHEM", "CIS":"CMLI", "CM":"COMM", "COM":"DILI", "DATA":"DANA", "DSAB":"DISB", "DSSV":"DISB", "ECE":"EDEC", "ECO":"ECON", "EDUC":"ECED", "ENG":"ENGL", "GAI":"GEAI", "GEOG":"GEOG", "HESA":"HESA", "HIM":"HEIM", "HIST":"HIST", "HRL":"HURE", "ILAW":"LAWI", "INT":"SOSC", "IS":"DANA", "LANG":"LNST", "LAS":"LAST", "LBL":"LIST", "MATH":"MATH", "MGMT":"MANA", "MST":"MSST", "NURS":"NURS", "ORGD":"MAST", "PHE":"PUHE", "PHIL":"PHIL", "PLA":"INTE", "PROM":"MANA", "PSY":"PSYC", "QUAN":"INTE", "RAC":"RESE", "RM":"RSMT", "SOC":"SOCI", "SPAN":"SPAN", "YS":"YOST"},   # CUNY School of Professional Studies
+    "BKL01": {"ACCT":"ACCT", "AFST":"AFST", "AMST":"AMST", "ANTH":"ANTH", "ARAB":"ARAB", "ARTD":"ARTX", "AUDI":"AUDI", "BIOL":"BIOL", "BUSN":"BUMA", "CASD":"CASD", "CAST":"CAST", "CBSE":"CBSE", "CHEM":"CHEM", "CHIN":"CHIN", "CHST":"EDCS", "CISC":"CMIS", "CLAS":"CLAS", "CMLT":"COLI", "COMM":"COMM", "CREO":"CREO", "ECAE":"ECAE", "ECON":"ECON", "EESC":"EESC", "ENGL":"ENGL", "ESLR":"ENSL", "FGSC":"FILM", "FILM":"FILM", "FINC":"FINA", "FREN":"FREN", "GLLC":"MODL", "GRKC":"GRKA", "GSCI":"GSCI", "HEBR":"HEBR", "HIST":"HIST", "HNSC":"HENS", "INDS":"INTE", "JAPN":"JAPA", "JUST":"JUST", "KORE":"KORE", "LATN":"LATI", "LING":"LING", "MAM":"MAOM", "MATH":"MATH", "MCHC":"HONS", "MUSC":"MUSI", "MVMT":"MVMT", "NEUR":"NEUR", "PERM":"PERM", "PHIL":"PHIL", "PHYS":"PHYS", "PIMA":"PIMA", "POLS":"POSC", "PRLS":"PRLS", "PSYC":"PSYC", "RELG":"RELG", "RUSS":"RUSS", "SEED":"SCED", "SOCY":"SOCI", "SPAN":"SPAN", "SPCL":"SPCL", "SUST":"SUST", "THEA":"THEA", "TREM":"TREM", "WGST":"WGST"},   # Brooklyn College (CUNY)
 }
 
 
@@ -2428,7 +2429,7 @@ class CUNY:
     base = "https://globalsearch.cuny.edu/CFGlobalSearchTool/"
     term = "1269"; term_name = "2026 Fall Term"
     example = "BIOL 10200"
-    _RE = re.compile(r"^([A-Za-z]{2,6})\s*(\d{2,5}[A-Za-z]?)$")
+    _RE = re.compile(r"^([A-Za-z]{2,6})\.?\s*(\d{2,5}[A-Za-z]?)$")  # tolerate "BIOL. 1001" (Brooklyn)
 
     def _norm(self, course):
         m = self._RE.match(course.strip())
@@ -2549,6 +2550,9 @@ class YorkCUNY(CUNY):
 class CunySPS(CUNY):
     id = "cuny-cunysps"; name = "CUNY School of Professional Studies"; inst = "SPS01"; example = "BIO 200"
 
+class BrooklynCUNY(CUNY):
+    id = "cuny-brooklyncuny"; name = "Brooklyn College (CUNY)"; inst = "BKL01"; example = "BIOL 1001"
+
 SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(),
                              CUBoulder(), Brown(), Yale(), NotreDame(), Emory(), Dartmouth(),
                              Wisconsin(), Iowa(),
@@ -2629,7 +2633,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SUNYPurchase(), SUNYESF(), NorthGATech(), Colgate(), UIndy(),
                              Northwood(), Rowan(), Roosevelt(), NationalLouis(), MercyUniversity(), Pasadena(), SanJoseEvergreen(),
                              Baruch(), BMCC(), HunterCUNY(), QueensCUNY(),
-                             BronxCC(), StatenIsland(), CityCollege(), GuttmanCC(), HostosCC(), KingsboroughCC(), JohnJayCUNY(), LaGuardiaCC(), MedgarEvers(), LehmanCUNY(), CityTech(), Queensborough(), YorkCUNY(), CunySPS()]
+                             BronxCC(), StatenIsland(), CityCollege(), GuttmanCC(), HostosCC(), KingsboroughCC(), JohnJayCUNY(), LaGuardiaCC(), MedgarEvers(), LehmanCUNY(), CityTech(), Queensborough(), YorkCUNY(), CunySPS(), BrooklynCUNY()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
