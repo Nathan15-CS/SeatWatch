@@ -1768,6 +1768,180 @@ _CTCLINK = [
 
 
 # ===========================================================================
+class MinnState:
+    """Minnesota State eServices (eservices.minnstate.edu) — ONE public course search
+    serving all 33 Minnesota State colleges & universities (ISRS — not Banner/PeopleSoft).
+    One GET per course; every section row carries an explicit status badge in the HTML
+    (status-open / status-closed / status-cancelled). Open ONLY on status-open — 'Full'
+    and 'Cancelled' NEVER alert. The list page shows status but not counts, so
+    seats=None (same convention as CUNY). A bounced/validation-error response re-renders
+    the search FORM (no searchResultsContainer marker) — treated as failure and never
+    parsed, so a format change goes silent instead of false-alerting.
+
+    yrtr term codes are SYSTEMWIDE (20273 = Fall 2026 = AY2027 term 3), so one
+    class-level term serves every campus; it auto-rolls from the form's own yrtr
+    <select> and is verified against live data before adoption.
+
+    Each campus is one row: (id, name, campusid, rcid, example). campusid is the
+    college's BRANDED page id and is NOT always the rcid tail — multi-campus colleges
+    differ (Anoka-Ramsey rcid 0152 -> campusid 141, Southeast 0213 -> 260, South
+    Central 0309 -> 270), and a WRONG campusid silently renders a generic no-subject
+    page, so every row below was verified live (campus-branded page + exact-course
+    search parsed) before shipping."""
+    base = "https://eservices.minnstate.edu/registration/search/"
+    term = "20273"                       # Fall 2026 (systemwide); auto-rolls via refresh_term
+    _active_term = None                  # class-level — one term for the whole system
+    # subjects are usually pure letters (ENG, ENGL) but a few campuses carry
+    # digit-bearing codes (3DMA, D2LO) — those need a space before the course number
+    _SUBJ_RE = re.compile(r"^([A-Za-z]{2,6})\s*(\d{2,4}[A-Za-z]?)$")
+    _SUBJ_RE2 = re.compile(r"^([A-Za-z0-9]{2,6})\s+(\d{2,4}[A-Za-z]?)$")
+
+    def __init__(self, id, name, campusid, rcid, example):
+        self.id = id; self.name = name
+        self.campusid = campusid; self.rcid = rcid; self.example = example
+
+    def _norm(self, course):
+        c = course.strip()
+        m = self._SUBJ_RE.match(c) or self._SUBJ_RE2.match(c)
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return MinnState._active_term or self.term
+
+    def reg_url(self, course):
+        return self.base + "basic.html?campusid=" + self.campusid
+
+    def _search_url(self, subj, num):
+        return self.base + "advancedSubmit.html?" + urllib.parse.urlencode(
+            {"campusid": self.campusid, "searchrcid": self.rcid,
+             "searchcampusid": self.campusid, "yrtr": self.cur_term(),
+             "subject": subj, "courseNumber": num, "openValue": "ALL",
+             "delivery": "ALL", "resultNumber": "250", "showAdvanced": ""})
+
+    def resolve_term(self):
+        """Nearest upcoming main term's yrtr from the campus form's own <select>;
+        None on failure. Anchored on the human 'Fall 2026 (Aug - Dec)' description —
+        the code format is uniform systemwide but we never assume it."""
+        try:
+            page = _http(self.base + "basic.html?campusid=" + self.campusid)
+            i = page.find('name="yrtr"')
+            if i < 0:
+                return None
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for m in re.finditer(r'<option value="(20\d{3})"(.*?)</option>', page[i:i + 8000], re.S):
+                code, desc = m.group(1), re.sub(r"^[^>]*>", "", m.group(2), flags=re.S)
+                sm = re.search(r"(spring|summer|fall|winter)\D{0,6}(20\d\d)", desc, re.I)
+                if not sm:
+                    continue
+                season, year = sm.group(1).lower(), int(sm.group(2))
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < -1:                       # skip clearly-past terms
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, code
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        """Adopt a newly-detected term ONLY after the example course returns REAL
+        sections under it (the 'none' sentinel is not proof); else keep last-known-good."""
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = MinnState._active_term
+        MinnState._active_term = new
+        secs = self.fetch({self.example}).get(self.example) or {}
+        if not secs or "none" in secs:
+            MinnState._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        """One search per course. Row layout: ... | ID#(6 digits) | Subj | # | Sec | ...
+        with the status badge class in the same <tr>. Exact subject+number match only;
+        duplicate section ids -> skip the course (accuracy over coverage)."""
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            try:
+                page = _http(self._search_url(subj, num))
+            except Exception:
+                continue
+            if "searchResultsContainer" not in page:     # bounced form / error — never parse
+                continue
+            secs, dup = {}, False
+            for row in re.finditer(r"<tr[^>]*>(.*?)</tr>", page, re.S):
+                r = row.group(1)
+                st = re.search(r"status-(open|closed|cancelled)", r)
+                if not st:
+                    continue
+                cells = [re.sub(r"(?:&nbsp;|\s)+", " ", re.sub(r"<[^>]+>", " ", c)).strip()
+                         for c in re.findall(r"<td[^>]*>(.*?)</td>", r, re.S)]
+                idx = next((i for i, c in enumerate(cells) if re.fullmatch(r"\d{6}", c)), None)
+                if idx is None or len(cells) < idx + 4:
+                    continue
+                if cells[idx + 1].upper() != subj or cells[idx + 2].upper() != num:
+                    continue
+                sec = cells[idx + 3]
+                if sec in secs:
+                    dup = True
+                    break
+                secs[sec] = {"open": st.group(1) == "open", "seats": None}
+            if dup:
+                continue
+            out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+_MINNSTATE = [
+    # (id, name, campusid, rcid, example) — every row verified LIVE (branded page +
+    # exact-course search parsed with unique sections) before shipping.
+    ("mn-alexandria", "Alexandria Technical and Community College", "203", "0203", "ENGL 1410"),
+    ("mn-anoka-tech", "Anoka Technical College", "202", "0202", "ENGL 1107"),
+    ("mn-anoka-ramsey", "Anoka-Ramsey Community College", "141", "0152", "ENGL 1121"),
+    ("mn-bemidji-state", "Bemidji State University", "070", "0070", "ENGL 1151"),
+    ("mn-central-lakes", "Central Lakes College", "301", "0301", "ENGL 1410"),
+    ("mn-century", "Century College", "304", "0304", "ENGL 1021"),
+    ("mn-dakota-county-tech", "Dakota County Technical College", "211", "0211", "ENGL 1150"),
+    ("mn-fond-du-lac", "Fond du Lac Tribal and Community College", "163", "0163", "ENGL 1101"),
+    ("mn-hennepin-tech", "Hennepin Technical College", "204", "0204", "ENGL 1100"),
+    ("mn-inver-hills", "Inver Hills Community College", "157", "0157", "ENG 1108"),
+    ("mn-lake-superior", "Lake Superior College", "302", "0302", "ENGL 1106"),
+    ("mn-metro-state", "Metro State University", "076", "0076", "MATH 115"),
+    ("mn-minneapolis", "Minneapolis Community and Technical College", "305", "0305", "ENGL 1110"),
+    ("mn-north", "Minnesota North College", "320", "0320", "ENGL 1231"),
+    ("mn-southeast", "Minnesota State College Southeast", "260", "0213", "ENGL 1215"),
+    ("mn-mstate", "Minnesota State Community and Technical College", "142", "0142", "ENGL 1101"),
+    ("mn-moorhead", "Minnesota State University Moorhead", "072", "0072", "ENGL 101"),
+    ("mn-mankato", "Minnesota State University, Mankato", "071", "0071", "ENG 101"),
+    ("mn-west", "Minnesota West Community and Technical College", "209", "0209", "ENGL 1101"),
+    ("mn-normandale", "Normandale Community College", "156", "0156", "ENGL 2150"),
+    ("mn-north-hennepin", "North Hennepin Community College", "153", "0153", "ENGL 1201"),
+    ("mn-northland", "Northland Community and Technical College", "303", "0303", "ENGL 1111"),
+    ("mn-northwest-tech", "Northwest Technical College", "263", "0263", "ENGL 1111"),
+    ("mn-pine-tech", "Pine Technical and Community College", "205", "0205", "ENGL 1276"),
+    ("mn-ridgewater", "Ridgewater College", "308", "0308", "ENGL 1210"),
+    ("mn-riverland", "Riverland Community College", "307", "0307", "ENGL 1101"),
+    ("mn-rochester", "Rochester Community and Technical College", "306", "0306", "ENGL 1117"),
+    ("mn-saint-paul", "Saint Paul College", "206", "0206", "ENGL 1711"),
+    ("mn-south-central", "South Central College", "270", "0309", "ENGL 100"),
+    ("mn-southwest-state", "Southwest Minnesota State University", "075", "0075", "ENG 151"),
+    ("mn-st-cloud-state", "St. Cloud State University", "073", "0073", "ENGL 191"),
+    ("mn-st-cloud-tech", "St. Cloud Technical & Community College", "208", "0208", "ENGL 1312"),
+    ("mn-winona-state", "Winona State University", "074", "0074", "ENG 111"),
+]
+
+
+# ===========================================================================
 class Colleague:
     """Ellucian Colleague Self-Service — Ellucian's OTHER SIS (many schools run it
     instead of Banner). PUBLIC course-catalog JSON API (no login): GET /Student/Courses
@@ -2634,7 +2808,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              Northwood(), Rowan(), Roosevelt(), NationalLouis(), MercyUniversity(), Pasadena(), SanJoseEvergreen(),
                              Baruch(), BMCC(), HunterCUNY(), QueensCUNY(),
                              BronxCC(), StatenIsland(), CityCollege(), GuttmanCC(), HostosCC(), KingsboroughCC(), JohnJayCUNY(), LaGuardiaCC(), MedgarEvers(), LehmanCUNY(), CityTech(), Queensborough(), YorkCUNY(), CunySPS(), BrooklynCUNY()]
-                            + [CtcLink(*t) for t in _CTCLINK]}
+                            + [CtcLink(*t) for t in _CTCLINK]
+                            + [MinnState(*t) for t in _MINNSTATE]}
 
 
 def refresh_all_terms(log=None):
@@ -2642,7 +2817,7 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, (Banner, PeopleSoft)):
+        if isinstance(s, (Banner, PeopleSoft, MinnState)):
             try:
                 s.refresh_term(log)
             except Exception:

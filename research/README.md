@@ -3,8 +3,16 @@
 Validated research artifacts shared between parallel SeatWatch expansion sessions.
 Commit new findings here so other sessions don't redo probing work.
 
-## Minnesota State (eservices.minnstate.edu) — research COMPLETE, build NOT started
+## Minnesota State (eservices.minnstate.edu) — ✅ BUILT & SHIPPED July 8, 2026 (33 schools, 394->427)
 One public search serves all 33 MN State colleges/universities. Verified live July 8, 2026.
+Adapter: `MinnState` class + `_MINNSTATE` table in schools.py; all 33 verified through the
+PRODUCTION fetcher (live sections at every campus; list-status cross-checked against
+detail-page Size/Enrolled/Remaining at 3 campuses, 6/6 agree). Corrections vs the recipe
+below, verified live: for the 3 multi-campus colleges the rcid-tail campusid renders an
+UNBRANDED page — shipped the branded campus ids instead (Anoka-Ramsey 0152->141,
+Southeast 0213->260, South Central 0309->270). Term auto-rolls via refresh_all_terms
+(yrtr parsed from the form's own select + verified against live data before adoption).
+Oregon Coast CC (0330, also hosted here) has no working public page — excluded.
 
 - `mn_subjects.json` — Fall 2026 subject code -> title maps for all 33 campuses (rcid-keyed)
 - `mn_examples.json` — validated example course per campus (picked = most sections in BIOL/ENGL/etc, Fall 2026)
