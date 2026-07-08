@@ -2405,6 +2405,8 @@ _CUNY_MAPS = {
     "LEH01": {"AAS":"AFST", "ACC":"ACCT", "ACU":"ANCU", "AMS":"AMST", "ANT":"ANTH", "ARB":"ARAB", "ARH":"ARTH", "ART":"ARTX", "AST":"ASTR", "BBA":"BUAD", "BIO":"BIOL", "CED":"ECON", "CGI":"CMGI", "CHE":"CHEM", "CHI":"CHIN", "CIS":"CMIS", "CMP":"CMSC", "DEC":"EDCH", "DFN":"DIET", "DNC":"DANC", "DST":"DISB", "EBS":"EDBL", "ECE":"EDEC", "ECO":"ECON", "EDC":"EDEC", "EDE":"EDEC", "EDG":"EDCU", "EDL":"EDLE", "EDR":"EDRE", "EDS":"EDSP", "ENG":"ENGL", "ENRT":"MAEN", "ENV":"EVSC", "ENW":"ENGL", "ESC":"EDMI", "EXS":"EXSC", "FRE":"FREN", "FTS":"FILM", "GEH":"GEOG", "GEO":"GEOL", "GEP":"GEOP", "HEA":"HESC", "HIA":"HISA", "HIE":"HISE", "HIN":"NURS", "HIS":"HIST", "HIU":"HISU", "HIW":"HISW", "HSA":"HESA", "HSD":"HESC", "HUM":"HUMA", "IBA":"IBAP", "IDW":"WOCL", "IRI":"IRIS", "ITA":"ITAL", "JAL":"LANG", "JRN":"JOUR", "LAC":"LACS", "LEH":"GEST", "LNG":"LING", "LSP":"LESP", "LTS":"LACS", "MAT":"MATH", "MCS":"MECO", "MES":"MEAS", "MHC":"MAHC", "MLS":"INTE", "MSB":"BUSI", "MSH":"MUSI", "MSP":"MUSI", "MST":"MUSI", "NSS":"NASS", "NUR":"NURS", "PHI":"PHIL", "PHY":"PHYS", "POL":"POSC", "PSY":"PSYC", "REC":"RECR", "REH":"REHA", "REL":"RELI", "SOC":"SOCI", "SPA":"SPAN", "SPE":"SPET", "SPS":"INTE", "SPV":"SPEV", "SWK":"SOWO", "THE":"THEA", "THR":"TPRE", "WFL":"WOFL", "WST":"WOST"},   # Lehman College (CUNY)
     "NYT01": {"AAA":"INCL", "ACC":"ACCT", "AFR":"AFAS", "ANTH":"ANTH", "ARB":"ARAB", "ARCH":"ARCT", "ARTH":"ARTH", "BIO":"BISC", "BUF":"BUTF", "BUS":"BUSI", "CET":"EGCT", "CHEM":"CHEM", "CHN":"CHIN", "CMCE":"COTE", "COM":"COMM", "COMD":"CODE", "CST":"CMST", "DEN":"DEHY", "ECON":"ECON", "EDU":"EDTC", "EET":"ELET", "ENG":"ENGL", "ENT":"ENTM", "ENVC":"EVCT", "ESCI":"EVSC", "ESOL":"ENSL", "FMGT":"FAMA", "FREN":"FREN", "GEOG":"GEOG", "GOV":"GOVT", "HEA":"HLED", "HIS":"HIST", "HMGT":"HOMA", "HSA":"HESA", "HSCI":"HESC", "HUS":"HUSE", "IND":"INDT", "LATS":"LAST", "LAW":"LAWP", "LNG":"LANG", "MAT":"MATH", "MECH":"EGMT", "MEDU":"MAED", "MKT":"MARK", "MM":"MAOM", "MTEC":"EMMT", "MUS":"MUSI", "NUR":"NURS", "PERF":"PERF", "PHIL":"PHIL", "PHYS":"PHYS", "PSY":"PSYC", "RAD":"RATE", "RESD":"REDE", "SBS":"SOBS", "SET":"SETE", "SOC":"SOCI", "SPA":"SPAN", "TCET":"TELE", "THE":"THEA", "VCT":"OPTH", "WKSHP":"WORK"},   # NYC College of Technology (CUNY)
     "QCC01": {"ANTH":"ANTH", "ARCH":"ARCH", "ARTH":"ARTH", "ARTS":"ARTS", "BE":"DESK", "BI":"BIOL", "BU":"BUSI", "CD":"CODI", "CH":"CHEM", "CIS":"CMIS", "CN":"CNOW", "CRIM":"CJST", "CS":"CMSC", "CST":"STRT", "DAN":"DANC", "ECON":"ECON", "EDUC":"EDUC", "EE":"EGEL", "ENGL":"ENGL", "ET":"EGEC", "FMP":"MEDI", "GE":"GEOL", "HA":"MSTH", "HE":"EDHE", "HIST":"HIST", "IS":"INTE", "LA":"ARAB", "LC":"CHIN", "LF":"FREN", "LI":"ITAL", "LS":"SPAN", "MA":"MATH", "MP":"MUSI", "MT":"EGMT", "MUS":"MUSI", "NU":"NURS", "PE":"PHED", "PH":"PHYS", "PHIL":"PHIL", "PLSC":"POSC", "PSYC":"PSYC", "RAD":"RASA", "SOCY":"SOCI", "SP":"SPEC", "ST":"STAF", "TECH":"TECH", "TH":"THEA", "UBST":"UBST"},   # Queensborough Community College (CUNY)
+    "YRK01": {"AC":"DESK", "ACC":"ACCT", "ANTH":"ANTH", "ARAB":"ARAB", "ASTR":"ASTR", "AVIA":"AVMA", "BENG":"BENG", "BIO":"BIOL", "BLST":"BLST", "BTEC":"BIOT", "BUS":"BUAD", "CHEM":"CHEM", "CHIN":"CHIN", "CLDV":"CUDI", "CLS":"CLLS", "CRE":"CREO", "CS":"CMSC", "CT":"COMT", "CTM":"CLTM", "ECON":"ECON", "EDUC":"EDUC", "EHS":"EVHC", "ENG":"ENGL", "ESL":"ENSL", "FA":"ARFI", "FINC":"FINA", "FREN":"FREN", "GEOL":"GEOL", "GERO":"GESS", "HE":"HLED", "HIST":"HIST", "HPGC":"HPGC", "HPPA":"PHAS", "HS":"HESC", "HUM":"HUMA", "IS":"INTE", "ITAL":"ITAL", "JOUR":"JOUR", "MATH":"MATH", "MKT":"MARK", "MS":"MOSC", "MSCI":"MILI", "MUS":"MUSI", "NURS":"NURS", "OT":"OCTH", "PE":"PHED", "PH":"PUHE", "PHIL":"PHIL", "PHS":"PMSC", "PHYS":"PHYS", "POL":"POSC", "PRST":"PRST", "PSY":"PSYC", "SCWK":"SOWO", "SD":"STDV", "SKCS":"SEEK", "SOC":"SOCI", "SPAN":"SPAN", "SPCH":"SPEC", "TA":"THAR", "WLIT":"WOLI", "WRIT":"WRIT"},   # York College (CUNY)
+    "SPS01": {"AMER":"AMST", "ANTH":"ANTH", "AST":"ASTR", "BIO":"BIOL", "BUS":"BUSI", "CHEM":"CHEM", "CIS":"CMLI", "CM":"COMM", "COM":"DILI", "DATA":"DANA", "DSAB":"DISB", "DSSV":"DISB", "ECE":"EDEC", "ECO":"ECON", "EDUC":"ECED", "ENG":"ENGL", "GAI":"GEAI", "GEOG":"GEOG", "HESA":"HESA", "HIM":"HEIM", "HIST":"HIST", "HRL":"HURE", "ILAW":"LAWI", "INT":"SOSC", "IS":"DANA", "LANG":"LNST", "LAS":"LAST", "LBL":"LIST", "MATH":"MATH", "MGMT":"MANA", "MST":"MSST", "NURS":"NURS", "ORGD":"MAST", "PHE":"PUHE", "PHIL":"PHIL", "PLA":"INTE", "PROM":"MANA", "PSY":"PSYC", "QUAN":"INTE", "RAC":"RESE", "RM":"RSMT", "SOC":"SOCI", "SPAN":"SPAN", "YS":"YOST"},   # CUNY School of Professional Studies
 }
 
 
@@ -2470,11 +2472,13 @@ class CUNY:
 
     def _parse(self, html, disp, num):
         html = re.sub(r'<script.*?</script>', ' ', html, flags=re.S)
-        m = re.search(re.escape(disp) + r'(?:&nbsp;|\s)+' + re.escape(num) + r'(?:&nbsp;|\s)+-', html)
+        # some colleges suffix the subject with a period in the DISPLAY ("BIOL. 1001" at
+        # Brooklyn) — tolerate an optional trailing "." after the code (safe for the rest).
+        m = re.search(re.escape(disp) + r'\.?(?:&nbsp;|\s)+' + re.escape(num) + r'(?:&nbsp;|\s)+-', html)
         if not m:
             return {}
         start = m.end()
-        nxt = re.search(r'[A-Z]{2,6}(?:&nbsp;|\s)+\d{2,5}[A-Za-z]?(?:&nbsp;|\s)+-', html[start + 5:])
+        nxt = re.search(r'[A-Z]{2,6}\.?(?:&nbsp;|\s)+\d{2,5}[A-Za-z]?(?:&nbsp;|\s)+-', html[start + 5:])
         block = html[start: start + 5 + nxt.start()] if nxt else html[start:]
         secs = {}
         for row in re.finditer(r'>(\d{4,6})</a>(.*?)status_(open|closed|waiting)\.gif', block, re.S):
@@ -2539,6 +2543,11 @@ class CityTech(CUNY):
     id = "cuny-citytech"; name = "NYC College of Technology (CUNY)"; inst = "NYT01"; example = "BIO 1100"
 class Queensborough(CUNY):
     id = "cuny-queensborough"; name = "Queensborough Community College (CUNY)"; inst = "QCC01"; example = "ENGL 101"
+
+class YorkCUNY(CUNY):
+    id = "cuny-yorkcuny"; name = "York College (CUNY)"; inst = "YRK01"; example = "BIO 110"
+class CunySPS(CUNY):
+    id = "cuny-cunysps"; name = "CUNY School of Professional Studies"; inst = "SPS01"; example = "BIO 200"
 
 SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(),
                              CUBoulder(), Brown(), Yale(), NotreDame(), Emory(), Dartmouth(),
@@ -2620,7 +2629,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              SUNYPurchase(), SUNYESF(), NorthGATech(), Colgate(), UIndy(),
                              Northwood(), Rowan(), Roosevelt(), NationalLouis(), MercyUniversity(), Pasadena(), SanJoseEvergreen(),
                              Baruch(), BMCC(), HunterCUNY(), QueensCUNY(),
-                             BronxCC(), StatenIsland(), CityCollege(), GuttmanCC(), HostosCC(), KingsboroughCC(), JohnJayCUNY(), LaGuardiaCC(), MedgarEvers(), LehmanCUNY(), CityTech(), Queensborough()]
+                             BronxCC(), StatenIsland(), CityCollege(), GuttmanCC(), HostosCC(), KingsboroughCC(), JohnJayCUNY(), LaGuardiaCC(), MedgarEvers(), LehmanCUNY(), CityTech(), Queensborough(), YorkCUNY(), CunySPS()]
                             + [CtcLink(*t) for t in _CTCLINK]}
 
 
