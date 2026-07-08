@@ -187,3 +187,24 @@ or on non-guessable hosts. SC TRAC (sctrac.org) confirmed a TRANSFER/ARTICULATIO
 Only 2 with open guest Banner search, both verified live:
 - North Georgia Technical College (GA) — `banner.northgatech.edu`
 - Piedmont Technical College (SC) — `banner.ptc.edu`
+
+### University of Illinois Urbana-Champaign — new adapter type, 1 school (but flagship-size, ~35k+ students)
+Public "Course Explorer" (courses.illinois.edu), fully guest-accessible, server-rendered HTML
+(no login, no AJAX API — confirmed via manual DevTools Network inspection, 0 relevant XHR
+requests fired; page is plain HTTP-rendered). robots.txt allows the /schedule/ path we need
+(only disallows /cisapp/, /cisdocs/, /search/, /user/, PDFs). Page text confirms
+"Section Status updates every 10 minutes" — live data, matches accuracy bar.
+
+URL pattern: `https://courses.illinois.edu/schedule/{year}/{term}/{SUBJECT}/{NUM}`
+  e.g. https://courses.illinois.edu/schedule/2026/fall/AE/100
+Subject list per term: `https://courses.illinois.edu/schedule/{year}/{term}` (table of ~185 subject codes)
+Section status field: `<dt>Availability:</dt><dd>{status}</dd>` per CRN/section.
+
+Status enum (from page's own legend): Closed, Open, Open (Restricted), Pending, Unknown.
+Cross-listed sections render as "CrossListOpen (Restricted)" (concatenated, no space).
+TRUE-OPEN RULE: status contains "Open" AND does not contain "Closed" → open.
+Treat Pending/Unknown as NOT open (conservative — never-false-alert rule).
+
+NOTE: UIC (Chicago) and UIS (Springfield) do NOT use this system — checked, different platform,
+not yet identified. This is UIUC only. Still a strong single add given its size.
+Still needs section-collapse accuracy screen before going live.
