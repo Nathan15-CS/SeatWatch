@@ -180,3 +180,10 @@ Source: US Dept. of Education IPEDS public directory (public domain, no legal ex
 **TOTAL: 78 net-new verified schools → 469 to 547.**
 
 Still in progress (separate): CT-log (certspotter) discovery over the ~2,580 schools that matched no hostname pattern — finds hidden registration hosts. Results appended when complete. KCTCS confirmed DEAD (stale May-5 snapshot, 4/4 delta checks zero movement — do not add).
+### Technical-college sweep (TCSG 22 + SCTCS 16) — result: 2 net-new
+Probed all 38 Georgia + South Carolina technical colleges by domain. Most are login-gated
+or on non-guessable hosts. SC TRAC (sctrac.org) confirmed a TRANSFER/ARTICULATION catalog
+(no live seats — like Colorado courseleaf, do NOT use). No shared TCSG/SCTCS Banner host exists.
+Only 2 with open guest Banner search, both verified live:
+- North Georgia Technical College (GA) — `banner.northgatech.edu`
+- Piedmont Technical College (SC) — `banner.ptc.edu`
