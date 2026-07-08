@@ -669,16 +669,30 @@ class Banner:
             except Exception:
                 pass
             try:
-                q = urllib.parse.urlencode({"txt_subject": subj, "txt_courseNumber": num,
-                                            "txt_term": self.cur_term(), "pageOffset": 0,
-                                            "pageMaxSize": 100})
-                res = json.loads(self._retry(lambda: op.open(
-                    base + "/searchResults/searchResults?" + q + self._mep(),
-                    timeout=30).read().decode("utf-8", "replace")))
+                # Paginate: big schools exceed one page (FRCC ENG 1021 = 129 sections) and
+                # rows past the page cap would otherwise be silently invisible — a watched
+                # section that never appears. Cap pages defensively; if the API reports
+                # more rows than we could read, skip the course (accuracy over coverage).
+                rows, offset, total = [], 0, None
+                while offset < 500:
+                    q = urllib.parse.urlencode({"txt_subject": subj, "txt_courseNumber": num,
+                                                "txt_term": self.cur_term(), "pageOffset": offset,
+                                                "pageMaxSize": 100})
+                    res = json.loads(self._retry(lambda: op.open(
+                        base + "/searchResults/searchResults?" + q + self._mep(),
+                        timeout=30).read().decode("utf-8", "replace")))
+                    page = res.get("data") or []
+                    rows += page
+                    total = res.get("totalCount")
+                    if not page or not isinstance(total, int) or len(rows) >= total:
+                        break
+                    offset += 100
+                if isinstance(total, int) and total > len(rows):
+                    continue                            # couldn't read every section — skip
             except Exception:
                 continue
             secs = {}
-            for r in res.get("data") or []:
+            for r in rows:
                 if str(r.get("courseNumber")) != num:   # txt_courseNumber is prefix-match
                     continue
                 if (r.get("subject") or "").upper() != subj:   # guard cross-subject collisions
@@ -1227,6 +1241,54 @@ class CoastalAlabama(ACCS):
 
 class ReidState(ACCS):
     id = "reid"; name = "Reid State Technical College"; example = "MTH 100"; mep = "RSTC"
+
+# --- Colorado Community College System: ONE Banner 9 host (selfservice.cccs.edu) serves
+# --- all 13 state-system colleges via mepCode. Codes verified two ways: an invalid code
+# --- fails LOUDLY (MepCodeNotFoundException, no silent wrong-college data), and each
+# --- accepted code was identity-checked against live data (campusDescription prefixes
+# --- match the college, e.g. mep PPCC -> 'PPSC ...' campuses = Pikes Peak State College).
+# --- Colorado common course numbering: ENG 1021 = English Comp I system-wide.
+class CCCS(Banner):
+    host = "selfservice.cccs.edu"; term = "202720"
+
+class ArapahoeCC(CCCS):
+    id = "co-arapahoe"; name = "Arapahoe Community College"; example = "ENG 1021"; mep = "ACC"
+
+class CCAurora(CCCS):
+    id = "co-aurora"; name = "Community College of Aurora"; example = "ENG 1021"; mep = "CCA"
+
+class CCDenver(CCCS):
+    id = "co-denver"; name = "Community College of Denver"; example = "ENG 1021"; mep = "CCD"
+
+class ColoradoNorthwestern(CCCS):
+    id = "co-northwestern"; name = "Colorado Northwestern Community College"; example = "ENG 1021"; mep = "CNCC"
+
+class FrontRange(CCCS):
+    id = "co-frontrange"; name = "Front Range Community College"; example = "ENG 1021"; mep = "FRCC"
+
+class LamarCC(CCCS):
+    id = "co-lamar"; name = "Lamar Community College"; example = "ENG 1021"; mep = "LCC"
+
+class MorganCC(CCCS):
+    id = "co-morgan"; name = "Morgan Community College"; example = "ENG 1021"; mep = "MCC"
+
+class NortheasternJC(CCCS):
+    id = "co-njc"; name = "Northeastern Junior College"; example = "ENG 1021"; mep = "NJC"
+
+class OteroCollege(CCCS):
+    id = "co-otero"; name = "Otero College"; example = "ENG 1021"; mep = "OJC"
+
+class PikesPeak(CCCS):
+    id = "co-pikespeak"; name = "Pikes Peak State College"; example = "ENG 1021"; mep = "PPCC"
+
+class PuebloCC(CCCS):
+    id = "co-pueblo"; name = "Pueblo Community College"; example = "ENG 1021"; mep = "PCC"
+
+class RedRocks(CCCS):
+    id = "co-redrocks"; name = "Red Rocks Community College"; example = "ENG 1021"; mep = "RRCC"
+
+class TrinidadState(CCCS):
+    id = "co-trinidad"; name = "Trinidad State College"; example = "ENG 1021"; mep = "TSJC"
 
 class ColoradoStateFC(Banner):
     id = "csu"; name = "Colorado State University"
@@ -2962,7 +3024,11 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              RiverParishes(), SOWELA(), Nunez(),
                              ChattahoocheeValley(), WallaceDothan(), GadsdenState(),
                              SheltonState(), CalhounCC(), SouthernUnion(), BishopState(),
-                             CoastalAlabama(), ReidState(), ColoradoStateFC(),
+                             CoastalAlabama(), ReidState(),
+                             ArapahoeCC(), CCAurora(), CCDenver(), ColoradoNorthwestern(),
+                             FrontRange(), LamarCC(), MorganCC(), NortheasternJC(),
+                             OteroCollege(), PikesPeak(), PuebloCC(), RedRocks(),
+                             TrinidadState(), ColoradoStateFC(),
                              ArkansasTech(), UtahTech(), MontanaTech(), NMHighlands(),
                              WesternNM(), WesternOregon(), OregonTech(),
                              NJIT(), Lehigh(), TexasSouthern(),

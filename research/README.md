@@ -53,3 +53,15 @@ render via ICAJAX; blind replay attempts got blank envelopes (state advances, no
 real browser session to capture the exact ICAction/payload (Chrome extension was disconnected).
 Classic CLASS_SEARCH.CLASS_SEARCH.GBL is also a JS shell. COMMUNITY_ACCESS.K_OLA_LANDING_FL.GBL is
 just the application portal — dead end.
+
+## Colorado CCS (selfservice.cccs.edu) — ✅ BUILT & SHIPPED July 8, 2026 (13 colleges, 454->467)
+ONE Banner 9 host, mepCode per college — same class of leverage as CUNY/ctcLink/MinnState/VCCS.
+Adapter: `CCCS(Banner)` + 13 subclasses; verified mepCodes: ACC CCA CCD CNCC FRCC LCC MCC NJC
+OJC PCC PPCC(->brand PPSC) RRCC TSJC(->brand TSC). Safe-probe note: this host fails LOUDLY on
+bad codes (MepCodeNotFoundException) unlike ctcLink/VCCS, and every accepted code was ALSO
+identity-verified against live campusDescription prefixes. Colorado common course numbering:
+ENG 1021 works as the example at all 13. Term 202720 = Fall 2026 systemwide, auto-rolls.
+SIDE FIX shipped with it: `Banner.fetch` now PAGINATES searchResults (was silently capped at
+100 rows/course — FRCC ENG 1021 has 129 sections; watched sections past row 100 could never
+alert at ANY Banner school). Fail-closed: if totalCount can't be fully read, skip the course.
+Old erpdnssb.cccs.edu (Banner 8) is dead/unreachable — selfservice.cccs.edu is the live host.
