@@ -660,3 +660,13 @@ rows to the exact course-header block. CHECKED UCSC: prefix loose-matches ("11"�
 full codes are clean ("MATH 11A"→only 11A, "CSE 30"→only 30, no 30X). UCSC safe since users watch full
 codes. LESSON: for every custom HTML/search adapter, test whether an exact course-code search leaks
 suffixed siblings before handoff (invisible until someone watches a course with a suffixed sibling).
+
+## Handoff batch 11 (UC Santa Cruz pisa) — ✅ BUILT July 8: 1 added (634->635)
+New bespoke `UCSC` adapter: one urlencoded POST per course to pisa.ucsc.edu, status from
+the per-section icon alt ('Open'/'Closed'/'Closed with Wait List' — verified real 23/9/1
+mix on a MATH sweep; ONLY 'Open' is open). Course-scoped by exact label match (no sibling
+leak), truncation-guarded (rec_dur page cap -> skip, never miss a watched section),
+quarter codes synthesized (2268 = Fall 2026) with verify-before-adopt. SIDE FIX: UCI was
+missing from refresh_all_terms' adapter tuple (added same commit, along with UCSC) — its
+term would never have auto-rolled. UC status: Irvine ✅ SantaCruz ✅ Merced ✅(Banner);
+UCSB/UCSD/UCLA still with research.
