@@ -266,3 +266,28 @@ gated or on non-guessable hosts, and only Banner was probed. Biggest remaining l
   trap, not live seats. Do not re-add without evidence of a live guest term.
 - DeVry multi-campus check: single 'Online' campusDescription on probe; CRN keying
   makes cross-campus collisions structurally impossible anyway.
+
+### ACCS shared-host MEP expansion + East Georgia — 16 sent to builder July 9 2026 (537→553)
+Alabama Community College System: shared Banner host reg-prod.ec.accs.edu, schools keyed
+by MEP code (existing adapter). Had 9/24; discovered + verified the other 15 by guessing
+MEP codes and CONFIRMING each mapping via Banner campusDescription vs the college's real
+geography (not assuming the abbreviation). Applied builder's full gate: term-freshness
+(skip "(View Only)" archive terms), zero-seq (2+ section course, distinct sequenceNumber),
+numeric-subject. See [[seatwatch-banner-verification-gate]].
+
+KEY FINDING: ACCS pervasively returns sequenceNumber="0" (mixes zero-seq & real-seq even
+within one college) → MUST key by courseReferenceNumber (CrnKeyedBanner). Confirmed CRNs
+distinct on zero-seq courses (NWSCC ART 100: 13 sections all seq=0, 13 distinct CRNs).
+9/15 definitively fail plain-seq; recommended CRN for all 15. ALSO flagged: existing 9
+ACCS schools (plain Banner) have a LIVE latent collapse bug on zero-seq multi-section
+courses — recommended migrating them to CrnKeyedBanner too.
+
+15 new ACCS (mep / confirmed location): JSCC Shelby-Hoover, LAWSON Bessemer, LBWCC
+Andalusia, NWSCC Muscle Shoals, TSCC Patterson, WCCS Demopolis, BSCC Jasper-Sumiton,
+ESCC Enterprise-Ozark, SNEAD Boaz, ISTC Draper-Fountain(prison), CACC AlexCity-Childersburg,
+DRAKE Huntsville, MMI Marion, NACC Rainsville, WSCC Hanceville.
++1: East Georgia State College — ega.gabest.usg.edu (202605) — last missing USG-cluster school.
+
+DIRECTION NOTE (Nathan, July 9): prefers 4-YEAR universities going forward even though they
+come one-at-a-time (shared-host bulk wins are almost all community-college systems). Approved
+this CC batch for the bulk, but next sweeps should target 4-year institutions.
