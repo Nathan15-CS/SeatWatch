@@ -395,3 +395,19 @@ final regression.
 SCRAPPED: McCormick Seminary, SEBTS (no sections in picked terms — niche grad calendars).
 HOLD (revisit when fall loads): Aurora University, American Samoa CC — same category as
 Colorado Mountain.
+
+### Batch 5 outcome (builder, July 9 2026): 34/38 shipped → 598. Findings:
+- Kean: substring term-match would've leaked "Fall 2026 Wenzhou" (China branch) into US results —
+  shipped via ExactTermColleague (equality). LESSON: multi-entity host marker as PREFIX (VSC
+  "CCV …") → prefix-filter OK; as SUFFIX ("… Wenzhou") → base substring match LEAKS, needs exact.
+- Lincoln-MO: "FA 26 Semester" abbreviated-season + 2-digit-year terms; base picker chose 2029 →
+  shipped via ShortYearTermColleague.
+- SCRAPPED (do NOT re-hand-off w/o verified live-section example in primary term): McCormick
+  Theological Seminary, SEBTS — niche grad calendars, no sections in picked term.
+- HOLD/revisit (fall not loaded yet, likely clean in weeks): Aurora University, American Samoa CC
+  — add to revisit list with Colorado Mountain (+ East Georgia already shipped when it loaded).
+- Shipped clean: all 6 HBCUs, Brooklyn Law, Weatherford, LCO Ojibwe. Worst latency 7.6s (Ashland).
+Live count now 598 (session start was 529).
+
+REVISIT LIST (recheck when fall sections load): Colorado Mountain (coloradomtn.edu), Aurora
+University (aurora-ss.colleague.elluciancloud.com), American Samoa CC (amsamoa-ss.colleague.elluciancloud.com).
