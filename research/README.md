@@ -411,3 +411,21 @@ Live count now 598 (session start was 529).
 
 REVISIT LIST (recheck when fall sections load): Colorado Mountain (coloradomtn.edu), Aurora
 University (aurora-ss.colleague.elluciancloud.com), American Samoa CC (amsamoa-ss.colleague.elluciancloud.com).
+
+### Batch 6 sent (July 9 2026): 4 four-year universities + 28 community colleges = 32 in one batch
+4-YEAR (Banner Ellucian-cloud reg-prod.{code}.elluciancloud.com — NEW vein, code==domain label):
+Georgetown, Ole Miss (⚠️winter-intersession term trap), U Central Oklahoma, Eastern Oregon. All
+gated live Fall 2026, distinct seq, identity-confirmed. This is the highest-value 4-year vein found.
+
+CC (volume, IPEDS 2-year via {label}-ss.colleague + reg-prod.{label} cloud patterns): 20 clean +
+8 flagged. Flags: Helena College & Metro-KC = Banner (plain); Indian Hills = short-year terms;
+South Piedmont/Robeson = CODED terms ("2026FA"); Florence-Darlington = week-module; Western
+Technical & Nicolet (WI) = NUMERIC subject codes (need numeric-subject Colleague variant).
+IDENTITY TRAP caught: "Ashland Community & Technical College" derived host collided onto Ashland
+UNIVERSITY's ashland-ss instance (identical data) — dropped. LESSON: {label}-ss cloud hosts can
+collide when two schools share a domain label; always host-dedup + identity-check.
+DEFER (no guest ActivePlanTerms): Columbus State CC (cscc.edu, 46k — worth a manual recheck), Pitt CC.
+
+KEY DISCOVERY (reusable): Banner Ellucian-cloud = reg-prod.{code}.elluciancloud.com/StudentRegistrationSsb
+(code usually == domain first-label). Colleague Ellucian-cloud = {label}-ss.colleague.elluciancloud.com.
+These two cloud patterns are the highest-yield SIS discovery vectors found this session.
