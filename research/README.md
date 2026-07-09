@@ -351,3 +351,17 @@ is the rebranded domain for the same school, add it to the dedup list), TESU (mo
 rolling terms, no season semantics — poor seat-watch fit, do not re-hand-off).
 HOLD: Colorado Mountain — picker correctly chooses '2026 Fall' but fall sections aren't
 loaded yet (only Spring/Summer 2026 exist); re-gate when fall loads, likely a clean add.
+
+### Batch 4 outcome (builder, July 9 2026): 11/13 shipped → 564. Exclusions to honor:
+- UNC Charlotte = DUPLICATE of existing `uncc` (selfservice.uncc.edu). selfservice.charlotte.edu
+  is the SAME school's rebranded domain. LESSON: dedup by INSTITUTION, not just base domain —
+  schools rebrand domains. Both uncc.edu + charlotte.edu now excluded.
+- Thomas Edison State Univ (tesu.edu) = CUT permanently — monthly rolling terms ("July 2026"…),
+  open-enrollment online model doesn't fit seat-watching. Do NOT re-hand-off.
+- Colorado Mountain (coloradomtn.edu) = HOLD — term picker correctly picks "2026 Fall" but the
+  college hasn't loaded fall sections yet (only Spring/Summer). Re-verify in a few weeks; likely
+  clean then (same as East Georgia earlier, which loaded and shipped).
+Round-2 flags all landed: Campbell/Loras/Columbia-MO/Southwestern/NWOSU + both Vermont shipped
+via contained subclass fixes (FA/SP abbrevs, dotted subjects, digit-bearing terms/subjects,
+empty ActivePlanTerms, term-prefix isolation for VSC). Live count now 564.
+DEDUP-EXCLUDE going forward: uncc.edu, charlotte.edu, tesu.edu (cut), coloradomtn.edu (hold).
