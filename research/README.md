@@ -560,3 +560,13 @@ CONCLUSION: guessable + accuracy-safe universe is mined out at 630. Remaining un
 login-gated, fake-status (classic PeopleSoft), catalog-only, or on hosts even CT-logs don't cleanly
 reveal. Scheduled task "seatwatch-hold-and-ctlog-weekly" (Mon 8:37am) now runs HOLD-recheck + a small
 CT-log batch weekly and pings ONLY on actionable finds.
+
+### Batch 8 sent (July 9 2026) — Boston University (manual PeopleSoft-Fluid recon) — 1 school
+BU (~34k) on the PeopleSoft Fluid guest API (same as UVA/Towson/USM/Palomar). Sent to builder.
+  host=public.mybustudent.bu.edu site=BUPRD node=EMPLOYEE inst=BU001 term=2268 example="CASMA 123"
+GATE PASSED — real status (CASMA 123: 16 sections mixed Open/Waitlist/Closed w/ real counts; NOT
+the fake all-Open classic-PS). BU subject codes college-prefixed (CASMA=CAS Math). Fluid _norm handles it.
+METHOD that works for one-at-a-time 4-year grind: web-search "WEBLIB_HCX_CM.H_CLASS_SEARCH...IScript_Main"
+to harvest Fluid-guest hosts, then verify institution+term+example via IScript_ClassSearchOptions/ClassSearch.
+Most harvested hosts are already covered (UVA/Towson/USM/Palomar/BU) or custom/catalog (IU IGPS=catalog,
+no seats; ICC config empty). BU was the net-new win this pass.
