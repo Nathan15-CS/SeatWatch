@@ -459,3 +459,27 @@ re-hand-off.
   ExactTermColleague (suffix branch isolation e.g. Kean/Wenzhou), plus CrnKeyedBanner + NumericSubjectBanner.
 PERMANENT-CUT list (never re-hand-off): Lafayette (archive), TESU (rolling monthly), Victor Valley
 (archive), Bryant&Stratton (View Only), McCormick Sem + SEBTS (no sections in primary term).
+
+### Batch 7 sent (July 9 2026) — BIG-PUBLIC CLASSIC-PEOPLESOFT UNLOCK + Winthrop/Guilford
+THE highest-leverage 4-year vein. Big public flagships use neither Fluid IScript, Banner, nor
+Colleague — they run the CLASSIC PeopleSoft guest class search, component
+COMMUNITY_ACCESS.CLASS_SEARCH.GBL. It's the STOCK component (identical fields every school), so
+ONE classic-PS adapter (VCCS is the template) unlocks the whole segment. Reverse-engineered the
+flow: entry Page=SSR_CLSRCH_ENTRY, results SSR_CLSRCH_RESULT; fields CLASS_SRCH_WRK2_INSTITUTION/
+STRM + SSR_CLSRCH_WRK_SUBJECT_SRCH/CATALOG_NBR; search ICAction=CLASS_SRCH_WRK2_SSR_PB_CLASS_SRCH;
+stateful ICSID/ICStateNum. Authoritative Open/Closed/Waitlist status per section (read 'Open' only,
+seats=None, like Fose/VT). NAU's ?search=true GET returns the FORM not results — needs the POST flow.
+
+14 VERIFIED guest-accessible (guest=YES, confirmed): Penn State (public.lionpath.psu.edu/CSPRD),
+UCF (csprod-ss.net.ucf.edu/CSPROD), FIU (pslinks.fiu.edu/cslinks), Houston (saprd.my.uh.edu/saprd),
+Washington State (pub.my.wsu.edu/wsucsprd), UConn (student.studentadmin.uconn.edu/CSGUE), Northern
+Arizona (peoplesoft.nau.edu/ps92prcs, inst=NAU00), UMKC (access.umkc.umsystem.edu/prdpa), Missouri
+S&T (access.joess.mst.edu/prdpa), Central Washington (cwucsprd.peoplesoft.cwu.edu/cwucsprd), Northern
+Iowa (sis.uni.edu/cssprd), UW-Stout (uwstout.sis.wisconsin.edu/stoprd-tb), Salisbury (gullnet.salisbury.edu/
+csprdguest), Rhode Island College (pscs.ric.edu). Excluded OSU (already live, also on this system).
+
+SHARED-SYSTEM MULTIPLIERS to roster once adapter proven: UW System (sis.wisconsin.edu — many UW
+campuses), U Missouri System (umsystem.edu 'prdpa' — Mizzou/UMSL/UMKC/S&T). Potentially 20+ more.
+
+Also sent Part D: Winthrop (prod-ssb.winthrop.edu) + Guilford (ssbp.guilford.edu) — plain Banner, gated.
+STATUS: build request; roster is guest-verified but seat-scrape flow is the builder's to build.
