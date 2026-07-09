@@ -578,3 +578,18 @@ PeopleSoft._norm regex. Gate confirmed REAL status before shipping (the batch-7
 NAU lesson applied correctly by the research chat): example course has 16 sections
 with genuine mixed Open/Waitlisted status and integer seat counts — not the
 classic-PS always-Open trap. Term 2268 (Fall 2026) auto-resolves clean.
+
+### Batch 9 sent (July 9 2026) — FOSE BREAKTHROUGH: 3 new flagship/Ivy + critical stale-srcdb bug fix
+CRACKED Fose srcdb auto-discovery: the API errors leak the mechanism ({"fatal":"Cannot open database:
+fose-clss1269"}) and the school homepage embeds `srcDBs: [{"code":"2267","name":"Fall 2026"...}]`.
+Parse that, pick current Fall term → live search works. This is the key that was missing.
+⛔ LIVE BUG FOUND: the 9 existing Fose subclasses have HARDCODED stale srcdb (CUBoulder 1269 = dead DB,
+current is 2267) and NO auto-refresh → silently broken, no alerts firing. Builder must add srcdb
+auto-refresh from homepage srcDBs (repairs all 9 + self-maintains).
+3 NEW Fose (all real status A/F/C, Fall 2026): University of Connecticut (classes.uconn.edu, srcdb 1268 —
+was SSO-gated on PeopleSoft, Fose is the public way in!), Oregon State (classes.oregonstate.edu, 202701),
+University of Pennsylvania (courses.upenn.edu, 202630, Ivy). Host = classes./courses.{domain} so NO identity risk.
+Fose sweep over 3231 uncovered (classes./courses./cab./catalog./coursecatalog./sched. + auto-srcdb) = these 3
+net-new; prestigious-school probe (Harvard/Princeton/etc) = custom systems, not Fose. Fose vein now mined.
+KEY LEARNING: Fose = real-status vein for selective schools; some (UConn) expose Fose publicly even when
+their primary SIS is login-gated — worth checking Fose for any gated flagship.
