@@ -443,3 +443,19 @@ SCRAPPED PERMANENTLY: Victor Valley — course search serves ARCHIVE sections (S
 2024) while advertising Fall 2026 terms; false-freshness, third failed gate. Do not
 re-hand-off.
 31/31 final regression; median ~1.6s, worst 5.8s (Nicolet).
+
+### Batch 6 outcome (builder, July 9 2026): 31/32 shipped → 629. +235 schools today. Findings:
+- All 4 universities shipped (Georgetown, Ole Miss, UCO, Eastern Oregon). Ole Miss intersession
+  handled by production term-picker (excludes 'intersession', chose full Fall 202710).
+- LESSON (refine gate): verify the EXAMPLE course itself has 2+ LIVE sections in the target term,
+  not just that the term exists. My Ole Miss ex BISC 3800 had 0 live sections; discovery swapped to
+  ENGL 2220 (48 sec). Going forward, pick examples that are large/guaranteed (ENGL/MATH 101-level).
+- VICTOR VALLEY (selfservice.vvc.edu) = SCRAP PERMANENTLY. Returns ARCHIVE sections (Spring 2024)
+  while advertising Fall 2026 in ActivePlanTerms — false-freshness like Lafayette. 3rd failed gate.
+  DecimalColleague variant (for '101.0' numbering) works, but underlying data is stale. Do NOT re-add.
+- New reusable builder variants now exist (future schools with these = 4-line adds):
+  NumSubjColleague (numeric subjects: Western Tech, Nicolet), CodedTermColleague ('2026FA' terms:
+  Robeson, South Piedmont), ShortYearTermColleague ('Fall Term 26', 'Fall 26-27 15-WK'), DecimalColleague,
+  ExactTermColleague (suffix branch isolation e.g. Kean/Wenzhou), plus CrnKeyedBanner + NumericSubjectBanner.
+PERMANENT-CUT list (never re-hand-off): Lafayette (archive), TESU (rolling monthly), Victor Valley
+(archive), Bryant&Stratton (View Only), McCormick Sem + SEBTS (no sections in primary term).
