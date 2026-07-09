@@ -593,3 +593,18 @@ Fose sweep over 3231 uncovered (classes./courses./cab./catalog./coursecatalog./s
 net-new; prestigious-school probe (Harvard/Princeton/etc) = custom systems, not Fose. Fose vein now mined.
 KEY LEARNING: Fose = real-status vein for selective schools; some (UConn) expose Fose publicly even when
 their primary SIS is login-gated — worth checking Fose for any gated flagship.
+
+## Handoff batch 9 (fose srcdb + 3 schools) — ✅ PARTIAL July 8: UConn added + auto-roll hardening (631->632)
+FACT-CHECK FIRST: the 'URGENT live bug' claim was WRONG — all 9 live fose schools verified
+working (CU Boulder's actual srcdb in schools.py is 2267, not the 1269 the research chat
+tested; 1269 is UArk's code). No production breakage existed. HOWEVER the design concern was
+right: srcdb was hand-pinned per semester and would die silently at rollover. HARDENED: Fose
+now auto-rolls srcdb from each host's own srcDBs JS array (verified present on all 11 hosts),
+verify-before-adopt, registered in refresh_all_terms. Gate: 11/11 hosts' discovery
+independently matched the known-good hardcoded codes; simulated-stale recovery proven
+(seeded CU Boulder with dead 1269 -> refresh healed to 2267 -> live sections).
+ADDED: UConn (flagship, 199 sections ENGL 1007, real A/F mix; its classic-PS search is
+SSO-gated — fose is the guest path).
+REJECTED: Penn — FOURTH duplicate-class handoff (already live via bespoke `Penn` adapter).
+SCRAPPED for now: Oregon State — its fose API returns 0 rows for every keyword/subject
+search shape; the '294 results' claim doesn't reproduce. Crack its request format first.

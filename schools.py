@@ -303,8 +303,20 @@ class Fose:
     every section with an authoritative status flag: 'A'=available/open, 'F'=full.
     We treat ONLY 'A' as open (conservative — never false-open). seats=None (fose
     reports status, not counts). Subclass sets: id, name, example, api, srcdb.
-    Fail-safe: {} on any error, so a broken fetch is silent, never fabricated."""
+    Fail-safe: {} on any error, so a broken fetch is silent, never fabricated.
+
+    srcdb term codes are per-semester and used to be pinned by hand — a stale code
+    dies silently at rollover (the API answers with a 'Cannot open database' fatal
+    and zero rows, so watches would just never alert). Every fose host embeds its
+    own term list in the search page as a JS `srcDBs:[...]` array (verified on all
+    11 hosts), so resolve_term/refresh_term now auto-roll it with the same
+    verify-before-adopt rule as the Banner/PeopleSoft/MinnState/UIUC pickers; the
+    hardcoded srcdb is just the seed / last-known-good."""
     # subclass sets: id, name, example, api, srcdb
+    _active_srcdb = None
+
+    def cur_srcdb(self):
+        return self._active_srcdb or self.srcdb
 
     @staticmethod
     def _norm(course):
@@ -318,6 +330,54 @@ class Fose:
     def reg_url(self, course):
         return self.api.split("/api/")[0] + "/"
 
+    def resolve_term(self):
+        """Nearest upcoming MAIN term's srcdb from the host's own srcDBs list; None on
+        failure. Anchored on the human 'Fall 2026' name (codes aren't portable across
+        fose hosts); catch-alls ('Any Term', 'Past Terms') carry no season+year and are
+        skipped naturally, as are combined/sub terms via the shared _SUBTERM screen."""
+        try:
+            page = _http(self.reg_url(""))
+            m = re.search(r"srcDBs\s*:\s*(\[.*?\])", page, re.S)
+            if not m:
+                return None
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for t in json.loads(m.group(1)):
+                name = (t.get("name") or "").lower()
+                if any(s in name for s in _SUBTERM) or "&" in name:
+                    continue
+                sm = (re.search(r"(spring|summer|fall|autumn|winter)\D{0,12}(20\d\d)", name) or
+                      re.search(r"(20\d\d)\D{0,12}(spring|summer|fall|autumn|winter)", name))
+                if not sm:
+                    continue
+                g = sm.groups()
+                season, year = (g[0], int(g[1])) if g[0] in _SEASON else (g[1], int(g[0]))
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, t.get("code")
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        """Adopt a newly-detected srcdb ONLY after the example returns live sections
+        under it; else keep last-known-good."""
+        new = self.resolve_term()
+        if not new or new == self.cur_srcdb():
+            return
+        prev = self._active_srcdb
+        self._active_srcdb = new
+        ok = bool(self.fetch({self.example}).get(self.example)) if getattr(self, "example", "") else False
+        if not ok:
+            self._active_srcdb = prev
+            if log:
+                log(f"[term] {self.id}: detected srcdb {new} but no live data yet — keeping {self.cur_srcdb()}")
+            return
+        if log:
+            log(f"[term] {self.id}: srcdb auto-updated {prev or self.srcdb} -> {new}")
+
     def fetch(self, courses):
         out = {}
         for course in courses:
@@ -325,7 +385,7 @@ class Fose:
             if not code:
                 continue
             try:
-                body = json.dumps({"other": {"srcdb": self.srcdb},
+                body = json.dumps({"other": {"srcdb": self.cur_srcdb()},
                                    "criteria": [{"field": "keyword", "value": code}]}).encode()
                 req = urllib.request.Request(self.api, data=body,
                                              headers={"User-Agent": UA,
@@ -390,6 +450,17 @@ class SouthCarolina(Fose):
     id = "southcarolina"; name = "University of South Carolina"
     example = "ENGL 101"; srcdb = "202608"     # Fall 2026 (verified live)
     api = "https://classes.sc.edu/api/?page=fose&route=search"
+
+class UConn(Fose):
+    # UConn's PeopleSoft classic search is SSO-gated; this public fose search is
+    # the guest path in. Gated with REAL mixed A/F statuses (not an all-open trap).
+    id = "uconn"; name = "University of Connecticut"
+    example = "ENGL 1007"; srcdb = "1268"      # Fall 2026 (auto-rolls)
+    api = "https://classes.uconn.edu/api/?page=fose&route=search"
+
+# Oregon State (classes.oregonstate.edu) probed but NOT added — its fose API returns
+# zero rows for every keyword/subject search shape tried (the handoff's 294-result
+# claim doesn't reproduce); needs its request format cracked before it can be gated.
 
 
 class UIUC:
@@ -4173,7 +4244,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                                RocklandCC(), NewSchool(),
                                ABAC(), AtlantaMetro(), CoastalGeorgia(),
                                GordonState(), SouthGeorgiaState(), DaltonState()]
-                            + [UArk(), SLU(), SouthCarolina(),
+                            + [UArk(), SLU(), SouthCarolina(), UConn(),
                                CollegeOfTheDesert(), Guam(), SimpsonCollegeIA(),
                                Kankakee(), Midway(), WorWic(), DeltaMI(),
                                WilliamJewell(), JamesSprunt(), LeesMcRae(),
@@ -4224,7 +4295,7 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC)):
+        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose)):
             try:
                 s.refresh_term(log)
             except Exception:
