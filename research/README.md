@@ -606,8 +606,10 @@ independently matched the known-good hardcoded codes; simulated-stale recovery p
 ADDED: UConn (flagship, 199 sections ENGL 1007, real A/F mix; its classic-PS search is
 SSO-gated — fose is the guest path).
 REJECTED: Penn — FOURTH duplicate-class handoff (already live via bespoke `Penn` adapter).
-SCRAPPED for now: Oregon State — its fose API returns 0 rows for every keyword/subject
-search shape; the '294 results' claim doesn't reproduce. Crack its request format first.
+Oregon State RESOLVED and ADDED (632->633): root cause was the handoff example's subject
+code — OSU English is "ENG", not "ENGL". Corrected example ENG 104Z gated clean (4 secs,
+real A/F mix); auto-roll verified to skip OSU's 999999 'All Terms' catch-all and pick
+202701 Fall 2026. Research chat now greps schools.py by NAME before handoffs (post-Penn).
 
 ### Batch 9 CORRECTIONS (builder feedback, July 9 2026):
 - "Urgent srcdb bug" was a FALSE ALARM — I tested UArk's code (1269) vs CU Boulder's host; CUB's real

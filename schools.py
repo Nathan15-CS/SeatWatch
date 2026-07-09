@@ -458,9 +458,13 @@ class UConn(Fose):
     example = "ENGL 1007"; srcdb = "1268"      # Fall 2026 (auto-rolls)
     api = "https://classes.uconn.edu/api/?page=fose&route=search"
 
-# Oregon State (classes.oregonstate.edu) probed but NOT added — its fose API returns
-# zero rows for every keyword/subject search shape tried (the handoff's 294-result
-# claim doesn't reproduce); needs its request format cracked before it can be gated.
+class OregonState(Fose):
+    # OSU's English subject is "ENG", not "ENGL" — the first handoff example used the
+    # wrong code and gated to zero; corrected and re-gated clean (real A/F mix). The
+    # srcDBs auto-roll correctly skips OSU's "999999 All Terms" catch-all.
+    id = "oregonstate"; name = "Oregon State University"
+    example = "ENG 104Z"; srcdb = "202701"     # Fall 2026 (auto-rolls)
+    api = "https://classes.oregonstate.edu/api/?page=fose&route=search"
 
 
 class UIUC:
@@ -4244,7 +4248,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                                RocklandCC(), NewSchool(),
                                ABAC(), AtlantaMetro(), CoastalGeorgia(),
                                GordonState(), SouthGeorgiaState(), DaltonState()]
-                            + [UArk(), SLU(), SouthCarolina(), UConn(),
+                            + [UArk(), SLU(), SouthCarolina(), UConn(), OregonState(),
                                CollegeOfTheDesert(), Guam(), SimpsonCollegeIA(),
                                Kankakee(), Midway(), WorWic(), DeltaMI(),
                                WilliamJewell(), JamesSprunt(), LeesMcRae(),
