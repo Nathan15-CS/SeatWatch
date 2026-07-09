@@ -1348,7 +1348,18 @@ class Nunez(LCTCS):
 # --- Alabama Community College System: shared host, letter mepCodes. Half the campuses
 # --- collapse sections (rejected); only the clean ones are here.
 class ACCS(Banner):
+    """Alabama CC System: ONE Ellucian Cloud host, mep per college. ACCS MIXES
+    zero-seq and real-seq courses even within a single college (audited live July 8:
+    Southern Union HIS 101 = 23 sections ALL sequenceNumber='0' — collapsing to ONE
+    key under the default; Wallace-Dothan MTH 116 likewise), so EVERY ACCS college
+    keys sections by CRN (verified distinct on zero-seq courses). This changed the
+    section keys for the 9 originally-shipped colleges — any pre-existing watch
+    pinned to an old-style section key on those schools must be re-created (checked
+    at migration time; see deploy note in the July 8 commit)."""
     host = "reg-prod.ec.accs.edu"; term = "202710"
+
+    def _seckey(self, r):
+        return r.get("courseReferenceNumber")
 
 class ChattahoocheeValley(ACCS):
     id = "cvcc"; name = "Chattahoochee Valley Community College"; example = "MTH 099"; mep = "CVCC"
@@ -1376,6 +1387,53 @@ class CoastalAlabama(ACCS):
 
 class ReidState(ACCS):
     id = "reid"; name = "Reid State Technical College"; example = "MTH 100"; mep = "RSTC"
+
+# July 8 batch 3 — the remaining 15 ACCS colleges (mep->college identity confirmed via
+# campusDescription geography, per the research handoff; every one gated live).
+class JeffersonStateCC(ACCS):
+    id = "jeffstate"; name = "Jefferson State Community College"; example = "ACT 145"; mep = "JSCC"
+
+class LawsonState(ACCS):
+    id = "lawson"; name = "Lawson State Community College"; example = "ACR 111"; mep = "LAWSON"
+
+class LurleenBWallace(ACCS):
+    id = "lbwcc"; name = "Lurleen B. Wallace Community College"; example = "ART 100"; mep = "LBWCC"
+
+class NorthwestShoals(ACCS):
+    id = "nwscc"; name = "Northwest-Shoals Community College"; example = "ART 100"; mep = "NWSCC"
+
+class TrenholmState(ACCS):
+    id = "trenholm"; name = "Trenholm State Community College"; example = "ADM 100"; mep = "TSCC"
+
+class WallaceSelma(ACCS):
+    id = "wccs"; name = "Wallace Community College Selma"; example = "BIO 103"; mep = "WCCS"
+
+class BevillState(ACCS):
+    id = "bevill"; name = "Bevill State Community College"; example = "ADM 101"; mep = "BSCC"
+
+class EnterpriseState(ACCS):
+    id = "escc"; name = "Enterprise State Community College"; example = "ADM 110"; mep = "ESCC"
+
+class SneadState(ACCS):
+    id = "snead"; name = "Snead State Community College"; example = "ACR 128"; mep = "SNEAD"
+
+class IngramState(ACCS):
+    id = "ingram"; name = "J.F. Ingram State Technical College"; example = "ABR 111"; mep = "ISTC"
+
+class CentralAlabama(ACCS):
+    id = "cacc"; name = "Central Alabama Community College"; example = "ANT 200"; mep = "CACC"
+
+class DrakeState(ACCS):
+    id = "drakestate"; name = "J.F. Drake State Community & Technical College"; example = "ADM 101"; mep = "DRAKE"
+
+class MarionMilitary(ACCS):
+    id = "mmi"; name = "Marion Military Institute"; example = "ART 100"; mep = "MMI"
+
+class NortheastAlabama(ACCS):
+    id = "nacc"; name = "Northeast Alabama Community College"; example = "ADM 110"; mep = "NACC"
+
+class WallaceHanceville(ACCS):
+    id = "wallacestate"; name = "Wallace State Community College (Hanceville)"; example = "ART 100"; mep = "WSCC"
 
 # --- Colorado Community College System: ONE Banner 9 host (selfservice.cccs.edu) serves
 # --- all 13 state-system colleges via mepCode. Codes verified two ways: an invalid code
@@ -1890,6 +1948,10 @@ class SouthGeorgiaState(Banner):
 class DaltonState(Banner):
     id = "daltonstate"; name = "Dalton State College"
     example = "ACCT 2101"; host = "daltonstate.gabest.usg.edu"; term = "202608"
+
+class EastGeorgiaState(Banner):
+    id = "ega"; name = "East Georgia State College"
+    example = "ACCT 2101"; host = "ega.gabest.usg.edu"; term = "202605"
 
 
 class CACCD(Banner):
@@ -3537,6 +3599,12 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                             + [UIUC()]
                             + [SNHU(), DeVry(), ConcordiaMoorhead(), Touro(),
                                SouthernOregon(), Massasoit(), WCTC(), Blackhawk()]
+                            + [JeffersonStateCC(), LawsonState(), LurleenBWallace(),
+                               NorthwestShoals(), TrenholmState(), WallaceSelma(),
+                               BevillState(), EnterpriseState(), SneadState(),
+                               IngramState(), CentralAlabama(), DrakeState(),
+                               MarionMilitary(), NortheastAlabama(), WallaceHanceville(),
+                               EastGeorgiaState()]
                             + [SCAD(), NWMissouri(), NortheastNE(), AlfredU(),
                                FITNYC(), Hofstra(), JamestownCC(), SUNYCanton(),
                                SUNYSchenectady(), UpstateMedical(), Presbyterian(),

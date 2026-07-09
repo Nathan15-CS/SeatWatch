@@ -291,3 +291,16 @@ DRAKE Huntsville, MMI Marion, NACC Rainsville, WSCC Hanceville.
 DIRECTION NOTE (Nathan, July 9): prefers 4-YEAR universities going forward even though they
 come one-at-a-time (shared-host bulk wins are almost all community-college systems). Approved
 this CC batch for the bulk, but next sweeps should target 4-year institutions.
+
+## Handoff batch 3 (15 ACCS + East Georgia) — ✅ BUILT July 8 2026: 16/16 added (537->553)
+ALL 15 new ACCS colleges shipped as CRN-keyed (ACCS._seckey -> courseReferenceNumber).
+CRITICAL LIVE BUG the handoff flagged, CONFIRMED and FIXED: the 9 originally-shipped
+ACCS colleges were sequence-keyed on a system that MIXES zero-seq and real-seq courses —
+Southern Union HIS 101 had 23 live sections collapsing into ONE key ('0'x23); Wallace-
+Dothan MTH 116 likewise. All 9 migrated to CRN keying; post-fix suscc HIS 101 correctly
+shows 23 sections. ⚠️ MIGRATION NOTE: section keys on those 9 schools CHANGED (e.g. '01'
+-> '12482'), so any pre-existing watch pinned to an old-style section on cvcc/wcc-al/
+gscc/sscc/calhoun/suscc/bishop/coastal-al/reid is now unmatchable and must be re-created
+— production watches.db must be checked at deploy time (query in the deploy handoff).
+East Georgia (ega) added plain-Banner on gabest (term 202605 live; standard seqs but
+verified through the gate like everything else). 25/25 gate pass incl. all 9 migrations.
