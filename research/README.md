@@ -483,3 +483,24 @@ campuses), U Missouri System (umsystem.edu 'prdpa' — Mizzou/UMSL/UMKC/S&T). Po
 
 Also sent Part D: Winthrop (prod-ssb.winthrop.edu) + Guilford (ssbp.guilford.edu) — plain Banner, gated.
 STATUS: build request; roster is guest-verified but seat-scrape flow is the builder's to build.
+
+### Pre-roster (HELD, not yet sent) — shared-system big publics for the classic-PS adapter, July 9 2026
+Built while batch-7 classic-PS adapter awaits builder feasibility check. All verified guest=YES on
+COMMUNITY_ACCESS.CLASS_SEARCH.GBL. Send as an ADD-ON to batch 7 once the classic adapter is proven.
+
+UW SYSTEM (6 new; UW-Stout already in batch 7) — host www.{sub}.sis.wisconsin.edu, site {code}prd-tb:
+- UW-La Crosse      uwlax   psp/lacprd-tb/EMPLOYEE/SA
+- UW-Eau Claire     uwec    psp/eauprd-tb/EMPLOYEE/SA
+- UW-Whitewater     uww     psc/wtwprd-tb/EMPLOYEE/SA
+- UW-Stevens Point  uwsp    psp/stpprd-tb/EMPLOYEE/SA
+- UW-Platteville    uwplatt psc/pltprd-tb/EMPLOYEE/SA
+- UW-Oshkosh        uwosh   psp/oshprd-tb/EMPLOYEE/SA
+  (UW-Milwaukee/Green Bay/Parkside/River Falls/Superior = separate hosts/systems, not on shared
+   sis.wisconsin.edu classic pattern — deferred.)
+
+U MISSOURI SYSTEM (2 new; UMKC + Missouri S&T already in batch 7) — site prdpa:
+- Mizzou / U Missouri-Columbia  access.myzou.missouri.edu   psc/prdpa/EMPLOYEE/SA  (~31k flagship)
+- UMSL / U Missouri-St. Louis   access.myview.umsl.edu      psp/prdpa/EMPLOYEE/SA
+
+TOTAL pre-rostered: 8 more big-public campuses (on top of batch-7's 14). Classic-PS adapter unlocks
+all of them. Held pending builder feasibility verdict + Nathan's go-ahead to send.
