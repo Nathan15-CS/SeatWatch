@@ -746,6 +746,14 @@ class Banner:
             return (None, None)
         return (re.sub(r"\s+", " ", m.group(1).strip()).upper(), m.group(2).upper())
 
+    def _seckey(self, r):
+        """Section key within a course — sequenceNumber ('001') by default, i.e. what
+        students see in the schedule. A few hosts (SNHU, DeVry, Concordia-Moorhead)
+        zero out sequenceNumber on EVERY row, which would collapse all sections into
+        one key — those subclass CrnKeyedBanner, which keys by CRN instead (unique per
+        term, and what students at those schools register with anyway)."""
+        return r.get("sequenceNumber")
+
     @staticmethod
     def _retry(fn, tries=3):
         """Retry transient network blips (timeouts under load) before giving up."""
@@ -826,7 +834,7 @@ class Banner:
                     continue
                 if self.campus and (r.get("campusDescription") or "").split(" ")[0] != self.campus:
                     continue                            # shared-pool host: only OUR campus
-                seq = r.get("sequenceNumber")
+                seq = self._seckey(r)
                 try:
                     n = int(r.get("seatsAvailable"))    # no count -> skip, never guess
                 except (TypeError, ValueError):
@@ -1924,6 +1932,67 @@ class CerroCoso(CACCD):
 class Porterville(CACCD):
     id = "porterville"; name = "Porterville College"
     example = "ENGL P101A"; host = "reg-prod.ec.kccd.edu"; term = "202670"; campus = "Porterville"
+
+
+class CrnKeyedBanner(Banner):
+    """Banner hosts that return sequenceNumber='0' on EVERY section (verified live at
+    all three schools below) — the default sequence key would collapse the whole course
+    into one row. Key by CRN instead: unique per term (verified), and the number these
+    schools' students actually register with."""
+    def _seckey(self, r):
+        return r.get("courseReferenceNumber")
+
+class SNHU(CrnKeyedBanner):
+    id = "snhu"; name = "Southern New Hampshire University"
+    example = "ACC 550"; host = "reg-prod.ec.snhu.edu"; term = "202687"
+
+class DeVry(CrnKeyedBanner):
+    id = "devry"; name = "DeVry University"
+    example = "ACCT 207"; host = "reg-prod.ec.devry.edu"; term = "202720"
+
+class ConcordiaMoorhead(CrnKeyedBanner):
+    id = "concordiamn"; name = "Concordia College (Moorhead)"
+    example = "ANUR 425"; host = "banner.cord.edu"; term = "202609"
+
+
+# July 8 handoff batch 2 (gated: accuracy AND latency, both hard):
+# Lafayette College CUT — every guest-visible term incl. the newest is '(View Only)'
+# archive data; passing a fetch on stale data is exactly the false-freshness trap.
+class Touro(CrnKeyedBanner):
+    # zero-seq confirmed on multi-section courses (single-section example masked it)
+    id = "touro"; name = "Touro University (NY)"
+    example = "MATH 104"; host = "reg-prod.ec.touro.edu"; term = "202630"
+
+class SouthernOregon(CrnKeyedBanner):
+    # zero-seq confirmed on multi-section courses (single-section example masked it)
+    id = "sou"; name = "Southern Oregon University"
+    example = "ARTH 205"; host = "reg-prod.ec.sou.edu"; term = "202504"  # Summer 2026 —
+    # newest non-View-Only guest term; auto-rolls to Fall 2026 when SOU publishes it
+
+class Massasoit(Banner):
+    id = "massasoit"; name = "Massasoit Community College"
+    example = "ACCT 104"; host = "banner.massasoit.mass.edu"; term = "202710"
+
+
+class NumericSubjectBanner(Banner):
+    """WI technical colleges use PURELY NUMERIC subject codes (subject '101' =
+    Accounting at WCTC/Blackhawk) — the base _code requires a letter-first subject and
+    would silently parse nothing. Digit subjects need the explicit space separator to
+    stay unambiguous; fetch() still exact-matches subject AND courseNumber against the
+    API's own fields, so a bad parse returns nothing rather than the wrong course."""
+    _CODE_RE = re.compile(r"^([A-Za-z0-9][A-Za-z0-9 ]*?)\s+(\d{1,5}[A-Za-z]?)$")
+    @classmethod
+    def _code(cls, course):
+        m = cls._CODE_RE.match(course.strip())
+        return (re.sub(r"\s+", " ", m.group(1)).upper(), m.group(2).upper()) if m else (None, None)
+
+class WCTC(NumericSubjectBanner):
+    id = "wctc"; name = "Waukesha County Technical College"
+    example = "101 105"; host = "reg-prod.ec.wctc.edu"; term = "202710"
+
+class Blackhawk(NumericSubjectBanner):
+    id = "blackhawk"; name = "Blackhawk Technical College"
+    example = "101 111"; host = "reg-prod.ec.blackhawk.edu"; term = "202701"
 
 
 # ===========================================================================
@@ -3466,6 +3535,8 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              Baruch(), BMCC(), HunterCUNY(), QueensCUNY(),
                              BronxCC(), StatenIsland(), CityCollege(), GuttmanCC(), HostosCC(), KingsboroughCC(), JohnJayCUNY(), LaGuardiaCC(), MedgarEvers(), LehmanCUNY(), CityTech(), Queensborough(), YorkCUNY(), CunySPS(), BrooklynCUNY()]
                             + [UIUC()]
+                            + [SNHU(), DeVry(), ConcordiaMoorhead(), Touro(),
+                               SouthernOregon(), Massasoit(), WCTC(), Blackhawk()]
                             + [SCAD(), NWMissouri(), NortheastNE(), AlfredU(),
                                FITNYC(), Hofstra(), JamestownCC(), SUNYCanton(),
                                SUNYSchenectady(), UpstateMedical(), Presbyterian(),

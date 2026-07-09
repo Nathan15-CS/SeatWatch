@@ -250,3 +250,19 @@ classes.rutgers.edu), Prairie View A&M (built), Drake (CUT 137s latency).
 Yield note: 9/2103 is modest — this dataset skews small private colleges, many login-
 gated or on non-guessable hosts, and only Banner was probed. Biggest remaining levers to
 1k = shared multi-school system hosts (state PeopleSoft/Banner pools) + Colleague sweep.
+
+## Handoff batch 2 (9 Banner schools) — ✅ BUILT July 8 2026: 8 of 9 added (529->537)
+- ADDED via new `CrnKeyedBanner(Banner)`: SNHU, DeVry, Concordia-Moorhead, Touro, SOU —
+  ALL five zero out sequenceNumber on every row (would collapse all sections into one
+  key). Touro/SOU passed the naive gate only because their example courses had a single
+  section — multi-section probe exposed it. Keyed by CRN (unique per term, verified;
+  it's what their students register with). New `Banner._seckey()` hook keeps the base
+  class byte-identical for all existing schools (gatech regression-checked).
+- ADDED via new `NumericSubjectBanner(Banner)`: WCTC + Blackhawk (purely numeric
+  subject codes, e.g. subject '101'; space-separated parse, exact-match protected).
+- ADDED plain: Massasoit.
+- CUT: Lafayette College — EVERY guest-visible term incl. the newest ('Summer II
+  2026') is '(View Only)' archive data; a fetch 'passing' on it is the false-freshness
+  trap, not live seats. Do not re-add without evidence of a live guest term.
+- DeVry multi-campus check: single 'Online' campusDescription on probe; CRN keying
+  makes cross-campus collisions structurally impossible anyway.
