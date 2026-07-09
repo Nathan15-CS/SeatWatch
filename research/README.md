@@ -365,3 +365,20 @@ Round-2 flags all landed: Campbell/Loras/Columbia-MO/Southwestern/NWOSU + both V
 via contained subclass fixes (FA/SP abbrevs, dotted subjects, digit-bearing terms/subjects,
 empty ActivePlanTerms, term-prefix isolation for VSC). Live count now 564.
 DEDUP-EXCLUDE going forward: uncc.edu, charlotte.edu, tesu.edu (cut), coloradomtn.edu (hold).
+
+### Expanded Colleague sweep (Ellucian-cloud pattern) — 38 four-year sent to builder July 9 2026 (564→~602)
+Re-swept the 2249 remaining IPEDS 4-years with EXPANDED Colleague host patterns — the key
+add was the Ellucian-CLOUD host `{school-label}-ss.colleague.elluciancloud.com`, which the
+first sweep (selfservice./ss. only) completely missed. That one pattern is where private
+4-year colleges live: 40 raw hits (vs 12 first sweep). After dedup (Loyola NO already built)
+and the term-freshness gate (cut Southwestern Law = rolling/non-seasonal terms like TESU):
+38 sent — 32 four-year universities (incl 6 HBCUs: Miles, Edward Waters, Fisk, Le Moyne-Owen,
+Huston-Tillotson, Lincoln-MO + Lincoln-PA), 3 specialized graduate (McCormick/SEBTS seminaries,
+Brooklyn Law), 3 community/tribal (Weatherford, Lac Courte Oreilles, American Samoa=HOLD no-Fall).
+Flags to builder: Kean Univ has a Wenzhou CHINA branch (cross-inst isolation check like VSC);
+Mercer/Aurora/St.Thomas have 26-62 sub-terms (verify _pick_term); Lincoln-PA probe example
+"MAT LAB" has no digit (won't parse — use normal course); two distinct Lincoln Universities.
+
+METHOD LEVERAGE for future sweeps: the {label}-ss.colleague.elluciancloud.com pattern is the
+single highest-yield Colleague discovery vector for private 4-years. Also worth a follow-on:
+Banner Ellucian-cloud hosts likely have an analogous {label}.elluciancloud.com pattern.
