@@ -652,3 +652,11 @@ UCSC ~19k: POST https://pisa.ucsc.edu/class_search/index.php, action=results, bi
 term 2268 real mix (24 Open/9 WL/2 Closed); CSE 30 example. Deduped by name. Custom pisa adapter.
 UC batch so far: UC Irvine (b10 WebSoc) + UC Santa Cruz (b11 pisa). Leads: UCSB (ASP.NET postback),
 UCSD (POST/session), UCLA (browser token). UC Merced=DUP, UC Davis=403.
+
+### Loose-match trap (builder-found on UCI, checked on UCSC) — July 9 2026
+WebSoc/pisa-style custom search adapters LOOSE-MATCH course numbers: UCI CourseNum=2A also returns
+2AX (suffixed sibling) → a MATH 2A watcher could get 2AX false alerts. Builder fixed UCI by scoping
+rows to the exact course-header block. CHECKED UCSC: prefix loose-matches ("11"→11A/11B) BUT exact
+full codes are clean ("MATH 11A"→only 11A, "CSE 30"→only 30, no 30X). UCSC safe since users watch full
+codes. LESSON: for every custom HTML/search adapter, test whether an exact course-code search leaks
+suffixed siblings before handoff (invisible until someone watches a course with a suffixed sibling).
