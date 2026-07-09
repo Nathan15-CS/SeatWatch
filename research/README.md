@@ -504,3 +504,22 @@ U MISSOURI SYSTEM (2 new; UMKC + Missouri S&T already in batch 7) — site prdpa
 
 TOTAL pre-rostered: 8 more big-public campuses (on top of batch-7's 14). Classic-PS adapter unlocks
 all of them. Held pending builder feasibility verdict + Nathan's go-ahead to send.
+
+## Handoff batch 7 (classic-PS flagships + 2 Banner) — PARTIAL: 2 added, Part A/B SCRAPPED (628->630)
+Part D shipped clean: Winthrop University, Guilford College (plain Banner, real seatsAvailable).
+Part A/B (classic-PeopleSoft COMMUNITY_ACCESS.CLASS_SEARCH.GBL — Penn State/UCF/Houston/UConn/
+NAU/... 14 flagships) SCRAPPED after live investigation — TWO independent disqualifiers:
+1. STATUS IS NOT REAL ON THE GUEST VIEW. Reverse-engineered NAU's full stateful POST flow
+   (ICSID/ICStateNum/ICAction, institution=NAU00, strm dropdowns, subject $0 + catalog exact-
+   match, open-only unchecked) and parsed it correctly — but NAU shows EVERY section 'Open',
+   including 121/121 English sections in the COMPLETED Fall 2025 term. The guest status icon
+   defaults to Open; it does not reflect live enrollment. Shipping = false-alert on everything.
+   This is the false-open the hard gate exists to prevent.
+2. NOT A UNIFORM SINGLE-ADAPTER WIN. The 'stock component' is NOT identical across schools:
+   subject field suffix varies (NAU SSR_CLSRCH_WRK_SUBJECT_SRCH$0 vs Houston $1), entry-page
+   dropdown HTML/quoting differs (Penn State + UConn didn't parse), node/inst/strm all per-school.
+   Each school needs individual reverse-engineering AND its own guest-status-reality proof.
+BEFORE ANY RE-ATTEMPT: for a candidate school, run the completed-term test — search a big intro
+course (e.g. ENGL) in a FINISHED term; if it shows all-Open, the guest status is fake, skip it.
+Only build schools that show real closed/waitlist sections in a done term. Winthrop+Guilford
+gated clean via the normal Banner path (real integer seatsAvailable, not this status trap).

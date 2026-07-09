@@ -3659,6 +3659,23 @@ class Nicolet(NumSubjColleague):
     id = "nicolet"; name = "Nicolet Area Technical College"
     example = "316 115"; host = "nicoletcollege-ss.colleague.elluciancloud.com"
 
+# July 8 batch 7 — the two clean Banner 4-years. The classic-PeopleSoft
+# (COMMUNITY_ACCESS.CLASS_SEARCH.GBL) flagship segment (Penn State/UCF/Houston/UConn/
+# NAU/...) was investigated and SCRAPPED: NAU's guest view shows every section 'Open'
+# even in a COMPLETED term (121/121 English sections Open in Fall 2025) — the guest
+# status icon is NOT real availability, so it would false-alert on everything. The
+# component is also not uniform across schools (subject field suffix varies $0 vs $1,
+# per-school node/inst/strm), so it isn't a single-adapter win. Do not build without
+# first proving a school's guest status reflects reality (completed-term closed-section
+# test). See research/README.md.
+class Winthrop(Banner):
+    id = "winthrop"; name = "Winthrop University"
+    example = "ACAD 101"; host = "prod-ssb.winthrop.edu"; term = "202680"
+
+class Guilford(Banner):
+    id = "guilford"; name = "Guilford College"
+    example = "ENGL 101"; host = "ssbp.guilford.edu"; term = "202630"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -4136,7 +4153,8 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                                OaklandCC(), KCKCC(), Allegany(), MiddlesexNJ(),
                                IndependenceCC(), UCNJ(), Brookdale(), WesternTexas(),
                                IndianHills(), SouthPiedmont(), Robeson(),
-                               FlorenceDarlington(), WesternTC(), Nicolet()]
+                               FlorenceDarlington(), WesternTC(), Nicolet(),
+                               Winthrop(), Guilford()]
                             + [SCAD(), NWMissouri(), NortheastNE(), AlfredU(),
                                FITNYC(), Hofstra(), JamestownCC(), SUNYCanton(),
                                SUNYSchenectady(), UpstateMedical(), Presbyterian(),
