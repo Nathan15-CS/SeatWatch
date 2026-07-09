@@ -523,3 +523,20 @@ BEFORE ANY RE-ATTEMPT: for a candidate school, run the completed-term test — s
 course (e.g. ENGL) in a FINISHED term; if it shows all-Open, the guest status is fake, skip it.
 Only build schools that show real closed/waitlist sections in a done term. Winthrop+Guilford
 gated clean via the normal Banner path (real integer seatsAvailable, not this status trap).
+
+### Batch 7 outcome (builder, July 9 2026): Winthrop+Guilford shipped (630); CLASSIC-PS SEGMENT SCRAPPED
+⛔⛔ CRITICAL ACCURACY FINDING — classic-PeopleSoft COMMUNITY_ACCESS guest search is a DEAD END:
+The builder fully reverse-engineered NAU's classic stateful flow — it WORKS mechanically. But the
+GUEST STATUS IS FAKE: NAU shows EVERY section "Open", including 121/121 English sections in the
+COMPLETED Fall 2025 term. A finished term is full of closed sections → all-Open means the guest
+status icon defaults to Open and does NOT reflect live enrollment. Would fire a false "seat open!"
+on every section of every course. Same class as Victor Valley/Lafayette/TESU, bigger.
+ALSO: not a uniform adapter — subject field differs per school (NAU SSR_CLSRCH_WRK_SUBJECT_SRCH$0
+vs Houston $1; Penn State/UConn parse differently). Each needs individual RE + its own status proof.
+
+MANDATORY TEST before EVER proposing a classic-PS (COMMUNITY_ACCESS.CLASS_SEARCH.GBL) school:
+search a big intro course (ENGL) in a COMPLETED term. If ALL sections show "Open" → guest status
+is fake → SKIP. Only a school showing real closed/waitlist in a done term is buildable.
+Builder suspects the whole guest segment is status-blind. => Batch-7 Parts A/B/C all MOOT, incl the
+8 pre-rostered UW/Missouri campuses. DO NOT re-hand-off classic-PS schools without passing this test.
+Live count: 630.
