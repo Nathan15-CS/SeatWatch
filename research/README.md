@@ -645,3 +645,10 @@ rows to the exact course-header block; verified MATH 2A vs 2AX share ZERO sectio
 Sections keyed by UCI's 5-digit enrollment codes. YearTerm auto-rolls from the landing
 page's own select (2026-92 = Fall Quarter; Law/Summer/COM screened). Remaining UC leads
 (UCSB/UCSC/UCSD param-cracking, UC Merced Banner-8 check) stay with the research chat.
+
+### Batch 11 sent (July 9 2026) — UC Santa Cruz (pisa POST search) + UC pipeline
+UCSC ~19k: POST https://pisa.ucsc.edu/class_search/index.php, action=results, binds[:term]=2268 (Fall
+2026), binds[:subject]=SUBJ, reg_status=all. Status "Open"/"Closed"/"Wait List" (Open only=open). Verified
+term 2268 real mix (24 Open/9 WL/2 Closed); CSE 30 example. Deduped by name. Custom pisa adapter.
+UC batch so far: UC Irvine (b10 WebSoc) + UC Santa Cruz (b11 pisa). Leads: UCSB (ASP.NET postback),
+UCSD (POST/session), UCLA (browser token). UC Merced=DUP, UC Davis=403.
