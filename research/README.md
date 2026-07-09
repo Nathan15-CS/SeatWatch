@@ -540,3 +540,23 @@ is fake → SKIP. Only a school showing real closed/waitlist in a done term is b
 Builder suspects the whole guest segment is status-blind. => Batch-7 Parts A/B/C all MOOT, incl the
 8 pre-rostered UW/Missouri campuses. DO NOT re-hand-off classic-PS schools without passing this test.
 Live count: 630.
+
+### Exhaustive mining sweep (July 9 2026 late) — ALL ANGLES TRIED, 0 net-new. Coverage thorough at 630.
+Tried and documented as DEAD/exhausted so future sessions don't re-tread:
+- Coursedog: multi-tenant SaaS but public view = CATALOG (course descriptions), NO live seats. Useless.
+- Workday Student: course-section reports login-gated; API is SOAP/RaaS (auth). No public scrape.
+- Banner 8 (bwckschd.p_get_crse_unsec): older self-service; Purdue's guest search returns no sections
+  (moved to Banner 9). Not a live vein where tested.
+- Shared state systems: Connecticut CSCU/CT State (reg-prod.ec.ct.edu already covered; the 4 CT State
+  Universities SSO/Microsoft-login-gated). Louisiana LCTCS (all 13 colleges miss Banner/Colleague —
+  on gated "LoLA"/non-standard host). No new shared bulk found.
+- Banner host web-harvest ("StudentRegistrationSsb" search): surfaced ~10 big universities (Georgia
+  State, Oklahoma, UC Riverside, Utah State, etc.) — ALL already covered, or login-gated (Clemson 403/SSO).
+- CT-log discovery (certspotter): crt.sh is 503-down; certspotter free tier ~10/hr + incomplete cert
+  data + reg hosts often don't match keyword filters (Toledo uses "pyxes-prd00.utad.utoledo.edu" — a
+  Banner XE internal host, no guest SSB). Very low yield live; set up as a WEEKLY scheduled routine to
+  grind slowly over time instead.
+CONCLUSION: guessable + accuracy-safe universe is mined out at 630. Remaining uncovered schools are
+login-gated, fake-status (classic PeopleSoft), catalog-only, or on hosts even CT-logs don't cleanly
+reveal. Scheduled task "seatwatch-hold-and-ctlog-weekly" (Mon 8:37am) now runs HOLD-recheck + a small
+CT-log batch weekly and pings ONLY on actionable finds.
