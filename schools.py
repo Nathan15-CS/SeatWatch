@@ -579,6 +579,131 @@ class UIUC:
         return out
 
 
+class UCI:
+    """UC Irvine 'WebSoc' — the university's famous public Schedule of Classes.
+    Plain GET, no auth, server-rendered HTML with authoritative per-section status
+    in the LAST cell: 'OPEN' / 'FULL' / 'Waitl' / 'NewOnly'. ONLY 'OPEN' counts as
+    open ('NewOnly' seats are reserved for incoming students — alerting a continuing
+    student on those would be a false open). seats = Max - Enr when parseable.
+
+    WebSoc's CourseNum filter matches LOOSELY (CourseNum=2A also returns 2AX), so
+    rows are scoped to the exact course-header block — a watcher of MATH 2A must
+    never receive a 2AX section. Sections keyed by WebSoc's 5-digit course code
+    (unique per section; it's what UCI students enroll with).
+
+    YearTerm auto-rolls from the landing page's own <select> ('2026-92' = 2026 Fall
+    Quarter), skipping Law/Summer/COM sub-terms; verify-before-adopt as usual."""
+    id = "uci"; name = "University of California, Irvine"
+    example = "I&C SCI 31"
+    term = "2026-92"                    # Fall 2026 (auto-rolls)
+    _active_term = None
+    base = "https://www.reg.uci.edu/perl/WebSoc"
+    _RE = re.compile(r"^(.+?)\s+(\d+[A-Za-z]{0,3})$")
+
+    @staticmethod
+    def _canon(s):
+        return re.sub(r"\s+", " ", s.replace("&amp;", "&")).strip().upper()
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (self._canon(m.group(1)), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self.base
+
+    def resolve_term(self):
+        """Nearest upcoming MAIN quarter's YearTerm code from the landing page's own
+        select; None on failure. Sub-terms (Law semesters, Summer sessions, COM) are
+        screened out via the shared _SUBTERM list plus WebSoc-specific markers."""
+        try:
+            page = _http(self.base)
+            i = page.find('name="YearTerm"')
+            if i < 0:
+                return None
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for code, name in re.findall(r'<option value="([^"]+)"[^>]*>([^<]+)', page[i:i + 6000]):
+                n = name.lower()
+                if any(s in n for s in _SUBTERM) or "(" in n or "summer" in n:
+                    continue
+                sm = re.search(r"(20\d\d)\D{0,4}(fall|winter|spring)", n)
+                if not sm:
+                    continue
+                year, season = int(sm.group(1)), sm.group(2)
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, code
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    _HDR_RE = re.compile(r"&nbsp;\s*([A-Za-z&; ]+?)\s*&nbsp;\s*(\d+[A-Za-z]{0,3})\s*&nbsp;")
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            dept, num = self._norm(course)
+            if not dept:
+                continue
+            try:
+                q = urllib.parse.urlencode({"YearTerm": self.cur_term(), "Dept": dept,
+                                            "CourseNum": num, "Submit": "Display Web Results"})
+                html = _http(self.base + "?" + q)
+            except Exception:
+                continue
+            # scope to the EXACT course's header block (CourseNum matches loosely)
+            hdrs = [(m.start(), self._canon(m.group(1)), m.group(2).upper())
+                    for m in self._HDR_RE.finditer(html)]
+            blocks = [(hdrs[i][0], hdrs[i + 1][0] if i + 1 < len(hdrs) else len(html))
+                      for i, hd in enumerate(hdrs) if hd[1] == dept and hd[2] == num]
+            if len(blocks) != 1:                 # missing or ambiguous — never guess
+                if "no classes" in html.lower() or (hdrs and not blocks):
+                    out[course] = {"none": {"open": False, "seats": None}}
+                continue
+            secs, dup = {}, False
+            for row in re.finditer(r"<tr[^>]*>(.*?)</tr>", html[blocks[0][0]:blocks[0][1]], re.S):
+                cells = [re.sub(r"<[^>]+>|\s+", " ", c).strip()
+                         for c in re.findall(r"<td[^>]*>(.*?)</td>", row.group(1), re.S)]
+                if len(cells) < 15 or not re.fullmatch(r"\d{5}", cells[0]):
+                    continue
+                code, status = cells[0], cells[-1]
+                if code in secs:
+                    dup = True
+                    break
+                try:
+                    seats = max(int(cells[8]) - int(cells[9]), 0)
+                except ValueError:
+                    seats = None
+                secs[code] = {"open": status == "OPEN", "seats": seats}
+            if dup or not secs:
+                continue
+            out[course] = secs
+        return out
+
+
 class Iowa:
     """Bespoke adapter for the University of Iowa's public MAUI API. One call per
     DEPARTMENT returns every section with an authoritative sectionStatus
@@ -4291,7 +4416,7 @@ def _guard_registry(all_schools):
     return {s.id: s for s in all_schools}
 
 
-SCHOOLS = _guard_registry(_ALL_SCHOOLS)
+SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI()])
 
 
 def refresh_all_terms(log=None):

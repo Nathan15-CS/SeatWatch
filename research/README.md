@@ -635,3 +635,13 @@ Full/Closed), UCSC (pisa.ucsc.edu, Open), UCSD (act.ucsd.edu/scheduleOfClasses).
 (xhwschedule). UC Davis = 403. UCLA = browser-token-flow (deferred).
 KEY LEARNING: big schools gated/hard on their primary SIS often have a SEPARATE public schedule-of-
 classes (UConn→Fose, UCI→WebSoc). Always look for the alt public search, not just the main SIS.
+
+## Handoff batch 10 (UC Irvine WebSoc) — ✅ BUILT July 8: 1 added (633->634)
+New bespoke `UCI` adapter for the public WebSoc schedule (plain GET, real Max/Enr counts,
+authoritative OPEN/FULL/Waitl/NewOnly status — ONLY 'OPEN' is open; NewOnly seats are
+reserved for incoming students). CRITICAL trap found during the gate and closed: WebSoc's
+CourseNum filter matches LOOSELY (CourseNum=2A also returns MATH 2AX) — the adapter scopes
+rows to the exact course-header block; verified MATH 2A vs 2AX share ZERO section codes.
+Sections keyed by UCI's 5-digit enrollment codes. YearTerm auto-rolls from the landing
+page's own select (2026-92 = Fall Quarter; Law/Summer/COM screened). Remaining UC leads
+(UCSB/UCSC/UCSD param-cracking, UC Merced Banner-8 check) stay with the research chat.
