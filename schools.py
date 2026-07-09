@@ -958,10 +958,10 @@ class FortValleyState(Banner):
     id = "fvsu"; name = "Fort Valley State University"
     example = "ENGL 1101"; host = "fvsu.gabest.usg.edu"; term = "202608"
 
-class AlbanyState(Banner):
-    id = "asurams"; name = "Albany State University"
-    example = "CSCI 1301"; host = "asuramspc.gabest.usg.edu"; term = "202608"
-
+# NOTE: Albany State University is served by AlbanyStateGA (id "asu-ga", the school's
+# own host banner.asurams.edu) — the long-standing canonical entry. A duplicate on the
+# USG shared gabest host (id "asurams") was added July 8 and REMOVED as a dup; do not
+# re-add Albany State on gabest.
 class AugustaUniversity(Banner):
     id = "augusta"; name = "Augusta University"
     example = "CSCI 1301"; host = "pounce.augusta.edu"; term = "202608"
@@ -4028,7 +4028,7 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                              GeorgiaState(), PortlandState(),
                              GeorgiaSouthern(), WestGeorgia(), Valdosta(), GeorgiaGwinnett(),
                              ColumbusState(), GeorgiaCollege(), MiddleGeorgia(), ClaytonState(),
-                             GeorgiaSouthwestern(), FortValleyState(), AlbanyState(),
+                             GeorgiaSouthwestern(), FortValleyState(),
                              AugustaUniversity(),
                              VCU(), OldDominion(), ConnecticutState(), LouisianaLafayette(),
                              GrandValley(), Radford(), Fordham(),
