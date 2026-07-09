@@ -570,3 +570,11 @@ METHOD that works for one-at-a-time 4-year grind: web-search "WEBLIB_HCX_CM.H_CL
 to harvest Fluid-guest hosts, then verify institution+term+example via IScript_ClassSearchOptions/ClassSearch.
 Most harvested hosts are already covered (UVA/Towson/USM/Palomar/BU) or custom/catalog (IU IGPS=catalog,
 no seats; ICC config empty). BU was the net-new win this pass.
+
+## Handoff batch 8 (Boston University) — ✅ BUILT July 8: 1 added (630->631)
+PeopleSoft Fluid guest API (same family as UVA/Towson/USM/Palomar). CAS-prefixed
+subjects ("CASMA 123" = CAS Math 123) parse fine with the existing generic
+PeopleSoft._norm regex. Gate confirmed REAL status before shipping (the batch-7
+NAU lesson applied correctly by the research chat): example course has 16 sections
+with genuine mixed Open/Waitlisted status and integer seat counts — not the
+classic-PS always-Open trap. Term 2268 (Fall 2026) auto-resolves clean.

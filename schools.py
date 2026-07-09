@@ -2219,6 +2219,15 @@ class Palomar(PeopleSoft):
     example = "CS 101"; host = "my.palomar.edu"; site = "palc9prd"
     inst = "PALCC"; term = "2267"                       # Fall 2026
 
+class BostonUniversity(PeopleSoft):
+    # BU uses college-prefixed subjects (CAS = College of Arts & Sciences, so
+    # "CASMA 123" = CAS Math 123). Gate found REAL mixed status on the example
+    # (16 sections, Open/Waitlisted mix, integer seat counts) — proof this guest
+    # view is live data, not the NAU-style always-Open trap.
+    id = "bu"; name = "Boston University"
+    example = "CASMA 123"; host = "public.mybustudent.bu.edu"; site = "BUPRD"
+    inst = "BU001"; term = "2268"                       # Fall 2026
+
 
 class CtcLink(PeopleSoft):
     """Washington State ctcLink: ONE PeopleSoft host (csprd.ctclink.us) serves 30+
@@ -4100,7 +4109,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                              Citrus(), Cochise(), AllanHancock(), LakeSumter(), NorthwestFlorida(), AntelopeValley(), Harford(), Gavilan(), JeffersonCollegeMO(), MeridianCC(),
                              ConcordiaTX(), TAMUSanAntonio(), TAMUCentralTexas(), UDallas(),
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
-                             Towson(), UVA(), USM(), Palomar(),
+                             Towson(), UVA(), USM(), Palomar(), BostonUniversity(),
                              LoyolaNO(), UnionNY(), ManchesterU(), Whitman(), Linfield(),
                              FranklinU(), Ursinus(), SalveRegina(), Cornerstone(), NorthPark(),
                              Gannon(), Mercyhurst(), SaintVincent(), Maryville(),
