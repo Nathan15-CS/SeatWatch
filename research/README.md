@@ -382,3 +382,16 @@ Mercer/Aurora/St.Thomas have 26-62 sub-terms (verify _pick_term); Lincoln-PA pro
 METHOD LEVERAGE for future sweeps: the {label}-ss.colleague.elluciancloud.com pattern is the
 single highest-yield Colleague discovery vector for private 4-years. Also worth a follow-on:
 Banner Ellucian-cloud hosts likely have an analogous {label}.elluciancloud.com pattern.
+
+## Handoff batch 5 (38 Ellucian-Cloud Colleague) — ✅ BUILT July 8: 34 added (564->598)
+Your Kean flag was even sharper than stated: base fetch uses SUBSTRING term matching, so
+'Fall 2026' would have matched 'Fall 2026 Wenzhou' and leaked China-campus sections into
+US results (VSC was safe only because its prefixes break substring containment). Kean
+shipped via new ExactTermColleague (equality match). Lincoln MO needed
+ShortYearTermColleague ('FA 26 Semester' — abbreviated seasons + 2-digit years; base
+picker chose a 2029 term). Chaminade's timeout was transient (retried clean). 32 others
+plain 4-line adds incl. all 6 HBCUs, Brooklyn Law, Weatherford, LCO Ojibwe. 34/34
+final regression.
+SCRAPPED: McCormick Seminary, SEBTS (no sections in picked terms — niche grad calendars).
+HOLD (revisit when fall loads): Aurora University, American Samoa CC — same category as
+Colorado Mountain.

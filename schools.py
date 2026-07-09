@@ -3290,6 +3290,219 @@ class CCV(VSC):
     id = "ccv"; name = "Community College of Vermont"
     example = "ENG 1061"; host = "selfservice.vsc.edu"; term_prefix = "CCV"
 
+# --- July 8 batch 5: Ellucian-Cloud Colleague sweep ({school}-ss.colleague.
+# elluciancloud.com pattern), 34 gated adds. Scrapped from the same handoff:
+# McCormick Seminary + SEBTS (no sections in their picked terms — niche grad
+# calendars), Aurora University + American Samoa CC (HOLD: fall sections not
+# loaded yet, revisit), Southwestern Law (rolling terms, research-side cut).
+class ExactTermColleague(Colleague):
+    """Kean's Wenzhou (China) branch SUFFIXES the shared term names — 'Fall 2026
+    Wenzhou' CONTAINS 'Fall 2026', so the base substring term match would leak
+    branch-campus sections into US results. Require exact term equality."""
+    def fetch(self, courses):
+        try:
+            op, tok = self._session()
+        except Exception:
+            return {}
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            try:
+                d = self._post(op, tok, "/Student/Courses/PostSearchCriteria", {"Keyword": f"{subj} {num}"})
+                term = self._pick_term(d.get("ActivePlanTerms") or [])
+                if not term:
+                    continue
+                match = None
+                for c in d.get("CourseFullModels") or []:
+                    if (c.get("SubjectCode") or "").upper() == subj and (c.get("Number") or "").upper() == num:
+                        match = c
+                        break
+                if not match or not match.get("MatchingSectionIds"):
+                    continue
+                sd = self._post(op, tok, "/Student/Courses/Sections",
+                                {"sectionIds": match["MatchingSectionIds"], "courseId": match["Id"]})
+                secs = {}
+                for tm in (sd.get("SectionsRetrieved") or {}).get("TermsAndSections") or []:
+                    if term.lower() != ((tm.get("Term") or {}).get("Description") or "").lower():
+                        continue                       # EXACT match only — no Wenzhou leak
+                    for wrap in tm.get("Sections") or []:
+                        sec = wrap.get("Section") or wrap
+                        if not sec.get("AreSeatCountsAvailable"):
+                            continue
+                        try:
+                            av = int(sec.get("Available"))
+                        except (TypeError, ValueError):
+                            continue
+                        key = str(sec.get("Number") or sec.get("SectionNameDisplay"))
+                        if key in secs:
+                            continue
+                        secs[key] = {"open": sec.get("AvailabilityStatus") == "Open", "seats": max(av, 0)}
+                if secs:
+                    out[course] = secs
+            except Exception:
+                continue
+        return out
+
+class Kean(ExactTermColleague):
+    id = "kean"; name = "Kean University"
+    example = "ESL 0095"; host = "kean-ss.colleague.elluciancloud.com"
+
+
+class ShortYearTermColleague(Colleague):
+    """Lincoln MO terms: 'FA 26 Semester 16 Wk' — abbreviated seasons AND 2-digit
+    years, both invisible to the base season parser (it was picking a 2029 term)."""
+    def _pick_term(self, terms):
+        fixed = []
+        for t in terms:
+            d = t.get("Description") or ""
+            d2 = re.sub(r"\bFA\b", "Fall", d)
+            d2 = re.sub(r"\bSP\b", "Spring", d2)
+            d2 = re.sub(r"\bSU\b", "Summer", d2)
+            d2 = re.sub(r"\b(2\d)\b", r"20\1", d2)
+            fixed.append({"Description": d2, "_orig": d})
+        pick = super()._pick_term(fixed)
+        if pick is None:
+            return None
+        for f in fixed:
+            if f["Description"] == pick:
+                return f["_orig"]
+        return None
+
+class LincolnMO(ShortYearTermColleague):
+    id = "lincolnmo"; name = "Lincoln University (Missouri)"
+    example = "ENG 101"; host = "lincolnu-ss.colleague.elluciancloud.com"
+
+
+class Mercer(Colleague):
+    id = "mercer"; name = "Mercer University"
+    example = "HOS 111"; host = "mercer-ss.colleague.elluciancloud.com"
+
+class Ashland(Colleague):
+    id = "ashland"; name = "Ashland University"
+    example = "MATH 108"; host = "ashland-ss.colleague.elluciancloud.com"
+
+class ColumbiaChicago(Colleague):
+    id = "colum"; name = "Columbia College Chicago"
+    example = "ENGL 111"; host = "colum-ss.colleague.elluciancloud.com"
+
+class SaintXavier(Colleague):
+    id = "sxu"; name = "Saint Xavier University"
+    example = "ENGL 317"; host = "sxu-ss.colleague.elluciancloud.com"
+
+class OlivetNazarene(Colleague):
+    id = "olivet"; name = "Olivet Nazarene University"
+    example = "ENGL 303"; host = "olivet-ss.colleague.elluciancloud.com"
+
+class McKendree(Colleague):
+    id = "mckendree"; name = "McKendree University"
+    example = "SPE 691"; host = "mckendree-ss.colleague.elluciancloud.com"
+
+class UMobile(Colleague):
+    id = "umobile"; name = "University of Mobile"
+    example = "TE 471"; host = "umobile-ss.colleague.elluciancloud.com"
+
+class DominicanCA(Colleague):
+    id = "dominicanca"; name = "Dominican University of California"
+    example = "ENGL 4202"; host = "dominican-ss.colleague.elluciancloud.com"
+
+class Chaminade(Colleague):
+    id = "chaminade"; name = "Chaminade University of Honolulu"
+    example = "ED 405"; host = "selfservice.chaminade.edu"
+
+class StThomasFL(Colleague):
+    id = "stthomasfl"; name = "St. Thomas University (FL)"
+    example = "EDT 620"; host = "stu-ss.colleague.elluciancloud.com"
+
+class Naropa(Colleague):
+    id = "naropa"; name = "Naropa University"
+    example = "REL 602"; host = "naropa-ss.colleague.elluciancloud.com"
+
+class Goodwin(Colleague):
+    id = "goodwin"; name = "Goodwin University"
+    example = "ENG 102"; host = "goodwin-ss.colleague.elluciancloud.com"
+
+class Felician(Colleague):
+    id = "felician"; name = "Felician University"
+    example = "ENG 102"; host = "ss.felician.edu"
+
+class Neumann(Colleague):
+    id = "neumann"; name = "Neumann University"
+    example = "ENG 101"; host = "selfserviceprod.neumann.edu"
+
+class WilsonCollege(Colleague):
+    id = "wilson"; name = "Wilson College"
+    example = "MAT 103"; host = "wilson-ss.colleague.elluciancloud.com"
+
+class LeTourneau(Colleague):
+    id = "letu"; name = "LeTourneau University"
+    example = "ENGL 1013"; host = "letu-ss.colleague.elluciancloud.com"
+
+class SWAU(Colleague):
+    id = "swau"; name = "Southwestern Adventist University"
+    example = "ENGL 121L"; host = "swau-ss.colleague.elluciancloud.com"
+
+class Trevecca(Colleague):
+    id = "trevecca"; name = "Trevecca Nazarene University"
+    example = "ENG 1080"; host = "trevecca-ss.colleague.elluciancloud.com"
+
+class StFrancisWayne(Colleague):
+    id = "stfranciswayne"; name = "University of Saint Francis (Fort Wayne)"
+    example = "ENGL 104"; host = "sf-ss.colleague.elluciancloud.com"
+
+class PointU(Colleague):
+    id = "pointu"; name = "Point University"
+    example = "ENGL 102"; host = "point-ss.colleague.elluciancloud.com"
+
+class SpartanburgMethodist(Colleague):
+    id = "smcsc"; name = "Spartanburg Methodist College"
+    example = "ENGL 101"; host = "smcsc-ss.colleague.elluciancloud.com"
+
+class CIIS(Colleague):
+    id = "ciis"; name = "California Institute of Integral Studies"
+    example = "PSY 9999P"; host = "ciis-ss.colleague.elluciancloud.com"
+
+class BridgesCC(Colleague):
+    id = "bridges"; name = "Bridges Christian College"
+    example = "ENG 116"; host = "bcc-ss.colleague.elluciancloud.com"
+
+class MilesCollege(Colleague):
+    id = "miles"; name = "Miles College"
+    example = "BY 406"; host = "miles-ss.colleague.elluciancloud.com"
+
+class EdwardWaters(Colleague):
+    id = "edwardwaters"; name = "Edward Waters University"
+    example = "MAC 1105"; host = "ew-ss.colleague.elluciancloud.com"
+
+class Fisk(Colleague):
+    id = "fisk"; name = "Fisk University"
+    example = "BIOL 291"; host = "fisk-ss.colleague.elluciancloud.com"
+
+class LeMoyneOwen(Colleague):
+    id = "lemoyneowen"; name = "LeMoyne-Owen College"
+    example = "ENGL 313"; host = "loc-ss.colleague.elluciancloud.com"
+
+class HustonTillotson(Colleague):
+    id = "htu"; name = "Huston-Tillotson University"
+    example = "ENGL 3373"; host = "htu-ss.colleague.elluciancloud.com"
+
+class LincolnPA(Colleague):
+    id = "lincolnpa"; name = "Lincoln University (Pennsylvania)"
+    example = "MAT 1006"; host = "lincoln-ss.colleague.elluciancloud.com"
+
+class BrooklynLaw(Colleague):
+    id = "brooklaw"; name = "Brooklyn Law School"
+    example = "CPL 311"; host = "brooklaw-ss.colleague.elluciancloud.com"
+
+class Weatherford(Colleague):
+    id = "weatherford"; name = "Weatherford College"
+    example = "ENGL 2341"; host = "wc-ss.colleague.elluciancloud.com"
+
+class LacCourteOreilles(Colleague):
+    id = "lco"; name = "Lac Courte Oreilles Ojibwe University"
+    example = "MTH 146"; host = "lco-ss.colleague.elluciancloud.com"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -3749,6 +3962,16 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                             + [SacredHeart(), WashingtonAdventist(), CollegeOfIdaho(),
                                DigiPen(), Campbell(), Loras(), ColumbiaMO(),
                                NWOSU(), SouthwesternTX(), VTSU(), CCV()]
+                            + [Kean(), LincolnMO(), Mercer(), Ashland(),
+                               ColumbiaChicago(), SaintXavier(), OlivetNazarene(),
+                               McKendree(), UMobile(), DominicanCA(), Chaminade(),
+                               StThomasFL(), Naropa(), Goodwin(), Felician(),
+                               Neumann(), WilsonCollege(), LeTourneau(), SWAU(),
+                               Trevecca(), StFrancisWayne(), PointU(),
+                               SpartanburgMethodist(), CIIS(), BridgesCC(),
+                               MilesCollege(), EdwardWaters(), Fisk(),
+                               LeMoyneOwen(), HustonTillotson(), LincolnPA(),
+                               BrooklynLaw(), Weatherford(), LacCourteOreilles()]
                             + [SCAD(), NWMissouri(), NortheastNE(), AlfredU(),
                                FITNYC(), Hofstra(), JamestownCC(), SUNYCanton(),
                                SUNYSchenectady(), UpstateMedical(), Presbyterian(),
