@@ -3503,6 +3503,162 @@ class LacCourteOreilles(Colleague):
     id = "lco"; name = "Lac Courte Oreilles Ojibwe University"
     example = "MTH 146"; host = "lco-ss.colleague.elluciancloud.com"
 
+# --- July 8 batch 6. Scrapped: Victor Valley — its course search serves ARCHIVE
+# sections (Spring 2024) while advertising Fall 2026 terms; false-freshness trap,
+# third failed gate, do not re-add. Deferred upstream: Columbus State OH, Pitt CC
+# (no guest ActivePlanTerms), Aurora U + American Samoa CC (fall not loaded).
+class Georgetown(Banner):
+    id = "georgetown"; name = "Georgetown University"
+    example = "ACCT 1101"; host = "reg-prod.georgetown.elluciancloud.com"; term = "202630"
+
+class OleMiss(Banner):
+    id = "olemiss"; name = "University of Mississippi"
+    example = "ENGL 2220"; host = "reg-prod.olemiss.elluciancloud.com"; term = "202710"
+
+class CentralOklahoma(Banner):
+    id = "uco"; name = "University of Central Oklahoma"
+    example = "ACM 1132"; host = "reg-prod.uco.elluciancloud.com"; term = "202710"
+
+class EasternOregon(Banner):
+    id = "eou"; name = "Eastern Oregon University"
+    example = "ACCT 420"; host = "reg-prod.eou.elluciancloud.com"; term = "202701"
+
+class HelenaCollege(Banner):
+    id = "helena"; name = "Helena College (University of Montana)"
+    example = "ACTG 101"; host = "reg-prod.helenacollege.elluciancloud.com"; term = "202670"
+
+class MCCKC(Banner):
+    id = "mcckc"; name = "Metropolitan Community College (Kansas City)"
+    example = "ACCT 100"; host = "reg-prod.mcckc.elluciancloud.com"; term = "202660"
+
+
+class CodedTermColleague(Colleague):
+    """NC colleges code terms as '2026FA' — expand to 'Fall 2026' for the season
+    parser, return the REAL description for fetch's verbatim term match."""
+    def _pick_term(self, terms):
+        fixed = []
+        for t in terms:
+            d = t.get("Description") or ""
+            d2 = re.sub(r"\b(20\d\d)\s*FA\b", r"Fall \1", d)
+            d2 = re.sub(r"\b(20\d\d)\s*SP\b", r"Spring \1", d2)
+            d2 = re.sub(r"\b(20\d\d)\s*SU\b", r"Summer \1", d2)
+            d2 = re.sub(r"\b(20\d\d)\s*WI\b", r"Winter \1", d2)
+            fixed.append({"Description": d2, "_orig": d})
+        pick = super()._pick_term(fixed)
+        if pick is None:
+            return None
+        for f in fixed:
+            if f["Description"] == pick:
+                return f["_orig"]
+        return None
+
+
+class NumSubjColleague(Colleague):
+    """WI technical colleges: purely numeric subject codes ('804 123' = math);
+    space separator required (same class of quirk as the Banner WCTC/Blackhawk fix)."""
+    _SUBJ_RE = re.compile(r"^([A-Za-z0-9]{2,6})\s+([A-Za-z]?\d{2,4}[A-Za-z]?)$")
+
+
+class Cabrillo(Colleague):
+    id = "cabrillo"; name = "Cabrillo College"
+    example = "ENGL 115"; host = "cabrillo-ss.colleague.elluciancloud.com"
+
+class Mohave(Colleague):
+    id = "mohave"; name = "Mohave Community College"
+    example = "TRM 091"; host = "mohave-ss.colleague.elluciancloud.com"
+
+class StateCenterCCD(Colleague):
+    id = "scccd"; name = "State Center Community College District"
+    example = "ENGL 205"; host = "selfservice.scccd.edu"
+
+class RendLake(Colleague):
+    id = "rendlake"; name = "Rend Lake College"
+    example = "ENGL 1411"; host = "rlc-ss.colleague.elluciancloud.com"
+
+class IllinoisValley(Colleague):
+    id = "ivcc"; name = "Illinois Valley Community College"
+    example = "BUS 1230"; host = "ivcc-ss.colleague.elluciancloud.com"
+
+class SouthSuburban(Colleague):
+    id = "southsuburban"; name = "South Suburban College"
+    example = "MTH 093"; host = "ssc-ss.colleague.elluciancloud.com"
+
+class Parkland(Colleague):
+    id = "parkland"; name = "Parkland College"
+    example = "ENG 102"; host = "parkland-ss.colleague.elluciancloud.com"
+
+class IowaWestern(Colleague):
+    id = "iowawestern"; name = "Iowa Western Community College"
+    example = "MAT 743"; host = "iwcc-ss.colleague.elluciancloud.com"
+
+class Kaskaskia(Colleague):
+    id = "kaskaskia"; name = "Kaskaskia College"
+    example = "ENGL 101"; host = "kaskaskia-ss.colleague.elluciancloud.com"
+
+class Muskegon(Colleague):
+    id = "muskegon"; name = "Muskegon Community College"
+    example = "ENG 101"; host = "muskegoncc-ss.colleague.elluciancloud.com"
+
+class Kishwaukee(Colleague):
+    id = "kishwaukee"; name = "Kishwaukee College"
+    example = "MAT 045"; host = "kish-ss.colleague.elluciancloud.com"
+
+class OaklandCC(Colleague):
+    id = "oaklandcc"; name = "Oakland Community College"
+    example = "MAT 1125"; host = "oaklandcc-ss.colleague.elluciancloud.com"
+
+class KCKCC(Colleague):
+    id = "kckcc"; name = "Kansas City Kansas Community College"
+    example = "ENGL 0102"; host = "kckcc-ss.colleague.elluciancloud.com"
+
+class Allegany(Colleague):
+    id = "allegany"; name = "Allegany College of Maryland"
+    example = "MATH 105"; host = "allegany-ss.colleague.elluciancloud.com"
+
+class MiddlesexNJ(Colleague):
+    id = "middlesexnj"; name = "Middlesex College (NJ)"
+    example = "ENG 234"; host = "middlesexcollege-ss.colleague.elluciancloud.com"
+
+class IndependenceCC(Colleague):
+    id = "indycc"; name = "Independence Community College"
+    example = "MAT 1123"; host = "indycc-ss.colleague.elluciancloud.com"
+
+class UCNJ(Colleague):
+    id = "ucnj"; name = "UCNJ Union College of Union County"
+    example = "BIOL 101"; host = "ucc-ss.colleague.elluciancloud.com"
+
+class Brookdale(Colleague):
+    id = "brookdale"; name = "Brookdale Community College"
+    example = "ENGL 122"; host = "brookdalecc-ss.colleague.elluciancloud.com"
+
+class WesternTexas(Colleague):
+    id = "westerntexas"; name = "Western Texas College"
+    example = "ENGL 1302"; host = "wtc-ss.colleague.elluciancloud.com"
+
+class IndianHills(ShortYearTermColleague):
+    id = "indianhills"; name = "Indian Hills Community College"
+    example = "HCM 261"; host = "ss.indianhills.edu"
+
+class SouthPiedmont(CodedTermColleague):
+    id = "spcc"; name = "South Piedmont Community College"
+    example = "BUS 121"; host = "selfservice.spcc.edu"
+
+class Robeson(CodedTermColleague):
+    id = "robeson"; name = "Robeson Community College"
+    example = "MAT 045P"; host = "selfservice.robeson.edu"
+
+class FlorenceDarlington(ShortYearTermColleague):
+    id = "fdtc"; name = "Florence-Darlington Technical College"
+    example = "ENG 101"; host = "selfservice.fdtc.edu"
+
+class WesternTC(NumSubjColleague):
+    id = "westerntc"; name = "Western Technical College (WI)"
+    example = "804 123"; host = "westerntc-ss.colleague.elluciancloud.com"
+
+class Nicolet(NumSubjColleague):
+    id = "nicolet"; name = "Nicolet Area Technical College"
+    example = "316 115"; host = "nicoletcollege-ss.colleague.elluciancloud.com"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -3972,6 +4128,15 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                                MilesCollege(), EdwardWaters(), Fisk(),
                                LeMoyneOwen(), HustonTillotson(), LincolnPA(),
                                BrooklynLaw(), Weatherford(), LacCourteOreilles()]
+                            + [Georgetown(), OleMiss(), CentralOklahoma(),
+                               EasternOregon(), HelenaCollege(), MCCKC(),
+                               Cabrillo(), Mohave(), StateCenterCCD(), RendLake(),
+                               IllinoisValley(), SouthSuburban(), Parkland(),
+                               IowaWestern(), Kaskaskia(), Muskegon(), Kishwaukee(),
+                               OaklandCC(), KCKCC(), Allegany(), MiddlesexNJ(),
+                               IndependenceCC(), UCNJ(), Brookdale(), WesternTexas(),
+                               IndianHills(), SouthPiedmont(), Robeson(),
+                               FlorenceDarlington(), WesternTC(), Nicolet()]
                             + [SCAD(), NWMissouri(), NortheastNE(), AlfredU(),
                                FITNYC(), Hofstra(), JamestownCC(), SUNYCanton(),
                                SUNYSchenectady(), UpstateMedical(), Presbyterian(),

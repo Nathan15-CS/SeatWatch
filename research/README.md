@@ -429,3 +429,17 @@ DEFER (no guest ActivePlanTerms): Columbus State CC (cscc.edu, 46k — worth a m
 KEY DISCOVERY (reusable): Banner Ellucian-cloud = reg-prod.{code}.elluciancloud.com/StudentRegistrationSsb
 (code usually == domain first-label). Colleague Ellucian-cloud = {label}-ss.colleague.elluciancloud.com.
 These two cloud patterns are the highest-yield SIS discovery vectors found this session.
+
+## Handoff batch 6 (32 schools) — ✅ BUILT July 8: 31 added (598->629)
+Universities: Georgetown, Ole Miss (your intersession flag: the production term-picker
+correctly chose full-Fall 202710 over the newest 202720 Winter Intersession — _SUBTERM
+already excludes 'intersession'; only the example was dead, discovery found ENGL 2220
+w/ 48 sections), UCO, Eastern Oregon. CCs: 25 incl. Helena/MCC-KC (Banner) and 23
+Colleague. Two NEW reusable Colleague variants shipped: CodedTermColleague ('2026FA'
+NC-style term codes — SPCC + Robeson) and NumSubjColleague ('804 123' WI numeric
+subjects — Western TC + Nicolet); Indian Hills + Florence-Darlington ride the existing
+ShortYearTermColleague ('Fall Term 26' / 'Fall 26-27 15-WK Term').
+SCRAPPED PERMANENTLY: Victor Valley — course search serves ARCHIVE sections (Spring
+2024) while advertising Fall 2026 terms; false-freshness, third failed gate. Do not
+re-hand-off.
+31/31 final regression; median ~1.6s, worst 5.8s (Nicolet).
