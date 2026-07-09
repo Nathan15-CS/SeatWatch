@@ -304,3 +304,34 @@ gscc/sscc/calhoun/suscc/bishop/coastal-al/reid is now unmatchable and must be re
 — production watches.db must be checked at deploy time (query in the deploy handoff).
 East Georgia (ega) added plain-Banner on gabest (term 202605 live; standard seqs but
 verified through the gate like everything else). 25/25 gate pass incl. all 9 migrations.
+
+### 4-year sweep (IPEDS HD2023, 2262 uncovered 4-year domains) — Banner + Colleague — 13 sent to builder July 9 2026 (~553→566)
+Pulled IPEDS HD2023 (ICLEVEL=1 → 2830 four-year institutions w/ web addr; 2262 uncovered
+after deduping every .edu in schools.py). Ran TWO sweeps over them: Banner
+(/StudentRegistrationSsb) and Colleague (/Student/Courses public JSON). 40-worker concurrent,
+full gate (term-freshness, zero-seq for Banner, dedup). See [[seatwatch-banner-verification-gate]].
+
+Banner: only 4 raw hits, 1 usable — most 4-years aren't on guessable Banner hosts.
+  ✅ UNC Charlotte (selfservice.charlotte.edu, 202680) — 30k public, clean.
+  ✗ Bryant&Stratton (all terms View Only — archive trap, like Lafayette), North Orange County
+    (community college + seats=999 sentinel), Lafayette (already cut).
+Colleague: 12 hits, all net-new 4-years (KEY LEARNING: private 4-years mostly run COLLEAGUE,
+not Banner — the Banner-only sweep missed them entirely; Colleague uses a different API so
+needs its own probe). Sent 11 clean + Vermont conditional:
+  Sacred Heart (colleague.sacredheart.edu), Thomas Edison State (selfservice.tesu.edu),
+  Campbell (ss.campbell.edu), Southwestern TX (selfservice.southwestern.edu), College of Idaho
+  (selfservice.collegeofidaho.edu), Northwestern Oklahoma State (selfservice.nwosu.edu),
+  DigiPen (selfservice.digipen.edu), Loras (selfservice.loras.edu ⚠️dotted subj "L.ENG"),
+  Washington Adventist (ss.wau.edu), Columbia College MO (selfservice.ccis.edu),
+  Colorado Mountain (selfservice.coloradomtn.edu).
+  CONDITIONAL: Vermont State Colleges (selfservice.vsc.edu) = VTSU (4-yr) + CCV (CC) on ONE
+  Colleague instance, split by term-prefix ("VTSU …"/"CCV …"). Needs a term-prefix filter to
+  separate; build only if accuracy+efficiency hold, else skip (mixing = cross-inst false alerts).
+
+⚠️ README RECONCILE: the earlier "Colleague adapter — 29 schools" ready-to-build list here
+OVERCOUNTED — Loras, Washington Adventist, Columbia College, Campbell, Southwestern, Colorado
+Mountain were listed but never built into schools.py (0 code refs). Now handed off for real.
+
+REMAINING LEVERS to 1k: private 4-years on Colleague Ellucian-CLOUD hosts
+({code}-ss.colleague.elluciancloud.com) can't be guessed by domain (need the code) — a
+different discovery path. Also PeopleSoft 4-years (big publics) untouched by these two sweeps.
