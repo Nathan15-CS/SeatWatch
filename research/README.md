@@ -218,3 +218,35 @@ with their own row's Availability status (not by parallel-list order, which woul
 silently misalign on a missing field); verified with a synthetic duplicate-CRN test that
 the collapse guard actually fires. Live-verified: CS 101 (18 sections), CS 225
 cross-listed (12 sections, "CrossListOpen (Restricted)" correctly read as open).
+
+### Banner auto-discovery sweep #2 (univ-domains dataset, 2103 uncovered US domains) — 9 verified → sent to builder July 8 2026
+Method: pulled the open Hipo university-domains dataset (2348 US institutions), excluded
+all base domains already referenced in schools.py, then for each remaining domain probed
+13 common Banner host patterns (registrationssb./banner./ssb./xe./myssb./banprod./
+reg-prod.ec./ssb-prod.ec./banweb./bannerssb./ssbprod./selfservice./register.). Every
+candidate host was VERIFIED end-to-end (guest term lookup → school's own subject list →
+class search → confirm integer seatsAvailable) AND latency-screened (full fetch <2.5s;
+Drake-style 137s hosts auto-cut). 40-worker concurrent probe. Only hosts passing BOTH
+accuracy (real live counts) and efficiency (latency) gates were kept.
+
+Verified NET-NEW (deduped vs every .edu domain in schools.py incl. cut-notes):
+- Southern New Hampshire University — reg-prod.ec.snhu.edu (202687, ex "ACC 550") 1.0s
+- DeVry University — reg-prod.ec.devry.edu (202720, ex "ACCT 207") 1.1s — multi-campus, check dup rows
+- Touro College (NY) — reg-prod.ec.touro.edu (202670, ex "BSNV 453") 0.9s
+- Lafayette College (PA) — selfservice.lafayette.edu (202550, ex "AFS 330") 0.8s
+- Concordia College–Moorhead (MN) — banner.cord.edu (202609, ex "ANUR 425") 1.5s
+- Southern Oregon University — reg-prod.ec.sou.edu (202504, ex "ARTH 205") 2.4s
+- Massasoit Community College (MA) — banner.massasoit.mass.edu (202710, ex "ACCT 104") 1.6s [CC]
+- Waukesha County Technical College (WI) — reg-prod.ec.wctc.edu (202710, ex "101 105") 1.0s [tech; numeric subj]
+- Blackhawk Technical College (WI) — reg-prod.ec.blackhawk.edu (202702, ex "101 111") 1.7s [tech; numeric subj]
+
+PARSE GOTCHA (accuracy-critical): WCTC & Blackhawk use purely numeric subject codes
+("101"). Banner._code() regex requires subject to start with a letter, so "101 105"
+won't parse → school silently returns nothing. Widen regex or skip those two.
+
+Deduped OUT (already covered / already cut): Rutgers (banweb.rutgers.edu; have
+classes.rutgers.edu), Prairie View A&M (built), Drake (CUT 137s latency).
+
+Yield note: 9/2103 is modest — this dataset skews small private colleges, many login-
+gated or on non-guessable hosts, and only Banner was probed. Biggest remaining levers to
+1k = shared multi-school system hosts (state PeopleSoft/Banner pools) + Colleague sweep.
