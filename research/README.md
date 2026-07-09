@@ -608,3 +608,14 @@ SSO-gated — fose is the guest path).
 REJECTED: Penn — FOURTH duplicate-class handoff (already live via bespoke `Penn` adapter).
 SCRAPPED for now: Oregon State — its fose API returns 0 rows for every keyword/subject
 search shape; the '294 results' claim doesn't reproduce. Crack its request format first.
+
+### Batch 9 CORRECTIONS (builder feedback, July 9 2026):
+- "Urgent srcdb bug" was a FALSE ALARM — I tested UArk's code (1269) vs CU Boulder's host; CUB's real
+  code is 2267, was fine. NO live breakage. Lesson: grep schools.py before declaring breakage. (The
+  srcDBs auto-refresh design was still valid & implemented — self-heal proven.)
+- PENN = DUPLICATE (4th dup). Live via bespoke `Penn` adapter (schools.py:701), not on courses.upenn.edu.
+  Lesson: DEDUP BY SCHOOL NAME (grep name), not just host/id. Now standard in my process.
+- OREGON STATE = valid, my example was wrong: its English subject is "ENG" not "ENGL" (I sent ENGL → 0 rows).
+  Corrected: example="ENG 104Z", srcdb=202701. Re-sent to builder. OSU homepage srcDBs starts with
+  999999="All Terms" — auto-refresh must pick the Fall-2026 entry (202701), not 999999.
+NET real new tonight: BU (631), UConn (632), Oregon State (pending→633), + fose auto-refresh hardening.
