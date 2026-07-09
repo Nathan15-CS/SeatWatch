@@ -621,3 +621,17 @@ real A/F mix); auto-roll verified to skip OSU's 999999 'All Terms' catch-all and
   Corrected: example="ENG 104Z", srcdb=202701. Re-sent to builder. OSU homepage srcDBs starts with
   999999="All Terms" — auto-refresh must pick the Fall-2026 entry (202701), not 999999.
 NET real new tonight: BU (631), UConn (632), Oregon State (pending→633), + fose auto-refresh hardening.
+
+### Batch 10 sent (July 9 2026) — UC Irvine WebSoc (NEW SOURCE TYPE, curl-able) + UC-campus leads
+UCLA public SOC needs a browser token-flow (couldn't crack headless; Chrome ext blocks navigation).
+PIVOTED to UC Irvine "WebSoc" — famous PUBLIC schedule of classes, GET-able, no auth, real status.
+  URL: https://www.reg.uci.edu/perl/WebSoc?YearTerm=2026-92&Dept=MATH&Submit=Display+Web+Results
+  Fall 2026 = YearTerm "2026-92". HTML table, 17 cells/section row; cell[16]=STATUS (OPEN/FULL/Waitl/
+  NewOnly), cell[8]=Max cell[9]=Enr. 'OPEN' only = open (NewOnly = new-students-only = NOT open).
+  Verified: MATH 322 rows, real Max/Enr, example "I&C SCI 31". Deduped by NAME (not in schools.py). ~30k.
+Needs a small custom WebSoc HTML adapter (like UMD/Rutgers). Sent to builder.
+UC-CAMPUS LEADS (status words visible, need param work — NOT handed off): UCSB (my.sa.ucsb.edu/public,
+Full/Closed), UCSC (pisa.ucsc.edu, Open), UCSD (act.ucsd.edu/scheduleOfClasses). UC Merced = Banner 8
+(xhwschedule). UC Davis = 403. UCLA = browser-token-flow (deferred).
+KEY LEARNING: big schools gated/hard on their primary SIS often have a SEPARATE public schedule-of-
+classes (UConn→Fose, UCI→WebSoc). Always look for the alt public search, not just the main SIS.
