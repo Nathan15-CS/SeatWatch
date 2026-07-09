@@ -3149,6 +3149,147 @@ class WesternWyoming(Colleague):
     id = "westernwyoming"; name = "Western Wyoming Community College"
     example = "ENGL 1010"; host = "selfservice.westernwyoming.edu"
 
+# --- July 8 batch 4 (4-year push). Each quirk is contained in its own tiny subclass;
+# the base Colleague stays untouched. Cut from the same handoff: UNC Charlotte (already
+# live as `uncc` — selfservice.charlotte.edu is the same school's rebranded domain),
+# TESU (monthly rolling terms, no season semantics — poor seat-watch fit), Colorado
+# Mountain (HOLD: picker correctly chooses '2026 Fall' but fall sections aren't loaded
+# yet — revisit once they are).
+class SacredHeart(Colleague):
+    id = "sacredheart"; name = "Sacred Heart University"
+    example = "MA 301"; host = "colleague.sacredheart.edu"
+
+class WashingtonAdventist(Colleague):
+    id = "wau"; name = "Washington Adventist University"
+    example = "ENGL 314"; host = "ss.wau.edu"
+
+class CollegeOfIdaho(Colleague):
+    id = "collegeofidaho"; name = "The College of Idaho"
+    example = "ENGL 2115"; host = "selfservice.collegeofidaho.edu"
+
+class DigiPen(Colleague):
+    id = "digipen"; name = "DigiPen Institute of Technology"
+    example = "CS 100"; host = "selfservice.digipen.edu"
+
+
+class AbbrevTermColleague(Colleague):
+    """Campbell writes seasons as FA/SP/SU ('2026 FA Undergraduate') — the base picker
+    can't parse those, so it was choosing '2027 Fall UG' (13 months out) over the
+    CURRENT '2026 FA Undergraduate'. Expand the abbreviations (word-bounded) before
+    the base picker parses, then return the REAL description string (fetch must match
+    it verbatim against each section's term)."""
+    def _pick_term(self, terms):
+        fixed = []
+        for t in terms:
+            d = t.get("Description") or ""
+            d2 = re.sub(r"\bFA\b", "Fall", d)
+            d2 = re.sub(r"\bSP\b", "Spring", d2)
+            d2 = re.sub(r"\bSU\b", "Summer", d2)
+            fixed.append({"Description": d2, "_orig": d})
+        pick = super()._pick_term(fixed)
+        if pick is None:
+            return None
+        for f in fixed:
+            if f["Description"] == pick:
+                return f["_orig"]
+        return None
+
+class Campbell(AbbrevTermColleague):
+    id = "campbell"; name = "Campbell University"
+    example = "ENGL 419"; host = "ss.campbell.edu"
+
+
+class DottedColleague(Colleague):
+    """Loras prefixes every subject with a letter+dot ('L.ENG 135') — the base
+    subject regex refuses dots and the school would silently return nothing."""
+    _SUBJ_RE = re.compile(r"^([A-Za-z]\.[A-Za-z]{2,5}|[A-Za-z]{2,5})[ \-]?([A-Za-z]?\d{2,4}[A-Za-z]?)$")
+
+class Loras(DottedColleague):
+    id = "loras"; name = "Loras College"
+    example = "L.ENG 135"; host = "selfservice.loras.edu"
+
+
+class DigitTermColleague(Colleague):
+    """Columbia MO terms embed digits between season and year ('Fall 16-Week,
+    2026/2027') which the base season parser can't cross — it was picking 'Summer
+    Semester, 2028/2029' (the only parseable option, 2 years out). Strip the week
+    token before parsing; the sub-term penalty + shortest-description tiebreak then
+    prefer the plain 16-week full semester over Early/Late 8-week variants."""
+    def _pick_term(self, terms):
+        fixed = []
+        for t in terms:
+            d = t.get("Description") or ""
+            d2 = re.sub(r"\b\d+-?\s*Week,?\s*", "", d)
+            fixed.append({"Description": d2, "_orig": d})
+        pick = super()._pick_term(fixed)
+        if pick is None:
+            return None
+        for f in fixed:
+            if f["Description"] == pick:
+                return f["_orig"]
+        return None
+
+class ColumbiaMO(DigitTermColleague):
+    id = "columbiamo"; name = "Columbia College (MO)"
+    example = "ENGL 267W"; host = "selfservice.ccis.edu"
+
+
+class SynthTermColleague(Colleague):
+    """NWOSU publishes an EMPTY ActivePlanTerms list even though its sections carry
+    normal 'Fall 2026'-style term names — synthesize the nearest upcoming season in
+    exactly that format when the list is empty. Gated live: the synthesized string
+    matched real fall sections."""
+    def _pick_term(self, terms):
+        pick = super()._pick_term(terms)
+        if pick:
+            return pick
+        today = datetime.date.today()
+        best, bd = None, None
+        for season, mon in (("Spring", 1), ("Summer", 5), ("Fall", 8)):
+            for yr in (today.year, today.year + 1):
+                delta = (yr - today.year) * 12 + (mon - today.month)
+                if delta < 1:
+                    continue
+                if bd is None or delta < bd:
+                    bd, best = delta, f"{season} {yr}"
+        return best
+
+class NWOSU(SynthTermColleague):
+    id = "nwosu"; name = "Northwestern Oklahoma State University"
+    example = "ENGL 1213"; host = "selfservice.nwosu.edu"
+
+
+class AlnumSubjectColleague(Colleague):
+    """Southwestern TX subjects embed digits ('ENG10 134', 'CHE51 101') — space
+    separator required so the digits stay unambiguous."""
+    _SUBJ_RE = re.compile(r"^([A-Za-z]{2,5}\d{0,2})\s+([A-Za-z]?\d{2,4}[A-Za-z]?)$")
+
+class SouthwesternTX(AlnumSubjectColleague):
+    id = "southwesterntx"; name = "Southwestern University (TX)"
+    example = "HIS16 034"; host = "selfservice.southwestern.edu"
+
+
+class VSC(Colleague):
+    """Vermont State Colleges: ONE Colleague host serves TWO institutions (VTSU 4-year
+    + CCV community college) distinguished ONLY by term-name prefix. The picker sees
+    ONLY own-prefix terms, and fetch's verbatim term-description match then structurally
+    excludes the other institution's sections ('VTSU Fall 2026' can never match a
+    section filed under 'CCV Fall 2026'). Isolation proven live: the same course code
+    (ENG 1061) returns DIFFERENT section sets per prefix (31 vs 34)."""
+    term_prefix = ""
+    def _pick_term(self, terms):
+        mine = [t for t in terms
+                if (t.get("Description") or "").startswith(self.term_prefix + " ")]
+        return super()._pick_term(mine)
+
+class VTSU(VSC):
+    id = "vtsu"; name = "Vermont State University"
+    example = "ENG 1061"; host = "selfservice.vsc.edu"; term_prefix = "VTSU"
+
+class CCV(VSC):
+    id = "ccv"; name = "Community College of Vermont"
+    example = "ENG 1061"; host = "selfservice.vsc.edu"; term_prefix = "CCV"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -3605,6 +3746,9 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                                IngramState(), CentralAlabama(), DrakeState(),
                                MarionMilitary(), NortheastAlabama(), WallaceHanceville(),
                                EastGeorgiaState()]
+                            + [SacredHeart(), WashingtonAdventist(), CollegeOfIdaho(),
+                               DigiPen(), Campbell(), Loras(), ColumbiaMO(),
+                               NWOSU(), SouthwesternTX(), VTSU(), CCV()]
                             + [SCAD(), NWMissouri(), NortheastNE(), AlfredU(),
                                FITNYC(), Hofstra(), JamestownCC(), SUNYCanton(),
                                SUNYSchenectady(), UpstateMedical(), Presbyterian(),

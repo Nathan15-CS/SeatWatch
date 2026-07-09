@@ -335,3 +335,19 @@ Mountain were listed but never built into schools.py (0 code refs). Now handed o
 REMAINING LEVERS to 1k: private 4-years on Colleague Ellucian-CLOUD hosts
 ({code}-ss.colleague.elluciancloud.com) can't be guessed by domain (need the code) — a
 different discovery path. Also PeopleSoft 4-years (big publics) untouched by these two sweeps.
+
+## Handoff batch 4 (13 four-year candidates + VSC conditional) — ✅ BUILT July 8: 11 added (553->564)
+ADDED: Sacred Heart, Washington Adventist, College of Idaho, DigiPen, Campbell
+(AbbrevTermColleague: FA/SP/SU season abbreviations — base picker was choosing a term
+13 months out), Loras (DottedColleague: 'L.ENG' subjects), Columbia MO (DigitTermColleague:
+'Fall 16-Week, 2026/2027' terms — base picker was choosing Summer 2028/2029), NWOSU
+(SynthTermColleague: host publishes EMPTY ActivePlanTerms; synthesize 'Fall 2026' format,
+verified against real fall sections), Southwestern TX (AlnumSubjectColleague: 'HIS16 034'
+digit-bearing subjects), and BOTH Vermont schools via VSC term-prefix isolation — VTSU +
+CCV on one host, picker sees only own-prefix terms, verbatim term match excludes the other
+institution structurally; proven live (same course code -> 31 vs 34 sections, 0 key overlap).
+CUT: UNC Charlotte (SECOND dup handoff — already live as `uncc`; selfservice.charlotte.edu
+is the rebranded domain for the same school, add it to the dedup list), TESU (monthly
+rolling terms, no season semantics — poor seat-watch fit, do not re-hand-off).
+HOLD: Colorado Mountain — picker correctly chooses '2026 Fall' but fall sections aren't
+loaded yet (only Spring/Summer 2026 exist); re-gate when fall loads, likely a clean add.
