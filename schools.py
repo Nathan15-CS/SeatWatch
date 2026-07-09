@@ -4019,7 +4019,7 @@ class CunySPS(CUNY):
 class BrooklynCUNY(CUNY):
     id = "cuny-brooklyncuny"; name = "Brooklyn College (CUNY)"; inst = "BKL01"; example = "BIOL 1001"
 
-SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(),
+_ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(),
                              CUBoulder(), Brown(), Yale(), NotreDame(), Emory(), Dartmouth(),
                              Wisconsin(), Iowa(),
                              Tennessee(), FAU(), BallState(), Wyoming(), CNM(),
@@ -4158,7 +4158,38 @@ SCHOOLS = {s.id: s for s in [UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech()
                                Bakersfield(), CerroCoso(), Porterville()]
                             + [CtcLink(*t) for t in _CTCLINK]
                             + [MinnState(*t) for t in _MINNSTATE]
-                            + [VCCS(*t) for t in _VCCS]}
+                            + [VCCS(*t) for t in _VCCS])
+
+
+def _guard_registry(all_schools):
+    """Refuse to build the registry if two schools collide — a duplicate school (added
+    twice across sessions, e.g. a school on its own host AND on a shared-system host)
+    would otherwise reach the live site, or silently overwrite the other in the id-keyed
+    dict. Fails LOUDLY at import so tests catch it, never the user.
+
+    - Duplicate id: the {s.id: s} dict would silently drop one school. Fatal.
+    - Duplicate exact display name (case-insensitive): the SAME school listed twice, OR
+      two genuinely different schools that need disambiguating suffixes so users can tell
+      them apart in the picker. Either way the name must be made unique. Fatal.
+    Near-collisions that are legitimately different (e.g. 'Northeastern University' vs
+    'Northeastern State University') differ in their exact names and pass cleanly."""
+    from collections import Counter
+    id_counts = Counter(s.id for s in all_schools)
+    dup_ids = {i: n for i, n in id_counts.items() if n > 1}
+    if dup_ids:
+        raise ValueError(f"Duplicate school id(s) — one would silently overwrite another: {dup_ids}")
+    name_map = {}
+    for s in all_schools:
+        name_map.setdefault(s.name.strip().lower(), []).append(s.id)
+    dup_names = {n: ids for n, ids in name_map.items() if len(ids) > 1}
+    if dup_names:
+        raise ValueError(
+            "Duplicate school name(s) — same school added twice, or two schools needing "
+            f"distinguishing suffixes: {dup_names}")
+    return {s.id: s for s in all_schools}
+
+
+SCHOOLS = _guard_registry(_ALL_SCHOOLS)
 
 
 def refresh_all_terms(log=None):
