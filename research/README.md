@@ -979,3 +979,23 @@ HONEST STATE: browser-free, accuracy-safe discovery is near-exhausted at ~641. R
 one of: (a) a browser that can reach the blocked SPA/ASP.NET domains (U Arizona InFlight, ASU, CPP-class)
 to trace one search; (b) a fresh IPEDS-driven candidate sweep rather than hand-typed labels; (c) a
 specific named target from Nathan. Continued blind label-probing is ~0 EV.
+
+### University of Arizona — investigated, NOT shippable (July 10 2026): InFlight SPA over classic-PS fake-status component
+Followed Nathan's steer (ASU gated → try U Arizona). Cracked the SPA config far enough to identify the
+backend definitively, and it's a dead end on TWO independent grounds:
+1. TRANSPORT: studentcenter.arizona.edu is a GreyHeller InFlight Angular SPA. The class-search logic is
+   in lazy chunks (route /academics/class-search → chunk 492 = the search FORM only); the HTTP service +
+   InFlight session/CSRF contract aren't statically derivable from the minified chunks, and the Chrome
+   extension is BLOCKED on arizona.edu — so no network-trace. Same transport wall as CPP/ASU.
+2. ACCURACY (the real killer): config.user-apps.js maps the class search to PeopleSoft component
+   `UA_STUDENT/HRMS/c/SA_LEARNER_SERVICES.CLASS_SEARCH.GBL?Page=SSR_CLSRCH_ENTRY` — the CLASSIC PeopleSoft
+   SSR_CLSRCH search, same family as COMMUNITY_ACCESS.CLASS_SEARCH.GBL, our documented FAKE-ALL-OPEN dead
+   end (NAU: 121/121 English "Open" in a completed term). Even if the InFlight transport were cracked, the
+   public view would still have to pass the completed-term test, which this component family fails by
+   design. NOT worth pursuing headlessly; would need a browser AND then survive the completed-term test.
+   (The public pubHost=catsched.studentcenter.arizona.edu / pubsaprd instance is real & no-SSO, but that
+   only solves access, not the fake-status risk.)
+LESSON: schools fronting the classic SSR_CLSRCH class search behind a modern SPA (InFlight/GreyHeller,
+Anthology, etc.) inherit the classic-PS fake-status risk — the shiny wrapper doesn't change the fake
+guest status underneath. Check the config's PeopleSoft component key; if it's SSR_CLSRCH / SA_LEARNER_
+SERVICES.CLASS_SEARCH.GBL / COMMUNITY_ACCESS, expect fake-all-open and require the completed-term test.
