@@ -232,8 +232,8 @@ def get_or_create_user(sub, email):
 # ------------------------------------------------------------------------- html
 PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SeatWatch — Get a text the second a full class opens | 639 universities</title>
-<meta name="description" content="SeatWatch alerts you the instant a seat opens in a full college class, across 639 universities. Watch the exact section you want and get the professor you want. Free to start.">
+<title>SeatWatch — Get a text the second a full class opens | 641 universities</title>
+<meta name="description" content="SeatWatch alerts you the instant a seat opens in a full college class, across 641 universities. Watch the exact section you want and get the professor you want. Free to start.">
 <link rel="canonical" href="https://seatwatchapp.com/">
 <meta name="robots" content="index, follow, max-image-preview:large">
 <meta name="keywords" content="seatwatch, seat watch, course seat alert, class seat notification, college registration alert, open seat finder, coursicle alternative">
@@ -242,16 +242,16 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="SeatWatch">
 <meta property="og:title" content="SeatWatch — Get into the class you actually need">
-<meta property="og:description" content="Get an instant alert the second a seat opens in a full college class — across 639 universities. Watch the exact section, get the professor you want.">
+<meta property="og:description" content="Get an instant alert the second a seat opens in a full college class — across 641 universities. Watch the exact section, get the professor you want.">
 <meta property="og:url" content="https://seatwatchapp.com/">
 <meta property="og:image" content="https://seatwatchapp.com/og-image.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="SeatWatch — Get into the class you actually need">
-<meta name="twitter:description" content="Get an instant alert the second a seat opens in a full college class. 639 universities. Free to start.">
+<meta name="twitter:description" content="Get an instant alert the second a seat opens in a full college class. 641 universities. Free to start.">
 <meta name="twitter:image" content="https://seatwatchapp.com/og-image.png">
-<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://seatwatchapp.com/#org","name":"SeatWatch","legalName":"SeatWatch LLC","url":"https://seatwatchapp.com/","logo":"https://seatwatchapp.com/icon-512.png","email":"support@seatwatchapp.com","description":"Instant alerts when a seat opens in a full college class, across 639 universities."},{"@type":"WebSite","@id":"https://seatwatchapp.com/#site","url":"https://seatwatchapp.com/","name":"SeatWatch","publisher":{"@id":"https://seatwatchapp.com/#org"}},{"@type":"WebApplication","name":"SeatWatch","url":"https://seatwatchapp.com/","applicationCategory":"EducationalApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"First class free"},"description":"Get an instant phone alert the second a seat opens in a full college class."}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Organization","@id":"https://seatwatchapp.com/#org","name":"SeatWatch","legalName":"SeatWatch LLC","url":"https://seatwatchapp.com/","logo":"https://seatwatchapp.com/icon-512.png","email":"support@seatwatchapp.com","description":"Instant alerts when a seat opens in a full college class, across 641 universities."},{"@type":"WebSite","@id":"https://seatwatchapp.com/#site","url":"https://seatwatchapp.com/","name":"SeatWatch","publisher":{"@id":"https://seatwatchapp.com/#org"}},{"@type":"WebApplication","name":"SeatWatch","url":"https://seatwatchapp.com/","applicationCategory":"EducationalApplication","operatingSystem":"Web","offers":{"@type":"Offer","price":"0","priceCurrency":"USD","description":"First class free"},"description":"Get an instant phone alert the second a seat opens in a full college class."}]}</script>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 120 120'><defs><linearGradient id='b' x1='0' y1='0' x2='1' y2='1'><stop offset='0' stop-color='%233b82f6'/><stop offset='1' stop-color='%232563eb'/></linearGradient></defs><path d='M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z' fill='white' stroke='%232563eb' stroke-width='9' stroke-linejoin='round'/><rect x='42' y='32' width='28' height='24' rx='7' fill='url(%23b)'/><rect x='38' y='56' width='40' height='11' rx='5.5' fill='url(%23b)'/><rect x='42' y='67' width='8' height='15' rx='3' fill='url(%23b)'/><rect x='66' y='67' width='8' height='15' rx='3' fill='url(%23b)'/><circle cx='100' cy='20' r='11' fill='%2310b981' stroke='white' stroke-width='5'/><path d='M100 4 V1 M111 9 L114 6 M116 20 H119' stroke='%2310b981' stroke-width='4.5' stroke-linecap='round'/></svg>">
 <meta name="theme-color" content="#F8FAFC">
 <link rel="manifest" href="/manifest.json">
@@ -411,12 +411,12 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 </body></html>"""
 
 FORM = """<section class="hero">
- <div class="badge reveal"><span class="dotlive"></span>LIVE — WATCHING 639 UNIVERSITIES</div>
+ <div class="badge reveal"><span class="dotlive"></span>LIVE — WATCHING 641 UNIVERSITIES</div>
  <h1 class="reveal d1">Get into the class you <span class="grad">actually need</span>.</h1>
  <p class="lede reveal d2">That full class you're stuck on? We watch it around the clock and buzz your phone the instant a seat opens — free to start, and we never show fake openings.</p>
  <div class="notif reveal d3" aria-hidden="true"><svg class="nicon" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z" fill="#fff" stroke="#2563eb" stroke-width="9" stroke-linejoin="round"/><rect x="42" y="32" width="28" height="24" rx="7" fill="url(#b)"/><rect x="38" y="56" width="40" height="11" rx="5.5" fill="url(#b)"/><rect x="42" y="67" width="8" height="15" rx="3" fill="url(#b)"/><rect x="66" y="67" width="8" height="15" rx="3" fill="url(#b)"/><circle cx="100" cy="20" r="11" fill="#10b981" stroke="#fff" stroke-width="5"/></svg><div class="nbody"><div class="nrow"><b>SeatWatch</b><span class="live"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>now</span></div><p>Seat open: <b>ENG101-0101</b> — 2 seats just opened. Tap to register!</p></div></div>
  <div class="stats reveal d4">
-  <div class="stat"><div class="chip"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div><b data-count="639">639</b><span>universities</span></div>
+  <div class="stat"><div class="chip"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div><b data-count="641">641</b><span>universities</span></div>
   <div class="stat"><div class="chip"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><b>20s</b><span>check interval</span></div>
   <div class="stat"><div class="chip"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19.07 4.93A10 10 0 0 0 6.99 3.34"/><path d="M4 6h.01"/><path d="M2.29 9.62A10 10 0 1 0 21.31 8.35"/><path d="M16.24 7.76A6 6 0 1 0 8.23 16.67"/><path d="M12 18h.01"/><path d="M17.99 11.66A6 6 0 0 1 15.77 16.67"/><circle cx="12" cy="12" r="2"/><path d="m13.41 10.59 5.66-5.66"/></svg></div><b>24/7</b><span>monitoring</span></div>
  </div>
@@ -471,7 +471,7 @@ __CARD__
   <details><summary>How fast will I hear about an open seat?<span class="pm">+</span></summary><p>We check your class's live registration system every 20 seconds, around the clock. The instant a real seat appears, your phone gets a push alert — usually within seconds of it opening.</p></details>
   <details><summary>Will you ever send a fake alert?<span class="pm">+</span></summary><p>Never. We read the true seat count straight from your school's registration system and only alert on a genuinely open seat. If our engine can't confirm a seat is really open, it stays silent — no false alarms.</p></details>
   <details><summary>Can I watch a specific section or professor?<span class="pm">+</span></summary><p>That's the whole point. You pick the exact section(s) you want, so you land the professor, time, and class you're actually after — not just any open seat.</p></details>
-  <details><summary>Is my school supported?<span class="pm">+</span></summary><p>We watch classes at <b data-count2="639">639</b> universities and colleges, and we're adding more every week. Start typing your school in the box above — if it's there, you're good to go.</p></details>
+  <details><summary>Is my school supported?<span class="pm">+</span></summary><p>We watch classes at <b data-count2="641">641</b> universities and colleges, and we're adding more every week. Start typing your school in the box above — if it's there, you're good to go.</p></details>
   <details><summary>Is this against my school's rules?<span class="pm">+</span></summary><p>No. SeatWatch only reads the same public class-availability info you'd see yourself — it never logs into your account or registers for you. When a seat opens, <i>you</i> tap the alert and register, just like normal.</p></details>
  </div>
 </section>

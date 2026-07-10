@@ -889,3 +889,18 @@ no guest form served), San Diego State (sunspot redirects to cmsweb PS login), S
 COMMUNITY_ACCESS/SA_LEARNER guest search — mostly SSO-gated now; CSUN wins only because it exposes
 its OWN bolt-on component publicly. NEXT CSU targets (unchecked): Long Beach, San Marcos, Chico,
 Stanislaus, Bakersfield, Channel Islands, Dominguez Hills, East Bay, Maritime, Humboldt, San Bernardino.
+
+## Handoff batch 15 (2 CSU campuses) — ✅ BUILT July 10: 2 added (639->641)
+Sacramento State: new `SacState` JSON adapter (classschedule.webhost.csus.edu/api/cs/
+{slug}/{SUBJ}, one call per subject). open=seats_available>0. Two accuracy notes handled:
+seats fields are numeric STRINGS (int-coerced, skip non-numeric); multi-MEETING sections
+repeat the same class_number with identical seats (63 in MATH) — deduped by class_number
+so no double-count. Completed-term test passed (fall-2025 real closed sections). Term is a
+URL slug, built from nearest-upcoming season + verified live.
+CSU Northridge: new `CSUN` stateful-POST adapter. Uses CSUN's OWN component
+(NR_SSS_..._SOC_BASIC_C.GBL) which returns REAL status — NOT the fake-all-open classic
+COMMUNITY_ACCESS trap (completed-term test: Fall 2025 ENGL 115 = 43 Closed/22 Open, proof).
+Double-GET ckreq bounce -> scrape ICSID/ICStateNum -> exact-match POST -> per-row grid parse
+keyed by CLASS_NBR. open = status 'Open' AND seats>0 (66/66 consistent). Space-bearing
+subject codes ('A E') passed verbatim. Now 3 CSU campuses live (SFSU + Sac State + CSUN);
+CSU public-schedule pattern confirmed viable across the system.

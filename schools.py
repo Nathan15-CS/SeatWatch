@@ -1259,6 +1259,244 @@ class SFSU:
         return out
 
 
+class SacState:
+    """Sacramento State (CSU) public class-schedule JSON API — no auth, plain GETs.
+    ONE call per subject returns every course + all sections inline:
+    GET classschedule.webhost.csus.edu/api/cs/{term-slug}/{SUBJ}. open = seats_available
+    > 0 (standard Banner semantic); seat fields are numeric STRINGS (int-coerced, skip
+    non-numeric — never guess).
+
+    Multi-MEETING sections REPEAT the same class_number across rows (meeting_number 1/2/…)
+    with IDENTICAL seats — verified 63 such dups in MATH, all seat-identical — so we
+    DEDUPE by class_number (the unique section key) before keying, or one section would
+    double-count. Status verified real via completed-term test (fall-2025 shows genuine
+    closed sections). Term is a URL SLUG ('fall-2026'), built from the nearest upcoming
+    term and verified against live data before adoption."""
+    id = "sacstate"; name = "California State University, Sacramento"
+    example = "CSC 10A"
+    term = "fall-2026"                  # slug (auto-rolls)
+    _active_term = None
+    base = "https://classschedule.webhost.csus.edu/api/cs"
+    _RE = re.compile(r"^([A-Za-z]{2,6})\s+(\d+[A-Za-z]{0,2})$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return "https://www.csus.edu/class-schedule/"
+
+    def _get(self, path):
+        return json.loads(_http(f"{self.base}/{path}"))
+
+    def resolve_term(self):
+        """Build the nearest-upcoming term slug ('fall-2026') and confirm the API serves
+        it (the subject list is non-empty). Only 3 CSU main seasons use this schedule."""
+        try:
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for season, mon in (("spring", 1), ("summer", 5), ("fall", 8)):
+                for year in (today.year, today.year + 1):
+                    delta = (year - today.year) * 12 + (mon - today.month)
+                    if delta < 1:
+                        continue
+                    if best_delta is None or delta < best_delta:
+                        best_delta, best = delta, f"{season}-{year}"
+            if not best:
+                return None
+            return best if self._get(best) else None      # non-empty subject list == live
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        by_subj = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if subj:
+                by_subj.setdefault(subj, []).append((course, num))
+        out = {}
+        for subj, items in by_subj.items():
+            try:
+                data = self._get(f"{self.cur_term()}/{subj}")
+            except Exception:
+                continue
+            courses_by_cat = {}
+            for c in data:
+                courses_by_cat[str(c.get("catalog_number", "")).upper()] = c.get("sections") or []
+            for course, num in items:
+                sections = courses_by_cat.get(num)
+                if sections is None:
+                    out[course] = {"none": {"open": False, "seats": None}}
+                    continue
+                secs = {}
+                for s in sections:
+                    key = str(s.get("class_number"))
+                    if key in secs:                        # multi-meeting dup -> already keyed
+                        continue
+                    try:
+                        avail = int(s.get("seats_available"))
+                    except (TypeError, ValueError):
+                        continue                           # no clean count -> skip
+                    secs[key] = {"open": avail > 0, "seats": max(avail, 0)}
+                out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+
+class CSUN:
+    """CSU Northridge — CSUN's OWN PeopleSoft schedule component
+    (NR_SSS_COMMON_MENU.NR_SSS_SOC_BASIC_C.GBL), NOT the stock COMMUNITY_ACCESS classic
+    search. This distinction matters for accuracy: the stock classic-PS guest view shows
+    every section 'Open' even in finished terms (fake) and was scrapped; CSUN's custom
+    component returns REAL availability — proven by a completed-term test (Fall 2025
+    ENGL 115 = 43 Closed / 22 Open, genuine closed sections).
+
+    Stateful flow: GET the .GBL entry TWICE with a shared cookie jar (1st bounces on the
+    'ckreq' cookie check, 2nd serves the form), scrape ICSID + ICStateNum, then POST the
+    exact-match search. Grid fields are per-row-indexed ($0,$1,...): CLASS_NBR (unique
+    section key), DESCRSHORT ('Open'/'Closed'), AVAILABLE_SEATS (int). open = status
+    'Open' AND seats>0 (double-safe; verified 66/66 consistent). Some subject codes carry
+    spaces ('A E','A M') — passed verbatim. strm 2267 = Fall 2026 (CSU coding)."""
+    id = "csun"; name = "California State University, Northridge"
+    example = "ENGL 115"
+    term = "2267"                       # Fall 2026 (auto-rolls)
+    _active_term = None
+    base = "https://cmsweb.csun.edu/psc/CNRPRD/EMPLOYEE/SA/c/NR_SSS_COMMON_MENU.NR_SSS_SOC_BASIC_C.GBL"
+    _RE = re.compile(r"^([A-Za-z][A-Za-z /]{0,5}?)\s+(\d+[A-Za-z]{0,2})$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (re.sub(r"\s+", " ", m.group(1)).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self.base
+
+    def _form(self):
+        """Double-GET (ckreq) then scrape the session tokens."""
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", UA)]
+        op.open(self.base, timeout=30).read()
+        h = op.open(self.base, timeout=30).read().decode("utf-8", "replace")
+        icsid = re.search(r"id='ICSID' value='([^']+)'", h)
+        state = re.search(r"id='ICStateNum'[^>]*value='(\d+)'", h)
+        if not (icsid and state):
+            raise RuntimeError("csun: no session tokens")
+        return op, icsid.group(1), state.group(1)
+
+    def resolve_term(self):
+        """Nearest upcoming term's strm from the STRM dropdown; None on failure. CSU strm
+        = 4 digits; anchored on the 'Fall 2026'-style option label."""
+        try:
+            op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+            op.addheaders = [("User-Agent", UA)]
+            op.open(self.base, timeout=30).read()          # ckreq bounce
+            h = op.open(self.base, timeout=30).read().decode("utf-8", "replace")
+            i = h.find("id='NR_SSS_SOC_NWRK_STRM'")
+            if i < 0:
+                return None
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for code, label in re.findall(r"""<option value=['\"](\d{4})['\"][^>]*>\s*([^<]+)""", h[i:i + 4000]):
+                sm = re.search(r"(fall|winter|spring|summer)\D{0,10}(20\d\d)", label, re.I)
+                if not sm or sm.group(1).lower() == "summer":
+                    continue
+                season, year = sm.group(1).lower(), int(sm.group(2))
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, code
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    @staticmethod
+    def _grid(html, field):
+        return dict(re.findall(rf"{field}\$(\d+)'[^>]*>\s*([^<]+?)\s*<", html))
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            try:
+                op, icsid, state = self._form()
+                form = {"ICAction": "NR_SSS_SOC_NWRK_BASIC_SEARCH_PB", "ICSID": icsid,
+                        "ICStateNum": state, "ICType": "Panel", "ICElementNum": "0",
+                        "ICActionPrompt": "false", "NR_SSS_SOC_NWRK_STRM": self.cur_term(),
+                        "GROUP": "1. Regular", "NR_SSS_SOC_NWRK_SUBJECT": subj,
+                        "NR_SSS_SOC_NWRK_NR_SRCH_MATCH": "E",
+                        "NR_SSS_SOC_NWRK_CATALOG_NBR_SRCH": num}
+                html = op.open(urllib.request.Request(
+                    self.base, data=urllib.parse.urlencode(form).encode()), timeout=45
+                    ).read().decode("utf-8", "replace")
+            except Exception:
+                continue
+            cn = self._grid(html, "NR_SSS_SOC_NSEC_CLASS_NBR")
+            stt = self._grid(html, "NR_SSS_SOC_NWRK_DESCRSHORT")
+            seat = self._grid(html, "NR_SSS_SOC_NWRK_AVAILABLE_SEATS")
+            secs, dup = {}, False
+            for i, key in cn.items():
+                if i not in stt or i not in seat:
+                    continue
+                try:
+                    sv = int(seat[i])
+                except ValueError:
+                    continue
+                if key in secs:
+                    dup = True
+                    break
+                # open ONLY when status says Open AND a seat is actually free (double-safe)
+                secs[key] = {"open": stt[i].strip() == "Open" and sv > 0, "seats": max(sv, 0)}
+            if dup:
+                continue
+            out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+
 class Iowa:
     """Bespoke adapter for the University of Iowa's public MAUI API. One call per
     DEPARTMENT returns every section with an authoritative sectionStatus
@@ -4992,7 +5230,7 @@ def _guard_registry(all_schools):
     return {s.id: s for s in all_schools}
 
 
-SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU()])
+SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN()])
 
 
 def refresh_all_terms(log=None):
@@ -5000,7 +5238,7 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA, SFSU)):
+        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA, SFSU, SacState, CSUN)):
             try:
                 s.refresh_term(log)
             except Exception:
