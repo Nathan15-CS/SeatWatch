@@ -775,3 +775,44 @@ window entirely (start/end null) so an evening section can never be hidden from 
 verified harmless on MATH but removed to be safe. Hourly-refreshed status (registrar, not
 real-time) noted — same as Coursicle, still real. UC coverage: Irvine/Santa Cruz/Santa
 Barbara/Merced/UCLA live; UCSD HOLD (no fall yet); Davis 403.
+
+### Fluid-PeopleSoft grind pass 2 + SFSU breakthrough (July 9 2026 evening) — 2 gated-clean, awaiting go-ahead
+Continued the BU-pattern HCX hunt. KEY INSIGHT: WEBLIB_HCX_CM = HighPoint CX (3rd-party PeopleSoft
+add-on) — its customer base is the lead list, but hosts are idiosyncratic (420-host pattern sweep of
+highpoint-prd./hcx./m./mobile./cx. across 60 PS domains = 0 hits; search-engine harvest is the only way in).
+
+1) ✅ COPPIN STATE (~2.5k, Baltimore HBCU, 4-year, MD) — GATED CLEAN. Existing PeopleSoft adapter fit
+   (4-line add): host=eaglecs.psoft.coppin.edu site=csucsprd inst=COPPN term 2268=Fall 2026 (2274=
+   Spring 2027 also listed). Found via its QA host in Google, then coppin.edu registrar →
+   eaglemobile.coppin.edu → redirects to the prod IScript. Gate: 109 Fall-2026 sections ENGL/BIOL/
+   PSYC/MISY = REAL mix 57 O / 52 C; enrl_stat↔enrollment_available consistent 109/109; completed-term
+   (Fall 2025=2258) shows 42 C / 10 O (not fake all-open); response shape {"pageCount":N,"classes":[...]}
+   — NOTE pageCount pagination (my probes all pageCount=1; builder verify big subjects). Example:
+   "ENGL 102" (22 sec, 19 O / 3 C, distinct class_section keys). Subject list has hyphenated collab
+   codes (BIOL-MSU etc); plain ENGL/BIOL/PSYC behave normally. Dedup clean (no Coppin in schools.py).
+
+2) ✅ SAN FRANCISCO STATE (~23k, 4-year public!) — GATED CLEAN, needs small bespoke adapter.
+   CSU was "all PeopleSoft/gated" but SFSU runs a BESPOKE PUBLIC class schedule:
+   webapps.sfsu.edu/public/classservices/. Flow (cookie jar, 2 GETs per course, no token):
+   a. GET /public/classservices/classsearch/results?searchFor=MATH+226&term=2267&classCategory=REG
+      (primes the session; searchFor="SUBJ NUM" exact — no sibling leak, verified)
+   b. GET /public/classservices/searchresultsjson → {"aaData":[[...13 cols...]]}
+      cols: [0] course+"[sec]" html, [1] LEC/LAB, [4] classNumber (UNIQUE section key, verified),
+      [9] SEATS AVAILABLE (int), [10] capacity, [12] enrolled. Identity seats+enrolled==capacity
+      holds on 46/46 sampled except over-enrolled sections (enrolled>cap → seats served already
+      clamped to 0 — safe, matches Banner clamp semantics).
+   Terms: search-page radio labels, 2267="Fall 2026" (auto-roll source; 2265=Summer 2026; past
+   terms 2263/2257 also queryable w/ realistic mixes). FRESHNESS PROVEN: detail page
+   (/classsearch/detail/{term}/REG/{classnbr}) prints "Seats As of July 09, 2026 18:20 PDT" —
+   live-timestamped — plus full waitlist numbers (limit/filled/available). Open rule: seats>0
+   (Banner semantic). BUILDER FLAG: waitlist counts exist only on the detail page, not in the JSON —
+   decide whether open=seats>0 suffices (it's what every Banner school uses) or cross-check the
+   detail-page waitlist before alerting. Example: "MATH 226" (24 sec, real mixed 0s/positives).
+   Dedup clean by name (CCSF and USF are different institutions).
+
+DEAD THIS PASS: Pitt HCX (SAML SSO), U Miami CaneLink (Microsoft SSO), UMBC highpoint-prd (times out
+externally — likely campus-net-only), SDSU sunspot (now redirects to PS login; the Google hit was a
+stale 2015 crawl), CSULB/CSUN/Sac State/Cal Poly schedule guesses (403/NX). ICC = config empty (prior).
+FOLLOW-UP VEIN (unmined): the other ~18 CSU campuses may each run a bespoke public schedule like
+SFSU's — one-at-a-time registrar-page recon, decent odds given the SFSU precedent. Also: HCX
+customers announce migrations in campus-IT news ("HighPoint CX" + college name) — alternate harvest angle.
