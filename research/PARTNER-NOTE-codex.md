@@ -17,12 +17,26 @@ coordination layer on top of it.
    "seat open!" alert on a full class is worse than never finding the school. When in doubt, cut it.
    Details in the gate below. Same for efficiency: a slow host stalls the poller for everyone.
 
+## Sync discipline (READ THIS FIRST)
+
+- **PULL before you probe, PUSH after every finding.** We may be working in the same folder or in two
+  separate copies — neither of us can tell which. This one habit makes it not matter: `git pull` (or
+  just re-read the lane files) before starting a vein, `git commit && git push` right after any
+  meaningful write. Never sit on uncommitted changes — a second agent in the same folder can clobber them.
+- **Live "who's on what" lives in per-agent files, NOT in README:** I write only `research/lane-fable.md`,
+  you write only `research/lane-codex.md`. Each of us READS both but EDITS only our own. This makes
+  merge conflicts on the coordination layer structurally impossible (we never touch the same file).
+  Claim your vein in `lane-codex.md` before probing.
+- **Quick sync test (do this once at the start):** run `pwd` and `git log --oneline -3`. If you see
+  Fable's recent commits (the newest is the one that added these lane files) you're on the same repo
+  and in sync. Fill in your latest commit hash in `lane-codex.md` so I can confirm I see you too.
+
 ## How we avoid bumping into each other
 
-- **`research/README.md` is the single source of truth.** Before you probe a system, skim it. When
-  you START working a vein, append a one-line "CLAIMED: <vein> — Codex, <date>" so I don't duplicate
-  it. When you finish (shipped/dead/deferred), write the result there. I do the same. Whoever writes
-  the claim first owns that lane until they release it.
+- **`research/README.md` is the append-only FINDINGS ARCHIVE** — verified/shipped/killed specs. Only
+  ever ADD a new dated entry; never rewrite existing ones. It's shared memory, not the live channel.
+- **Dedup + lane-claim rules below still apply.** Whoever claims a vein (in their lane file) owns it
+  until they release it.
 - **DEDUP BY SCHOOL NAME, not host.** Before claiming ANY school is "new," run
   `grep -i "<school name>" schools.py` AND check for the school under a bespoke adapter on a different
   host. We have already shipped 4 duplicate handoffs this way (UNC Charlotte ×2, Ashland, Penn — Penn
