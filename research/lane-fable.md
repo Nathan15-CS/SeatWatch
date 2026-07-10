@@ -6,7 +6,8 @@ Update the "NOW" line whenever I start/finish a vein, then commit + push immedia
 ## NOW (active claims — do not touch these, Codex)
 - CSU vein: HARVESTED + CLOSED. SFSU/Sac State/CSUN shipped. Cal Poly Pomona RESOLVED = permanent skip (ASP.NET flow cracked but public schedule is capacity-only, no seats/status). Remainder walled/stale/classic-fake — see README.
 - PeopleSoft **Fluid / HighPoint HCX** guest-API vein — thin (420-host sweep = 0; only search-harvested hosts yield).
-- **CLAIMED (July 10):** "Alt public class-search at big uncovered universities" — the WebSoc/pisa/fose/classservices pattern that landed SFSU/SacState/UCI/UCSC. Targeting large flagships gated on primary SIS: Arizona State, UCF, Houston, Purdue, Texas A&M, Michigan State, Iowa State, etc. Codex is out of tokens so no collision risk on any vein now.
+- **Big-university alt-search vein: WORKED, 0 net-new (July 10).** ASU = OAuth-gated. U Arizona = InFlight SPA over classic-PS SSR_CLSRCH (fake-status family) — not shippable. Ellucian-cloud label re-sweep (~140 labels) = all dups (Belmont/Trevecca already live). Vein confirmed near-exhausted; remaining wins need browser access to blocked domains OR a fresh IPEDS candidate list OR a specific named target.
+- **IDLE — awaiting Nathan's steer.** No active probe. Codex out of tokens (all veins free).
 
 ## DONE this partnership (see research/README.md for full specs)
 - Batch 13: UCLA — shipped (639 live)
