@@ -697,3 +697,21 @@ from the form's own dropdown (single-quoted option values — quote-agnostic par
 retroactively added UCI to refresh_all_terms (it shipped in b10 without auto-roll registration
 — not a live bug, hardcoded term was current, but now self-maintains). Remaining UC: UCSB
 (ASP.NET viewstate) + UCSD (Fall not loaded yet, HOLD) + UCLA (browser token flow) with research chat.
+
+## Handoff batch 12 (UC Santa Barbara ASP.NET) — ✅ BUILT July 8: 1 added (635->636)
+New bespoke `UCSB` adapter (ASP.NET WebForms viewstate postback, __EVENTTARGET=image
+search button, subject-wide POST). THE ACCURACY QUESTION RESOLVED: the research chat
+correctly refused to assert "blank Status = open". Proven before shipping — cross-checked
+every section's Status against its own Enrolled/Capacity across 390 live sections (WRIT+MATH):
+BLANK<=>enrolled<cap and 'Full'<=>at-cap held with ZERO violations. Adapter treats open =
+blank Status AND enrolled<capacity (double-safe); 'Closed' (can have empty seats but admin-
+closed) is never open. Real seats = cap-enrolled. Term auto-rolls from the server-rendered
+quarterList (20264=Fall 2026). UC scoreboard: Irvine, Santa Cruz, Santa Barbara, Merced live.
+
+## Also this session: fixed a shadowed-duplicate-class bug + hardened the guard
+The batch-11 UCSC shipped with a DEAD earlier UCSC class definition above the real one
+(Python silently uses the last def, so the gated panel-based parser was live and correct,
+but the stale alt-text copy sat in the file). The registry guard missed it because it checks
+registered INSTANCES, not class definitions. Removed the dead copy and EXTENDED _guard_registry
+to also fail on any adapter class used by >1 registered school that isn't a known shared base —
+so a shadowed/duplicate class definition now crashes at import.

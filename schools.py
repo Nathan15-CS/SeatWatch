@@ -705,115 +705,6 @@ class UCI:
 
 
 class UCSC:
-    """UC Santa Cruz public 'pisa' class search — one urlencoded POST per course, no
-    auth. Every section row carries a status icon whose alt text is authoritative:
-    'Open' / 'Closed' / 'Closed with Wait List'. ONLY alt=='Open' is open (verified
-    live: MATH sweep shows a real 23/9/1 mix). seats=None (status-based, CUNY/Fose
-    convention — can't false-alert). Sections keyed by their pisa display label
-    ('01', '02'); each anchor's label is exact-matched against the requested
-    subject+number, so pisa's search can never leak a sibling course in. If a page
-    returns exactly rec_dur rows the result may be truncated — skip the course
-    rather than risk missing a watched section. Quarter codes are synthesized
-    ('2'+YY+{winter 0, spring 2, fall 8}; 2268 = Fall 2026) with the standard
-    nearest-upcoming/skip-in-progress rule and verify-before-adopt refresh."""
-    id = "ucsc"; name = "UC Santa Cruz"
-    example = "CSE 30"
-    term = "2268"                       # Fall 2026 (auto-rolls)
-    _active_term = None
-    base = "https://pisa.ucsc.edu/class_search/index.php"
-    _RE = re.compile(r"^([A-Za-z&/ ]{2,8}?)\s+(\d+[A-Za-z]?)$")
-    _REC_DUR = 100
-
-    def _norm(self, course):
-        m = self._RE.match(course.strip())
-        return (re.sub(r"\s+", " ", m.group(1)).upper(), m.group(2).upper()) if m else (None, None)
-
-    def valid_course(self, course):
-        return self._norm(course)[0] is not None
-
-    def cur_term(self):
-        return self._active_term or self.term
-
-    def reg_url(self, course):
-        return self.base
-
-    def resolve_term(self):
-        today = datetime.date.today()
-        best, best_delta = None, None
-        for season, mon, digit in (("winter", 1, "0"), ("spring", 3, "2"), ("fall", 9, "8")):
-            for year in (today.year, today.year + 1):
-                delta = (year - today.year) * 12 + (mon - today.month)
-                if delta < 1:
-                    continue
-                if best_delta is None or delta < best_delta:
-                    best_delta, best = delta, f"2{year % 100:02d}{digit}"
-        return best
-
-    def refresh_term(self, log=None):
-        new = self.resolve_term()
-        if not new or new == self.cur_term():
-            return
-        prev = self._active_term
-        self._active_term = new
-        secs = self.fetch({self.example}).get(self.example) or {}
-        if not secs or "none" in secs:
-            self._active_term = prev
-            if log:
-                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
-            return
-        if log:
-            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
-
-    def _post(self, subj, num):
-        fields = {"action": "results", "binds[:term]": self.cur_term(),
-                  "binds[:reg_status]": "all", "binds[:subject]": subj,
-                  "binds[:catalog_nbr_op]": "=", "binds[:catalog_nbr]": num,
-                  "binds[:title]": "", "binds[:instr_name_op]": "=",
-                  "binds[:instructor]": "", "binds[:ge]": "",
-                  "binds[:crse_units_op]": "=", "binds[:crse_units_from]": "",
-                  "binds[:crse_units_to]": "", "binds[:days]": "", "binds[:times]": "",
-                  "binds[:acad_career]": "", "rec_start": "0", "rec_dur": str(self._REC_DUR)}
-        req = urllib.request.Request(self.base, data=urllib.parse.urlencode(fields).encode(),
-                                     headers={"User-Agent": UA,
-                                              "Content-Type": "application/x-www-form-urlencoded"})
-        with urllib.request.urlopen(req, timeout=30) as r:
-            return r.read().decode("utf-8", "replace")
-
-    def fetch(self, courses):
-        out = {}
-        for course in courses:
-            subj, num = self._norm(course)
-            if not subj:
-                continue
-            try:
-                html = self._post(subj, num)
-            except Exception:
-                continue
-            anchors = list(re.finditer(r'<a id="class_id_(\d+)"[^>]*>\s*([^<]+)</a>', html))
-            if len(anchors) >= self._REC_DUR:       # possibly truncated — never guess
-                continue
-            secs, dup = {}, False
-            for m in anchors:
-                label = re.sub(r"(?:&nbsp;|\s)+", " ", m.group(2)).strip()
-                lm = re.match(r"^([A-Za-z&/ ]+?)\s*(\d+[A-Za-z]?)\s*-\s*(\S+)", label)
-                if not lm:
-                    continue
-                if re.sub(r"\s+", " ", lm.group(1)).upper() != subj or lm.group(2).upper() != num:
-                    continue                        # exact course only — no sibling leak
-                sec = lm.group(3)
-                alts = re.findall(r'alt="([^"]*)"', html[max(0, m.start() - 500):m.start()])
-                status = alts[-1] if alts else ""
-                if sec in secs:
-                    dup = True
-                    break
-                secs[sec] = {"open": status == "Open", "seats": None}
-            if dup:
-                continue
-            out[course] = secs if secs else {"none": {"open": False, "seats": None}}
-        return out
-
-
-class UCSC:
     """UC Santa Cruz 'pisa' public class search (PeopleSoft-backed). One POST per
     course (reg_status=all so closed/waitlisted sections are visible and correctly
     marked not-open). Status is a per-section icon PS_CS_STATUS_{OPEN|CLOSED|WAITLIST};
@@ -948,6 +839,151 @@ class UCSC:
                 last = e
                 time.sleep(0.5 * (i + 1))
         raise last
+
+
+class UCSB:
+    """UC Santa Barbara public course search (ASP.NET WebForms). GET the page for the
+    __VIEWSTATE/__VIEWSTATEGENERATOR/__EVENTVALIDATION tokens, then POST them back with
+    __EVENTTARGET set to the (image-button) search control — subject-wide, no course#
+    field. Results are scoped to the exact watched course on parse.
+
+    OPEN DETECTION (the accuracy crux — the research handoff flagged it as unproven, so
+    it was PROVEN before shipping): UCSB never renders an explicit 'Open' word — the
+    Status cell is 'Full', 'Closed', or BLANK. Cross-checking every section's Status
+    against its own 'Enrolled / Capacity' cell across 390 live sections showed the rule
+    holds with ZERO violations: BLANK <=> enrolled < capacity, 'Full' <=> at/over cap.
+    So we treat a section open ONLY when Status is blank AND enrolled < capacity (both
+    conditions — double-safe). 'Closed' sections can have empty seats but are
+    administratively closed, so they are NEVER open. seats = capacity - enrolled.
+
+    One row per section (the course title repeats per row); sections keyed by UCSB's
+    5-digit enroll code. Term auto-rolls from the server-rendered quarterList <select>
+    ('20264' = FALL 2026; format 2026 + quarter-digit, Winter1/Spring2/Summer3/Fall4)."""
+    id = "ucsb"; name = "University of California, Santa Barbara"
+    example = "WRIT 2"
+    term = "20264"                      # Fall 2026 (auto-rolls)
+    _active_term = None
+    base = "https://my.sa.ucsb.edu/public/curriculum/coursesearch.aspx"
+    _RE = re.compile(r"^([A-Za-z][A-Za-z ]{0,7}?)\s+(\d+[A-Za-z]{0,2})$")
+    _ROW_RE = re.compile(
+        r'id="CourseTitle"[^>]*>\s*([A-Z]+)\s+(\d+[A-Z]{0,2})', re.S)
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (re.sub(r"\s+", " ", m.group(1)).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self.base
+
+    def _session(self):
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", UA)]
+        page = op.open(self.base, timeout=30).read().decode("utf-8", "replace")
+        def tok(n):
+            m = re.search(rf'id="{n}" value="([^"]*)"', page)
+            return m.group(1) if m else ""
+        toks = {k: tok(k) for k in ("__VIEWSTATE", "__VIEWSTATEGENERATOR", "__EVENTVALIDATION")}
+        return op, page, toks
+
+    def resolve_term(self):
+        """Nearest upcoming main quarter's code from the server-rendered quarterList."""
+        try:
+            _, page, _ = self._session()
+            i = page.find("quarterList")
+            if i < 0:
+                return None
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for code, name in re.findall(r'<option[^>]*value="(\d{5})"[^>]*>\s*([A-Z ]+\d{4})', page[i:i + 4000]):
+                n = name.lower()
+                if "summer" in n:
+                    continue
+                sm = re.search(r"(fall|winter|spring)\D{0,4}(20\d\d)", n)
+                if not sm:
+                    continue
+                season, year = sm.group(1), int(sm.group(2))
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, code
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        # group by subject: one subject-wide POST serves every watched course in it
+        want = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if subj:
+                want.setdefault(subj, []).append((course, num))
+        if not want:
+            return {}
+        out = {}
+        for subj, items in want.items():
+            try:
+                op, _, toks = self._session()
+                body = urllib.parse.urlencode({
+                    "__EVENTTARGET": "ctl00$pageContent1$searchButton", "__EVENTARGUMENT": "",
+                    **toks,
+                    "ctl00$pageContent1$quarterList": self.cur_term(),
+                    "ctl00$pageContent1$courseList": subj,
+                    "ctl00$pageContent1$dropDownCourseLevels": "All"}).encode()
+                html = op.open(urllib.request.Request(self.base, data=body), timeout=90
+                               ).read().decode("utf-8", "replace")
+            except Exception:
+                continue
+            found = {course: {} for course, _ in items}
+            dups = set()
+            for row in re.split(r'(?=<tr class="CourseInfoRow">)', html):
+                tm = self._ROW_RE.search(row)
+                if not tm:
+                    continue
+                rsubj, rnum = tm.group(1).upper(), tm.group(2).upper()
+                if rsubj != subj:
+                    continue
+                ec = re.search(r'HyperLinkEnrollCode[^>]*>\s*(\d+)', row)
+                fr = re.search(r'>\s*(\d+)\s*/\s*(\d+)\s*<', row)
+                st = re.search(r'class="Status">\s*([^<]*?)\s*</td>', row)
+                if not (ec and fr):
+                    continue
+                status = (st.group(1).strip() if st else "")
+                enr, cap = int(fr.group(1)), int(fr.group(2))
+                is_open = (status == "") and (enr < cap)     # blank AND seats left
+                for course, num in items:
+                    if rnum == num:
+                        d = found[course]
+                        if ec.group(1) in d:
+                            dups.add(course)
+                        d[ec.group(1)] = {"open": is_open, "seats": max(cap - enr, 0) if is_open else 0}
+            for course, secs in found.items():
+                if course in dups:
+                    continue
+                out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
 
 
 class Iowa:
@@ -4659,10 +4695,26 @@ def _guard_registry(all_schools):
         raise ValueError(
             "Duplicate school name(s) — same school added twice, or two schools needing "
             f"distinguishing suffixes: {dup_names}")
+    # Duplicate CLASS object: two `class Foo:` blocks with the same name silently shadow
+    # each other in Python (only the last survives), so a stale earlier copy can sit in
+    # the file undetected — the id/name checks above miss it because only one instance is
+    # ever registered. Flag any adapter class used by more than one registered school
+    # UNLESS it's an intentional shared base (subclassed by many).
+    cls_map = {}
+    for s in all_schools:
+        cls_map.setdefault(type(s).__name__, []).append(s.id)
+    _SHARED_BASES = {"CtcLink", "MinnState", "VCCS", "CACCD", "CrnKeyedBanner",
+                     "NumSubjColleague", "CodedTermColleague", "VSC"}
+    dup_cls = {c: ids for c, ids in cls_map.items()
+               if len(ids) > 1 and c not in _SHARED_BASES}
+    if dup_cls:
+        raise ValueError(
+            "Adapter class used by multiple schools without being a known shared base — "
+            f"likely a duplicate/shadowed class definition: {dup_cls}")
     return {s.id: s for s in all_schools}
 
 
-SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC()])
+SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB()])
 
 
 def refresh_all_terms(log=None):
@@ -4670,7 +4722,7 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC)):
+        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB)):
             try:
                 s.refresh_term(log)
             except Exception:
