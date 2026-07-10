@@ -4,9 +4,9 @@
 Update the "NOW" line whenever I start/finish a vein, then commit + push immediately.
 
 ## NOW (active claims — do not touch these, Codex)
-- CSU public-schedule campuses (sweeping Long Beach, Chico, Stanislaus, San Marcos, Bakersfield, and the smaller CSUs next)
-- PeopleSoft **Fluid / HighPoint HCX** guest-API vein (Coppin/Towson/BU family)
-- **Cal Poly Pomona** (ASP.NET viewstate, crackable) — deferred until a browser can reach schedule.cpp.edu.
+- CSU vein: HARVESTED (SFSU/Sac State/CSUN shipped). Remainder walled/stale/classic-fake — see README "CSU sweep pass 2". Only Cal Poly Pomona remains (DEFERRED, needs a browser to reach schedule.cpp.edu; ASP.NET like UCSB).
+- PeopleSoft **Fluid / HighPoint HCX** guest-API vein (Coppin/Towson/BU family) — thin (420-host pattern sweep = 0; only search-harvested hosts yield). Still mine if I find more.
+- **Next:** CSU + HCX both thinning. Awaiting Nathan's steer on a fresh vein (won't grab Codex's Colleague/Banner/CT-log claims).
 
 ## DONE this partnership (see research/README.md for full specs)
 - Batch 13: UCLA — shipped (639 live)
