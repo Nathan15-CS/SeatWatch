@@ -683,3 +683,17 @@ labels). If unprovable → scrap (false-open risk). Genuinely new (0 by name).
 UC scoreboard: Irvine ✅, Santa Cruz ✅, Merced ✅(already), Santa Barbara (conditional), UCSD (HOLD-fall-not-
 loaded + redirect flow), UCLA (browser token). LESSON: don't assert open-detection on inference; hand the
 cracked flow + the explicit accuracy question, let the gate resolve it.
+
+## Handoff batch 11 (UC Santa Cruz pisa) — ✅ BUILT July 8: 1 added (634->635)
+New bespoke `UCSC` adapter for the public pisa class search (PeopleSoft-backed, POST,
+reg_status=all so closed sections are visible and marked not-open). REAL status confirmed
+(full section reads WAITLIST w/ 15-of-15 enrolled; genuine open/closed mix — not NAU-style
+all-open). CRITICAL parse bug caught during the gate: the status icon and section class_id
+live in the SAME panel-heading, and a naive 'nearest icon' regex mis-paired CSE 30-01 as
+OPEN when it was actually WAITLIST (spanned to a legend/prior-section icon). Fixed by
+splitting results into per-panel blocks and reading status only within each section's own
+panel. Exact catalog_nbr search confirmed no sibling leak (MATH 11A != 11B). Term auto-rolls
+from the form's own dropdown (single-quoted option values — quote-agnostic parse). Also
+retroactively added UCI to refresh_all_terms (it shipped in b10 without auto-roll registration
+— not a live bug, hardcoded term was current, but now self-maintains). Remaining UC: UCSB
+(ASP.NET viewstate) + UCSD (Fall not loaded yet, HOLD) + UCLA (browser token flow) with research chat.

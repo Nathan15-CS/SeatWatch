@@ -813,6 +813,143 @@ class UCSC:
         return out
 
 
+class UCSC:
+    """UC Santa Cruz 'pisa' public class search (PeopleSoft-backed). One POST per
+    course (reg_status=all so closed/waitlisted sections are visible and correctly
+    marked not-open). Status is a per-section icon PS_CS_STATUS_{OPEN|CLOSED|WAITLIST};
+    ONLY 'OPEN' is open — this guest view shows REAL live status (verified: a full
+    section reads WAITLIST with '15 of 15 Enrolled', and other courses show a genuine
+    open/closed mix — NOT the always-open trap some guest views have). seats=None.
+
+    PARSE SAFETY: the status icon and the section's class_id live in the SAME
+    <div class="panel-heading"> element, so results are split into per-panel blocks
+    and the status is taken ONLY from within each section's own panel (a naive
+    'nearest icon' regex mis-pairs the legend/previous-section icon — caught and
+    avoided). Exact catalog_nbr search returns only that course (verified no 11A->11B
+    sibling leak), and rows are still scoped to the exact watched code as a backstop.
+    Sections keyed by pisa's section id (01/02/...). Term auto-rolls from the form's
+    own term dropdown ('2268' = 2026 Fall Quarter)."""
+    id = "ucsc"; name = "University of California, Santa Cruz"
+    example = "CSE 30"
+    term = "2268"                       # Fall 2026 (auto-rolls)
+    _active_term = None
+    base = "https://pisa.ucsc.edu/class_search/index.php"
+    _RE = re.compile(r"^([A-Za-z&]{1,6})\s+(\d+[A-Za-z]{0,2})$")
+    _PANEL_RE = re.compile(
+        r'id="class_id_\d+"[^>]*>\s*([A-Z&]{2,6})\s+(\d+[A-Z]?)\s*-\s*(\d+)')
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self.base
+
+    def resolve_term(self):
+        """Nearest upcoming main quarter's code from the form's term dropdown; None on
+        failure. pisa term codes are 2+YY+quarter-digit (Winter0/Spring2/Summer4/Fall8).
+        Anchored on the human 'Fall 2026'-style label, sub-terms screened."""
+        try:
+            page = _http(self.base)
+            i = page.find('term_dropdown')
+            if i < 0:
+                return None
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for code, name in re.findall(r'''<option value=['"](\d{4})['"][^>]*>\s*([^<]+)''', page[i:i + 4000]):
+                n = name.lower()
+                if any(s in n for s in _SUBTERM) or "summer" in n:
+                    continue
+                sm = re.search(r"(20\d\d)\D{0,6}(fall|winter|spring)", n)
+                if not sm:
+                    continue
+                year, season = int(sm.group(1)), sm.group(2)
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, code
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            body = {"action": "results", "binds[:term]": self.cur_term(),
+                    "binds[:reg_status]": "all", "binds[:subject]": subj,
+                    "binds[:catalog_nbr_op]": "=", "binds[:catalog_nbr]": num,
+                    "binds[:title]": "", "binds[:instr_name_op]": "=",
+                    "binds[:instructor]": "", "binds[:ge]": "",
+                    "binds[:crse_units_op]": "=", "binds[:crse_units_from]": "",
+                    "binds[:crse_units_to]": "", "binds[:days]": "", "binds[:times]": "",
+                    "binds[:acad_career]": "", "rec_start": "0", "rec_dur": "200"}
+            try:
+                req = urllib.request.Request(
+                    self.base, data=urllib.parse.urlencode(body).encode(),
+                    headers={"User-Agent": UA,
+                             "Content-Type": "application/x-www-form-urlencoded"})
+                html = self._retry(lambda: urllib.request.urlopen(req, timeout=30)
+                                   .read().decode("utf-8", "replace"))
+            except Exception:
+                continue
+            secs, dup = {}, False
+            for panel in re.split(r'(?=<div class="panel-heading)', html):
+                cm = self._PANEL_RE.search(panel)
+                if not cm:
+                    continue
+                if cm.group(1).upper() != subj or cm.group(2).upper() != num:
+                    continue                       # backstop: exact watched code only
+                sec = cm.group(3)
+                # status from THIS panel only, before the class_id anchor
+                icn = re.findall(r"PS_CS_STATUS_([A-Z]+)_ICN", panel[:cm.start()])
+                if not icn:
+                    continue                       # no status -> skip, never guess open
+                if sec in secs:
+                    dup = True
+                    break
+                secs[sec] = {"open": icn[-1] == "OPEN", "seats": None}
+            if dup:
+                continue
+            out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+    @staticmethod
+    def _retry(fn, tries=3):
+        last = None
+        for i in range(tries):
+            try:
+                return fn()
+            except Exception as e:
+                last = e
+                time.sleep(0.5 * (i + 1))
+        raise last
+
+
 class Iowa:
     """Bespoke adapter for the University of Iowa's public MAUI API. One call per
     DEPARTMENT returns every section with an authoritative sectionStatus
