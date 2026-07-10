@@ -986,6 +986,162 @@ class UCSB:
         return out
 
 
+class UCLA:
+    """UCLA public Schedule of Classes (sa.ucla.edu/ro/public/soc) — fully headless,
+    no token reverse-engineering: the per-course model (incl. its Token) is embedded in
+    the subject-results page's inline JS. Two GETs: (1) the subject page for the course
+    models, (2) a GetCourseSummary XHR per watched course for its sections.
+
+    Course lookup keys on the HUMAN-DISPLAYED number ('32', 'M51A', '35L', 'C121'),
+    read straight off the page's own title buttons and joined to each model by element
+    id (SubjectAreaCode+CatalogNumber, spaces stripped) — verified 25/25. We never
+    reconstruct UCLA's path encoding; we read it. seats = the section's true 'N Spots
+    Left' int (0 when 'Class Full'). Status word is authoritative: ONLY 'Open' is open
+    ('Closed'/'Waitlist'/'Cancelled'/'Tentative' are not) — verified real via a
+    completed-term test (Fall 2025 shows genuine Closed/Waitlist, not an all-open trap).
+    Sections keyed by their 9-digit class_id (unique). Enrollment status is refreshed
+    hourly by the registrar (not real-time) — same data Coursicle sees; still real.
+
+    FilterFlags sends NO time-of-day window (start/end null) so an evening section is
+    never hidden from a watcher — the handoff's suggested 8am-8pm window was verified
+    harmless on MATH but we drop it entirely to be safe. Term auto-rolls from the
+    page's own term <select> (26F = Fall 2026; code = YY + F/W/S)."""
+    id = "ucla"; name = "University of California, Los Angeles"
+    example = "COM SCI 32"
+    term = "26F"                        # Fall 2026 (auto-rolls)
+    _active_term = None
+    root = "https://sa.ucla.edu/ro/public/soc"
+    _RE = re.compile(r"^([A-Za-z][A-Za-z& ]{0,24}?)\s+([A-Z]?\d+[A-Z]{0,2})$")
+    _FLAGS = ('{"enrollment_status":"O,W,C,X,T,S","advanced":"n","meet_days":null,'
+              '"start_time":null,"end_time":null,"meet_locations":null,"meet_units":null,'
+              '"instructor":null,"class_career":null,"impacted":null,'
+              '"enrollment_restrictions":null,"enforced_requisites":null,'
+              '"individual_studies":"n","summer_session":null}')
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (re.sub(r"\s+", " ", m.group(1)).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self.root
+
+    def _get(self, url, xhr=False):
+        hdrs = {"User-Agent": UA}
+        if xhr:
+            hdrs["X-Requested-With"] = "XMLHttpRequest"
+        return urllib.request.urlopen(urllib.request.Request(url, headers=hdrs),
+                                      timeout=30).read().decode("utf-8", "replace")
+
+    def resolve_term(self):
+        """Nearest upcoming main term (F/W/S) from the page's term select; None on
+        failure. Summer codes (YY1/YY2) carry no F/W/S letter and are skipped."""
+        try:
+            page = self._get(self.root)
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for code, yeartext in re.findall(
+                    r'class="select_term" value="(\d\d[FWS])"[^>]*data-yearText="([^"]*)"', page):
+                sm = re.search(r"(fall|winter|spring)\s*(20\d\d)", yeartext, re.I)
+                if not sm:
+                    continue
+                season, year = sm.group(1).lower(), int(sm.group(2))
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, code
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def _subject_models(self, subj):
+        """{displayed_number -> model_json_str} for one subject in the current term."""
+        q = urllib.parse.urlencode({"SubjectAreaName": "x", "t": self.cur_term(),
+                                    "sBy": "subject", "subj": subj, "catlg": "",
+                                    "cls_no": "", "btnIsInIndex": "btn_inIndex"})
+        page = self._get(self.root + "/Results?" + q)
+        titles = {m.group(1).upper(): m.group(2).strip()
+                  for m in re.finditer(r'id="([A-Z0-9]+)-title"[^>]*>\s*([0-9A-Z]+)\s*-', page)}
+        out = {}
+        for raw in re.findall(r'AddToCourseData\("[^"]+",(\{.*?\})\);', page):
+            try:
+                d = json.loads(raw)
+            except Exception:
+                continue
+            elid = (d.get("SubjectAreaCode", "") + d.get("CatalogNumber", "")).replace(" ", "").upper()
+            disp = titles.get(elid)
+            if disp:
+                out[disp.upper()] = raw
+        return out
+
+    def _sections(self, model):
+        u = (self.root + "/Results/GetCourseSummary?" +
+             urllib.parse.urlencode({"model": model, "FilterFlags": self._FLAGS,
+                                     "_": str(int(time.time() * 1000))}))
+        html = self._get(u, xhr=True)
+        secs, dup = {}, False
+        for cid, blob in re.findall(r'id="(\d+)_[^"]*-status_data"><p>(.*?)</p>', html, re.S):
+            txt = re.sub(r"<[^>]+>", " ", blob)
+            st = re.search(r"\b(Open|Closed|Waitlist|Cancelled|Tentative)\b", txt)
+            if not st:
+                continue                              # no status word -> skip, never guess
+            status = st.group(1)
+            spots = re.search(r"(\d+)\s+Spots?\s+Left", txt)
+            seats = int(spots.group(1)) if spots else (0 if "Class Full" in txt else None)
+            if cid in secs:
+                dup = True
+                break
+            secs[cid] = {"open": status == "Open", "seats": seats}
+        return None if dup else secs
+
+    def fetch(self, courses):
+        by_subj = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if subj:
+                by_subj.setdefault(subj, []).append((course, num))
+        out = {}
+        for subj, items in by_subj.items():
+            try:
+                models = self._subject_models(subj)
+            except Exception:
+                continue
+            for course, num in items:
+                model = models.get(num)
+                if not model:
+                    out[course] = {"none": {"open": False, "seats": None}}
+                    continue
+                try:
+                    secs = self._sections(model)
+                except Exception:
+                    continue
+                if secs is None:                      # duplicate class_id -> skip
+                    continue
+                out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+
 class Iowa:
     """Bespoke adapter for the University of Iowa's public MAUI API. One call per
     DEPARTMENT returns every section with an authoritative sectionStatus
@@ -4714,7 +4870,7 @@ def _guard_registry(all_schools):
     return {s.id: s for s in all_schools}
 
 
-SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB()])
+SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA()])
 
 
 def refresh_all_terms(log=None):
@@ -4722,7 +4878,7 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB)):
+        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA)):
             try:
                 s.refresh_term(log)
             except Exception:

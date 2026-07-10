@@ -698,6 +698,40 @@ retroactively added UCI to refresh_all_terms (it shipped in b10 without auto-rol
 — not a live bug, hardcoded term was current, but now self-maintains). Remaining UC: UCSB
 (ASP.NET viewstate) + UCSD (Fall not loaded yet, HOLD) + UCLA (browser token flow) with research chat.
 
+### Batch 13 sent (July 9 2026) — UCLA CRACKED (~46k, the biggest remaining UC) + UCSD still HOLD
+UCLA's "browser token-flow" blocker is SOLVED — it's fully HEADLESS (two plain GETs, no browser).
+The token that gated the earlier headless attempts is EMBEDDED in the subject results page: each
+course ships an inline `AddToCourseData("PATH",{...,"Token":"..."})` JS block with the full model.
+So no token-reconstruction algorithm is needed (UCLA's catalog normalization is gnarly — "M51A"
+becomes path "COMSCI0051AM" — but we never replicate it; we read the model straight from the page).
+
+FLOW (bespoke `UCLA` adapter, like UCI/UCSC):
+1. Term list (auto-roll source): GET https://sa.ucla.edu/ro/public/soc — raw HTML has
+   `<option class="select_term" value="26F" data-yearText="Fall 2026">` (26F = Fall 2026;
+   YY + F/W/S/1/2). Parse + pick nearest upcoming main term, verify-before-adopt like every adapter.
+2. Per subject (fetch once per cycle, cache): GET
+   https://sa.ucla.edu/ro/public/soc/Results?SubjectAreaName=x&t=26F&sBy=subject&subj=COM+SCI&catlg=&cls_no=&btnIsInIndex=btn_inIndex
+   → regex `AddToCourseData\("[^"]+",(\{.*?\})\);` → dict keyed by exact CatalogNumber.strip()
+   (e.g. "0031"). Keys are exact so no sibling leak: "0031" != "0031A" != "0035L" (distinct models).
+3. Per watched course: GET .../Results/GetCourseSummary?model=<the course's model JSON>&FilterFlags=<...>&_=<ms>
+   FilterFlags enrollment_status="O,W,C,X,T,S" (show ALL so closed sections are visible/marked-not-open).
+4. Parse each section block: `id="(\d+)_[^"]*-status_data"><p>...</i>(STATUS)<br/>(DETAIL)</p>`.
+   - class_id (9-digit) = section key, verified UNIQUE (35/35 in gate, no collapse risk).
+   - STATUS word is AUTHORITATIVE. Open format: "Open<br/>12 of 240 Enrolled<br/>228 Spots Left".
+     Closed format: "Closed<br/>Class Full (120)". Waitlist seen too. TRUE-OPEN = status=="Open" only
+     (Closed/Waitlist/Cancelled never open — zero false-alert). seats = "N Spots Left" int, else 0.
+GATE PASSED: subject: COM SCI (SubjectAreaCode has SPACES — "COM SCI","MATH"). Live Fall 2026 broad
+sweep (COM SCI/MATH/PHYSICS/ECON, 35 sections) = REAL mix 24 Open / 11 Closed with true integer
+seat counts (e.g. MATH 115A "79 of 80 Enrolled, 1 Spots Left"=Open; CS 131 "Class Full (120)"=Closed).
+Completed-term test (Fall 2025 = 25F): shows real Closed sections — NOT the classic-PS all-Open fake.
+Deduped by name: schools.py has UCI/UCSC/UCSB, NOT UCLA. Latency: subject page 1.9s (once/cycle),
+per-course summary 0.34s. Example course: COM SCI 32 (Intro to CS II, live, real seats).
+UC scoreboard: Irvine✅ Santa Cruz✅ Merced✅ Santa Barbara✅(built) UCLA(sent b13) UCSD(HOLD).
+
+UCSD RECHECK: still HOLD — act.ucsd.edu term dropdown only goes through Spring 2026 (SP26/WI26/
+Summer); no FA26 loaded yet (UCSD is on quarters; Fall quarter loads later). Re-check via the weekly
+scheduled task.
+
 ## Handoff batch 12 (UC Santa Barbara ASP.NET) — ✅ BUILT July 8: 1 added (635->636)
 New bespoke `UCSB` adapter (ASP.NET WebForms viewstate postback, __EVENTTARGET=image
 search button, subject-wide POST). THE ACCURACY QUESTION RESOLVED: the research chat
@@ -728,3 +762,16 @@ no prod impact, registry guard now hardened to catch shadowed classes too).
 UC SCOREBOARD FINAL (this session): Irvine ✅ Santa Cruz ✅ Santa Barbara ✅ Merced ✅(already live).
 Remaining: UCSD (HOLD, fall not loaded), UCLA (needs browser token-flow trace).
 SESSION FINAL LIVE COUNT: 636 (started at 529, +107 today).
+
+## Handoff batch 13 (UCLA) — ✅ BUILT July 9: 1 added (636->637)
+New bespoke `UCLA` adapter (sa.ucla.edu/ro/public/soc, fully headless — 2 GETs, model+Token
+read off the subject page's inline JS). Course lookup keys on the HUMAN-DISPLAYED number
+('32','M51A','35L','C121') pulled from the page's own title buttons and joined to each model
+by element id (SubjectAreaCode+CatalogNumber, spaces stripped; 25/25 join) — so users type
+what UCLA shows and we never reconstruct the path encoding. Real seat ints ('N Spots Left'),
+ONLY status=='Open' is open (completed-term test confirmed real Closed/Waitlist). One
+accuracy improvement over the handoff spec: dropped the suggested 8am-8pm FilterFlags time
+window entirely (start/end null) so an evening section can never be hidden from a watcher —
+verified harmless on MATH but removed to be safe. Hourly-refreshed status (registrar, not
+real-time) noted — same as Coursicle, still real. UC coverage: Irvine/Santa Cruz/Santa
+Barbara/Merced/UCLA live; UCSD HOLD (no fall yet); Davis 403.
