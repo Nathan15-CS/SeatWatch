@@ -1142,6 +1142,123 @@ class UCLA:
         return out
 
 
+class SFSU:
+    """San Francisco State University public class schedule (webapps.sfsu.edu) — the
+    official student-facing search, no auth/token. Two GETs per course sharing a cookie
+    jar: (1) /results?searchFor=SUBJ+NUM primes the server session, (2) /searchresultsjson
+    returns {"aaData":[[...13 cols...]]}. Column map (verified numerically): [0]=course
+    label 'MATH 226 [53]', [4]=classNumber (UNIQUE per section — section key), [9]=seats
+    available (int, already clamped >=0 on over-enrolled sections), [10]=capacity.
+
+    open = seats>0 (standard Banner semantic — SFSU is PeopleSoft/CSU, auto-processes
+    waitlists, so an available seat is a real one; waitlist counts live only on the
+    detail page and aren't needed to decide open). Freshness is registrar-live (detail
+    page timestamps 'Seats As of <minute>'). searchFor is an EXACT match (verified no
+    sibling leak: 'ENG 114' returns only ENG 114), and rows are still scoped to the
+    exact watched code from col[0] as a backstop. classCategory=REG only (CEL =
+    continuing-ed catalog, excluded). Term auto-rolls from the search page's term radios
+    ('2267' = Fall 2026, CSU strm coding)."""
+    id = "sfsu"; name = "San Francisco State University"
+    example = "MATH 226"
+    term = "2267"                       # Fall 2026 (auto-rolls)
+    _active_term = None
+    root = "https://webapps.sfsu.edu/public/classservices/classsearch"
+    _RE = re.compile(r"^([A-Za-z]{2,6})\s+(\d+[A-Za-z]{0,2})$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self.root
+
+    def resolve_term(self):
+        """Nearest upcoming main term from the search page's term radios; None on
+        failure. Summer excluded via label."""
+        try:
+            op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+            op.addheaders = [("User-Agent", UA)]
+            page = op.open(self.root, timeout=30).read().decode("utf-8", "replace")
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for code, label in re.findall(
+                    r'name="classScheduleQuick\[term\]"[^>]*value="(\d{4})"[^>]*>\s*([^<]+)', page):
+                sm = re.search(r"(fall|winter|spring)\s*(20\d\d)", label, re.I)
+                if not sm:
+                    continue
+                season, year = sm.group(1).lower(), int(sm.group(2))
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, code
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            want = f"{subj} {num}"
+            try:
+                cj = http.cookiejar.CookieJar()
+                op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+                op.addheaders = [("User-Agent", UA)]
+                op.open(self.root + "/results?" + urllib.parse.urlencode(
+                    {"searchFor": want, "term": self.cur_term(), "classCategory": "REG"}),
+                    timeout=30).read()
+                data = json.loads(op.open(
+                    "https://webapps.sfsu.edu/public/classservices/searchresultsjson",
+                    timeout=30).read().decode("utf-8", "replace"))
+            except Exception:
+                continue
+            secs, dup = {}, False
+            for row in data.get("aaData") or []:
+                if len(row) < 13:
+                    continue
+                label = re.sub(r"<[^>]+>", "", str(row[0]))
+                code = re.sub(r"\s*\[\d+\].*$", "", label).strip().upper()
+                if code != want:                     # backstop: exact watched course only
+                    continue
+                key = str(row[4])
+                try:
+                    seats = int(row[9])
+                except (TypeError, ValueError):
+                    continue                          # no count -> skip, never guess
+                if key in secs:
+                    dup = True
+                    break
+                secs[key] = {"open": seats > 0, "seats": max(seats, 0)}
+            if dup:
+                continue
+            out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+
 class Iowa:
     """Bespoke adapter for the University of Iowa's public MAUI API. One call per
     DEPARTMENT returns every section with an authoritative sectionStatus
@@ -2856,6 +2973,11 @@ class Palomar(PeopleSoft):
     id = "palomar"; name = "Palomar College"
     example = "CS 101"; host = "my.palomar.edu"; site = "palc9prd"
     inst = "PALCC"; term = "2267"                       # Fall 2026
+
+class Coppin(PeopleSoft):
+    id = "coppin"; name = "Coppin State University"
+    example = "ENGL 102"; host = "eaglecs.psoft.coppin.edu"; site = "csucsprd"
+    inst = "COPPN"; term = "2268"                       # Fall 2026
 
 class BostonUniversity(PeopleSoft):
     # BU uses college-prefixed subjects (CAS = College of Arts & Sciences, so
@@ -4747,7 +4869,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                              Citrus(), Cochise(), AllanHancock(), LakeSumter(), NorthwestFlorida(), AntelopeValley(), Harford(), Gavilan(), JeffersonCollegeMO(), MeridianCC(),
                              ConcordiaTX(), TAMUSanAntonio(), TAMUCentralTexas(), UDallas(),
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
-                             Towson(), UVA(), USM(), Palomar(), BostonUniversity(),
+                             Towson(), UVA(), USM(), Palomar(), BostonUniversity(), Coppin(),
                              LoyolaNO(), UnionNY(), ManchesterU(), Whitman(), Linfield(),
                              FranklinU(), Ursinus(), SalveRegina(), Cornerstone(), NorthPark(),
                              Gannon(), Mercyhurst(), SaintVincent(), Maryville(),
@@ -4870,7 +4992,7 @@ def _guard_registry(all_schools):
     return {s.id: s for s in all_schools}
 
 
-SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA()])
+SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU()])
 
 
 def refresh_all_terms(log=None):
@@ -4878,7 +5000,7 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA)):
+        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA, SFSU)):
             try:
                 s.refresh_term(log)
             except Exception:

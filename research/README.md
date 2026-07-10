@@ -816,3 +816,17 @@ stale 2015 crawl), CSULB/CSUN/Sac State/Cal Poly schedule guesses (403/NX). ICC 
 FOLLOW-UP VEIN (unmined): the other ~18 CSU campuses may each run a bespoke public schedule like
 SFSU's — one-at-a-time registrar-page recon, decent odds given the SFSU precedent. Also: HCX
 customers announce migrations in campus-IT news ("HighPoint CX" + college name) — alternate harvest angle.
+
+## Handoff batch 14 (Coppin State + SFSU) — ✅ BUILT July 9: 2 added (637->639)
+Coppin State (Baltimore HBCU): 4-line PeopleSoft subclass (host eaglecs.psoft.coppin.edu,
+inst COPPN). The flagged {pageCount,classes} object shape is a non-issue — the existing
+PeopleSoft adapter already reads d.get('classes')/d.get('pageCount'). Gated: ENGL 102 22
+secs/19 open, big subject ENGL 101 41 secs handled fine.
+SFSU (first CSU on the platform!): new bespoke `SFSU` adapter for webapps.sfsu.edu's public
+class schedule (2 cookie-shared GETs: prime /results then /searchresultsjson). Keys by
+classNumber (col[4]), open=seats>0 (col[9], clamped >=0), scoped to exact watched code from
+col[0]. Verified: no sibling leak (ENG 114 only ENG 114), unique classNumbers, real mix
+(MATH 226 16 open/8 full), registrar-live freshness (detail page timestamps to the minute).
+Term auto-rolls from the search page's term radios. CSU was thought all-login-gated — SFSU's
+public schedule is the crack; other CSU campuses may have similar student-facing schedules
+worth a look.
