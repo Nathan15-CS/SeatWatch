@@ -670,3 +670,16 @@ quarter codes synthesized (2268 = Fall 2026) with verify-before-adopt. SIDE FIX:
 missing from refresh_all_terms' adapter tuple (added same commit, along with UCSC) — its
 term would never have auto-rolled. UC status: Irvine ✅ SantaCruz ✅ Merced ✅(Banner);
 UCSB/UCSD/UCLA still with research.
+
+### Batch 12 sent (July 9 2026) — UC Santa Barbara (ASP.NET viewstate cracked) — CONDITIONAL on open-detection
+Cracked UCSB's ASP.NET postback: GET coursesearch.aspx → scrape __VIEWSTATE/__VIEWSTATEGENERATOR/
+__EVENTVALIDATION → POST with __EVENTTARGET=ctl00$pageContent1$searchButton (image button posts via
+EVENTTARGET not value — the crux), quarterList=20264 (Fall 2026, SERVER-RENDERED select), courseList=SUBJ,
+dropDownCourseLevels=All. Returns ~4.7MB subject-wide HTML, real Fall 2026 sections.
+⛔ ACCURACY OPEN QUESTION (flagged to builder, do not ship until resolved): status in class="Status" cells
+= "Full"/"Closed"; OPEN appears as BLANK Status cell (JS only styles Closed/Full). "blank=open" is an
+INFERENCE — must confirm via Enrolled<Max (Enrolled column exists; couldn't cleanly parse per-section
+labels). If unprovable → scrap (false-open risk). Genuinely new (0 by name).
+UC scoreboard: Irvine ✅, Santa Cruz ✅, Merced ✅(already), Santa Barbara (conditional), UCSD (HOLD-fall-not-
+loaded + redirect flow), UCLA (browser token). LESSON: don't assert open-detection on inference; hand the
+cracked flow + the explicit accuracy question, let the gate resolve it.
