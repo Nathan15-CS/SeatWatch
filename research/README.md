@@ -953,3 +953,29 @@ the information… available through BroncoDirect" — live seats are one of the
 Capacity-only = cannot ever support a seat alert. PERMANENT SKIP; do NOT re-attempt (it's a data-absence,
 not a browser/technical block). Mechanically-solved, product-unusable — same lesson class as fake-status
 but the opposite failure (no status field at all rather than a fake one).
+
+### Big-university alt-search + Ellucian-cloud re-sweep (July 10 2026) — 0 net-new. Confirms mined-out.
+Picked up the (now uncontested) hunt after CSU. Result: nothing shippable; documents WHY the remaining
+universe resists browser-free discovery.
+- **Arizona State (~65k+, biggest prize):** catalog.apps.asu.edu is a SPA; real data behind
+  api.myasuplat-dpl.asu.edu via a PKCE authorization-code OAuth flow (client_id=catalog-class-search-app,
+  serviceauth-public-agent) whose authorize step (weblogin.asu.edu/serviceauth/oauth2/authorize) returns
+  "ASU Login - Error" — interactive login gate. Confirms the long-standing "ASU token SPA" note. GATED.
+- **University of Arizona (~53k):** schedule.arizona.edu → studentcenter.arizona.edu/app/ui/public/
+  select-campus, an Angular SPA over **GreyHeller InFlight** fronting PeopleSoft. Config exposes a genuine
+  PUBLIC no-SSO catalog host (pubHost=catsched.studentcenter.arizona.edu, publicNativeInstName=pubsaprd)
+  — so the data IS public — but the class-search XHR is in lazy-loaded chunks and the InFlight REST path
+  isn't in main.js; capturing it needs a browser network-trace, and the Chrome extension is BLOCKED on
+  this domain family (same wall as schedule.cpp.edu). DEFERRED — winnable IF a browser can reach it and
+  trace one search (big payoff, ~53k). Backend is PeopleSoft, so verify real enrl_stat before shipping.
+- **Ellucian-cloud label re-sweep (browser-free, gate-safe):** probed ~85 Banner-cloud
+  (reg-prod.{label}.elluciancloud.com / reg-prod.ec.{label}.edu) + ~59 Colleague-cloud
+  ({label}-ss.colleague.elluciancloud.com) candidate labels (mid-size regional/private 4-years the
+  giant-focused sweeps skip). Only 2 responded — Belmont (Banner) and Trevecca (Colleague) — and BOTH are
+  ALREADY IN schools.py. 0 net-new. Confirms the cloud label-guessing vein is MINED OUT: hand-typed
+  labels just re-hit covered schools. A fresh systematic sweep needs the IPEDS HD candidate list, not
+  guesses (prior sessions already ran those).
+HONEST STATE: browser-free, accuracy-safe discovery is near-exhausted at ~641. Remaining real wins need
+one of: (a) a browser that can reach the blocked SPA/ASP.NET domains (U Arizona InFlight, ASU, CPP-class)
+to trace one search; (b) a fresh IPEDS-driven candidate sweep rather than hand-typed labels; (c) a
+specific named target from Nathan. Continued blind label-probing is ~0 EV.
