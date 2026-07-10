@@ -999,3 +999,34 @@ LESSON: schools fronting the classic SSR_CLSRCH class search behind a modern SPA
 Anthology, etc.) inherit the classic-PS fake-status risk — the shiny wrapper doesn't change the fake
 guest status underneath. Check the config's PeopleSoft component key; if it's SSR_CLSRCH / SA_LEARNER_
 SERVICES.CLASS_SEARCH.GBL / COMMUNITY_ACCESS, expect fake-all-open and require the completed-term test.
+
+### Volume sweep over full US university-domains dataset (July 10 2026) — Banner + Colleague
+Pulled Hipo world-universities dataset (2348 US, 2393 domains), deduped vs schools.py → 2014 uncovered
+domains. Swept ALL across Banner (7 host patterns incl. cloud) + Colleague (5 patterns incl. cloud).
+- BANNER sweep: 11 hits, ALL already-live (Georgetown/OleMiss/EOU/UCO/MCC-KC) or previously-cut-for-cause
+  (Morehouse/NMSU/Wilkes/Middlebury/CCTech — hidden seats / wrong-entity term / numeric subj). 0 net-new.
+- COLLEAGUE sweep: initially 0 (DETECTOR BUG — required __RequestVerificationToken which isn't in the
+  first page load; real marker is 'Catalog'+Ellucian/Self-Service). Fixed → 53 hits. After hard dedup
+  (label+host+name) → 17 not-obviously-covered. Gated through the PRODUCTION Colleague adapter:
+  • 11 return 405/400/non-JSON on PostSearchCriteria = a DIFFERENT/NEWER Colleague Self-Service API
+    version OR guest-search-gated (augustana, bridgeport, brookdalecc, camdencc, gac, gustavus, lvc,
+    mcdaniel, sunyocc, twu, walshcollege). ⚑ BUILDER LEAD: if the newer Colleague API variant were
+    supported, this class of host (11 here, likely more) unlocks — worth an adapter probe.
+  • 3 permanent-cut/dup: tesu (rolling), vvc (archive), westminsteru (= Westminster U Utah rebrand,
+    already live via ss.westminstercollege.edu — add westminsteru.edu to dedup-exclude).
+  • aurora = still HOLD (2026 Fall Semester exists but no live multi-section courses yet).
+
+  ✅ 2 GATED CLEAN, NET-NEW → handed to builder (batch 16):
+  1. EDISON STATE COMMUNITY COLLEGE (Ohio) — selfservice.edisonohio.edu. Term format "Fall 26/27
+     Semester" (academic-year YY/YY; base _pick_term can't parse it → needs a term-format subclass,
+     ShortYear-family). Forced-term gate: ENG 121S = 60 sections, 41 open / 19 closed, real varied seats
+     (6,10,2,12,...), unique keys (001FS/003FS/006FS). Also BIO 121S 18/2, PSY 121S 16/11 — real mixes.
+     example="ENG 121S". Dedup clean (Ohio Edison ≠ FL "Edison State College"=FSW, already distinct).
+  2. GEORGIA MILITARY COLLEGE — selfservice.gmc.cc.ga.us. QUARTER system; term "2026-2027 Quarter 1
+     Aug-Oct" = fall quarter (base picker looks for Fall/Spring seasons, misses "Quarter N" → needs a
+     quarter-term picker). Gate: ENG 101 = 55 sections, 25 open / 30 closed, EVERY open section seats>0
+     (0 open-with-zero-seats — no false-alert risk), ENG 102 6/17. example="ENG 101". Net-new (≠ Marion
+     Military Institute). Section keys quarter-block style (10X21/12E11).
+CONCLUSION: the mechanical host-guess universe is essentially mined out at 641 — a full 2014-domain
+sweep yielded exactly 2 clean adds, both gated only after per-school term-format handling. Biggest
+remaining Colleague lead = the newer-API-version hosts (405/400 class).
