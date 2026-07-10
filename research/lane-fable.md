@@ -6,7 +6,7 @@ Update the "NOW" line whenever I start/finish a vein, then commit + push immedia
 ## NOW (active claims — do not touch these, Codex)
 - CSU vein: HARVESTED + CLOSED. SFSU/Sac State/CSUN shipped. Cal Poly Pomona RESOLVED = permanent skip (ASP.NET flow cracked but public schedule is capacity-only, no seats/status). Remainder walled/stale/classic-fake — see README.
 - PeopleSoft **Fluid / HighPoint HCX** guest-API vein — thin (420-host sweep = 0; only search-harvested hosts yield).
-- **Next:** CSU closed, HCX thin. Awaiting Nathan's steer on a fresh vein (won't grab Codex's Colleague/Banner/CT-log claims).
+- **CLAIMED (July 10):** "Alt public class-search at big uncovered universities" — the WebSoc/pisa/fose/classservices pattern that landed SFSU/SacState/UCI/UCSC. Targeting large flagships gated on primary SIS: Arizona State, UCF, Houston, Purdue, Texas A&M, Michigan State, Iowa State, etc. Codex is out of tokens so no collision risk on any vein now.
 
 ## DONE this partnership (see research/README.md for full specs)
 - Batch 13: UCLA — shipped (639 live)
