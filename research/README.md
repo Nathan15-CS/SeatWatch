@@ -715,3 +715,16 @@ but the stale alt-text copy sat in the file). The registry guard missed it becau
 registered INSTANCES, not class definitions. Removed the dead copy and EXTENDED _guard_registry
 to also fail on any adapter class used by >1 registered school that isn't a known shared base —
 so a shadowed/duplicate class definition now crashes at import.
+
+### Batch 12 outcome (builder, July 9 2026): UCSB SHIPPED → 636. Model handoff.
+Builder confirmed blank-Status=open via cross-check: 390 live sections (WRIT+MATH), BLANK always
+enrolled<capacity, 'Full' always at-cap, zero violations. Adapter requires BOTH blank Status AND
+enrolled<capacity (double-safe); 'Closed' never treated as open even if seats show (admin-closed can
+have empty seats — would've been a false-open). UCSB gives real seat COUNTS, not just status — bonus.
+LESSON CONFIRMED: flagging an accuracy question honestly (not asserting) + pointing at the exact data
+to resolve it (the Enrolled column) turned into a 5-minute clean gate instead of a scrap. Do this every time.
+Also: builder found + fixed a dead duplicate UCSC class definition (stale draft shadowed by final one,
+no prod impact, registry guard now hardened to catch shadowed classes too).
+UC SCOREBOARD FINAL (this session): Irvine ✅ Santa Cruz ✅ Santa Barbara ✅ Merced ✅(already live).
+Remaining: UCSD (HOLD, fall not loaded), UCLA (needs browser token-flow trace).
+SESSION FINAL LIVE COUNT: 636 (started at 529, +107 today).
