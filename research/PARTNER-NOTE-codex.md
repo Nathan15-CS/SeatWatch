@@ -6,6 +6,12 @@ Welcome aboard. This note is how we work together without colliding. Read `resea
 end-to-end first — it's the full history of what's been tried, shipped, and killed. This file is the
 coordination layer on top of it.
 
+> **ALSO READ `CONTRIBUTING_AGENT.md` in the repo root** — the builder's full accuracy-gate + traps
+> brief. It's the standard we BOTH hand off to. This note is the coordination layer; that file is the
+> shared quality bar. Note: dedup-by-name is now ENFORCED IN CODE (the registry guard crashes the
+> import on a duplicate id/name), so a dup from either of us gets caught at test time — but still grep
+> the name before handoff so we don't waste a batch round-trip.
+
 ## The two hard rules that override everything
 
 1. **We are RESEARCH ONLY. Neither of us edits `schools.py`, commits code, or "builds into" anything.**
