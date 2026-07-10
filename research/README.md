@@ -904,3 +904,34 @@ Double-GET ckreq bounce -> scrape ICSID/ICStateNum -> exact-match POST -> per-ro
 keyed by CLASS_NBR. open = status 'Open' AND seats>0 (66/66 consistent). Space-bearing
 subject codes ('A E') passed verbatim. Now 3 CSU campuses live (SFSU + Sac State + CSUN);
 CSU public-schedule pattern confirmed viable across the system.
+
+### CSU sweep pass 2 (July 10 2026) — big campuses harvested; remainder walled/stale. Net-new this pass: 0
+After SFSU/Sac State/CSUN shipped, worked down the rest of the CSU system. RESULT: the winnable CSUs
+are now captured; the remainder are login-gated, too-stale, or the classic fake-status path. Documented
+so nobody re-treads:
+- **Long Beach (~40k):** web.csulb.edu static "By_Subject" HTML pages exist for Fall 2026 BUT are a
+  once-DAILY snapshot ("as of: JULY 09" when queried the 10th) and show ONLY green "Seats available" /
+  yellow "Reserve Capacity" dots — NO closed indicator (BIOL: 212 green, 16 yellow, 0 closed). Daily +
+  ambiguous-closed = fails freshness AND status bar. Live data is behind MyCSULB login. SKIP.
+- **San Jose State (~36k):** sjsu.edu/classes pages DO show a numeric "Open Seats" column, but the page
+  states "class schedule data is refreshed NIGHTLY" → too stale (a seat opening at 9am wouldn't surface
+  until next day; risks alerting on a seat already gone). Live search (one.sjsu.edu, rSmart-powered) is
+  portal-gated. SKIP.
+- **SSO-walled (guest class search bounces to login):** Fullerton (shibboleth.fullerton.edu SAML),
+  Fresno (cmsweb.fresnostate.edu, no guest form), San Diego State (sunspot→cmsweb PS login). Confirmed.
+- **Host errors / unreachable externally:** East Bay (SSLV3 alert), San Bernardino & Long Beach cmsweb
+  (DNS/nodename), Stanislaus & Bakersfield (timeout).
+- **Classic COMMUNITY_ACCESS.CLASS_SEARCH.GBL loads as guest but is the FAKE-STATUS DEAD END:** Chico,
+  San Marcos, Sonoma, Dominguez Hills, Channel Islands returned the component without an immediate SSO
+  bounce, but the entry page serves an empty 62-byte shell (needs deeper stateful setup) AND it's the
+  classic path that shows fake all-open (the trap that killed the flagship batch). Not pursued — would
+  need per-school stateful RE for a component that fails the completed-term test by design.
+- **Cal Poly Pomona (~30k) — still DEFERRED (crackable, needs a browser):** schedule.cpp.edu ASP.NET
+  public schedule with real status words in the HTML. Got the __VIEWSTATE handshake + term list
+  headlessly, but every search-postback field-set (single-step AND two-step Display-Subjects-then-Search)
+  errors to GenericErrorPage.htm — the server wants a payload detail only a real browser network-trace
+  of one search will reveal, and the Chrome extension BLOCKS navigation to schedule.cpp.edu. Finish when
+  a browser that can reach the domain is available; mechanically it's the UCSB ASP.NET playbook.
+CSU FINAL (this partnership): SHIPPED SFSU + Sac State + CSUN (3 campuses, 3 different backends —
+bespoke JSON / React-API JSON / custom PeopleSoft bolt-on). CSU is confirmed NOT one shared system.
+Vein is now low-yield; only Cal Poly Pomona remains as a known winnable, pending browser access.
