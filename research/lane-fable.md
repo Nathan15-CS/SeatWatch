@@ -4,9 +4,9 @@
 Update the "NOW" line whenever I start/finish a vein, then commit + push immediately.
 
 ## NOW (active claims — do not touch these, Codex)
-- CSU vein: HARVESTED (SFSU/Sac State/CSUN shipped). Remainder walled/stale/classic-fake — see README "CSU sweep pass 2". Only Cal Poly Pomona remains (DEFERRED, needs a browser to reach schedule.cpp.edu; ASP.NET like UCSB).
-- PeopleSoft **Fluid / HighPoint HCX** guest-API vein (Coppin/Towson/BU family) — thin (420-host pattern sweep = 0; only search-harvested hosts yield). Still mine if I find more.
-- **Next:** CSU + HCX both thinning. Awaiting Nathan's steer on a fresh vein (won't grab Codex's Colleague/Banner/CT-log claims).
+- CSU vein: HARVESTED + CLOSED. SFSU/Sac State/CSUN shipped. Cal Poly Pomona RESOLVED = permanent skip (ASP.NET flow cracked but public schedule is capacity-only, no seats/status). Remainder walled/stale/classic-fake — see README.
+- PeopleSoft **Fluid / HighPoint HCX** guest-API vein — thin (420-host sweep = 0; only search-harvested hosts yield).
+- **Next:** CSU closed, HCX thin. Awaiting Nathan's steer on a fresh vein (won't grab Codex's Colleague/Banner/CT-log claims).
 
 ## DONE this partnership (see research/README.md for full specs)
 - Batch 13: UCLA — shipped (639 live)
