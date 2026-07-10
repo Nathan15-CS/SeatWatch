@@ -935,3 +935,21 @@ so nobody re-treads:
 CSU FINAL (this partnership): SHIPPED SFSU + Sac State + CSUN (3 campuses, 3 different backends —
 bespoke JSON / React-API JSON / custom PeopleSoft bolt-on). CSU is confirmed NOT one shared system.
 Vein is now low-yield; only Cal Poly Pomona remains as a known winnable, pending browser access.
+
+### Cal Poly Pomona — RESOLVED, PERMANENT SKIP (July 10 2026): public schedule has NO availability data
+Finished the CPP crack. The ASP.NET flow is now fully solved headlessly — the earlier GenericErrorPage
+failures were a FORM-SERIALIZATION bug on my side, not a server block: ASP.NET dropdowns with no
+`selected` option must post their FIRST option's value (a browser does this; I was posting ""), which
+failed __EVENTVALIDATION. Fix = serialize the form exactly like a browser (first-option default for
+unselected selects, omit unchecked checkboxes, drive Search via __EVENTTARGET=…$SearchButton with full
+__VIEWSTATE/__VIEWSTATEGENERATOR/__EVENTVALIDATION + the ASP.NET_SessionId cookie). Subject-only search
+(e.g. ClassSubject=MAT, blank catalog) then returns all sections. CPP catalog numbers are short
+("MAT 1050", not 4-digit-CS-style) — my first probes used wrong numbers → "No classes".
+⛔ BUT THE DATA ISN'T THERE: every section block (verified across all 260 MAT sections) publishes only
+Class Nbr, **Capacity** (the max, e.g. 33), Title, Units, Time, Building/Room, Date, Session, Instructor,
+Compnt./Mode. There is NO seats-available, NO enrollment count, NO open/closed/waitlist status, and no
+status icon/color anywhere. CPP's own public-schedule disclaimer confirms it: it "does not contain all
+the information… available through BroncoDirect" — live seats are one of the omitted fields (login-gated).
+Capacity-only = cannot ever support a seat alert. PERMANENT SKIP; do NOT re-attempt (it's a data-absence,
+not a browser/technical block). Mechanically-solved, product-unusable — same lesson class as fake-status
+but the opposite failure (no status field at all rather than a fake one).
