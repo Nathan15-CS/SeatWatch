@@ -830,3 +830,62 @@ col[0]. Verified: no sibling leak (ENG 114 only ENG 114), unique classNumbers, r
 Term auto-rolls from the search page's term radios. CSU was thought all-login-gated — SFSU's
 public schedule is the crack; other CSU campuses may have similar student-facing schedules
 worth a look.
+
+### CSU public-schedule sweep pass 1 (July 10 2026) — 2 more gated clean, 1 crackable-deferred, SSO walls mapped
+SFSU proved CSUs run bespoke public schedules. Swept the big campuses. RESULT: the CSU system is
+FRAGMENTED (every campus different tech), NOT one shared adapter — but several are individually clean.
+
+1) ✅ SACRAMENTO STATE (~31k, 4-year public) — GATED CLEAN, best data of the batch (bespoke JSON API).
+   React app at csus.edu/class-schedule; backend classschedule.webhost.csus.edu/api/cs/ (no auth, no token):
+   - GET /api/cs/fall-2026            → [{subject_code, subject_ldesc}]  (subject list; term slug is
+     "fall-2026" / "spring-2026" style — auto-roll by building the slug from nearest upcoming term)
+   - GET /api/cs/fall-2026/{SUBJ}     → [{catalog_number, class_title, sections:[...]}]  (one call
+     returns the WHOLE subject with all courses + sections inline — efficient)
+   Section fields: class_number (5-digit, UNIQUE key), class_section ("01"), component,
+     seats_total (int), seats_available (int) ← the money field, term_code ("2268"=Fall 2026).
+   open = seats_available>0 (Banner semantic). GATE: 1035 Fall-2026 sections across CSC/ENGL/MATH/
+   BIO/PSYC = real mix 571 open / 464 full; seats_available<=seats_total on 100% (no sentinel);
+   completed-term (fall-2025) ENGL = 124 open / 94 full (real closed sections, not fake). Freshness:
+   response Cache-Control max-age=3600 → hourly (same tier as UCLA, shipped). ⚠️ PARSE NOTE: multi-
+   MEETING courses repeat the same class_number across rows with meeting_number 1/2 (seen on CSC/MATH,
+   up to 63 dup class_numbers in MATH) — DEDUPE sections by class_number (the dup rows carry identical
+   seats, just different meeting patterns). Example: "CSC 10A". Dedup clean (Sac State not in schools.py;
+   CCSF/USF/SFSU are different). Needs a small bespoke JSON adapter (like Wisconsin/Iowa).
+
+2) ✅ CSU NORTHRIDGE (~38k, 4-year public) — GATED CLEAN, custom PeopleSoft bolt-on (stateful POST).
+   NOT the fake-status classic-PS trap — this is CSUN's own component NR_SSS_COMMON_MENU.NR_SSS_SOC_
+   BASIC_C.GBL, and it returns REAL availability (completed-term test PASSED, see below). Host
+   cmsweb.csun.edu, site CNRPRD. Flow: GET the .GBL entry TWICE (first bounces on cookie-check ckreq,
+   second serves the form) → scrape ICSID + ICStateNum → POST with ICAction=NR_SSS_SOC_NWRK_BASIC_
+   SEARCH_PB and fields: NR_SSS_SOC_NWRK_STRM (2267=Fall 2026), GROUP="1. Regular",
+   NR_SSS_SOC_NWRK_SUBJECT (e.g. "ENGL"), NR_SSS_SOC_NWRK_NR_SRCH_MATCH="E" (Exact),
+   NR_SSS_SOC_NWRK_CATALOG_NBR_SRCH ("115"). Response is a PeopleSoft grid; per-row fields (index $N):
+   NR_SSS_SOC_NSEC_CLASS_NBR$N (5-digit, UNIQUE key), NR_SSS_SOC_NSEC_CLASS_SECTION$N ("01"),
+   NR_SSS_SOC_NSEC_SSR_COMPONENT$N (LEC), NR_SSS_SOC_NWRK_AVAILABLE_SEATS$N (int),
+   NR_SSS_SOC_NWRK_DESCRSHORT$N ("Open"/"Closed"). open = DESCRSHORT=="Open" (== seats>0, verified
+   0 inconsistencies). GATE: live Fall-2026 ENGL 115 = 66 sections, 41 open / 25 closed, seats↔status
+   consistent 66/66; COMPLETED-TERM TEST (Fall 2025 = 2257) ENGL 115 = 43 Closed / 22 Open → REAL
+   closed sections in a done term, so NOT the NAU-style fake-all-open (this is why it's shippable
+   where classic COMMUNITY_ACCESS is not). Subject codes are SPACE-BEARING on some depts (dropdown
+   shows "A E", "A M", "A/R") — builder pass the code exactly as CSUN lists it. Example: "ENGL 115".
+   Term strm codes standard CSU (2267=Fall26). Dedup clean. Needs a bespoke stateful-POST adapter.
+
+3) ⏸️ CAL POLY POMONA (~30k) — CRACKABLE, DEFERRED (ASP.NET viewstate, same family as UCSB).
+   schedule.cpp.edu is a public ASP.NET WebForms app (__VIEWSTATE/__EVENTVALIDATION/__EVENTTARGET),
+   term dropdown server-rendered (2267=Fall 2026), free-text ClassSubject + CatalogNumber. Search
+   button posts via WebForm_DoPostBackWithOptions (EVENTTARGET, like UCSB's image button). I got the
+   viewstate handshake and term list but the exact search postback field-set returns a validation
+   error / GenericErrorPage on my headless guesses — needs a browser NETWORK TRACE of one real search
+   to capture the precise field payload (the Chrome extension BLOCKS navigation to schedule.cpp.edu,
+   so couldn't trace it here). Status words ("Open"/"Closed"/"Full") ARE in the results HTML → real
+   status likely present. Worth finishing when a browser that can reach the domain is available;
+   mechanically it's the UCSB playbook. NOT handed off (unproven open-detection).
+
+DEAD (SSO-walled, mapped so nobody re-treads): CSU Fullerton (SA_LEARNER_SERVICES.CLASS_SEARCH.GBL
+"?public=" bounces to shibboleth.fullerton.edu SAML), Fresno State (cmsweb.fresnostate.edu same GBL,
+no guest form served), San Diego State (sunspot redirects to cmsweb PS login), San Jose State
+(one.sjsu.edu class-search is portal-gated; the sjsu.edu/classes static pages are "refreshed nightly"
+= too stale + no per-section seats). CSUN's classic sibling and Fullerton's are the CSU-standard
+COMMUNITY_ACCESS/SA_LEARNER guest search — mostly SSO-gated now; CSUN wins only because it exposes
+its OWN bolt-on component publicly. NEXT CSU targets (unchecked): Long Beach, San Marcos, Chico,
+Stanislaus, Bakersfield, Channel Islands, Dominguez Hills, East Bay, Maritime, Humboldt, San Bernardino.
