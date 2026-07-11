@@ -20,7 +20,7 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Nathan's explicit approval.
 
 ## DONE this partnership
-- **July 11, 2026 — fresh public-schedule pass (Fairfield + UC Davis).**
+- **July 11, 2026 — fresh public-schedule pass (Fairfield + UC Davis + Johns Hopkins).**
   - **Fairfield University (CT; `course-search-net.fairfield.edu`): SOURCE-GATED, conditional on
     production adapter.** Official Angular app's lazy module identifies `GET /api/course/courses`.
     Public response is 2,251 rows in 7.23s with `Cache-Control: no-store, max-age=0`; no auth or
@@ -38,6 +38,9 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   - **UC Davis:** blocked for this pass. Official public Class Search page advertises live open seats,
     but the registrar host returned a Cloudflare security block to the headless request. No bypass or
     handoff attempted.
+  - **Johns Hopkins University:** official SIS API documents `OpenSeats`, `MaxSeats`, `SeatsAvailable`,
+    and textual `Status`, but every API request requires a registered API key; the public classes page
+    is additionally Cloudflare-challenged. No key registration or bypass attempted; no handoff.
 - **July 11, 2026 — remaining Colleague round 4 (Gustavus + Texas Wesleyan): closed.**
   - **Gustavus Adolphus College:** official `selfservice.gustavus.edu` 301s to
     `colselfsrvprod.gac.edu`, whose public page uses the legacy `GetCatalogAdvancedSearch` /

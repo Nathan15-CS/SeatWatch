@@ -220,6 +220,30 @@ OR a single builder committing before its gate. The gate + registry-guard (crash
 re-fetch caught everything — nothing ungated actually shipped. FOR NATHAN: ensure only ONE builder
 session commits to schools.py; research agents stay hands-off (verified compliant).
 
+## NewColleague adapter infra ✅ BUILT July 11 (builder) — no schools registered yet
+Nathan greenlit the newer-Colleague build. `NewColleague(Colleague)` is now in schools.py
+(SearchAsync with JSON-string `searchParameters` → SectionsAsync; TermsAndSections is TOP-level,
+no SectionsRetrieved wrapper) plus `YearSpanNewColleague` for '2026-27 Fall Semester'-style term
+labels (Augustana). SAFETY RULE implemented: open ONLY when numeric status==0 AND Available>0 AND
+AreSeatCountsAvailable — the enum is never trusted alone.
+- **Enum verified live on both known hosts** (builder-independent of Codex, production `.fetch()`
+  path): LVC enum {0=open, 1=full}, Augustana {0=open, 2=full}. 162 rows sampled across 18 subjects
+  per school: ZERO full rows (Enrolled>=Capacity) carrying status 0, ZERO status-0 rows without a
+  bookable seat, `Available == Capacity-Enrolled` on every row but one.
+- **Completed-term test caveat (IMPORTANT for handoffs):** guest search indexes ONLY active plan
+  terms — a `terms:["25/FA"]` filter on a finished term returns no courses, so the literal
+  completed-term test is IMPOSSIBLE on this API family. The per-school equivalent (now in the class
+  docstring): current-term rows with Enrolled>=Capacity MUST carry a non-0 status. If a school shows
+  full-by-arithmetic rows still coded 0 → fake default → scrap.
+- **Reserved-seats note (LVC SOC 301):** `Available` can be LOWER than Cap-Enrolled (reserved
+  capacity; Waitlisted=0) — conservative direction, same authoritative field classic Colleague
+  trusts. Only av > cap-enr would be suspicious.
+- Gate results through production fetch: LVC 3.6s (BIO 111 exact-scoped from 111L; 2 full labs
+  correctly withheld), Augustana 2.4s (picker lands '2026-27 Fall Semester'; 5 full rows withheld).
+- **NOT registered:** Lebanon Valley + Augustana are gate-READY builder-side but ship only when the
+  formal gated handoff arrives (Codex → Nathan → Fable). Same for the round-4 conditional leads
+  (Onondaga, Camden County, Walsh College) — the adapter they were waiting on now exists.
+
 ### Flagship gaps round 3 (Fable, July 11 2026) — no clean win; 2 big revisit-leads, rest walled
 Probed a fresh set of big uncovered publics. Honest result: the headless-crackable flagship vein is
 tapping out. Details so nobody re-treads:
@@ -332,6 +356,11 @@ bot-detection bypass was attempted.
 Schedule at `https://selfservice.drew.edu/prod/bwckschd.p_disp_dyn_sched`, and the Fall 2026 term page
 is public. Narrow Biology form probes returned the search form/no matching classes rather than section
 data, so no seat claim is made; leave for a browser/form-trace pass rather than guess at Banner fields.
+
+**Johns Hopkins University — API/key-gated, no handoff.** The official [SIS API documentation](https://sis.jhu.edu/api)
+defines authoritative `OpenSeats`, `MaxSeats`, `SeatsAvailable`, and textual `Status` fields, but API
+requests require a registered API key. The public classes page was also Cloudflare-challenged in this
+pass. No key registration or bot-detection bypass was attempted.
 
 ### Fose systematic sweep (Fable, July 11 2026) — 0 net-new
 Swept classes./courses.{domain} for the fose srcDBs signature across all 2014 uncovered US domains. ONE
