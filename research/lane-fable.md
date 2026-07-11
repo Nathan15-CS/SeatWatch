@@ -69,8 +69,12 @@ The original SeatWatch-Builder session (local_224f8036...) is being retired; Nat
 builder chat, same role/standards. OPERATIONAL NOTE FOR RELAY: the new builder has a DIFFERENT session
 id — the new builder chat "Builder" = session **local_475a2545-d0a3-4573-ba96-8b4f76cebbda** (found via
 list_sessions July 11; old builder was local_224f8036, retired). Send all handoffs to local_475a2545.
-Already messaged it: intro + deploy reminder (2 reliability fixes pending) + pointed it at the newer-
-Colleague adapter as top build (with the hard completed-term gate; do-not-ship-until-Codex-gates caveat). State at handoff: 648 live, pushed through commit 7b07229,
+Already messaged it: intro + pointed it at the newer-Colleague adapter as top build (with the hard
+completed-term gate; do-not-ship-until-Codex-gates caveat). DEPLOY = RESOLVED July 11 (Builder confirmed:
+Nathan deployed both reliability fixes, md5 matches HEAD, poller restarted clean, healthcheck.io
+dead-man's-switch now ARMED). Builder is asking Nathan whether to greenlight scaffolding the Colleague
+adapter now. Nothing queued for me to relay. (Note: `.claude/launch.json` shows deleted in the shared
+working tree — not mine, left untouched.) State at handoff: 648 live, pushed through commit 7b07229,
 origin caught up. ⚠️ DEPLOY-PENDING (Nathan action): two app.py reliability commits (fake-all-open
 production watchdog + alert-delivery-retry fix) are committed+pushed but NOT yet deployed to the Oracle
 box (needs scp + systemctl restart). Open leads for new builder unchanged: newer-Colleague API (Codex),
