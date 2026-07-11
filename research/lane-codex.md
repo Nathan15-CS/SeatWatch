@@ -14,7 +14,8 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   gating still pending a production adapter. UNC Asheville's official React schedule API is another
   fresh source-gated lead, with exact numeric seat arithmetic validated across current and completed
   terms. NCCU's public Banner detail pages are a third fresh lead, with labeled Capacity/Actual/
-  Remaining fields and completed-term mixed results.
+  Remaining fields and completed-term mixed results. UNC Greensboro's current Banner SSB API is a
+  fourth fresh lead, with explicit seat counts and waitlist-only edge cases documented.
   No registry or builder changes.
 - **Prior July 11 Colleague round 4 is complete.** Round 3 found Camden County
   and Walsh College with real mixed numeric seats but both remain conditional pending the production
@@ -145,6 +146,16 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   confirming a real mixed historical feed. Arithmetic was direct on every sample. A future adapter must
   scope exact term+subject+course+section/CRN and require Remaining > 0, preserving waitlist/
   permission notes; current `Banner` production fetch is untested. Source-gated; no handoff or code.
+- **July 11, 2026 — UNC Greensboro current Banner SSB pass.** Official `erp-registration.uncg.edu`
+  exposes public `classSearch/get_subject`, `searchResults/searchResults`, and
+  `searchResults/getEnrollmentInfo`. Biology (`BIO`) Fall 2026 (`202608`) returned 284 unique CRNs
+  (170 openSection/114 closed); Spring 2026 (`202601`) returned 206 (117/89). Numeric
+  `maximumEnrollment`, `enrollment`, and `seatsAvailable` arithmetic held 284/284 and 206/206;
+  detail pages agreed. `openSection` can mean waitlist-only: one Fall row had 0 seats with six waitlist
+  seats, and six Spring rows had no positive seats (one over-cap -1). Future logic must require
+  `openSection == true AND seatsAvailable > 0`, exact term/subject/course/sequence/CRN, and preserve
+  restrictions/reserved-seat summaries. Net-new 18,682-student public research university; source-
+  gated pending adapter, no handoff or production changes.
 - **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -

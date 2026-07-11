@@ -214,6 +214,21 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   preserved. **Safe rule:** use only current selected term, exact subject+course+section/CRN, and
   `Remaining > 0`; do not infer openness from listing presence. Public Banner pages are current and
   no-auth, but production `Banner` integration has not been tested for this host; do not hand off yet.
+- **University of North Carolina at Greensboro (NC) — SOURCE-GATED, adapter needed (Codex, July 11 2026).**
+  Official current class search is `https://erp-registration.uncg.edu/StudentRegistrationSsb/ssb/`;
+  its public endpoints are `classSearch/get_subject`, `searchResults/searchResults`, and
+  `searchResults/getEnrollmentInfo`. The Biology subject code is `BIO`; Fall 2026 term `202608`
+  returned 284 unique CRNs (170 `openSection=true`, 114 false), and completed Spring 2026 term
+  `202601` returned 206 unique CRNs (117 true, 89 false). Search rows publish numeric
+  `maximumEnrollment`, `enrollment`, `seatsAvailable`, `waitCapacity`, `waitCount`, and
+  `waitAvailable`; arithmetic `seatsAvailable == maximumEnrollment - enrollment` held 284/284 Fall
+  and 206/206 Spring. The detail endpoint agreed exactly (Fall CRN `80061` = 19/24/5 seats;
+  CRN `80053` = 24/24/0). `openSection` includes waitlist-only rows: Fall had one `openSection=true`
+  row with 0 seats and waitlist available 6; Spring had six such rows (including an over-cap -1), so
+  **safe rule is `openSection == true AND seatsAvailable > 0`**, never status alone or waitlist seats.
+  Exact `term + subject + courseNumber + sequenceNumber + CRN` scoping is mandatory; preserve optional
+  `reservedSeatSummary`, restrictions, and linked sections. Official Fall 2025 facts report 18,682 total
+  students. Clean net-new large public research university, but no production adapter exists; do not hand off.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very
