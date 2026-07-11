@@ -91,3 +91,15 @@ Nathan's push was right: my 2014-domain sweep only probed Banner 9 (/StudentRegi
 Banner 8 (/prod/bwckschd.p_disp_dyn_sched). Banner 8's public Dynamic Schedule is how VT + Purdue were
 found (real seats via detail pages / open_only filter). Sweeping it now across all uncovered domains.
 Non-overlapping with Codex (Colleague/public-schedule). Also on deck if this yields: Jenzabar, Workday.
+
+## Banner-8 parser-generalization: DECIDED — NOT worth it, moving on (July 11)
+Tested rigorously (production Purdue adapter + a generalized-parser attempt) on the 5 cut schools.
+Verdict: fragile, per-host HTML variation, and an accuracy landmine (detail pages have Seats / Waitlist
+Seats / Cross List Seats rows — wrong-row grab = false-open). Production adapter returns garbage for
+these hosts; my generalization attempts kept failing. Data is real but reliable+FLAWLESS extraction is
+not achievable without significant fragile per-host work I can't vouch for. Per Nathan's "move on if not
+good" → NOT sending to Builder; the 2 that shipped (Bristol, Clovis) are the Banner-8 yield. Do not
+re-hand-off Missouri State/Toledo/SFA/AAMU/Utica without a proven generalized parser.
+STATUS: my solo veins are genuinely tapped (host-guessing, CSU, flagships, HCX, fose, Banner-8 all
+worked). Momentum is with Codex's source-gated leads (Fairfield/SDCCD/Berkeley/UNC Asheville/NCCU/UNCG)
++ Builder building their adapters. I'm in relay/support mode; will relay Codex's gated finds instantly.
