@@ -67,8 +67,10 @@ Alt-public-schedule hunt at big uncovered publics (non-overlapping with Codex).
 ## BUILDER HANDOFF (July 11 2026)
 The original SeatWatch-Builder session (local_224f8036...) is being retired; Nathan started a FRESH
 builder chat, same role/standards. OPERATIONAL NOTE FOR RELAY: the new builder has a DIFFERENT session
-id — the new builder chat is NAMED "Builder". Before the next handoff relay I must run list_sessions,
-find the session named "Builder", and send to THAT id (NOT the old local_224f8036). State at handoff: 648 live, pushed through commit 7b07229,
+id — the new builder chat "Builder" = session **local_475a2545-d0a3-4573-ba96-8b4f76cebbda** (found via
+list_sessions July 11; old builder was local_224f8036, retired). Send all handoffs to local_475a2545.
+Already messaged it: intro + deploy reminder (2 reliability fixes pending) + pointed it at the newer-
+Colleague adapter as top build (with the hard completed-term gate; do-not-ship-until-Codex-gates caveat). State at handoff: 648 live, pushed through commit 7b07229,
 origin caught up. ⚠️ DEPLOY-PENDING (Nathan action): two app.py reliability commits (fake-all-open
 production watchdog + alert-delivery-retry fix) are committed+pushed but NOT yet deployed to the Oracle
 box (needs scp + systemctl restart). Open leads for new builder unchanged: newer-Colleague API (Codex),
