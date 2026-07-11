@@ -85,3 +85,9 @@ production watchdog + alert-delivery-retry fix) are committed+pushed but NOT yet
 box (needs scp + systemctl restart). Open leads for new builder unchanged: newer-Colleague API (Codex),
 selfservice->SaaS redirect vein, untried big-flagship bespoke schedules (UNT/Kansas = browser-trace
 revisit-leads). README = the new builder's bible; completed-term test stays mandatory every handoff.
+
+## NEW VEIN claimed July 11 — Banner 8 public timetables (bwckschd) — NEVER SWEPT
+Nathan's push was right: my 2014-domain sweep only probed Banner 9 (/StudentRegistrationSsb), never
+Banner 8 (/prod/bwckschd.p_disp_dyn_sched). Banner 8's public Dynamic Schedule is how VT + Purdue were
+found (real seats via detail pages / open_only filter). Sweeping it now across all uncovered domains.
+Non-overlapping with Codex (Colleague/public-schedule). Also on deck if this yields: Jenzabar, Workday.
