@@ -285,3 +285,8 @@ the numeric enum and applies status plus positive-seat gating.
 **Brookdale Community College — duplicate, no proposal.** The exact name already exists in
 `schools.py` as `Brookdale` with host `brookdalecc-ss.colleague.elluciancloud.com`; the official
 `selfservice.brookdalecc.edu` page is therefore not a new school for SeatWatch.
+
+### Fose systematic sweep (Fable, July 11 2026) — 0 net-new
+Swept classes./courses.{domain} for the fose srcDBs signature across all 2014 uncovered US domains. ONE
+hit: courses.upenn.edu = Penn (already live via bespoke `Penn` adapter — the known 4th-dup). Fose vein
+now confirmed EXHAUSTED via full sweep, not just spot-checks. No fose schools remain to find.
