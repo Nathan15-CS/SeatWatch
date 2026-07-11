@@ -4952,6 +4952,93 @@ class LincolnMO(ShortYearTermColleague):
     example = "ENG 101"; host = "lincolnu-ss.colleague.elluciancloud.com"
 
 
+class NewColleague(Colleague):
+    """Ellucian Colleague Self-Service — NEWER (Angular-era) API variant. Same guest
+    /Student/Courses catalog + antiforgery token, but search is POST /SearchAsync with
+    {"searchParameters": <JSON-STRING>}, sections POST /SectionsAsync, TermsAndSections
+    sits at the TOP level (no SectionsRetrieved wrapper), and AvailabilityStatus is a
+    NUMERIC enum instead of textual 'Open' (full-code varies by school: LVC 1, Augustana 2).
+    ACCURACY: the enum is untrusted by design — 0 alone could be a fake-open default, so a
+    section is open ONLY when status == 0 AND Available > 0, two independent live signals
+    (Available == Capacity - Enrolled held on every row probed; full sections show
+    status != 0 with Enrolled == Capacity, proving the field is real enrollment, not a
+    default). Guest search indexes ONLY active plan terms (a filter on a finished term
+    returns no courses), so the completed-term test is run per school on current-term
+    FULL sections: enrolled==capacity rows must carry a non-0 status before shipping.
+    {} on any failure. Subclass sets: id, name, example, host."""
+
+    def fetch(self, courses):
+        try:
+            op, tok = self._session()
+        except Exception:
+            return {}
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            try:
+                params = json.dumps({"keyword": f"{subj} {num}",
+                                     "pageNumber": 1, "quantityPerPage": 30})
+                d = self._post(op, tok, "/Student/Courses/SearchAsync",
+                               {"searchParameters": params})
+                term = self._pick_term(d.get("ActivePlanTerms") or [])
+                if not term:
+                    continue
+                match = None
+                for c in d.get("CourseFullModels") or []:
+                    if (c.get("SubjectCode") or "").upper() == subj and (c.get("Number") or "").upper() == num:
+                        match = c
+                        break
+                if not match or not match.get("MatchingSectionIds"):
+                    continue
+                sd = self._post(op, tok, "/Student/Courses/SectionsAsync",
+                                {"courseId": match["Id"], "sectionIds": match["MatchingSectionIds"]})
+                secs = {}
+                for tm in sd.get("TermsAndSections") or []:
+                    if term.lower() not in ((tm.get("Term") or {}).get("Description") or "").lower():
+                        continue
+                    for wrap in tm.get("Sections") or []:
+                        s = wrap.get("Section") or wrap
+                        if not s.get("AreSeatCountsAvailable"):      # counts not published -> skip
+                            continue
+                        try:
+                            av = int(s.get("Available"))            # true count; no count -> skip
+                            status = int(s.get("AvailabilityStatus"))
+                        except (TypeError, ValueError):
+                            continue
+                        key = str(s.get("Number") or s.get("SectionNameDisplay"))
+                        if key in secs:                             # collapse guard
+                            continue
+                        # numeric enum untrusted: open needs status==0 AND a real seat
+                        secs[key] = {"open": status == 0 and av > 0, "seats": max(av, 0)}
+                if secs:
+                    out[course] = secs
+            except Exception:
+                continue
+        return out
+
+
+class YearSpanNewColleague(NewColleague):
+    """Newer-API schools whose term labels lead with an academic-year SPAN
+    ('2026-27 Fall Semester', Augustana IL style) — the digit run in '-27' sits between
+    year and season, which the base season parser can't cross. Rewrite to 'Season 20YY'
+    (Fall keeps the FIRST year; Spring/Summer/Winter take the SECOND — '2026-27 Spring'
+    is spring of 2027) then delegate to the base picker, sub-term penalty intact."""
+    def _pick_term(self, terms):
+        fixed = []
+        for t in terms:
+            d = t.get("Description") or ""
+            m = re.match(r"\s*(20\d\d)-(\d\d)\s+(Fall|Spring|Summer|Winter)\b(.*)", d, re.I)
+            if m:
+                season = m.group(3).capitalize()
+                yr = m.group(1) if season == "Fall" else m.group(1)[:2] + m.group(2)
+                d = f"{season} {yr}{m.group(4)}"
+            fixed.append({"Description": d, "_orig": (t.get("Description") or "")})
+        pick = super()._pick_term(fixed)
+        return next((f["_orig"] for f in fixed if f["Description"] == pick), None) if pick else None
+
+
 class Mercer(Colleague):
     id = "mercer"; name = "Mercer University"
     example = "HOS 111"; host = "mercer-ss.colleague.elluciancloud.com"
