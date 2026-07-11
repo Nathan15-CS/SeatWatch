@@ -1079,3 +1079,96 @@ re-propose these without new evidence (e.g. a school changing its public-schedul
 OPEN big-public vein is (c) from the builder's own list: bespoke public schedules at big flagships NOT
 yet individually checked — UCF, Houston, Purdue, Texas A&M, Michigan State, Iowa State, Clemson, UF,
 Ohio State, Penn State (per PARTNER-NOTE-codex.md's untried list). ASU + U Arizona already tried and dead.
+
+### Flagship bespoke-schedule hunt round 1 (July 10 2026) — 2 MAJOR wins (TAMU, Iowa State), MSU bot-blocked, UF/Clemson incomplete
+Working the builder-vetted target list (Purdue/TAMU/MSU/ISU/Clemson/UF). Results so far:
+
+✅ **TEXAS A&M UNIVERSITY, COLLEGE STATION (~58-60k, the flagship — NOT the SA/Central-TX branches
+already live)** — GATED CLEAN, genuinely major find. Public "Public Class Search" widget embedded in
+the Howdy portal (howdyportal.tamu.edu), confirmed guest-accessible (`up.analytics.userstatus:'guest'`
+observed on page load). Reverse-engineered the Angular web-component's API calls:
+- Session: any GET to `https://howdyportal.tamu.edu/uPortal/p/public-class-search-ui.ctf1/max/render.uP`
+  (establishes cookies; no login).
+- Terms: GET `https://howdyportal.tamu.edu/api/all-terms` → full list incl. `STVTERM_CODE`/`STVTERM_DESC`
+  e.g. "202631":"Fall 2026 - College Station" (also has Galveston/Qatar/Half-Year variants per term —
+  filter to "- College Station" only, exclude branch-campus terms).
+- Sections: POST `https://howdyportal.tamu.edu/api/course-sections` body
+  `{"startRow":0,"endRow":0,"termCode":"202631","publicSearch":"Y"}` → JSON array, ALL sections for the
+  ENTIRE TERM in one call (⚠️ EFFICIENCY NOTE: startRow/endRow and any subject/course filter added to the
+  body are IGNORED server-side — tested empirically, always returns the full term regardless. Response
+  is ~21.7k rows / ~34MB / ~17s for Fall 2026. This is a client-side-grid architecture, not paginated
+  server-side. BUILDER DESIGN NEEDED: cache the full pull per refresh interval (e.g. every 15-30 min)
+  and serve individual watched-course lookups from the cached dump between refreshes — do NOT re-fetch
+  the whole term on every poll cycle, it would dominate cycle time for one school).
+- Fields: `SWV_CLASS_SEARCH_CRN` (5-digit, GLOBALLY UNIQUE — verified 21689/21689 unique across the full
+  Fall 2026 dump), `SWV_CLASS_SEARCH_SUBJECT`/`_COURSE`/`_SECTION`, `STUSEAT_OPEN` ('Y'/'N', ONLY two
+  values observed, no third state). Seat-count fields (`SWV_CLASS_SEARCH_MAX_ENRL`/`_ENRL`/`_SEATS_AVAIL`,
+  `SWV_WAIT_*`) are ALWAYS the string "NA" for guest/public queries (0/21689 rows had real numbers) —
+  this is a STATUS-ONLY school (same class as Fose/VCCS/UConn): open=STUSEAT_OPEN=='Y', seats=None.
+- GATE: Fall 2026 (live) aggregate 12358 N / 9331 Y — real mix. COMPLETED-TERM TEST on TWO separate
+  finished terms: Fall 2025 (202531, ended 2025-12-16) = 7136 Y / 7142 N (near-even real mix, ENGL 104
+  showed 7 of 8 sampled sections Closed); Spring 2026 (202611, ended 2026-05-05) = 7078 Y / 6692 N (ENGL
+  104 showed 8/8 Closed). Both REAL mixed distributions in finished terms — categorically NOT the
+  classic-PS fake-all-open trap (which would show ~100% Y). PASSES DECISIVELY.
+- Example: "ENGL 104" (First-Year Composition, huge/guaranteed course; Fall 2026 = 37 sections, 35
+  closed/2 open — real selective mix). Dedup CONFIRMED clean: schools.py has TAMUSanAntonio and
+  TAMUCentralTexas only; College Station (the main ~58-60k flagship) is NOT covered.
+
+✅ **IOWA STATE UNIVERSITY (~30k)** — GATED CLEAN, even better data quality than TAMU (real NUMERIC
+seats, not just status). Bespoke Vue/Pinia SPA at classes.iastate.edu, backend api.classes.iastate.edu
+(fully separate API host, no auth):
+- Terms: GET `https://api.classes.iastate.edu/api/academic-periods` → `{"data":[{"id":"ACADEMIC_PERIOD-
+  2026Fall","name":"2026 Fall Semester (08/24/2026-12/18/2026)","isCurrent":true,...}]}`. isCurrent flag
+  makes term auto-detection trivial (verify-before-adopt as usual). Only 4 periods listed at a time
+  (current + adjacent); no older archive terms available via this ID scheme (tried "2025Fall" and
+  "2025-2026Fall" formats, both return empty — completed-term test had to use the most recently
+  finished term instead, see below).
+- Sections: POST `https://api.classes.iastate.edu/api/courses/search` body (ALL keys required, arrays
+  must be `[]` not `null` or the API 500s):
+  `{"academicPeriodId":"ACADEMIC_PERIOD-2026Fall","courseSubject":"MATH","courseNumber":"1660",
+  "level":null,"requirement":null,"instructor":null,"semesterTag":null,"credits":null,
+  "openSeats":false,"daysOfTheWeek":[],"sectionStartDate":null,"sectionEndDate":null,"title":null,
+  "deliveryMode":null,"allowedGradingBases":[]}` → `{"data":[{course...,"sections":[...]}]}`.
+  courseNumber does SUBSTRING match (searching "150" returned course "ENGL 1500" too) — filter results
+  client-side to exact `course["number"]==f"{subj} {num}"` before reading sections (no leak risk once
+  filtered; verified).
+- Fields per section: `id` (e.g. "COURSE_SECTION-3-1350127", UNIQUE — verified 31/31 unique on a
+  31-section course), `number` (section letter/number), **`openSeats`** (REAL INTEGER, not NA!),
+  `unreservedSeats`/`reservedSeats` (breakdown, sum ≈ openSeats — reserved seats are held for specific
+  populations but still count toward availability). open = openSeats>0 (identical Banner semantic).
+- GATE: Fall 2026 (live) across 5 intro courses (ENGL 1500/MATH 1660/PSYCH 1101/COMS 1270/BIOL 1010) =
+  103 sections, 61 open/42 full, real varied integers (sample: 21,21,65,105,7,2,2,20,9,2...). COMPLETED-
+  TERM TEST: Spring 2026 (ended 2026-05-15, ~2 months before this check) = 80 sections sampled, 67
+  open/13 full, seats genuinely varied (32,14,13,23,27,19,3,2,8,4...) including legitimate zeros — NOT
+  a uniform sentinel, NOT all-open. Passes (no older archive term was queryable to test further back,
+  but this recently-completed term with real varied numbers including true zeros is solid evidence).
+- Example: "MATH 1660" (Calc II, 31 sections Fall 2026, wide real range 1-105 seats). Dedup CONFIRMED
+  clean: no "iowa state" or "isu" (as an actual entry, not substring) anywhere in schools.py.
+
+⛔ **MICHIGAN STATE — BLOCKED, did not pursue further.** `schedule.msu.edu` (WebSearch's cited public
+tool) no longer resolves via DNS (likely decommissioned/renamed). The two live MSU hosts found instead
+(sis.msu.edu, reg.msu.edu) both sit behind **Incapsula/Imperva bot-protection** (JS challenge page,
+robots noindex). Per hard policy, bypassing bot-detection is out of scope — did not attempt. If MSU is
+revisited, it needs a real browser session (which can render the JS challenge) to find the actual
+current public tool, not further headless probing of these two hosts.
+
+🔧 **UNIVERSITY OF FLORIDA — IN PROGRESS, not cracked this pass.** one.ufl.edu/soc is a genuine
+Angular SPA ("Schedule of Courses - ONE.UF"), and a community-documented public API exists
+(`github.com/Rolstenhouse/uf_api`: base `https://one.ufl.edu/apix/soc/schedule/`, params
+term=YYYY+semester-digit [1=Spring/5=Summer/8=Fall], category=CWSP, course-code, no-open-seats). The
+endpoint responds 200 but returns 0 rows for every term/category combo tried, INCLUDING the doc's own
+literal example URL — the documented contract appears stale (doc is old; UF likely changed something
+since). Checked the SPA's 20 top-level JS chunks for the current real endpoint construction — no hits,
+the schedule-search logic is probably in a deeper lazy-loaded route chunk not referenced in the initial
+HTML. Needs either a browser network-trace of one real search, or continued dynamic-chunk discovery.
+Not attempted via browser (UF not yet tested for the extension block that hit arizona.edu/cpp.edu).
+
+⏸️ **CLEMSON — no public tool found this pass.** No dedicated class-search page discoverable via
+registrar site navigation (checked registrar registration page — 404/redirects to generic content);
+matches the earlier session's "Clemson 403/SSO" finding. Not confirmed dead, just not found; lower
+priority than finishing UF given no lead yet.
+
+**Efficiency note for TAMU (flagging for builder, not blocking):** the full-term-per-request design
+means TAMU needs its own refresh-interval caching layer in the adapter (distinct from every other
+per-course-fetch adapter in the codebase) — this is a real architecture decision, not a research
+question, so flagging rather than prescribing.
