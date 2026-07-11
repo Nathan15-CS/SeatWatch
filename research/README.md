@@ -15,6 +15,17 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Batch 22 (Lebanon Valley, Augustana IL, Camden County, Walsh College) — ✅ BUILT July 11: 649->653 (commit 361008f)
+All 4 newer-Colleague schools registered + re-gated LIVE through the production path this session
+(NewColleague/YearSpanNewColleague infra had arrived pre-committed in dc5ffd0 from another builder
+session; re-verified regardless of author). Accuracy gate PASSED on all 4 — the numeric-0-fake-open
+trap is disproven on EVERY row: full-by-arithmetic sections (enrolled==capacity) ALWAYS carry non-0
+status (LVC/Walsh full=1, Augustana/Camden full=2); status-0 rows ALWAYS have a bookable seat;
+Available==Capacity-Enrolled held 19/19 rows; keys unique; exact-course scoping isolates the watched
+course; Augustana term picker landed on '2026-27 Fall Semester' correctly; latency <=2.5s. Zero
+false-open risk. Clears the entire newer-Colleague backlog. Awaiting Nathan's manual deploy (Onondaga
+649 + these 4 all deploy together). Original relayed specs below for the record.
+
 ### Lebanon Valley College (PA) — Batch 22 SENT July 11 2026 (Codex find, Fable relayed)
 
 Clean net-new newer-Colleague add. Official public catalog: `https://selfservice.lvc.edu/Student/Courses`;
