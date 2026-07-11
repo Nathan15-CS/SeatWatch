@@ -1262,3 +1262,28 @@ unless McDaniel restores public catalog access. Name dedup is clean.
 currently lists `UG26SP`, `UG26SU`, `UG26FA`, and `UG27WI`; subjects include BIO/ENG/MAT. Name dedup is
 clean. The mandatory production-path course fetch
 was not completed in this pass, so there is no status/seat claim and no go-ahead marker yet.
+
+### University of Florida (~55k) — API CRACKED but PERMANENT SKIP (Fable, July 10 2026): openSeats suppressed on public API
+Solved the public API that prior notes had as gated (one.ufl.edu SPA "Schedule of Courses"). The
+community-documented endpoint (github.com/Rolstenhouse/uf_api) was STALE; two corrections make it work:
+(1) a `Referer: https://one.ufl.edu/soc/` header is REQUIRED (without it, 0 rows for every query — this
+is why the doc's own example "failed"); (2) term code is 4-digit "2268"=Fall 2026 (last digit 1=Spring/
+5=Summer/8=Fall), NOT the doc's 5-digit "20268". Working call:
+  GET https://one.ufl.edu/apix/soc/schedule/?category=CWSP&term=2268&course-code=ENC1101
+  (+ Referer header). /apix/soc/filters/ lists categories (CWSP/UFOL/...). Returns COURSES[].sections[].
+⛔ BUT `openSeats` is `null` on 100% of sections across ALL terms tested — including COMPLETED Fall 2025
+(2258), Spring 2026, Summer 2026, and Fall 2026 (185+ sections, 0 non-null). Not a "fall not loaded"
+timing issue (a finished term is also null) — the public/guest API STRUCTURALLY SUPPRESSES the seat
+count; real availability is behind ONE.UF login. Only availability-ish field is `waitList:{isEligible,
+cap,total}`, which cannot reliably signal main-seat open/closed (total=0 is ambiguous: open OR full-with-
+no-waitlist). Same class as Cal Poly Pomona: public schedule, seat field not published → nothing to gate.
+PERMANENT SKIP; do NOT re-attempt (cracking the transport further won't surface data that isn't served).
+The API-crack recipe is logged only so nobody re-derives it thinking it's a live-seat source — it isn't.
+
+### Flagship hunt SCORECARD (July 10 2026) — 3 major wins from the builder's 6-school list
+✅ Texas A&M College Station (~58-60k, status-only) — batch 17.  ✅ Iowa State (~30k, real numeric seats)
+— batch 17.  ✅ Purdue (~50k, Banner 8 real numeric seats) — GATED, awaiting go-ahead.  ⛔ UF (API
+cracked, openSeats suppressed — permanent skip).  ⛔ Michigan State (Incapsula bot-wall — out of scope,
+would need a real browser).  ⛔ Clemson (no public class-search tool found via registrar nav).
+Plus Bridgeport (~5k, Codex find) — batch 18. Flagship-bespoke-schedule vein now well-worked; the
+remaining 3 are genuinely blocked (data-absence / bot-wall / no-tool), not just unfinished.
