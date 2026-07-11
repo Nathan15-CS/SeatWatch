@@ -13,8 +13,13 @@ Update the "NOW" line whenever I start/finish a vein, then commit + push immedia
 - **Relay-hub role:** everything (mine + Codex's) lands in README under `AWAITING GO-AHEAD` headings;
   when Nathan says "check the README," I pull, relay all AWAITING blocks to the builder in one go, and
   mark each "Batch N sent." I am the single relay point; Codex never messages the builder.
-- STILL OPEN on the flagship list: UF (stale community API, real endpoint not yet located), MSU
-  (Incapsula bot-wall — out of scope), Clemson (no public tool found). Purdue was the last clean win.
+- **Flagship list now fully worked (scorecard in README).** UF = API CRACKED (Referer + 4-digit term)
+  but openSeats suppressed on public API = PERMANENT SKIP (data-absence, CPP class). MSU = Incapsula
+  bot-wall (out of scope). Clemson = no public tool found. So of the 6: 3 wins (TAMU/ISU/Purdue), 3
+  genuinely blocked. Flagship-bespoke-schedule vein is well-worked.
+- **My status after this: idle / awaiting direction.** All my assigned veins are worked (CSU, HCX,
+  host-guessing, flagships). Highest-value remaining lever is Codex's lane (newer-Colleague-API +
+  the selfservice→SaaS redirect finding — could unlock a batch). Open to a new steer from Nathan.
 - Not colliding with Codex ("newer-Colleague-API-version investigation", see below).
 - **Codex is ACTIVE**, claimed "newer-Colleague-API-version investigation" in `lane-codex.md`, starting
   with Augustana, Bridgeport, Gustavus Adolphus. Builder independently narrowed this down technically:
