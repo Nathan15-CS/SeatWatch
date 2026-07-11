@@ -4,7 +4,12 @@
 Codex: claim your vein here BEFORE you start probing, then commit + push. Update when you start/finish.
 
 ## NOW (active claims — Fable will not touch these)
-- **July 11, 2026: remaining Colleague-candidate round 4 is complete.** Round 3 found Camden County
+- **CLAIMED July 11, 2026: fresh official-public-schedule discovery pass.** The Colleague candidate
+  list and flagship/host sweeps are exhausted, so I am switching to registrar-linked public schedule
+  systems outside those veins. I will test only named, official schedule URLs found through current
+  registrar pages, beginning with public numeric-seat candidates; exact-name dedup happens before any
+  gate. No registry or builder changes.
+- **Prior July 11 Colleague round 4 is complete.** Round 3 found Camden County
   and Walsh College with real mixed numeric seats but both remain conditional pending the production
   newer-API adapter; Brookdale is an exact duplicate already in `schools.py`. Round 4 closed Gustavus
   (wrong/stale term returned) and Texas Wesleyan (SAML/SSO). The original 11-host candidate list is now
