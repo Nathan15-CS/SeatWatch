@@ -4,8 +4,8 @@ Cross-session research log for SeatWatch school expansion. **This file is kept l
 the full chronological batch-by-batch history lives in `research/ARCHIVE.md` (grep it for any past
 detail). Read THIS file + the lane files; only open ARCHIVE for a specific past finding.
 
-- **Live count: 648 schools** (goal 1,000). Session start was 634; verified from `len(schools.SCHOOLS)`
-  on July 11, 2026.
+- **Live count: 649 schools** (goal 1,000; Onondaga committed, awaits Nathan's deploy). Session
+  start was 634; verified from `len(schools.SCHOOLS)` on July 11, 2026.
 - **Who's doing what right now:** `research/lane-fable.md` + `research/lane-codex.md` (short, always current).
 - **How we work / accuracy+efficiency gate:** `research/PARTNER-NOTE-codex.md` and repo-root
   `CONTRIBUTING_AGENT.md`. Handoffs to the builder go through Fable; gated-but-unapproved candidates
@@ -81,7 +81,15 @@ same `SearchAsync`/`SectionsAsync` family. Walsh is a small private four-year bu
 - Exact `SubjectCode + Number` filtering is mandatory because keyword `ACC 316` leaks neighboring
   ACC numbers (including `ACC 512`). Section IDs/numbers and name/host dedup are clean.
 
-### SUNY Onondaga Community College — Batch 21 SENT July 11 2026 (Codex find, Fable relayed)
+### SUNY Onondaga Community College — ✅ BUILT July 11 (batch 21): 648->649
+Builder re-gated everything independently through the registered production adapter before shipping
+(commit follows): fetch 1.6-3.7s; Fall 2026 - Undergraduate picked (terms roll to 2028); BIO 121 =
+8 unique sections, 6 Waitlisted correctly withheld, 2 Open (4/1 seats); completed-term REPRODUCED
+(Spring 2026: 10 Open + 1 Closed w/ 0 seats — real history); dedup clean; classic textual-'Open'
+Colleague, no new code paths. Host = resolved SaaS host colss-prod.ec.sunyocc.edu (Bridgeport
+redirect lesson). Zero false-opens. Original relayed spec below for the record.
+
+#### (original spec) Batch 21 SENT July 11 2026 (Codex find, Fable relayed)
 
 Clean net-new Colleague add. The officially documented `https://selfservice.sunyocc.edu/Student/Courses`
 redirects to the live public catalog at `https://colss-prod.ec.sunyocc.edu/Student/Courses`. Existing

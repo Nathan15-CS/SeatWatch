@@ -4952,6 +4952,14 @@ class LincolnMO(ShortYearTermColleague):
     example = "ENG 101"; host = "lincolnu-ss.colleague.elluciancloud.com"
 
 
+# --- July 11 batch 21: SUNY Onondaga (Codex find, Fable relay). Official
+# selfservice.sunyocc.edu 301s to the SaaS host; POSTs don't follow redirects,
+# so point straight at the resolved host (Bridgeport lesson).
+class Onondaga(Colleague):
+    id = "suny-onondaga"; name = "SUNY Onondaga Community College"
+    example = "BIO 121"; host = "colss-prod.ec.sunyocc.edu"
+
+
 class NewColleague(Colleague):
     """Ellucian Colleague Self-Service — NEWER (Angular-era) API variant. Same guest
     /Student/Courses catalog + antiforgery token, but search is POST /SearchAsync with
@@ -5818,7 +5826,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                                IndependenceCC(), UCNJ(), Brookdale(), WesternTexas(),
                                IndianHills(), SouthPiedmont(), Robeson(),
                                FlorenceDarlington(), WesternTC(), Nicolet(),
-                               Winthrop(), Guilford()]
+                               Onondaga(), Winthrop(), Guilford()]
                             + [SCAD(), NWMissouri(), NortheastNE(), AlfredU(),
                                FITNYC(), Hofstra(), JamestownCC(), SUNYCanton(),
                                SUNYSchenectady(), UpstateMedical(), Presbyterian(),
