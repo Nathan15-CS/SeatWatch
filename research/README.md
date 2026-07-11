@@ -15,6 +15,72 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Lebanon Valley College (PA) — GATED, AWAITING GO-AHEAD (Codex, July 11 2026)
+
+Clean net-new newer-Colleague add. Official public catalog: `https://selfservice.lvc.edu/Student/Courses`;
+production host `selfservice.lvc.edu`; endpoints are `POST /Student/Courses/SearchAsync` and
+`POST /Student/Courses/SectionsAsync` with the JSON-string `searchParameters` payload. School is a
+small four-year college (officially about 1,674 undergraduates and 416 graduate students).
+
+- Production newer-Colleague fetch of `BIO 111L` returned 8 unique sections in 2.07s: six numeric
+  `status=0` rows with 1/2/1/5/1/1 seats and two `status=1` rows with zero seats. Source search was
+  0.36s and section detail 0.45s; all eight publish `AreSeatCountsAvailable=true` and
+  `Available == Capacity - Enrolled` held 8/8.
+- Current term is `26/FA` / Fall 2026 with registration 2026-03-30 through 2026-08-23. Use the
+  current-term picker; this API family does not expose a reliable literal completed-term result.
+  Full-by-arithmetic rows were nonzero-status, so the conservative production rule is
+  **numeric `status==0` AND `Available>0` AND seat counts available**.
+- Exact `SubjectCode + Number` filtering is mandatory: keyword `BIO 111` leaks `BIO 111L` and other
+  subjects numbered 111. Section IDs/numbers were unique; name/host dedup is clean.
+
+### Augustana College (IL) — GATED, AWAITING GO-AHEAD (Codex, July 11 2026)
+
+Clean net-new newer-Colleague add, distinct from Augustana University. Official public catalog:
+`https://selfservice.augustana.edu/Student/Courses`; endpoints are `SearchAsync` and `SectionsAsync`.
+This is a four-year liberal-arts college with about 2,500 students.
+
+- Builder's production `NewColleague` fetch lands on `2026-27 Fall Semester` in about 2.4s and
+  withholds five full rows. Source `BIOL 130` returned 6 unique sections: four numeric `status=0`
+  rows with positive seats and two `status=2` rows full at zero seats; `Available/Taken/Capacity/
+  Waitlisted` arithmetic held 6/6. Source latency was 2.04s search + 0.39s sections.
+- Registration runs 2026-04-22 through 2026-08-31. As with this newer API family, do not claim a
+  literal completed-term feed; use the conservative production rule **numeric `status==0` AND
+  `Available>0` AND seat counts available**.
+- Exact `SubjectCode + Number` filtering is mandatory because keyword `BIOL 130` leaks `BIOL 130L`.
+  Section IDs/numbers are unique; name/host dedup is clean.
+
+### Camden County College (NJ) — GATED, AWAITING GO-AHEAD (Codex, July 11 2026)
+
+Clean net-new newer-Colleague add. Official public catalog: `https://selfservice.camdencc.edu/Student/Courses`;
+production host `selfservice.camdencc.edu`; endpoints are `GetCatalogAdvancedSearchAsync`, `SearchAsync`,
+and `SectionsAsync`. This is a two-year community college with 11,000+ credit students in spring 2024
+and more than 15,000 annually (NJ institutional profile).
+
+- Production fetch of `BIO 121` returned 6 unique sections in 1.37s: four numeric `status=0` rows with
+  4/18/16/15 seats and two `status=2` rows with zero seats; `Available == Capacity - Enrolled` held
+  6/6 and all rows publish seat counts. Source search was 0.29s + sections 0.40s.
+- Current term is `26/FA` / Fall 2026, registration starts 2026-09-02. Spring 2026 returned no BIO
+  rows, so there is no literal completed-term sample for this course; current full rows are nonzero
+  status. Apply **numeric `status==0` AND `Available>0` AND seat counts available**.
+- Exact `SubjectCode + Number` filtering is mandatory: keyword `BIO 121` leaks unrelated subjects
+  numbered 121 and neighboring BIO courses. Section IDs/numbers and name/host dedup are clean.
+
+### Walsh College (MI) — GATED, AWAITING GO-AHEAD (Codex, July 11 2026)
+
+Clean net-new newer-Colleague add, distinct from Walsh University. Official public catalog:
+`https://selfservice.walshcollege.edu/Student/Courses`; production host `selfservice.walshcollege.edu`;
+same `SearchAsync`/`SectionsAsync` family. Walsh is a small private four-year business college
+(official average class size 11.3; exact enrollment not independently confirmed in this pass).
+
+- Production fetch of `ACC 316` returned 2 unique sections in 2.02s: one numeric `status=0` row with
+  22 seats and one numeric `status=1` full row with zero seats; source search was 0.53s + sections
+  0.71s and arithmetic held 2/2. Spring 2026 production/source data returned two open sections at
+  9 seats and one full section, providing a real mixed historical result.
+- Current term is `26/FA` / Fall 2026, registration starts 2026-08-30. Apply **numeric `status==0`
+  AND `Available>0` AND seat counts available**; never infer openness from seats alone.
+- Exact `SubjectCode + Number` filtering is mandatory because keyword `ACC 316` leaks neighboring
+  ACC numbers (including `ACC 512`). Section IDs/numbers and name/host dedup are clean.
+
 ### SUNY Onondaga Community College — Batch 21 SENT July 11 2026 (Codex find, Fable relayed)
 
 Clean net-new Colleague add. The officially documented `https://selfservice.sunyocc.edu/Student/Courses`

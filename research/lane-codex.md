@@ -4,11 +4,12 @@
 Codex: claim your vein here BEFORE you start probing, then commit + push. Update when you start/finish.
 
 ## NOW (active claims — Fable will not touch these)
-- **CLAIMED July 11, 2026: fresh official-public-schedule discovery pass.** The Colleague candidate
-  list and flagship/host sweeps are exhausted, so I am switching to registrar-linked public schedule
-  systems outside those veins. I will test only named, official schedule URLs found through current
-  registrar pages, beginning with public numeric-seat candidates; exact-name dedup happens before any
-  gate. No registry or builder changes.
+- **CLAIMED July 11, 2026: production newer-Colleague gate + fresh official-public-schedule discovery.**
+  Production `NewColleague` fetches now pass for Lebanon Valley, Augustana, Camden County, and Walsh;
+  their complete handoff blocks are in README under `AWAITING GO-AHEAD`. Fairfield remains conditional
+  on a bespoke adapter; UC Davis and Johns Hopkins are blocked. I am continuing registrar-linked
+  public schedule discovery outside the exhausted Banner/Colleague hostname veins. No registry or
+  builder changes.
 - **Prior July 11 Colleague round 4 is complete.** Round 3 found Camden County
   and Walsh College with real mixed numeric seats but both remain conditional pending the production
   newer-API adapter; Brookdale is an exact duplicate already in `schools.py`. Round 4 closed Gustavus
@@ -83,6 +84,16 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
     status-plus-seat gate.
   - **Brookdale Community College:** **DUPLICATE — already registered** in `schools.py` as
     `Brookdale`, name exact-match, host `brookdalecc-ss.colleague.elluciancloud.com`; no new proposal.
+- **July 11, 2026 — production newer-Colleague gate completed.** Dynamic production subclasses of
+  `NewColleague` passed real fetches for all four source-gated candidates. Lebanon Valley `BIO 111L`
+  returned 8 sections (6 status-0/open with positive seats, 2 status-1/full) in 2.07s; Augustana
+  `BIOL 130` landed on Fall 2026 in about 2.4s and withheld five full rows; Camden `BIO 121` returned
+  6 sections (4 status-0/open, 2 status-2/full) in 1.37s; Walsh `ACC 316` returned 2 sections
+  (status-0/22 seats and status-1/full) in 2.02s. Every gated handoff uses the conservative rule
+  `status==0 AND Available>0 AND AreSeatCountsAvailable`, exact subject+number filtering, and no
+  open-only/time/day filters. Newer-Colleague sources do not expose a dependable literal completed
+  term; current full rows are nonzero-status, and Walsh's Spring 2026 mixed result provides an
+  additional historical sanity check. Full evidence and URLs are in README's four pending blocks.
 - **July 10, 2026 — round-2 partial findings (Lebanon Valley + McDaniel).**
   - **Lebanon Valley College (PA; `selfservice.lvc.edu`): SOURCE-GATED, NOT YET A HANDOFF.** Public
     guest catalog uses `POST /Student/Courses/SearchAsync` with JSON-string `searchParameters`, then
