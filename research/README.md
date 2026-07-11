@@ -148,3 +148,14 @@ required."
   independently measure refresh cadence — builder should confirm it's not a daily snapshot before ship
   (if daily, still likely acceptable but flag it). Needs a small bespoke HTML adapter (div.col parse).
   Dedup clean (University of Utah not in schools.py).
+
+### Flagship gaps round 1 dead-ends (Fable, July 10 2026) — do NOT re-tread
+Checked big uncovered publics for bespoke public schedules. WIN: University of Utah (above). Dead:
+- **University of Cincinnati (~48k):** public search (classes.catalyst-services.uc.edu) is the CLASSIC
+  PeopleSoft `COMMUNITY_ACCESS.CLASS_SEARCH.GBL` — fake-all-open family. Skip.
+- **LSU (~35k):** courseofferings.lsu.edu exists (ASP.NET), but registrar states seats are "updated
+  DAILY, may not reflect real-time" — too stale for alerts (same class as SJSU nightly / CSULB daily).
+- **University of Georgia (~40k):** Athena redirects to sso.uga.edu CAS (Ellucian Experience cloud,
+  uog744) — SSO-gated, no guest class search. The public UGA Bulletin is catalog-only.
+STILL UNCHECKED this vein (for a later pass): Kentucky, Kansas, Kansas State, Nebraska-Lincoln, Oregon,
+Louisville, Nevada (UNR/UNLV), Rhode Island, Hawaii-Manoa.
