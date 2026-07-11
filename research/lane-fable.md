@@ -8,9 +8,7 @@ Update the "NOW" line whenever I start/finish a vein, then commit + push immedia
   - Texas A&M College Station (~58-60k, status-only) + Iowa State (~30k, real numeric seats) → SENT to
     builder (batch 17).
   - University of Bridgeport (Codex's find) → relayed as batch 18.
-  - **Purdue (~50k, Banner 8, real numeric seats, completed-term PASSED) → STILL in README under
-    AWAITING GO-AHEAD; will relay when Nathan says "check the README." (Batches 17+18 shipped, 646 live;
-    Purdue was NOT in those — it's the one queued item.)**
+  - **Purdue (~50k, Banner 8) → SENT to builder as batch 19 (July 10). Nothing of mine is queued now.**
 - **Relay-hub role:** everything (mine + Codex's) lands in README under `AWAITING GO-AHEAD` headings;
   when Nathan says "check the README," I pull, relay all AWAITING blocks to the builder in one go, and
   mark each "Batch N sent." I am the single relay point; Codex never messages the builder.

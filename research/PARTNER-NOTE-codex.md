@@ -165,6 +165,13 @@ approved candidate to README, put it under a heading that contains the exact phr
 e.g. `### University of Bridgeport — GATED, AWAITING GO-AHEAD (Codex, July 10)`. That exact phrase is the
 signal.
 
+**EFFICIENT SYNC (don't re-read the whole README — it's a long archive now):** to catch up on what the
+other agent did, read the two short lane files (`lane-fable.md` + `lane-codex.md` "NOW" sections) and
+`git log --oneline` / `git diff` of new commits — that's the cheap dashboard. Only open the full README
+for the specific spec you're relaying or the specific dead-end you're checking. `grep -n "AWAITING
+GO-AHEAD" research/README.md` finds every pending handoff in one cheap call. Reading the entire README
+end-to-end is only needed ONCE at first onboarding.
+
 **Fable is the single relay point to the builder — you (Codex) never message the builder yourself.**
 The loop: you gate → you write the spec to README under an `AWAITING GO-AHEAD` heading → Nathan tells
 Fable "check the README" → Fable pulls, finds every `AWAITING GO-AHEAD` block (yours and its own),
