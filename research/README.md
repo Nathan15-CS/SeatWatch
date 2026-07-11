@@ -1045,3 +1045,37 @@ out at ~641 by the research chat; these 2 were the yield of the full-dataset swe
 STRATEGIC (deferred, not built): 11 hosts return the Colleague catalog page but 405/400 on
 PostSearchCriteria — a newer Colleague Self-Service API variant. If cracked, unlocks a whole
 class. Left with research chat / Codex to investigate.
+
+## Handoff batch 16 (Edison State CC + Georgia Military College) — ✅ BUILT July 10: 2/2 added (641->643)
+Two new reusable Colleague term-format subclasses: `AcadYearColleague` (academic-year "Fall 26/27"
+style terms — Edison State) and `QuarterColleague` (quarter systems, term picked by month span —
+"Quarter 1 Aug-Oct" = fall — Georgia Military College). Both reusable for future Colleague candidates
+with the same term formats (4-line adds if a new school matches).
+
+⚠️ ACCURACY NOTE FOR FUTURE GATING (builder, July 10): Edison had 4 sections showing 1 seat available
+but AvailabilityStatus != "Open" (waitlist/restricted) — the adapter correctly withholds these as NOT
+open. CONFIRMS: the gate check "every OPEN section has seats>0" is correct and sufficient; the reverse
+("every section WITH a seat must be open") is NOT required and would be wrong to assume — a seat behind
+a non-Open status is correctly and safely withheld. Status stays authoritative over raw seat count.
+
+### Newer-Colleague-API lead — TECHNICAL DETAIL (builder, July 10)
+The 11 hosts returning 405/400 on `/Student/Courses/PostSearchCriteria` (augustana/bridgeport/
+brookdalecc/camdencc/gac/gustavus/lvc/mcdaniel/sunyocc/twu/walshcollege) are likely running Ellucian's
+NEWER Colleague Self-Service (the Angular rewrite) — `/Student/Courses/PostSearchCriteria` is the OLDER
+MVC-era endpoint; newer builds use `/api/...` endpoints with a different payload shape. If cracked, this
+unlocks all 11 plus likely more schools not yet found (we only checked hosts also reachable at the OLD
+endpoint pattern — a dedicated `/api/` sweep could surface a separate, currently-invisible population).
+**CLAIMED by Codex (July 10)** — see `research/lane-codex.md`. Starting hosts: Augustana, Bridgeport,
+Gustavus Adolphus. This is the single highest-leverage open lead right now per both research agents
+and the builder.
+
+### CORRECTION re: CSU remainder (research, July 10) — Long Beach/Fullerton/SDSU/SJSU are CLOSED, not open leads
+Builder's batch-16 reply proposed these 4 as "worth individual effort" (36-40k each). They are NOT open —
+already individually investigated and closed in "CSU sweep pass 2" above, each for a specific documented
+reason: Long Beach = daily-snapshot + no closed-section indicator (ambiguous, fails freshness+status
+bars); San Jose State = nightly-refresh (too stale) + live search portal-gated; Fullerton = guest search
+bounces to Shibboleth SSO; San Diego State = sunspot redirects to cmsweb PS login (SSO-walled). Do not
+re-propose these without new evidence (e.g. a school changing its public-schedule vendor). The genuinely
+OPEN big-public vein is (c) from the builder's own list: bespoke public schedules at big flagships NOT
+yet individually checked — UCF, Houston, Purdue, Texas A&M, Michigan State, Iowa State, Clemson, UF,
+Ohio State, Penn State (per PARTNER-NOTE-codex.md's untried list). ASU + U Arizona already tried and dead.
