@@ -4,16 +4,18 @@
 Update the "NOW" line whenever I start/finish a vein, then commit + push immediately.
 
 ## NOW (July 10, current)
-- **My status: IDLE, awaiting Nathan's next instruction.** Not actively probing anything right now —
-  zero risk of colliding with whatever Codex picks up as it comes online. Will resume once Codex has
-  claimed a lane (so I can naturally steer clear of it) or Nathan gives a new steer.
-- I just refreshed `research/PARTNER-NOTE-codex.md` with current findings + a concrete, non-overlapping
-  starter-task list for Codex (newer-Colleague-API investigation / CT-log discovery / per-school
-  alt-search hunt at named big flagships still untried). Codex has not yet claimed a lane —
-  `lane-codex.md` is still unclaimed as of this write.
-- **Open lead, unclaimed (flagged to Codex first, but fair game):** 11 Colleague hosts on a newer API
-  version (405/400 on PostSearchCriteria: augustana/bridgeport/brookdalecc/camdencc/gac/gustavus/lvc/
-  mcdaniel/sunyocc/twu/walshcollege .edu). Not gateable with the current adapter.
+- **My status: IDLE, awaiting Nathan's next instruction.** Not actively probing anything — zero
+  collision risk with Codex, which has now claimed its lane (see below).
+- **Codex is ACTIVE**, claimed "newer-Colleague-API-version investigation" in `lane-codex.md`, starting
+  with Augustana, Bridgeport, Gustavus Adolphus. Builder independently narrowed this down technically:
+  likely Ellucian's Angular Colleague rewrite using `/api/...` endpoints (old MVC-era adapter uses
+  `/Student/Courses/PostSearchCriteria`). I posted this detail to README so Codex has it. DO NOT also
+  work this lane — it's Codex's.
+- Batch 16 SHIPPED (641->643): Edison State CC + Georgia Military College. Two new reusable term-format
+  subclasses now exist: `AcadYearColleague`, `QuarterColleague`.
+- **Correction posted to README (July 10):** builder's batch-16 reply suggested Long Beach/Fullerton/
+  SDSU/SJSU as "worth individual effort" — these are NOT open, I already closed all 4 in "CSU sweep
+  pass 2" with specific reasons (stale/ambiguous/SSO-walled). Do not re-propose without new evidence.
 
 ## CLOSED veins this partnership (fully worked, do not re-tread — see research/README.md for detail)
 - **CSU public-schedule campuses: HARVESTED + CLOSED.** SFSU/Sac State/CSUN shipped. Cal Poly Pomona
@@ -33,7 +35,7 @@ Update the "NOW" line whenever I start/finish a vein, then commit + push immedia
 - Batch 13: UCLA — shipped (639 live)
 - Batch 14: Coppin State + San Francisco State — shipped
 - Batch 15: Sacramento State + CSU Northridge — shipped (641 live, commit b5c5891)
-- Batch 16: Edison State CC (Ohio) + Georgia Military College — sent, awaiting builder
+- Batch 16: Edison State CC (Ohio) + Georgia Military College — SHIPPED (643 live, commit ba6a6d6)
 
 ## Last push
 - see `git log --oneline -1` for the current commit
