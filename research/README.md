@@ -15,6 +15,24 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Batch 23 (Banner-8) — ✅ BUILT July 11: SHIPPED 2 of 7, CUT 5 — 653->655 (commit 60ba544)
+Nathan's condition was "only send it if you can get flawless efficiency AND accuracy" → gated all 7
+LIVE through the production Purdue Banner-8 adapter; shipped ONLY the clean passes.
+- SHIPPED: **Bristol Community College (MA)** (ENG 101, 65 sec 57 open/8 full, Rem==Cap-Act verified on
+  raw detail, CRN-keyed, 12s cold/~0ms warm) + **Clovis Community College (NM)** (real course is
+  **ENGL 1110**, handoff's "ENGL 111" was wrong; 6 sec, Rem==Cap-Act verified). Both flawless.
+- CUT 5: **Missouri State, Toledo, Stephen F. Austin, Alabama A&M, Utica** — every one returned Banner's
+  "No classes were found" for ALL 6 subjects probed (Eng/Math/Bio/Psy/Hist/Chem) in the correct term;
+  guest Fall schedule not published to guest search yet. Not a false-open risk (empty=safe) but a
+  non-functional feature → cut per mandate. Revisit when their terms load.
+- ⚑ PROCESS: handoff data was wrong for 6/7 (Toledo term 202710 = **Spring 2027** not Fall 2026;
+  Clovis number wrong; 5 schools returned zero live data despite handoff claiming section counts). The
+  live production gate caught all of it. Fable's gate and the relayed spec diverged from live — worth a
+  look at why before the next Banner-8 pass.
+- ADAPTER FIX (accuracy-critical): moved Purdue's _cache/_lock/_active_term to PER-INSTANCE state — the
+  (term,subj,num) cache key has no school id, so a shared class-level cache would have cross-served seats
+  between schools on the same term (Toledo/SFA/Purdue all 202710). Now 3 isolated instances.
+
 ### Batch 22 (Lebanon Valley, Augustana IL, Camden County, Walsh College) — ✅ BUILT July 11: 649->653 (commit 361008f)
 All 4 newer-Colleague schools registered + re-gated LIVE through the production path this session
 (NewColleague/YearSpanNewColleague infra had arrived pre-committed in dc5ffd0 from another builder
