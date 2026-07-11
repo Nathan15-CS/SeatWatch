@@ -1,10 +1,11 @@
 # Note to Codex Sol 5.6 — SeatWatch college-discovery partner
 
 From: the Fable 5 research session. We've been paired by Nathan to hunt new schools for SeatWatch
-(course-seat-alert app, live at seatwatchapp.com, ~639 schools live as of July 10 2026, goal 1,000).
-Welcome aboard. This note is how we work together without colliding. Read `research/README.md`
-end-to-end first — it's the full history of what's been tried, shipped, and killed. This file is the
-coordination layer on top of it.
+(course-seat-alert app, live at seatwatchapp.com, 641 schools live as of July 10 2026, goal 1,000).
+Welcome aboard (or welcome back — if you've seen an earlier version of this note, re-read it, a lot
+happened since: CSU is now fully worked, ASU/U Arizona are dead ends, and a full US-domain volume
+sweep just ran). Read `research/README.md` end-to-end first — it's the full history of what's been
+tried, shipped, and killed, newest entries at the bottom. This file is the coordination layer on top of it.
 
 > **ALSO READ `CONTRIBUTING_AGENT.md` in the repo root** — the builder's full accuracy-gate + traps
 > brief. It's the standard we BOTH hand off to. This note is the coordination layer; that file is the
@@ -47,19 +48,46 @@ coordination layer on top of it.
   `grep -i "<school name>" schools.py` AND check for the school under a bespoke adapter on a different
   host. We have already shipped 4 duplicate handoffs this way (UNC Charlotte ×2, Ashland, Penn — Penn
   is live via a custom `Penn` class, not on its fose host). Grep the name every single time.
-- **Proposed lane split (so we're never in the same file at once):**
-  - **Me (Fable):** CSU public-schedule campuses (in progress — see below) + PeopleSoft **Fluid/HighPoint
-    HCX** guest-API vein (Coppin/Towson/BU family).
-  - **You (Codex):** please take one of these fresh veins so we don't overlap — pick whichever suits you
-    and claim it in README: (a) **Colleague Ellucian-cloud grind** over the remaining IPEDS 4-years
-    (`{label}-ss.colleague.elluciancloud.com` — highest-yield private-4-year pattern, big pool left);
-    (b) **Banner Ellucian-cloud** (`reg-prod.{code}.elluciancloud.com/StudentRegistrationSsb`);
-    or (c) **CT-log / certspotter discovery** to surface hidden registration hosts that hostname-guessing
-    can't (the one proven way to find non-pattern hosts; needs sequential requests, ~1 per 5–10s).
-  - If you'd rather trade lanes, say so in README and I'll take the other. The point is one owner per vein.
-- **HELD, do not grab (mine, pending Nathan's go-ahead):** Sacramento State (bespoke JSON API) and
-  CSU Northridge (custom PS bolt-on) — both gated clean, waiting on Nathan to approve sending. Cal Poly
-  Pomona is mine too (ASP.NET, crackable, deferred until a browser can reach schedule.cpp.edu).
+- **⚠️ DO NOT re-run a blind Banner/Colleague hostname sweep — it's been done, exhaustively, already.**
+  I pulled the full Hipo world-universities dataset (2,393 US domains), deduped against every school
+  already in `schools.py`, and swept all 2,014 uncovered domains against every known Banner pattern
+  (`/StudentRegistrationSsb`, direct + `reg-prod.{code}.elluciancloud.com` cloud) AND every known
+  Colleague pattern (`/Student/Courses`, direct + `{label}-ss.colleague.elluciancloud.com` cloud).
+  Result: 11 Banner hits, all dup/already-cut; 53 Colleague hits, all but 2 dup/dead/gated. Re-running
+  this exact method will re-find the same schools and burn your budget for zero yield. See README
+  "Volume sweep over full US university-domains dataset" for the full method + result before you
+  consider any variant of hostname-pattern guessing.
+- **What IS fresh and unclaimed — pick one and claim it in `lane-codex.md`:**
+  1. **Newer-Colleague-API-version investigation (concrete, scoped, recommended first task).** The
+     volume sweep found 11 real Colleague-hosted colleges (augustana.edu, bridgeport.edu,
+     brookdalecc.edu, camdencc.edu, gac.edu, gustavus.edu, lvc.edu, mcdaniel.edu, sunyocc.edu, twu.edu,
+     walshcollege.edu) that serve a public course catalog page but return HTTP 405/400 (not JSON) when
+     our adapter POSTs to `/Student/Courses/PostSearchCriteria`. That means they're running either a
+     newer Colleague Self-Service API version with a different search contract, or they gate the guest
+     search differently. Your job: pick 2-3 of these, inspect what their actual class-search page does
+     in a browser (view the network requests it fires), figure out the real endpoint/payload shape, and
+     determine if it's guest-accessible with real open/closed status. If yes for even one, that's a
+     whole new adapter variant that could unlock all 11 (and probably more we haven't found yet, since
+     we only checked hosts that were ALSO reachable at the old endpoint pattern).
+  2. **CT-log / certspotter discovery** — surfaces hidden registration hosts that hostname-guessing
+     structurally can't find (a school's real host may not match any pattern we've tried). The one
+     proven way to find non-pattern hosts (confirmed once before: Eastern Kentucky's real host was only
+     found this way). Needs sequential requests (~1 every 5-10s, certspotter free tier rate-limits hard).
+  3. **Alt public class-search hunt at big gated flagships**, one school at a time (not pattern sweeps —
+     these are individually gated behind SSO on their primary SIS, so each needs its own registrar-page
+     recon to find a SEPARATE public schedule, the way UConn→Fose and UC Irvine→WebSoc worked). I tried
+     Arizona State (OAuth-gated, dead) and University of Arizona (public data exists but sits behind a
+     blocked-for-us SPA transport AND the classic-PS fake-status component — dead, see README). Untried:
+     UCF, University of Houston, Purdue, Texas A&M, Michigan State, Iowa State, Clemson, University of
+     Florida, Ohio State, Penn State. If you take this, claim it in your lane file so I don't also drift
+     back into it — I'm not currently working it, but flagging the risk since I did related work here.
+  - If none of these suit you, or you find a better lead, write your own choice into `lane-codex.md` —
+    the only hard rule is claim-before-probe so we don't duplicate effort.
+- **Nothing is currently HELD by me** — Sacramento State + CSU Northridge shipped (batch 15), Cal Poly
+  Pomona is a PERMANENT SKIP (cracked the ASP.NET flow, but the public page only exposes Capacity, no
+  seats/status — data isn't there at any access level, so don't re-attempt it either), Edison State CC
+  (Ohio) + Georgia Military College are sent to the builder as batch 16 (from the volume sweep, awaiting
+  ship). Full detail on all of these in README. My current status/next move is always in `lane-fable.md`.
 
 ## The accuracy gate — every candidate must pass ALL of these before handoff
 
@@ -107,11 +135,22 @@ coordination layer on top of it.
   the alt public search, not just the primary SIS.
 
 ## Dead ends already exhausted (do NOT re-tread — full reasons in README)
-Classic PeopleSoft `COMMUNITY_ACCESS.CLASS_SEARCH.GBL` (fake all-open status); Workday Student (auth);
-Coursedog/CourseLeaf public views (catalog only, no live seats); most big-flagship primary SIS
-(login/SSO-gated); CSU standard guest search on most campuses (Shibboleth/PS login — Fullerton/Fresno/
-SDSU confirmed walled). Blind Banner/Colleague hostname-guessing is ~mined out — count only confirmed
-non-duplicate installs, never project yield from a raw "host reachable" rate.
+Classic PeopleSoft `COMMUNITY_ACCESS.CLASS_SEARCH.GBL` (fake all-open status) — including when it's
+hidden behind a modern SPA wrapper (e.g. GreyHeller/InFlight): check the config for a
+`SA_LEARNER_SERVICES.CLASS_SEARCH.GBL` / `SSR_CLSRCH` component key, and if you find one, expect the
+same fake-status trap regardless of how modern the frontend looks (confirmed on University of
+Arizona). Workday Student (auth). Coursedog/CourseLeaf public views (catalog only, no live seats).
+Most big-flagship primary SIS (login/SSO-gated) — confirmed again on Arizona State (full OAuth
+authorization-code flow, authorize step bounces to interactive login). CSU standard guest search on
+most campuses (Shibboleth/PS login — Fullerton/Fresno/SDSU confirmed walled); the 3 CSUs that DO work
+(SFSU, Sacramento State, CSU Northridge) each needed a different bespoke crack, so CSU is not a
+pattern you can sweep, it's one-school-at-a-time. Cal Poly Pomona: mechanically crackable (ASP.NET
+viewstate, solved) but PERMANENT SKIP anyway — its public schedule only publishes Capacity, no
+seats/status at all, so there's nothing to gate no matter how good the scrape is; if you ever hit a
+school like this (real access, but the field just isn't published), that's a data-absence, not a
+you-problem — stop and move on. Blind Banner/Colleague hostname-guessing (direct AND Ellucian-cloud,
+both fully swept against the entire uncovered US-domain dataset as of July 10) is MINED OUT — count
+only confirmed non-duplicate installs, never project yield from a raw "host reachable" rate.
 
 ## Handoff format (when Nathan approves a batch)
 Per school: name + rough enrollment + 4-year/CC · host/site/inst/term codes · example course in the
