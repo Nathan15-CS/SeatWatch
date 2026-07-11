@@ -1620,12 +1620,18 @@ class Purdue:
     id = "purdue"; name = "Purdue University"
     example = "CS 18000"
     term = "202710"                     # Fall 2026 (auto-rolls)
-    _active_term = None
     _TTL = 600                          # 10 min between per-course seat rebuilds
-    _lock = threading.Lock()
-    _cache = {}                         # (term, subj, num) -> (ts, {crn: {open, seats}})
     base = "https://selfservice.mypurdue.purdue.edu/prod"
     _RE = re.compile(r"^([A-Za-z]{2,4})\s+(\d+[A-Za-z]{0,2})$")
+
+    def __init__(self):
+        # PER-INSTANCE state — mandatory once this class is subclassed for other Banner-8
+        # schools. The cache key is (term, subj, num) with NO school id, so a shared cache
+        # would serve one school's seats for another when term+subj+num coincide (e.g.
+        # Toledo & SFA both on term 202710). Each instance gets its own cache/lock/term.
+        self._active_term = None
+        self._lock = threading.Lock()
+        self._cache = {}                # (term, subj, num) -> (ts, {crn: {open, seats}})
 
     def _norm(self, course):
         m = self._RE.match(course.strip())
@@ -1748,6 +1754,24 @@ class Purdue:
                 self._lock.release()
             out[course] = secs if secs else {"none": {"open": False, "seats": None}}
         return out
+
+
+# --- Batch 23: Banner-8 (bwckschd) real-seat schools on the Purdue adapter. Each sets its
+# own `base` (host + base_path), term, and example; per-instance cache (Purdue.__init__)
+# keeps them isolated. Real numeric Banner seats (Remaining = Capacity - Actual) — cannot be
+# faked open. Only the 2 that gated FLAWLESS live shipped. The other 5 in the handoff
+# (Missouri State, Toledo, Stephen F. Austin, Alabama A&M, Utica) were CUT: their guest Fall
+# schedules returned "No classes were found" for EVERY subject probed (English/Math/Bio/Psy/
+# Hist/Chem) — schedule not published to guest search yet. Revisit when their term loads.
+class BristolCC(Purdue):
+    id = "bristolcc"; name = "Bristol Community College"
+    example = "ENG 101"; term = "202609"       # Fall 2026; 65 sec, 57 open/8 full, Rem==Cap-Act
+    base = "https://selfservice.bristolcc.edu/PROD"
+
+class Clovis(Purdue):
+    id = "clovis"; name = "Clovis Community College (NM)"   # != Clovis CC (CA, State Center CCD)
+    example = "ENGL 1110"; term = "202630"     # Fall 2026; 6 sec, Rem==Cap-Act verified
+    base = "https://prodssb.clovis.edu/PROD"
 
 
 class IowaState:
@@ -5915,7 +5939,8 @@ def _guard_registry(all_schools):
 
 
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
-    LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege()])
+    LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
+    BristolCC(), Clovis()])
 
 
 def refresh_all_terms(log=None):
