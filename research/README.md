@@ -196,3 +196,24 @@ committing (they share one git identity on Nathan's Mac, so commit format can't 
 OR a single builder committing before its gate. The gate + registry-guard (crash-on-dup) + production
 re-fetch caught everything — nothing ungated actually shipped. FOR NATHAN: ensure only ONE builder
 session commits to schools.py; research agents stay hands-off (verified compliant).
+
+### Flagship gaps round 3 (Fable, July 11 2026) — no clean win; 2 big revisit-leads, rest walled
+Probed a fresh set of big uncovered publics. Honest result: the headless-crackable flagship vein is
+tapping out. Details so nobody re-treads:
+- **UNT (~46k) — REVISIT-LEAD (high value, needs browser trace).** Public class search EXISTS (registrar
+  links it): my.unt.edu/psc/ps PeopleSoft FLUID (NUI_FRAMEWORK.PT_LANDINGPAGE.GBL). Direct HCX IScript
+  calls (WEBLIB_HCX_CM.H_CLASS_SEARCH...IScript_ClassSearchOptions) return 214-byte PeopleSoft stubs, not
+  the guest JSON — the Fluid guest search needs the NUI landing→guest-session flow established first
+  (browser network-trace of one real guest search would crack it). Worth it at 46k IF a browser can reach
+  my.unt.edu. Not gated.
+- **UMass Amherst (~32k) — LOW-PRIORITY LEAD.** SPIRE guest "Search Classes" exists but is classic-
+  PeopleSoft (needs completed-term test, likely fake-status trap). The bespoke React "Explore" tool
+  (umass.edu/universityplus/classes/explore) is under "universityplus" = continuing-ed/UWW — SCOPE likely
+  a subset, not the full Amherst catalog; no clean JSON API surfaced. Skip unless scope confirmed full.
+- WALLED/DEAD this round (no guessable Banner 9; PeopleSoft/Workday/bespoke): UT-Arlington, Kent State,
+  UNM, Toledo, Akron, Illinois State, Ohio University. UW-Milwaukee enroll-API = 403 (Madison's API is
+  Madison-only). Hawaii avail.classes = persistent 502 (server down, retry later). Kansas = 55s timeout
+  (from round 2).
+NET rounds 1-3: University of Utah shipped (648). Flagship-gaps vein now well-worked headlessly; the
+biggest remaining prizes (UNT, Kansas) need browser network-traces, which are blocked for the in-app
+browser on these domains. Diminishing returns confirmed — recommend pausing flagship grinding.
