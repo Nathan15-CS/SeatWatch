@@ -55,7 +55,9 @@ Update the "NOW" line whenever I start/finish a vein, then commit + push immedia
 - see `git log --oneline -1` for the current commit
 
 ## NOW (July 10, continued) — flagship gaps beyond the builder's 6-school list
-CLAIMED: alt-public-schedule hunt at big uncovered public flagships (non-overlapping with Codex's
-Colleague veins). Targets: Cincinnati, UGA, Utah, LSU, Kentucky, Kansas, Kansas State, Nebraska-Lincoln,
-Oregon, Louisville, Nevada (UNR/UNLV), Rhode Island, Hawaii. Method: find public non-login schedule ->
-completed-term test -> gate -> AWAITING GO-AHEAD in README.
+Alt-public-schedule hunt at big uncovered publics (non-overlapping with Codex).
+- ✅ **University of Utah (~35k) GATED → AWAITING GO-AHEAD in README** (real numeric seats, public
+  class-schedule.app.utah.edu). This is the one pending item for Nathan to relay.
+- Dead this round: Cincinnati (classic-PS fake-open), LSU (daily-stale), UGA (SSO/CAS). In README.
+- Still unchecked: Kentucky, Kansas, Kansas State, Nebraska-Lincoln, Oregon, Louisville, Nevada, URI,
+  Hawaii — next pass.
