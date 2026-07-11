@@ -186,6 +186,21 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   `capacity - enrolled > 0`; subtract `openReserved` and withhold rows when the remainder is zero
   (reserved-only seats must not alert general users). Preserve waitlist and consent/restriction text.
   Berkeley's search/detail pages are public but no production adapter exists yet; do not hand off.
+- **University of North Carolina Asheville (NC) — SOURCE-GATED, adapter needed (Codex, July 11 2026).**
+  The official [Class Schedules](https://www.unca.edu/class-schedules/) React app calls the public,
+  no-auth API `https://meteor.unca.edu/registrar/class-schedules/api/v1`; its bundled code identifies
+  `courses/{year}/{spring|summer|fall}`, `departments/...`, `term/max`, and a CSV route. Fall 2026
+  (`courses/2026/fall`) returned 788 unique CRNs with 484 `Classification.Open=true` and 304 false;
+  Spring 2026 returned 866 unique CRNs with 520 open and 346 full. Every row in both terms has
+  numeric `EnrollmentCurrent`/`EnrollmentMax`, and `(EnrollmentMax - EnrollmentCurrent > 0)` agreed
+  with the API's Open flag for 788/788 Fall and 866/866 Spring rows. Example exact Biology siblings
+  `BIOL 344.001` (CRN 60180, 15/15, closed) and `.002` (CRN 60401, 10/15, open) prove real mixed
+  status; Spring `BIOL 136` has both full and open lab CRNs. Responses are `200`, `no-cache`, and
+  current/future dates are Fall 2026 (Aug 17–Dec 9); the completed Spring feed is not all-open.
+  **Safe rule:** exact term + `Department` + course code + CRN, `Classification.Open == true`, and
+  positive `EnrollmentMax - EnrollmentCurrent`; never treat `WaitlistAvailable` as class seats, and
+  preserve title/permission/restriction text. This is a clean net-new four-year public liberal-arts
+  candidate (official Spring 2025 headcount 2,801), but no production adapter exists; do not hand off.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very

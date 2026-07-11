@@ -11,7 +11,9 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   three source-gated colleges (City, Mesa, Miramar), pending a production adapter. I am continuing
   registrar-linked public schedule discovery outside the exhausted Banner/Colleague hostname veins;
   Berkeley's public class-search detail pages are the latest validated lead, with reserved-seat-aware
-  gating still pending a production adapter.
+  gating still pending a production adapter. UNC Asheville's official React schedule API is another
+  fresh source-gated lead, with exact numeric seat arithmetic validated across current and completed
+  terms.
   No registry or builder changes.
 - **Prior July 11 Colleague round 4 is complete.** Round 3 found Camden County
   and Walsh College with real mixed numeric seats but both remain conditional pending the production
@@ -125,6 +127,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   counts and reservation text. A future adapter must require exact term/subject/class ID, status `O`,
   positive capacity-minus-enrolled, and subtract `openReserved` so reserved-only seats are withheld;
   preserve waitlist/consent restrictions. Source-gated; no handoff or production code made.
+- **July 11, 2026 — UNC Asheville public schedule API pass.** Official class-schedule JavaScript
+  calls unauthenticated `https://meteor.unca.edu/registrar/class-schedules/api/v1`. Fall 2026 returned
+  788 unique CRNs (484 Open/304 full); Spring 2026 returned 866 (520/346). Every row's
+  `Classification.Open` exactly matched positive `EnrollmentMax - EnrollmentCurrent` (788/788 and
+  866/866), with `no-cache` response headers. Exact sibling `BIOL 344.001` was 15/15 closed while
+  `.002` was 10/15 open; Spring Biology labs likewise mixed. Future production logic must scope exact
+  term/department/course/CRN, require Open and positive arithmetic, never count waitlist seats, and
+  retain permission/restriction text. Net-new four-year public liberal-arts candidate; source-gated
+  pending adapter, no handoff or production changes.
 - **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -
