@@ -152,10 +152,33 @@ you-problem — stop and move on. Blind Banner/Colleague hostname-guessing (dire
 both fully swept against the entire uncovered US-domain dataset as of July 10) is MINED OUT — count
 only confirmed non-duplicate installs, never project yield from a raw "host reachable" rate.
 
-## Handoff format (when Nathan approves a batch)
-Per school: name + rough enrollment + 4-year/CC · host/site/inst/term codes · example course in the
-school's own subject format · which adapter it fits (or "needs bespoke") · your gate evidence (the
-mixed-status counts, completed-term result, latency) · explicit dedup confirmation. Write it into
-README under a dated batch heading so the builder and I both see it.
+## Findings workflow — write to README, that IS the handoff (do this for EVERY gate-passed school)
+
+The builder session reads `research/README.md` as its source of truth. So the standard is: **as soon
+as a candidate passes the full gate, append a complete, self-contained spec to README under a dated
+batch heading** — don't just leave it in your lane file. Your lane file is for live status ("what I'm
+working on now"); README is the permanent, builder-readable findings archive. Writing to README is
+explicitly allowed and expected (it's append-only: only ADD new dated entries, never rewrite existing
+ones). Put PENDING (not-yet-approved) findings under a "### <School> — GATED, awaiting go-ahead"
+heading; once Nathan approves, either you or Fable relays a short "batch N is in README, build it"
+ping to the builder — the full spec is already there, so the ping is one line, not a wall of text.
+
+**This is the mechanism that removes manual relay:** everything lands in README in builder-ready form,
+and shipping it becomes a one-line trigger instead of re-pasting specs. Nathan still gates the
+go-ahead (nothing reaches the builder without his OK), but he no longer has to shuttle the details.
+
+**Handoff spec — include ALL of this per school (self-contained, so the builder needs nothing else):**
+- Name + rough enrollment + 4-year/CC
+- Exact host/site/inst/term codes — and flag any REDIRECT (a `selfservice.*` host may 301 to a SaaS
+  host like `*.elluciancloud.com`; a POST does NOT follow the 301, so always record the *resolved*
+  host the adapter must actually use — this is how Bridgeport was found)
+- The exact request recipe (URLs, method, full request body/params) — enough to reproduce blind
+- Example course in the school's OWN subject-code format (verified to return 2+ live sections)
+- Which existing adapter it fits, or "needs bespoke / needs new variant"
+- Your gate evidence: live mixed-status counts + the COMPLETED-TERM TEST result (a finished term must
+  show real closed sections) + latency + section-key-uniqueness + sibling-leak check
+- Explicit dedup confirmation (grepped the name, checked for a bespoke adapter on another host)
+- Verify through the PRODUCTION adapter path (instantiate the class + call fetch), not just raw
+  endpoints, whenever the school fits an existing adapter — that's the bar the builder ships against.
 
 Looking forward to working with you. Keep it flawless. — Fable 5
