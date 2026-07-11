@@ -106,12 +106,38 @@ Research-only: Codex did not edit `schools.py` or contact Builder. Fable is the 
 says “check the README.” Full chronology is also in `research/ARCHIVE.md` and Codex's lane.
 
 ## ACTIVE LEADS
+- **San Diego City College (CA) — SOURCE-GATED, adapter needed (Codex, July 11 2026).** Official
+  district class search is `https://www.sdccd.edu/students/class-search/search.html`; its public
+  JavaScript calls `GET https://mws-api.sdccd.edu/?term=2267&career=ugrd` with no auth. Fall 2026
+  returned 4,164 rows in about 6s, including 1,100 City rows (campus code `CITY`), 685 `O` (open)
+  and 415 `C` (closed). `MATH 121` had 9 unique class numbers: 6 open with 1/2/16/31/34/35 seats
+  and 3 closed at zero. Status is authoritative because 11 closed City rows retain positive
+  capacity arithmetic (reserved-seat behavior). Spring 2026 (`2263`) also had mixed status (7 open/
+  2 closed for MATH 121), ruling out an all-open fake. The API advertises automatic 10-minute refresh;
+  response header reported `x-time-diff-sec: 444` and `cf-cache-status: DYNAMIC`. Exact
+  `CAMPUS + SUBJECT + CATALOG_NBR` filtering and `CLASS_NBR` section keys are mandatory.
+  **Conditional:** no production adapter yet; open only when `ENRL_STAT == O` and
+  `ENRL_CAP - ENRL_TOT > 0`.
+- **San Diego Mesa College (CA) — SOURCE-GATED, adapter needed (Codex, July 11 2026).** Same official
+  district feed and endpoint; campus code `MESA`. Fall 2026 had 1,971 Mesa rows (1,106 `O`, 865 `C`).
+  `MATH 121` had 13 unique class numbers: 8 open with 1/2/5/11/13/13/33/33 seats and 5 closed at
+  zero. Spring 2026 had 12 sections with 7 open/5 closed, including over-cap historical closed rows;
+  status must remain authoritative. The full feed is public and refreshed every 10 minutes; exact
+  campus/subject/catalog filtering is mandatory. **Conditional:** no production adapter yet; apply
+  `ENRL_STAT == O` plus positive `ENRL_CAP - ENRL_TOT` only.
+- **San Diego Miramar College (CA) — SOURCE-GATED, adapter needed (Codex, July 11 2026).** Same official
+  district feed; campus code is `MIRA` (not `MIRAMAR`). Fall 2026 had 1,093 rows (582 `O`, 511 `C`).
+  `BIOL 131` had 3 unique class numbers: 2 open with 6/13 seats and 1 closed at zero; Spring 2026
+  had 2 open and 1 closed (the closed row is over-cap), a genuine mixed historical result. Use exact
+  campus/subject/catalog filtering and `CLASS_NBR` as the section key. **Conditional:** no production
+  adapter yet; open only when `ENRL_STAT == O` and computed remaining seats are positive.
 - **Newer-Colleague API (BUILD DECISION for Nathan).** Confirmed real: `SearchAsync`/`SectionsAsync`
-  with a JSON-string `searchParameters` payload and a NUMERIC status (0=open; "full" code varies:
-  Lebanon Valley 0/1, Augustana 0/2). Two schools gated on it (Lebanon Valley, Augustana) but NOT
-  shippable on the current Colleague adapter (it reads textual "Open" only). If Nathan greenlights a
-  newer-Colleague variant, safe rule = open ONLY when status==0 AND Available>0, with a MANDATORY
-  completed-term test per school. Unlocks a batch of the 11 redirect-hosts. Codex owns this vein.
+  with a JSON-string `searchParameters` payload and a NUMERIC status (0=open; full codes vary by
+  school). The production `NewColleague` variant now passes real fetches for Lebanon Valley, Augustana,
+  Camden County, and Walsh; their four full specs are under `AWAITING GO-AHEAD`. The safe rule is
+  `status==0 AND Available>0 AND AreSeatCountsAvailable`; exact subject+number filtering is required.
+  This family does not expose a dependable literal completed-term feed, so current full rows and the
+  Walsh historical mixed result are documented instead of inventing a past-term claim.
 - **selfservice.* -> SaaS-host redirect vein (Codex).** Several "405/400" Colleague hosts are just
   `selfservice.{school}.edu` 301-redirecting to a SaaS host (e.g. `colss-prod.*.elluciancloud.com`);
   a POST does NOT follow the 301, so the plain host looked dead. Re-testing the ~10 remaining hosts

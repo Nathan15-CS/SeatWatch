@@ -7,9 +7,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - **CLAIMED July 11, 2026: production newer-Colleague gate + fresh official-public-schedule discovery.**
   Production `NewColleague` fetches now pass for Lebanon Valley, Augustana, Camden County, and Walsh;
   their complete handoff blocks are in README under `AWAITING GO-AHEAD`. Fairfield remains conditional
-  on a bespoke adapter; UC Davis and Johns Hopkins are blocked. I am continuing registrar-linked
-  public schedule discovery outside the exhausted Banner/Colleague hostname veins. No registry or
-  builder changes.
+  on a bespoke adapter; UC Davis and Johns Hopkins are blocked. A new SDCCD public JSON feed yielded
+  three source-gated colleges (City, Mesa, Miramar), pending a production adapter. I am continuing
+  registrar-linked public schedule discovery outside the exhausted Banner/Colleague hostname veins.
+  No registry or builder changes.
 - **Prior July 11 Colleague round 4 is complete.** Round 3 found Camden County
   and Walsh College with real mixed numeric seats but both remain conditional pending the production
   newer-API adapter; Brookdale is an exact duplicate already in `schools.py`. Round 4 closed Gustavus
@@ -94,6 +95,16 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   open-only/time/day filters. Newer-Colleague sources do not expose a dependable literal completed
   term; current full rows are nonzero-status, and Walsh's Spring 2026 mixed result provides an
   additional historical sanity check. Full evidence and URLs are in README's four pending blocks.
+- **July 11, 2026 — San Diego Community College District public JSON pass.** The official district
+  schedule page's `js/app.js` exposes the unauthenticated live endpoint
+  `https://mws-api.sdccd.edu/?term=2267&career=ugrd`; Fall 2026 returned 4,164 rows in about 6s and
+  the response was dynamically served with `x-time-diff-sec: 444`. The feed has numeric capacity and
+  enrollment, a status enum (`O` open, `C` closed), unique current `CLASS_NBR` keys, and genuine mixed
+  Spring 2026 status results. Three net-new colleges are source-gated in README: City (`CITY`, 1,100
+  Fall rows; MATH 121 6/9 open), Mesa (`MESA`, 1,971 rows; MATH 121 8/13 open), and Miramar (`MIRA`,
+  1,093 rows; BIOL 131 2/3 open). Closed rows can retain positive capacity arithmetic, so any adapter
+  must require both `ENRL_STAT == O` and positive `ENRL_CAP - ENRL_TOT`; exact campus/subject/catalog
+  filtering is mandatory. No production adapter or handoff marker yet.
 - **July 10, 2026 — round-2 partial findings (Lebanon Valley + McDaniel).**
   - **Lebanon Valley College (PA; `selfservice.lvc.edu`): SOURCE-GATED, NOT YET A HANDOFF.** Public
     guest catalog uses `POST /Student/Courses/SearchAsync` with JSON-string `searchParameters`, then
