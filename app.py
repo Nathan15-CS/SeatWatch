@@ -579,6 +579,7 @@ self.addEventListener('activate', function(e){ e.waitUntil(clients.claim()); });
 MANIFEST = json.dumps({
     "name": "SeatWatch", "short_name": "SeatWatch",
     "description": "Get an instant alert the second a seat opens in a full class.",
+    "id": "/", "scope": "/",
     "start_url": "/", "display": "standalone",
     "background_color": "#F8FAFC", "theme_color": "#2563EB",
     "icons": [{"src": "/icon-192.png", "sizes": "192x192", "type": "image/png"},
@@ -620,7 +621,8 @@ SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
 # The one-tap alert setup. Shown on the success page and the signed-in card.
 PUSH_BLOCK = """<div style="margin-top:18px;border-top:1px solid #F3F4F6;padding-top:16px">
  <button type="button" id="pushBtn" class="pushbtn" style="margin-top:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>Turn on phone alerts</button>
- <p class="note" id="pushStatus">One tap — alerts come straight to this device. No app to install.</p>
+ <p class="note" id="pushStatus">One tap — alerts come straight to this device, right in your browser.</p>
+ <button type="button" id="a2hsBtn" style="display:none;margin-top:10px;width:100%;padding:12px;border-radius:10px;border:1.5px solid #DBEAFE;background:#F8FAFC;color:#1D4ED8;font-weight:700;font-size:14.5px;cursor:pointer">📲 Add the SeatWatch app to your phone — free, 1 tap</button>
  <div id="iosHint" class="iosHint">
   <b style="display:block;font-size:14px;margin-bottom:12px;color:#1E3A5F">📲 On iPhone? Turn on alerts in 3 quick steps <span style="font-weight:500;color:#4B6B9A">(about 15 seconds)</span>:</b>
   <div style="display:flex;gap:11px;align-items:flex-start;margin-bottom:12px">
@@ -646,6 +648,22 @@ function s(m){st.textContent=m;}
 var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
 var standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone;
 function b64(u){var p='='.repeat((4-u.length%4)%4);var b=atob((u+p).replace(/-/g,'+').replace(/_/g,'/'));var a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
+// Early SW registration so the browser treats the site as app-ready even before the
+// user taps the alerts button (push subscribe below re-registers harmlessly).
+if('serviceWorker' in navigator){try{navigator.serviceWorker.register('/sw.js').catch(function(){});}catch(e){}}
+// Android/Chrome: offer the REAL install dialog when the browser says we qualify.
+// Progressive: the button only ever appears after beforeinstallprompt fires, so
+// browsers without support (all iOS) never see a dead-end button.
+var a2hs=document.getElementById('a2hsBtn'),defp=null;
+window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();defp=e;if(a2hs&&!standalone)a2hs.style.display='block';});
+window.addEventListener('appinstalled',function(){if(a2hs)a2hs.style.display='none';s('✅ SeatWatch is on your home screen — open it there any time.');});
+if(a2hs)a2hs.onclick=async function(){
+  if(!defp)return;
+  var p=defp;defp=null;          // Chrome allows prompt() once per event
+  try{p.prompt();var c=await p.userChoice;
+    if(c&&c.outcome==='accepted'){a2hs.style.display='none';}
+  }catch(e){}
+};
 // iPhone-in-Safari: push physically can't turn on until the site is added to the Home Screen
 // (an Apple rule we can't change). So show the steps upfront and hide the button that would
 // only dead-end here — no guessing, nothing to discover, nobody gets stuck.
