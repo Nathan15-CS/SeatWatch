@@ -4,14 +4,18 @@
 Update the "NOW" line whenever I start/finish a vein, then commit + push immediately.
 
 ## NOW (July 10, current)
-- **Flagship hunt round 1 DONE — reporting to Nathan for go-ahead, not yet sent to builder.** 2 MAJOR
-  gated-clean finds: **Texas A&M College Station** (~58-60k, status-only STUSEAT_OPEN Y/N via Howdy
-  portal public API) and **Iowa State** (~30k, REAL numeric openSeats via a bespoke Vue SPA API). Full
-  specs + gate evidence in README "Flagship bespoke-schedule hunt round 1". Michigan State BLOCKED
-  (Incapsula bot-protection — not bypassed, out of scope). UF in-progress (found a stale community-
-  documented API that no longer works; SPA's real endpoint not yet located). Clemson: no public tool
-  found yet. Still have Purdue untouched from the original 6-school list — next up if told to continue.
-- Not colliding with Codex, which is on "newer-Colleague-API-version investigation" (see below).
+- **Flagship hunt: 3 gated-clean finds. Batch 17 (TAMU + Iowa State) SENT. Purdue AWAITING GO-AHEAD.**
+  - Texas A&M College Station (~58-60k, status-only) + Iowa State (~30k, real numeric seats) → SENT to
+    builder (batch 17).
+  - University of Bridgeport (Codex's find) → relayed as batch 18.
+  - **Purdue (~50k, Banner 8, real numeric seats, completed-term PASSED) → in README under AWAITING
+    GO-AHEAD; will relay to builder when Nathan says "check the README."**
+- **Relay-hub role:** everything (mine + Codex's) lands in README under `AWAITING GO-AHEAD` headings;
+  when Nathan says "check the README," I pull, relay all AWAITING blocks to the builder in one go, and
+  mark each "Batch N sent." I am the single relay point; Codex never messages the builder.
+- STILL OPEN on the flagship list: UF (stale community API, real endpoint not yet located), MSU
+  (Incapsula bot-wall — out of scope), Clemson (no public tool found). Purdue was the last clean win.
+- Not colliding with Codex ("newer-Colleague-API-version investigation", see below).
 - **Codex is ACTIVE**, claimed "newer-Colleague-API-version investigation" in `lane-codex.md`, starting
   with Augustana, Bridgeport, Gustavus Adolphus. Builder independently narrowed this down technically:
   likely Ellucian's Angular Colleague rewrite using `/api/...` endpoints (old MVC-era adapter uses
