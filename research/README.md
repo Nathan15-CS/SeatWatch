@@ -15,7 +15,7 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
-### Lebanon Valley College (PA) — GATED, AWAITING GO-AHEAD (Codex, July 11 2026)
+### Lebanon Valley College (PA) — Batch 22 SENT July 11 2026 (Codex find, Fable relayed)
 
 Clean net-new newer-Colleague add. Official public catalog: `https://selfservice.lvc.edu/Student/Courses`;
 production host `selfservice.lvc.edu`; endpoints are `POST /Student/Courses/SearchAsync` and
@@ -33,7 +33,7 @@ small four-year college (officially about 1,674 undergraduates and 416 graduate 
 - Exact `SubjectCode + Number` filtering is mandatory: keyword `BIO 111` leaks `BIO 111L` and other
   subjects numbered 111. Section IDs/numbers were unique; name/host dedup is clean.
 
-### Augustana College (IL) — GATED, AWAITING GO-AHEAD (Codex, July 11 2026)
+### Augustana College (IL) — Batch 22 SENT July 11 2026 (Codex find, Fable relayed)
 
 Clean net-new newer-Colleague add, distinct from Augustana University. Official public catalog:
 `https://selfservice.augustana.edu/Student/Courses`; endpoints are `SearchAsync` and `SectionsAsync`.
@@ -49,7 +49,7 @@ This is a four-year liberal-arts college with about 2,500 students.
 - Exact `SubjectCode + Number` filtering is mandatory because keyword `BIOL 130` leaks `BIOL 130L`.
   Section IDs/numbers are unique; name/host dedup is clean.
 
-### Camden County College (NJ) — GATED, AWAITING GO-AHEAD (Codex, July 11 2026)
+### Camden County College (NJ) — Batch 22 SENT July 11 2026 (Codex find, Fable relayed)
 
 Clean net-new newer-Colleague add. Official public catalog: `https://selfservice.camdencc.edu/Student/Courses`;
 production host `selfservice.camdencc.edu`; endpoints are `GetCatalogAdvancedSearchAsync`, `SearchAsync`,
@@ -65,7 +65,7 @@ and more than 15,000 annually (NJ institutional profile).
 - Exact `SubjectCode + Number` filtering is mandatory: keyword `BIO 121` leaks unrelated subjects
   numbered 121 and neighboring BIO courses. Section IDs/numbers and name/host dedup are clean.
 
-### Walsh College (MI) — GATED, AWAITING GO-AHEAD (Codex, July 11 2026)
+### Walsh College (MI) — Batch 22 SENT July 11 2026 (Codex find, Fable relayed)
 
 Clean net-new newer-Colleague add, distinct from Walsh University. Official public catalog:
 `https://selfservice.walshcollege.edu/Student/Courses`; production host `selfservice.walshcollege.edu`;
