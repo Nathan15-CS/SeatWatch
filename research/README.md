@@ -122,3 +122,29 @@ Note: batches 17/18 (TAMU cache-backed, Iowa State, Bridgeport) were already com
 (6b771af); I INDEPENDENTLY re-gated all three today — all safe, zero false-opens, TAMU
 cache confirmed working (cold 46s / warm 0ms) and TAMU completed-term real (Fall 2025
 7136 open / 7142 closed).
+
+### University of Utah (~35k, Salt Lake City) — GATED, AWAITING GO-AHEAD (Fable, July 10 2026)
+Flagship (distinct from Utah State + Southern Utah, both already live). Bespoke PUBLIC schedule, no
+login, server-rendered HTML, REAL numeric seats. Registrar advertises it as "no security access
+required."
+- Endpoint (one GET per subject): GET https://class-schedule.app.utah.edu/main/{TERM}/seating_availability.html?subject={SUBJ}
+  → server-rendered Bootstrap grid. TERM 1268=Fall 2026.
+- Term auto-roll: GET https://class-schedule.app.utah.edu/ → landing lists `/main/{TERM}/index.html`
+  with labels ("Fall 2026"=1268, "Summer 2026"=1266, "Spring 2026"=1264). Standard PeopleSoft strm;
+  pick nearest upcoming, verify-before-adopt.
+- PARSE: per-section `<div class="col-*">` cells in order: CRN(5-digit), Subject, CatalogNbr, Section,
+  Title, **Cap, WaitList, CurrentlyEnrolled, SeatsAvailable**. open = SeatsAvailable>0, seats =
+  SeatsAvailable. Section key = CRN (globally unique — verified). Filter client-side to the exact
+  CatalogNbr (the page is subject-wide).
+- GATE: Fall 2026 across ENGL/MATH/BIOL/CHEM/PSY = 155 sections, 113 open / 42 full — real mix;
+  `SeatsAvailable == Cap - Enrolled` held on 100% (0 anomalies, so it's real arithmetic not a sentinel);
+  CRNs unique. COMPLETED-TERM TEST Fall 2025 (1258) MATH = 73 sections with genuinely FULL sections
+  (enr==cap, avail=0) alongside open ones → real historical enrollment, NOT fake-all-open (numeric
+  enrollment can't be faked open anyway). PASSES.
+- example="MATH 1050" (College Algebra; note UF's English subject is likely "WRTG" not "ENGL" — builder
+  confirm the exact subject code, but MATH/BIOL/CHEM/PSY all verified working). NOTE: Fall 2026 is early-
+  registration so some courses have few sections loaded — that's live/real, not stale (completed-term
+  proves the mechanism shows real fills). ⚑ Freshness: registrar claims "real-time"; I did not
+  independently measure refresh cadence — builder should confirm it's not a daily snapshot before ship
+  (if daily, still likely acceptable but flag it). Needs a small bespoke HTML adapter (div.col parse).
+  Dedup clean (University of Utah not in schools.py).
