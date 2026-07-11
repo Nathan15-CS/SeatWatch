@@ -162,3 +162,20 @@ Louisville, Nevada (UNR/UNLV), Rhode Island, Hawaii-Manoa.
 
 ## University of Utah — ✅ BUILT July 11 (batch 20): 647->648
 Bespoke public schedule (class-schedule.app.utah.edu), div.col HTML parse, REAL numeric seats (open=SeatsAvailable>0, ==Cap-Enrolled 100%). Freshness RESOLVED = real-time (Cache-Control no-store/must-revalidate, generated per request — not a daily snapshot). English subject = WRTG not ENGL. Completed-term test passed (Fall 2025 MATH 13 full sections). CRN-keyed, exact-CatalogNbr scoped (105 != 1050), term auto-rolls. Zero false-opens.
+
+### Flagship gaps round 2 (Fable, July 10 2026) — mostly walled; 2 revisit-leads
+Probed the remaining unchecked flagships. No clean win this round.
+- **Kansas (KU, ~28k) — REVISIT LEAD.** classes.ku.edu is a real PUBLIC search app (Struts); search
+  fires via `$.post("/Classes/CourseSearch.action", searchOptions)` with the classesSearch* form fields
+  (term 4269=Fall2026, 4259=Fall2025 for completed-term test). BUT CourseSearch.action timed out at 55s
+  on two probes — either a latency red flag (would stall the poller) or a missing-param hang (cascading
+  dropdowns may need career→school→dept populated first). Crackable but needs a browser network-trace of
+  one real search or more RE. Not gated.
+- **Hawaii-Manoa — REVISIT LEAD.** www.sis.hawaii.edu/uhdad/avail.classes is a known PUBLIC availability
+  page but returned 502/301 on my probes (transient? param format?). Worth a retry with correct params
+  (i=campus, t=term, s=subject).
+- DEAD: Kansas State (signin.k-state.edu WebISO SSO), UGA (CAS, see round 1). Hosts that don't resolve at
+  guessed public-schedule names (need real host): Nebraska-Lincoln, Louisville, Oregon (classschedule.
+  uoregon.edu NX; duckweb is the Banner-8 login portal), Nevada-Reno (404), URI (courses.uri.edu 200 but
+  not obviously a class search). These need per-school registrar-page recon to find the real public tool.
+NET flagship-gaps result: 1 clean win (University of Utah, batch 20) + 2 revisit-leads (KU, Hawaii).
