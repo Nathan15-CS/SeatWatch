@@ -1172,3 +1172,17 @@ priority than finishing UF given no lead yet.
 means TAMU needs its own refresh-interval caching layer in the adapter (distinct from every other
 per-course-fetch adapter in the codebase) — this is a real architecture decision, not a research
 question, so flagging rather than prescribing.
+
+### Batch 17 sent (July 10 2026) — Texas A&M College Station + Iowa State (flagship hunt round 1)
+Both gated clean, full specs above under "Flagship bespoke-schedule hunt round 1". Sent to builder w/
+Nathan's go-ahead. TAMU = status-only (Howdy public API, whole-term-per-call → needs refresh-cache
+design), Iowa State = real numeric openSeats (api.classes.iastate.edu). Dedup confirmed for both.
+
+### Batch 18 sent (July 10 2026) — University of Bridgeport (Codex find, relayed w/ Nathan's go-ahead)
+Codex Sol 5.6's first gated candidate (full evidence in research/lane-codex.md DONE section). Relayed to
+builder by Fable at Nathan's instruction. KEY: live host is the REDIRECT TARGET
+`colss-prod.bridgeportsaas.elluciancloud.com` (selfservice.bridgeport.edu 301s to it; a POST doesn't
+follow the 301, which is why the plain-host probe looked dead). Existing Colleague PostSearchCriteria/
+Sections flow works once pointed at the SaaS host. ENGL 101 Fall 2026 = 14 sections (8 Open/1 Closed/5
+Waitlisted), open↔positive Available, non-open↔0 Available, unique keys, completed-term (Spring 2026 =
+9 Open/1 Waitlisted) not all-open. Builder to gate through production adapter as final check.
