@@ -1187,7 +1187,7 @@ Sections flow works once pointed at the SaaS host. ENGL 101 Fall 2026 = 14 secti
 Waitlisted), open↔positive Available, non-open↔0 Available, unique keys, completed-term (Spring 2026 =
 9 Open/1 Waitlisted) not all-open. Builder to gate through production adapter as final check.
 
-### Purdue University (~50k, West Lafayette main) — GATED, AWAITING GO-AHEAD (Fable, July 10 2026)
+### Purdue University (~50k, West Lafayette main) — GATED, Batch 19 SENT July 10 2026 (Fable)
 The flagship-list target that prior sessions rejected ("Purdue main Banner hosts 404/500") — found the
 working public path. It's classic BANNER 8 (bwckschd, HTML scrape, guest-accessible, no login), same
 family as the existing `VirginiaTech` adapter. Real NUMERIC seats.
