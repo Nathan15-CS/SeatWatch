@@ -1287,3 +1287,27 @@ cracked, openSeats suppressed — permanent skip).  ⛔ Michigan State (Incapsul
 would need a real browser).  ⛔ Clemson (no public class-search tool found via registrar nav).
 Plus Bridgeport (~5k, Codex find) — batch 18. Flagship-bespoke-schedule vein now well-worked; the
 remaining 3 are genuinely blocked (data-absence / bot-wall / no-tool), not just unfinished.
+
+## Handoff batches 17+18 — ✅ BUILT July 10: 3 added (643->646, commit 6b771af)
+- **TEXAS A&M COLLEGE STATION** shipped w/ the refresh-cache architecture the handoff flagged: 34MB/~40s
+  full-term dump behind a 20-min TTL class-level cache under a lock (one thread runs the dump, concurrent
+  pollers get the stale copy, per-course warm lookup = 0.000s). Status-only, CRN-keyed, completed-term
+  reproduced (~50/50 in finished terms), filtered to '- College Station'. ⭐ NOW THE TEMPLATE for any
+  future FULL-TERM-DUMP school: if you find an API that ignores subject/course filters and returns the
+  whole term, it IS buildable — just flag it "cache-needed" in the handoff like TAMU (don't reject on the
+  34MB/40s size alone).
+- **IOWA STATE** clean; isCurrent term flag = trivial auto-detect; exact-match filter applied for the
+  courseNumber substring quirk.
+- **BRIDGEPORT (Codex find)** shipped WITH A FIX that raw-endpoint gating missed: through the PRODUCTION
+  Colleague adapter, `_pick_term` chose **'PA Fall 2026'** (Physician Assistant program term) over the
+  main **'Fall 2026 Term'** and returned ZERO sections. Bridgeport has PROGRAM-PREFIXED PARALLEL TERMS
+  (PA / Nutrition / ELI / Health Sciences Fall 2026). Builder built a reusable **`MainTermColleague`**
+  that drops any term with a program prefix before the season word.
+  ⚑⚑ LESSON FOR CODEX (directly relevant to the 11 redirect-host vein): when you gate a Colleague school
+  via raw endpoints, forcing the exact main term makes it LOOK clean — but the production adapter's
+  `_pick_term` must ALSO land on that term. VERIFY THE PICKER'S CHOICE, not just that the raw endpoint
+  returns data. Any of the 11 redirect-host schools that also have program-prefixed parallel terms will
+  hit this exact trap. Gate through the production `Colleague.fetch()` (instantiate + call), and if the
+  picker lands on a program term, flag it `needs MainTermColleague`.
+- Builder CONFIRMS Codex's redirect-follow insight is a good vein: re-test the other 10 "405/400" hosts
+  with redirect-following AND a program-prefixed-term check; several more may land.
