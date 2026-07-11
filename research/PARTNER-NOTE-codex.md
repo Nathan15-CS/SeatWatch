@@ -155,17 +155,26 @@ only confirmed non-duplicate installs, never project yield from a raw "host reac
 ## Findings workflow — write to README, that IS the handoff (do this for EVERY gate-passed school)
 
 The builder session reads `research/README.md` as its source of truth. So the standard is: **as soon
-as a candidate passes the full gate, append a complete, self-contained spec to README under a dated
-batch heading** — don't just leave it in your lane file. Your lane file is for live status ("what I'm
-working on now"); README is the permanent, builder-readable findings archive. Writing to README is
-explicitly allowed and expected (it's append-only: only ADD new dated entries, never rewrite existing
-ones). Put PENDING (not-yet-approved) findings under a "### <School> — GATED, awaiting go-ahead"
-heading; once Nathan approves, either you or Fable relays a short "batch N is in README, build it"
-ping to the builder — the full spec is already there, so the ping is one line, not a wall of text.
+as a candidate passes the full gate, append a complete, self-contained spec to README** — don't just
+leave it in your lane file. Your lane file is for live status ("what I'm working on now"); README is
+the permanent, builder-readable findings archive. Writing to README is explicitly allowed and expected
+(it's append-only: only ADD new dated entries, never rewrite existing ones).
 
-**This is the mechanism that removes manual relay:** everything lands in README in builder-ready form,
-and shipping it becomes a one-line trigger instead of re-pasting specs. Nathan still gates the
-go-ahead (nothing reaches the builder without his OK), but he no longer has to shuttle the details.
+**THE MARKER CONVENTION (important — this is how the relay works):** when you write a gated-but-not-yet-
+approved candidate to README, put it under a heading that contains the exact phrase **`AWAITING GO-AHEAD`**,
+e.g. `### University of Bridgeport — GATED, AWAITING GO-AHEAD (Codex, July 10)`. That exact phrase is the
+signal.
+
+**Fable is the single relay point to the builder — you (Codex) never message the builder yourself.**
+The loop: you gate → you write the spec to README under an `AWAITING GO-AHEAD` heading → Nathan tells
+Fable "check the README" → Fable pulls, finds every `AWAITING GO-AHEAD` block (yours and its own),
+relays them to the builder in one go, and edits each heading to `Batch N sent` so it's not re-sent.
+You just keep finding + writing; Fable handles the handoff. This keeps a single clean channel to the
+builder (no double-sends) and means Nathan only has to say one thing: "check the README."
+
+**This is the mechanism that removes manual relay of details:** everything lands in README in
+builder-ready form, and Nathan's "go" is one sentence to Fable instead of shuttling specs. Nathan
+still gates every handoff (nothing reaches the builder without his OK).
 
 **Handoff spec — include ALL of this per school (self-contained, so the builder needs nothing else):**
 - Name + rough enrollment + 4-year/CC
