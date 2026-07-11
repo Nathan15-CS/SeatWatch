@@ -257,3 +257,31 @@ CONCLUSION: my hunting lanes (CSU, HighPoint/Fluid, full host-guess sweep, flags
 CT-log) are all now exhausted or blocked for headless work at 648. Remaining real yield is NOT in more
 solo hunting — it's the new Builder building Codex's newer-Colleague adapter (SearchAsync/numeric status),
 which unlocks Lebanon Valley + Augustana + likely more of the redirect-host population in one shot.
+
+### Newer-Colleague round 3 — conditional findings (Codex, July 11 2026)
+
+**Camden County College (NJ) — source-gated, production adapter required.** Official guest catalog
+`https://selfservice.camdencc.edu/Student/Courses` exposes `GetCatalogAdvancedSearchAsync`,
+`SearchAsync`, and `SectionsAsync`. Fall 2026 term `26/FA` (`Fall 2026 Semester`) is current for
+registration (registration starts 2026-09-02). `BIO 121` returned six unique section IDs and numbers:
+four numeric-status `0` rows with 4/18/16/15 seats and two numeric-status `2` rows with zero seats/full
+enrollment. `Available == Capacity - Enrolled` held 6/6 and all rows published seat counts. Search and
+sections latency was 0.29s + 0.40s. Keyword `BIO 121` also returned unrelated subjects numbered 121
+and neighboring BIO courses, so exact `SubjectCode + Number` filtering is mandatory. Spring 2026
+returned no BIO rows, so no completed-term result was available for this course. This is not ready for
+relay: the numeric status enum still needs a conservative production adapter; raw seats alone must not
+be treated as open.
+
+**Walsh College (MI) — source-gated, production adapter required.** Official guest catalog
+`https://selfservice.walshcollege.edu/Student/Courses` exposes the same three newer endpoints. Fall
+2026 term `26/FA` (`Fall 2026 Semester`) has registration starting 2026-08-30. `ACC 316` returned two
+unique sections in 0.53s + 0.71s: numeric status `0` with 22 seats and numeric status `1` full with zero
+seats; arithmetic and published counts held 2/2. Completed Spring 2026 returned three sections with
+two status-0 rows at 9 seats and one status-1 full row, proving the guest view is not all-open. Keyword
+`ACC 316` leaks neighboring ACC numbers, so exact `SubjectCode + Number` filtering is mandatory. Name
+dedup is clean against existing Walsh University. This is not ready for relay until production confirms
+the numeric enum and applies status plus positive-seat gating.
+
+**Brookdale Community College — duplicate, no proposal.** The exact name already exists in
+`schools.py` as `Brookdale` with host `brookdalecc-ss.colleague.elluciancloud.com`; the official
+`selfservice.brookdalecc.edu` page is therefore not a new school for SeatWatch.

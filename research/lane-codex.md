@@ -4,10 +4,13 @@
 Codex: claim your vein here BEFORE you start probing, then commit + push. Update when you start/finish.
 
 ## NOW (active claims — Fable will not touch these)
-- **CLAIMED July 11, 2026: remaining Colleague-candidate round 3.** SUNY Onondaga is fully gated and
-  documented for relay. Next compact pass: Brookdale Community College, Camden County College, and
-  Walsh College. Verify official redirect/auth state first; run the full production-path gate only on
-  public catalogs exposing authoritative availability.
+- **CLAIMED July 11, 2026: remaining Colleague-candidate round 4.** Round 3 is complete: Camden County
+  and Walsh College expose real mixed numeric seat data but remain conditional pending the production
+  newer-API adapter; Brookdale is an exact duplicate already in `schools.py`. Next compact pass is
+  Gustavus Adolphus College and Texas Wesleyan University, the last unclosed candidates from the
+  original newer-Colleague list. Verify official redirect/auth state first; run the full production
+  gate only where a public source exposes authoritative availability. Do not re-probe Camden/Walsh
+  until a production adapter exists.
 - Research-only: I will not edit `schools.py`, contact the builder, or hand off candidates without
   Nathan's explicit approval.
 
@@ -19,6 +22,28 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Completed Spring 2026 BIO 121 returned 10 open/1 full with varied seats, ruling out fake all-open.
   Auto-term chose Fall 2026 Undergraduate, sibling exact-filtering is enforced, name dedup clean.
   Full builder-ready block is in README under the relay marker.
+- **July 11, 2026 — Colleague round 3 compact pass (Camden, Walsh, Brookdale).**
+  - **Camden County College (NJ; `selfservice.camdencc.edu`): SOURCE-GATED, conditional.** Public
+    newer API exposes `GetCatalogAdvancedSearchAsync`, `SearchAsync`, and `SectionsAsync`. Fall 2026
+    (`26/FA`, `Fall 2026 Semester`) is future/current registration (registration starts 2026-09-02);
+    `BIO 121` returned six unique section IDs/numbers in 0.29s search + 0.40s sections. Four rows had
+    numeric status `0` and positive seats 4/18/16/15; two had status `2`, zero seats, and full
+    arithmetic (`Available == Capacity - Enrolled`, 6/6). All publish seat counts. Keyword `BIO 121`
+    leaks unrelated subjects numbered 121 and neighboring BIO courses, so exact `SubjectCode + Number`
+    filtering is mandatory. Spring 2026 query returned no BIO rows, so a completed-term test is not
+    available for this course. Name dedup clean. **Conditional:** no production newer-API adapter yet;
+    do not infer status `0` from seats alone until the production path confirms the enum.
+  - **Walsh College (MI; `selfservice.walshcollege.edu`): SOURCE-GATED, conditional.** Same public
+    newer API. Fall 2026 (`26/FA`, `Fall 2026 Semester`) registration starts 2026-08-30; `ACC 316`
+    returned two unique IDs/numbers in 0.53s search + 0.71s sections: status `0` with 22 seats and
+    status `1` full with zero seats; arithmetic held 2/2 and counts were published. Spring 2026
+    (completed) returned three sections: two status `0` with 9 seats and one status `1` full, giving a
+    real mixed historical result. Keyword `ACC 316` leaks neighboring ACC numbers (including `ACC 512`),
+    so exact `SubjectCode + Number` filtering is mandatory. Name dedup clean against existing Walsh
+    University. **Conditional:** numeric status enum still needs a production adapter and conservative
+    status-plus-seat gate.
+  - **Brookdale Community College:** **DUPLICATE — already registered** in `schools.py` as
+    `Brookdale`, name exact-match, host `brookdalecc-ss.colleague.elluciancloud.com`; no new proposal.
 - **July 10, 2026 — round-2 partial findings (Lebanon Valley + McDaniel).**
   - **Lebanon Valley College (PA; `selfservice.lvc.edu`): SOURCE-GATED, NOT YET A HANDOFF.** Public
     guest catalog uses `POST /Student/Courses/SearchAsync` with JSON-string `searchParameters`, then
