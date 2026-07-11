@@ -4,7 +4,8 @@ Cross-session research log for SeatWatch school expansion. **This file is kept l
 the full chronological batch-by-batch history lives in `research/ARCHIVE.md` (grep it for any past
 detail). Read THIS file + the lane files; only open ARCHIVE for a specific past finding.
 
-- **Live count: 646 schools** (goal 1,000). Session start was 634.
+- **Live count: 648 schools** (goal 1,000). Session start was 634; verified from `len(schools.SCHOOLS)`
+  on July 11, 2026.
 - **Who's doing what right now:** `research/lane-fable.md` + `research/lane-codex.md` (short, always current).
 - **How we work / accuracy+efficiency gate:** `research/PARTNER-NOTE-codex.md` and repo-root
   `CONTRIBUTING_AGENT.md`. Handoffs to the builder go through Fable; gated-but-unapproved candidates
