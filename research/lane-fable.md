@@ -56,8 +56,10 @@ Update the "NOW" line whenever I start/finish a vein, then commit + push immedia
 
 ## NOW (July 10, continued) — flagship gaps beyond the builder's 6-school list
 Alt-public-schedule hunt at big uncovered publics (non-overlapping with Codex).
-- ✅ **University of Utah (~35k) GATED → AWAITING GO-AHEAD in README** (real numeric seats, public
-  class-schedule.app.utah.edu). This is the one pending item for Nathan to relay.
-- Dead this round: Cincinnati (classic-PS fake-open), LSU (daily-stale), UGA (SSO/CAS). In README.
-- Still unchecked: Kentucky, Kansas, Kansas State, Nebraska-Lincoln, Oregon, Louisville, Nevada, URI,
-  Hawaii — next pass.
+- ✅ **University of Utah (~35k) — SENT to builder as batch 20** (real numeric seats, public
+  class-schedule.app.utah.edu). Nothing of mine queued now.
+- Dead: Cincinnati (classic-PS fake-open), LSU (daily-stale), UGA (SSO/CAS), Kansas State (WebISO SSO).
+- REVISIT-LEADS (crackable, not gated): Kansas (public CourseSearch.action but times out 55s — latency
+  or missing-param hang), Hawaii-Manoa (public avail.classes page, 502/301 on probe — retry params).
+- Unresolved hosts (need real host recon): Nebraska-Lincoln, Louisville, Oregon, Nevada, URI, Kentucky.
+- **Status: flagship-gaps vein largely worked; I'm at a natural pause. Available for a new steer.**
