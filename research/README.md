@@ -315,8 +315,8 @@ adapter (`status == 0` plus `Available > 0`, exact course filtering, and complet
 including `Fall Semester 2026 (09/08/2026-12/19/2026)` with 1,929 rows. Fall data had 1,012 rows with
 positive `Remaining_Seats` and 917 at zero. The composite `Course_Subject_Number + Section_Number`
 key was unique across all 1,929 Fall rows. `Remaining_Seats` is explicit integer text; every positive
-row matched `capacity - enrolled` from `Enrolled_Capacity`. Some full/reserved rows are over-cap, so
-the adapter must use `Remaining_Seats` as authoritative and never derive openness from the enrollment
+row matched `capacity - enrolled` from `Enrolled_Capacity`. Some zero-seat rows are over-cap, so the
+adapter must use `Remaining_Seats` as authoritative and never derive openness from the enrollment
 pair. `BIOL 1107` had five unique Fall sections with 0/0/17/4/18 seats; sibling `BIOL 1107L` exists,
 so exact course scoping is mandatory. The API publishes no completed term, so the completed-term gate
 could not be run. Name dedup is clean. Fairfield's official 2025-26 fact sheet reports 5,464

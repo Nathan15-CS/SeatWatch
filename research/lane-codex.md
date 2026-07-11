@@ -28,7 +28,7 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
     Semester 2026 (1,929 rows). Fall totals are 1,012 rows with `Remaining_Seats > 0` and 917 with
     zero; all 1,929 course+section keys are unique. `Remaining_Seats` is explicit integer text and
     every positive-seat row satisfies `capacity - enrolled == remaining` from `Enrolled_Capacity`;
-    closed rows can be over-cap/reserved, so use Remaining_Seats as the authoritative field. Example
+    some zero-seat rows are over-cap, so use Remaining_Seats as the authoritative field. Example
     `BIOL 1107` has 5 unique Fall sections: 0/0/17/4/18 seats; sibling `BIOL 1107L` exists (17 rows),
     so exact `Course_Subject_Number` plus `Section_Number` scoping is mandatory. The API publishes no
     completed term, so the completed-term gate cannot be run yet. Name dedup clean; official Fall 2025
