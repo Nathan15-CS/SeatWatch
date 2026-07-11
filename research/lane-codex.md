@@ -105,6 +105,13 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   1,093 rows; BIOL 131 2/3 open). Closed rows can retain positive capacity arithmetic, so any adapter
   must require both `ENRL_STAT == O` and positive `ENRL_CAP - ENRL_TOT`; exact campus/subject/catalog
   filtering is mandatory. No production adapter or handoff marker yet.
+- **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
+  `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
+  CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -
+  sectEnrl` arithmetic. Summer 2026 provides a mixed historical comparison (349/458 sections), but
+  the feed has no status enum; the client treats positive seats as open even though Cypress documents
+  seats that remain visible after a class is closed for a waitlist/add-code condition. No handoff or
+  adapter spec until a trustworthy status/reservation signal is found.
 - **July 11, 2026 — Ventura County Community College District triage deferred.** Official
   `schedule.vcccd.edu` is server-rendered Banner-style HTML. Summer 2026 exposed `OPEN/FULL` and
   Cap/Act/Rem fields, but the response was tens of megabytes and the Fall 2026, Spring 2026, and

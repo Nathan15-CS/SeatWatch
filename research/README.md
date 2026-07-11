@@ -139,6 +139,17 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   had 2 open and 1 closed (the closed row is over-cap), a genuine mixed historical result. Use exact
   campus/subject/catalog filtering and `CLASS_NBR` as the section key. **Conditional:** no production
   adapter yet; open only when `ENRL_STAT == O` and computed remaining seats are positive.
+- **North Orange County CCD — Cypress College + Fullerton College (CA), source-gated but status-blocked.**
+  Official app: `https://schedule.nocccd.edu/`; its public JavaScript loads `data/202610/courses.json`
+  and `data/202610/sections.json` (Fall 2026) without auth. The feed returned 3,908 unique CRNs:
+  Cypress (`campCode=1`) 1,694 sections, 1,083 with positive seats; Fullerton (`campCode=2`) 2,170,
+  1,396 positive. `sectSeatsAvail == sectMaxEnrl - sectEnrl` held 3,908/3,908. Examples: Cypress
+  `ENGL 100 C` = 59 sections with mixed 0/1 seats; Fullerton `ENGL 100 F` = 102 mixed sections.
+  Summer 2026 (`202530`) is also public and mixed (Cypress 349, Fullerton 458), with unique CRNs and
+  perfect arithmetic. **Do not hand off yet:** the JSON exposes seats, enrollment, waitlists and
+  `sectResv`, but no authoritative registration-status enum; the app's “Open Classes” filter is
+  seat-only and Cypress warns that a class can show seats while closed due to waitlist/add-code rules.
+  A production adapter needs a status source or a proven safe reservation rule before any add.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very
