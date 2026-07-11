@@ -171,6 +171,21 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   had 2,045 sections with 1,679 open/366 full. Official RCCD FY2023-24 headcount is 29,597. Use the
   app's date-aware `Total Seats > Seats Used` rule plus exact `Primary Subject + Section Number` and
   restriction checks. **Conditional:** no production adapter yet.
+- **University of California, Berkeley (CA) — SOURCE-GATED, adapter needed (Codex, July 11 2026).**
+  Official public class search is `https://classes.berkeley.edu/`; Fall 2026 is term facet `8588`
+  and Spring 2026 is `8576`. Search results link to exact section pages whose embedded
+  `drupal-settings-json` contains `ucb.enrollment.available`: stable numeric class ID, status code
+  (`O` = Open), enrolled, capacity, waitlist, and reserved-seat fields. Fall Biology 2026 returned
+  four unique sections for Biology 1A/1AL/1B (class IDs `21757`, `21747`, `21748`, `23322`), all
+  status `O`; 1B-001 and 1B-002 each showed 1 unreserved open seat (345/346 enrolled), while 1A/1AL
+  showed 21/20 open seats entirely reserved. Spring Biology returned three unique sections (IDs
+  `21727`, `21754`, `21780`) with 2/1/1 open seats and `openReserved: 0`, providing a mixed
+  current/historical sanity check. The rendered pages agree (`Total Open Seats`, `Enrolled`,
+  `Capacity`, `Open Reserved Seats`), so this is not an all-open fake.
+  **Safe rule:** require exact term + subject/course + class ID, status code `O`, and
+  `capacity - enrolled > 0`; subtract `openReserved` and withhold rows when the remainder is zero
+  (reserved-only seats must not alert general users). Preserve waitlist and consent/restriction text.
+  Berkeley's search/detail pages are public but no production adapter exists yet; do not hand off.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very

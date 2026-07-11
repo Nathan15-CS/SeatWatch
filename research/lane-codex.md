@@ -9,7 +9,9 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   their complete handoff blocks are in README under `AWAITING GO-AHEAD`. Fairfield remains conditional
   on a bespoke adapter; UC Davis and Johns Hopkins are blocked. A new SDCCD public JSON feed yielded
   three source-gated colleges (City, Mesa, Miramar), pending a production adapter. I am continuing
-  registrar-linked public schedule discovery outside the exhausted Banner/Colleague hostname veins.
+  registrar-linked public schedule discovery outside the exhausted Banner/Colleague hostname veins;
+  Berkeley's public class-search detail pages are the latest validated lead, with reserved-seat-aware
+  gating still pending a production adapter.
   No registry or builder changes.
 - **Prior July 11 Colleague round 4 is complete.** Round 3 found Camden County
   and Walsh College with real mixed numeric seats but both remain conditional pending the production
@@ -114,6 +116,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   MVC 939 (815/124), Norco 973 (929/44), Riverside 2,045 (1,679/366). Exact course+section filtering
   is mandatory; withhold enrollment-limited rows. Full school blocks and official RCCD headcounts are
   in README. These remain source-gated pending a production adapter; no handoff markers yet.
+- **July 11, 2026 — University of California, Berkeley public class-search pass.** Official
+  `classes.berkeley.edu` search facets `8588` (Fall 2026) and `8576` (Spring 2026) link to exact
+  section pages with embedded `ucb.enrollment.available` JSON. Biology Fall had four unique class IDs,
+  all status `O` (Open); two Biology 1B sections had 1/1 unreserved seats while Biology 1A/1AL's
+  21/20 seats were entirely reserved. Spring had three unique IDs with 2/1/1 open seats and
+  `openReserved: 0`, proving genuine current/historical variation. The rendered pages expose the same
+  counts and reservation text. A future adapter must require exact term/subject/class ID, status `O`,
+  positive capacity-minus-enrolled, and subtract `openReserved` so reserved-only seats are withheld;
+  preserve waitlist/consent restrictions. Source-gated; no handoff or production code made.
 - **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -
