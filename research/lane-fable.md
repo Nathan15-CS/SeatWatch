@@ -62,7 +62,12 @@ Alt-public-schedule hunt at big uncovered publics (non-overlapping with Codex).
 - REVISIT-LEADS (crackable, not gated): Kansas (public CourseSearch.action but times out 55s — latency
   or missing-param hang), Hawaii-Manoa (public avail.classes page, 502/301 on probe — retry params).
 - Unresolved hosts (need real host recon): Nebraska-Lincoln, Louisville, Oregon, Nevada, URI, Kentucky.
-- **Status: flagship-gaps vein largely worked; I'm at a natural pause. Available for a new steer.**
+- **Status: ALL my solo veins now exhausted (July 11).** HCX search-harvest (my last fresh angle) =
+  USM, already live (dup). Fose full sweep = Penn (dup). Every SIS type swept across the 2014-domain set
+  + ~20 flagships + CT-log = mined out at 648. CEDING public-schedule discovery to Codex (it claimed that
+  vein July 11 — overlaps my worked flagship lane; my dead-ends are in README so it won't re-tread). No
+  fresh non-overlapping solo lane remains. Real growth = the newer-Colleague adapter (Builder+Codex, in
+  motion). I'll relay Codex's gated finds instantly; not burning tokens on more solo probes.
 
 ## BUILDER HANDOFF (July 11 2026)
 The original SeatWatch-Builder session (local_224f8036...) is being retired; Nathan started a FRESH
