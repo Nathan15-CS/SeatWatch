@@ -5046,6 +5046,24 @@ class YearSpanNewColleague(NewColleague):
         pick = super()._pick_term(fixed)
         return next((f["_orig"] for f in fixed if f["Description"] == pick), None) if pick else None
 
+# --- Batch 22: newer-Colleague schools (numeric-status SearchAsync/SectionsAsync).
+# Enum verified per school; conservative rule (status==0 AND Available>0) in NewColleague.
+class LebanonValley(NewColleague):
+    id = "lvc"; name = "Lebanon Valley College"
+    example = "BIO 111L"; host = "selfservice.lvc.edu"
+
+class AugustanaIL(YearSpanNewColleague):   # ≠ Augustana University; term '2026-27 Fall Semester'
+    id = "augustana-il"; name = "Augustana College (IL)"
+    example = "BIOL 130"; host = "selfservice.augustana.edu"
+
+class CamdenCounty(NewColleague):
+    id = "camdencc"; name = "Camden County College"
+    example = "BIO 121"; host = "selfservice.camdencc.edu"
+
+class WalshCollege(NewColleague):          # ≠ Walsh University (id 'walsh', already live)
+    id = "walshcollege"; name = "Walsh College"
+    example = "ACC 316"; host = "selfservice.walshcollege.edu"
+
 
 class Mercer(Colleague):
     id = "mercer"; name = "Mercer University"
@@ -5896,7 +5914,8 @@ def _guard_registry(all_schools):
     return {s.id: s for s in all_schools}
 
 
-SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU()])
+SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
+    LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege()])
 
 
 def refresh_all_terms(log=None):
