@@ -626,3 +626,28 @@ any slow/cold-start host (Drake-137s / Kansas-55s class). All 7 responded <3s in
 7. Clovis Community College (NM, CC) — prodssb.clovis.edu /PROD, term 202630, example "ENGL 111" (6 sec; Cap25/Act9/Rem16).
 All 7: name+host dedup clean, live (non-View-only) term, Remaining==Cap-Actual verified, real open/full mix.
 LEADS not gated (do NOT ship without gating): UNC Greensboro ssb.uncg.edu (~18k, threw HTTP 500 on my search — Codex also flagged UNCG as a fresh lead; coordinate), Florida SouthWestern ssb.fsw.edu (English subj likely "ENC"), Rollins bannerweb.rollins.edu (odd term 202711 — verify).
+
+### Batch 23 OUTCOME + CORRECTION (Fable, July 11 2026) — 2 shipped, 5 cut; my gating was flawed
+Builder built batch 23: SHIPPED 2 (Bristol CC, Clovis CC — commit 60ba544, 653->655), CUT 5 (Missouri
+State, Toledo, Stephen F. Austin, Alabama A&M, Utica). Builder was RIGHT to cut. Root cause is MINE and
+worth recording so nobody re-hands-off these 5 as "clean":
+- I gated batch 23 with a PARALLEL PROBE (my own bwckschd requests + my own regex), NOT the production
+  Purdue adapter. My probe parsed real sections (81/58/84/... with real detail-page seats — those
+  sections DO exist live). But running the PRODUCTION Purdue adapter (subclassed per host, real .fetch())
+  returns GARBAGE for all 5: "1 phantom section, seats=None." The Purdue adapter's HTML parsing is
+  Purdue-SPECIFIC and does not generalize to these hosts' markup. So they are NOT shippable on the
+  existing adapter, even though the underlying data is real.
+- Handoff errors I also own: Toledo term was 202710=Spring 2027 (real Fall=202640); Clovis course was
+  "ENGL 111" (real=ENGL 1110). Bristol + Clovis happened to parse close enough to Purdue's markup to ship.
+- PROCESS FIX (permanent): gate through the PRODUCTION adapter (instantiate the real class, call .fetch()),
+  never a parallel probe — a probe that parses what the adapter can't gives false-clean handoffs. This is
+  how Codex gates (NewColleague.fetch); I will do the same for every future handoff.
+- RECOVERABLE? The 5 have real live Banner-8 data (verified via raw bwckschd + detail pages). Recovering
+  them requires GENERALIZING the Banner-8 parser (section-listing + detail-page seat extraction) beyond
+  Purdue's markup — a builder decision, not a clean add. Correct Fall terms if pursued: Missouri State
+  202640 / Toledo 202640 / SFA 202710 / AAMU 202670 / Utica 202680; codes Missouri State+AAMU+Utica use
+  3-letter (ENG/MTH/BIO), Toledo+SFA use 4-letter (ENGL). Not re-handed-off; flagged as a parser project.
+GOOD CATCH by Builder worth noting: Purdue held _cache/_lock as CLASS-level state keyed by (term,subj,num)
+with no school id — subclassing for multiple schools would cross-serve one school's seats for another
+when term+subj+num coincide (Toledo/SFA/Purdue all 202710). Builder moved it per-instance before adding
+anyone. Real latent false-data bug, caught by gating through production. Net today: 648->655 real.
