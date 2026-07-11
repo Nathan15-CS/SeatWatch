@@ -4266,6 +4266,63 @@ class NWOSU(SynthTermColleague):
     example = "ENGL 1213"; host = "selfservice.nwosu.edu"
 
 
+class AcadYearColleague(Colleague):
+    """Term labels use the academic-year 'YY/YY' style ('Fall 26/27 Semester') that the
+    base season parser can't read. Rewrite to a plain 'Season 20YY' — Fall takes the
+    FIRST year (26->2026), Spring/Summer/Winter the SECOND (Spring 26/27 = 2027) — then
+    delegate to the base picker (which keeps its sub-term penalty + shortest-desc
+    tiebreak, so 'Fall 26/27 Semester' beats 'Fall 26/27 Late Term')."""
+    def _pick_term(self, terms):
+        fixed = []
+        for t in terms:
+            d = t.get("Description") or ""
+            m = re.search(r"(Fall|Spring|Summer|Winter)\s+(\d\d)/(\d\d)", d, re.I)
+            if m:
+                season = m.group(1).capitalize()
+                yr = m.group(2) if season == "Fall" else m.group(3)
+                d = re.sub(r"\d\d/\d\d", f"20{yr}", d)
+            fixed.append({"Description": d, "_orig": (t.get("Description") or "")})
+        pick = super()._pick_term(fixed)
+        return next((f["_orig"] for f in fixed if f["Description"] == pick), None) if pick else None
+
+class EdisonState(AcadYearColleague):
+    id = "edisonoh"; name = "Edison State Community College (Ohio)"
+    example = "ENG 121S"; host = "selfservice.edisonohio.edu"
+
+
+_QTR_MON = {m: i for i, m in enumerate(
+    ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], 1)}
+
+class QuarterColleague(Colleague):
+    """Quarter school whose term labels give a month span, not a season word
+    ('2026-2027 Quarter 1 Aug-Oct'). Pick the nearest UPCOMING term by its START month:
+    Aug-Dec falls in the range's first year, Jan-Jul in the second. All four quarters
+    (plus summer) are valid registration terms."""
+    def _pick_term(self, terms):
+        today = datetime.date.today()
+        best, bd = None, None
+        for t in terms:
+            d = t.get("Description") or ""
+            ym = re.search(r"(20\d\d)-(20\d\d)", d)
+            mm = re.search(r"\b([A-Z][a-z]{2})-[A-Z][a-z]{2}", d)
+            if not (ym and mm):
+                continue
+            mon = _QTR_MON.get(mm.group(1).lower())
+            if not mon:
+                continue
+            year = int(ym.group(1)) if mon >= 8 else int(ym.group(2))
+            delta = (year - today.year) * 12 + (mon - today.month)
+            if delta < 1:
+                continue
+            if bd is None or delta < bd:
+                bd, best = delta, d
+        return best
+
+class GeorgiaMilitary(QuarterColleague):
+    id = "gmc"; name = "Georgia Military College"
+    example = "ENG 101"; host = "selfservice.gmc.cc.ga.us"
+
+
 class AlnumSubjectColleague(Colleague):
     """Southwestern TX subjects embed digits ('ENG10 134', 'CHE51 101') — space
     separator required so the digits stay unambiguous."""
@@ -5179,6 +5236,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                                SouthwesternCCNC(), Daemen(), EasternOKState(),
                                SoutheasternOKState(), WesternOKState(), HolyFamily(),
                                MontgomeryCountyCC(), WestminsterUT(), WesternWyoming(),
+                               EdisonState(), GeorgiaMilitary(),
                                OrangeCoast(), GoldenWest(), Coastline(),
                                Bakersfield(), CerroCoso(), Porterville()]
                             + [CtcLink(*t) for t in _CTCLINK]

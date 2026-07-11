@@ -1030,3 +1030,18 @@ domains. Swept ALL across Banner (7 host patterns incl. cloud) + Colleague (5 pa
 CONCLUSION: the mechanical host-guess universe is essentially mined out at 641 — a full 2014-domain
 sweep yielded exactly 2 clean adds, both gated only after per-school term-format handling. Biggest
 remaining Colleague lead = the newer-API-version hosts (405/400 class).
+
+## Handoff batch 16 (2 Colleague colleges, volume sweep) — ✅ BUILT July 10: 2 added (641->643)
+Both needed a term-format subclass (base _pick_term couldn't parse their term labels):
+- Edison State CC (Ohio): new `AcadYearColleague` — academic-year 'Fall 26/27 Semester'
+  (Fall=first year, Spring/Summer=second). ENG 121S 60 secs/41 open. Note: 4 sections show
+  1 seat but status != Open (waitlist/restricted) — adapter correctly marks them NOT open
+  (status-authoritative, conservative, zero false-opens). That's the intended behavior.
+- Georgia Military College: new `QuarterColleague` — quarter labels give a month span
+  ('2026-2027 Quarter 1 Aug-Oct'), picked by start month. ENG 101 55 secs/25 open, every
+  open has seats>0. Net-new (!= Marion Military Institute / ACCS).
+Both real status+seat mixes, zero false-opens. Mechanical host-guess vein noted as mined
+out at ~641 by the research chat; these 2 were the yield of the full-dataset sweep.
+STRATEGIC (deferred, not built): 11 hosts return the Colleague catalog page but 405/400 on
+PostSearchCriteria — a newer Colleague Self-Service API variant. If cracked, unlocks a whole
+class. Left with research chat / Codex to investigate.
