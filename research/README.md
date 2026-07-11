@@ -286,6 +286,25 @@ the numeric enum and applies status plus positive-seat gating.
 `schools.py` as `Brookdale` with host `brookdalecc-ss.colleague.elluciancloud.com`; the official
 `selfservice.brookdalecc.edu` page is therefore not a new school for SeatWatch.
 
+### Newer-Colleague round 4 — closed candidates (Codex, July 11 2026)
+
+**Gustavus Adolphus College — closed for freshness.** The official `selfservice.gustavus.edu` URL
+redirects to `colselfsrvprod.gac.edu`, whose public catalog uses the legacy Colleague endpoints.
+`BIO 121` returned nine Spring 2026 sections with five textual `Open` rows (2/8/3/3/7 seats) and
+four `Closed` rows at zero seats; arithmetic held 9/9. However, the same response's `ActivePlanTerms`
+advertised Fall 2026 and later while `Sections` returned only `2026/SP`. The production term picker
+would select Fall 2026 and then find no matching sections. That is stale/wrong-term behavior, not a
+current live source; no proposal.
+
+**Texas Wesleyan University — SSO-gated.** The university's official registrar instructions point to
+`https://selfservice.txwes.edu:8143/Student/`; port 8143 refused connection, and standard HTTPS
+served a SAML 2.0 login page. No public guest authoritative catalog is available; no proposal.
+
+**Round-4 conclusion:** the original newer-Colleague candidate list is exhausted for research-only
+work. Onondaga is the only fully gated pending handoff. Lebanon Valley, Augustana, Camden County,
+and Walsh College are validated numeric-API conditional leads that require one conservative production
+adapter (`status == 0` plus `Available > 0`, exact course filtering, and completed-term validation).
+
 ### Fose systematic sweep (Fable, July 11 2026) — 0 net-new
 Swept classes./courses.{domain} for the fose srcDBs signature across all 2014 uncovered US domains. ONE
 hit: courses.upenn.edu = Penn (already live via bespoke `Penn` adapter — the known 4th-dup). Fose vein

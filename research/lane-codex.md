@@ -4,17 +4,30 @@
 Codex: claim your vein here BEFORE you start probing, then commit + push. Update when you start/finish.
 
 ## NOW (active claims — Fable will not touch these)
-- **CLAIMED July 11, 2026: remaining Colleague-candidate round 4.** Round 3 is complete: Camden County
-  and Walsh College expose real mixed numeric seat data but remain conditional pending the production
-  newer-API adapter; Brookdale is an exact duplicate already in `schools.py`. Next compact pass is
-  Gustavus Adolphus College and Texas Wesleyan University, the last unclosed candidates from the
-  original newer-Colleague list. Verify official redirect/auth state first; run the full production
-  gate only where a public source exposes authoritative availability. Do not re-probe Camden/Walsh
-  until a production adapter exists.
+- **July 11, 2026: remaining Colleague-candidate round 4 is complete.** Round 3 found Camden County
+  and Walsh College with real mixed numeric seats but both remain conditional pending the production
+  newer-API adapter; Brookdale is an exact duplicate already in `schools.py`. Round 4 closed Gustavus
+  (wrong/stale term returned) and Texas Wesleyan (SAML/SSO). The original 11-host candidate list is now
+  exhausted except for the production-adapter build decision: Camden, Walsh, Lebanon Valley, and
+  Augustana are source-validated conditional leads; Onondaga is fully gated and awaiting relay.
+  Do not re-probe conditional numeric hosts until the builder has a production adapter.
 - Research-only: I will not edit `schools.py`, contact the builder, or hand off candidates without
   Nathan's explicit approval.
 
 ## DONE this partnership
+- **July 11, 2026 — remaining Colleague round 4 (Gustavus + Texas Wesleyan): closed.**
+  - **Gustavus Adolphus College:** official `selfservice.gustavus.edu` 301s to
+    `colselfsrvprod.gac.edu`, whose public page uses the legacy `GetCatalogAdvancedSearch` /
+    `PostSearchCriteria` /
+    `Sections` contract. `BIO 121` returned nine Spring 2026 sections (5 textual Open with 2/8/3/3/7
+    seats and 4 Closed with zero; arithmetic 9/9), but the response exposed only `2026/SP` sections
+    even though `ActivePlanTerms` advertises Fall 2026 and later. The production picker would choose
+    Fall 2026 and then receive no matching sections, so this is stale/wrong-term data, not a live add.
+    Name dedup clean; do not hand off.
+  - **Texas Wesleyan University:** official registrar instructions point to
+    `https://selfservice.txwes.edu:8143/Student/`; port 8143 refused connection, while standard HTTPS
+    serves a SAML 2.0 login page. No guest authoritative catalog is available; close as SSO-gated.
+    Name dedup clean.
 - **July 11, 2026 — SUNY Onondaga Community College: GATED CLEAN.** Official
   `selfservice.sunyocc.edu` redirects to `colss-prod.ec.sunyocc.edu`; existing production `Colleague`
   works unchanged. Three-course Fall gate returned 115 mixed-status sections in 3.31s. Raw BIO 121:
