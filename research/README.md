@@ -131,6 +131,12 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   had 2 open and 1 closed (the closed row is over-cap), a genuine mixed historical result. Use exact
   campus/subject/catalog filtering and `CLASS_NBR` as the section key. **Conditional:** no production
   adapter yet; open only when `ENRL_STAT == O` and computed remaining seats are positive.
+- **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
+  `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
+  only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very
+  large, exposes `OPEN/FULL` plus Cap/Act/Rem, and would need a term-availability check, completed-term
+  sanity test, and production adapter before any college-level proposal. Do not duplicate this probe
+  until a future pass finds a published Fall term or a smaller underlying endpoint.
 - **Newer-Colleague API (BUILD DECISION for Nathan).** Confirmed real: `SearchAsync`/`SectionsAsync`
   with a JSON-string `searchParameters` payload and a NUMERIC status (0=open; full codes vary by
   school). The production `NewColleague` variant now passes real fetches for Lebanon Valley, Augustana,

@@ -105,6 +105,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   1,093 rows; BIOL 131 2/3 open). Closed rows can retain positive capacity arithmetic, so any adapter
   must require both `ENRL_STAT == O` and positive `ENRL_CAP - ENRL_TOT`; exact campus/subject/catalog
   filtering is mandatory. No production adapter or handoff marker yet.
+- **July 11, 2026 — Ventura County Community College District triage deferred.** Official
+  `schedule.vcccd.edu` is server-rendered Banner-style HTML. Summer 2026 exposed `OPEN/FULL` and
+  Cap/Act/Rem fields, but the response was tens of megabytes and the Fall 2026, Spring 2026, and
+  future-term probes returned zero rows. No completed-term/freshness gate or adapter spec was made;
+  revisit only if the district publishes a current Fall term or an underlying JSON endpoint.
 - **July 10, 2026 — round-2 partial findings (Lebanon Valley + McDaniel).**
   - **Lebanon Valley College (PA; `selfservice.lvc.edu`): SOURCE-GATED, NOT YET A HANDOFF.** Public
     guest catalog uses `POST /Student/Courses/SearchAsync` with JSON-string `searchParameters`, then
