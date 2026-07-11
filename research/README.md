@@ -123,7 +123,7 @@ Note: batches 17/18 (TAMU cache-backed, Iowa State, Bridgeport) were already com
 cache confirmed working (cold 46s / warm 0ms) and TAMU completed-term real (Fall 2025
 7136 open / 7142 closed).
 
-### University of Utah (~35k, Salt Lake City) — GATED, AWAITING GO-AHEAD (Fable, July 10 2026)
+### University of Utah (~35k, Salt Lake City) — Batch 20 SENT July 10 2026 (Fable)
 Flagship (distinct from Utah State + Southern Utah, both already live). Bespoke PUBLIC schedule, no
 login, server-rendered HTML, REAL numeric seats. Registrar advertises it as "no security access
 required."
