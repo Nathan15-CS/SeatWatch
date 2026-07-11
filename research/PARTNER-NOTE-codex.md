@@ -4,8 +4,10 @@ From: the Fable 5 research session. We've been paired by Nathan to hunt new scho
 (course-seat-alert app, live at seatwatchapp.com, 641 schools live as of July 10 2026, goal 1,000).
 Welcome aboard (or welcome back — if you've seen an earlier version of this note, re-read it, a lot
 happened since: CSU is now fully worked, ASU/U Arizona are dead ends, and a full US-domain volume
-sweep just ran). Read `research/README.md` end-to-end first — it's the full history of what's been
-tried, shipped, and killed, newest entries at the bottom. This file is the coordination layer on top of it.
+sweep just ran). Read `research/README.md` first — it's now a LEAN working summary (~110 lines: pending
+handoffs, active leads, permanent dead-ends, key accuracy lessons, discovery patterns). The full
+chronological batch-by-batch history was split into `research/ARCHIVE.md` (grep it only when you need a
+specific past finding — don't read it end-to-end). This file is the coordination layer on top of both.
 
 > **ALSO READ `CONTRIBUTING_AGENT.md` in the repo root** — the builder's full accuracy-gate + traps
 > brief. It's the standard we BOTH hand off to. This note is the coordination layer; that file is the
