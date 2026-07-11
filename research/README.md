@@ -108,3 +108,17 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 UCLA, Coppin State, San Francisco State, Sacramento State, CSU Northridge, Edison State CC (OH),
 Georgia Military College, **Texas A&M College Station (~58-60k)**, **Iowa State (~30k)**,
 University of Bridgeport (Codex), **Purdue (~50k, batch 19)**. 634 -> 646.
+
+## Handoff batch 19 (Purdue) — ✅ BUILT July 10: 1 added (646->647)
+Purdue West Lafayette (~50k): new `Purdue` classic-Banner-8 adapter (bwckschd HTML scrape,
+VirginiaTech family). Purdue suppresses seats from the course listing, so seats need one
+detail GET per CRN — to avoid ~40 calls/poll it uses a per-(term,course) class-level cache
+(10-min TTL, lock-guarded, same pattern as TAMU). Real numeric Banner seats from the
+detail 'Availability' table (open = Remaining>0, seats = Remaining; Waitlist row ignored).
+Completed-term test PASSED (Fall 2025 CS 18000 sampled: 3 full / 5 with-seats — real full
+sections). CRN-keyed, term auto-rolls skipping '(View only)'. Cold cache ~77s for 39
+sections, warm ~0ms. Gated: 39 secs, zero false-opens.
+Note: batches 17/18 (TAMU cache-backed, Iowa State, Bridgeport) were already committed
+(6b771af); I INDEPENDENTLY re-gated all three today — all safe, zero false-opens, TAMU
+cache confirmed working (cold 46s / warm 0ms) and TAMU completed-term real (Fall 2025
+7136 open / 7142 closed).

@@ -1498,6 +1498,154 @@ class CSUN:
         return out
 
 
+class Purdue:
+    """Purdue University, West Lafayette (~50k) — classic Banner 8 self-service
+    (bwckschd, HTML scrape, guest-accessible). Same family as VirginiaTech but Purdue
+    SUPPRESSES the seat table from the course listing, so seats need one detail GET per
+    CRN. To avoid hammering Purdue with ~40 detail calls every poll cycle, each course's
+    full section+seat map is built at most once per _TTL into a class-level cache and
+    served from it (same pattern as TAMU; alerts lag at most _TTL).
+
+    Real NUMERIC Banner seats: per-CRN detail page 'Availability' table gives Capacity /
+    Actual / Remaining on the 'Seats' row (the 'Waitlist Seats' row is ignored). open =
+    Remaining > 0, seats = Remaining (standard Banner semantic, consistent with the ~400
+    other Banner schools; major-restrictions aren't parsed here, same as everywhere).
+    Verified real via completed-term test (finished terms show genuinely full sections).
+    Sections keyed by CRN (unique). Term auto-rolls from the dyn-sched OPTION list,
+    skipping '(View only)' archive terms."""
+    id = "purdue"; name = "Purdue University"
+    example = "CS 18000"
+    term = "202710"                     # Fall 2026 (auto-rolls)
+    _active_term = None
+    _TTL = 600                          # 10 min between per-course seat rebuilds
+    _lock = threading.Lock()
+    _cache = {}                         # (term, subj, num) -> (ts, {crn: {open, seats}})
+    base = "https://selfservice.mypurdue.purdue.edu/prod"
+    _RE = re.compile(r"^([A-Za-z]{2,4})\s+(\d+[A-Za-z]{0,2})$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self.base + "/bwckschd.p_disp_dyn_sched"
+
+    def _session(self):
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", UA)]
+        op.open(self.base + "/bwckschd.p_disp_dyn_sched", timeout=30).read()
+        return op
+
+    def resolve_term(self):
+        """Nearest upcoming non-'(View only)' term from the dyn-sched OPTION list."""
+        try:
+            op = self._session()
+            h = op.open(self.base + "/bwckschd.p_disp_dyn_sched", timeout=30).read().decode("utf-8", "replace")
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for code, desc in re.findall(r'<OPTION VALUE="(\d{6})"[^>]*>([^<]+)', h):
+                if "view only" in desc.lower():
+                    continue
+                sm = re.search(r"(spring|summer|fall|winter)\s*(20\d\d)", desc, re.I)
+                if not sm:
+                    continue
+                season, year = sm.group(1).lower(), int(sm.group(2))
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, code
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self._build(new, *self._norm(self.example)))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def _build(self, term, subj, num):
+        """Listing -> CRNs, then one detail GET per CRN -> {crn: {open, seats}}. Caches on
+        success; returns {} on failure (cache untouched)."""
+        try:
+            op = self._session()
+            form = [("term_in", term), ("sel_subj", "dummy"), ("sel_day", "dummy"),
+                    ("sel_schd", "dummy"), ("sel_insm", "dummy"), ("sel_camp", "dummy"),
+                    ("sel_levl", "dummy"), ("sel_sess", "dummy"), ("sel_instr", "dummy"),
+                    ("sel_ptrm", "dummy"), ("sel_attr", "dummy"), ("sel_subj", subj),
+                    ("sel_crse", num), ("sel_title", ""), ("sel_schd", "%"),
+                    ("sel_from_cred", ""), ("sel_to_cred", ""), ("sel_camp", "%"),
+                    ("sel_ptrm", "%"), ("sel_instr", "%"), ("sel_attr", "%"),
+                    ("begin_hh", "0"), ("begin_mi", "0"), ("begin_ap", "a"),
+                    ("end_hh", "0"), ("end_mi", "0"), ("end_ap", "a")]
+            listing = op.open(urllib.request.Request(
+                self.base + "/bwckschd.p_get_crse_unsec",
+                data=urllib.parse.urlencode(form).encode()), timeout=45).read().decode("utf-8", "replace")
+        except Exception:
+            return {}
+        crns = re.findall(rf"- (\d{{5}}) - {re.escape(subj)}\s+{re.escape(num)} - ", listing)
+        if not crns:
+            return {}
+        secs = {}
+        for crn in dict.fromkeys(crns):        # unique, preserve order
+            try:
+                d = op.open(self.base + f"/bwckschd.p_disp_detail_sched?term_in={term}&crn_in={crn}",
+                            timeout=30).read().decode("utf-8", "replace")
+            except Exception:
+                continue                        # a missing detail -> skip that section, never guess
+            m = re.search(r'>Seats</SPAN></th>\s*<td[^>]*>(\d+)</td>\s*<td[^>]*>(\d+)</td>\s*<td[^>]*>(-?\d+)</td>', d)
+            if not m:
+                continue
+            rem = int(m.group(3))
+            secs[crn] = {"open": rem > 0, "seats": max(rem, 0)}
+        if secs:
+            self._cache[(term, subj, num)] = (time.time(), secs)
+        return secs
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            key = (self.cur_term(), subj, num)
+            cached = self._cache.get(key)
+            if cached and time.time() - cached[0] < self._TTL:
+                out[course] = cached[1]
+                continue
+            blocking = cached is None
+            if not self._lock.acquire(blocking=blocking):
+                out[course] = cached[1] if cached else {"none": {"open": False, "seats": None}}
+                continue
+            try:
+                again = self._cache.get(key)
+                if again and time.time() - again[0] < self._TTL:
+                    secs = again[1]
+                else:
+                    secs = self._build(*key) or (again[1] if again else {})
+            finally:
+                self._lock.release()
+            out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+
 class IowaState:
     """Iowa State University public class-search JSON API (api.classes.iastate.edu) — no
     auth. Term auto-detects via the academic-periods endpoint's `isCurrent` flag. One
@@ -5549,7 +5697,7 @@ def _guard_registry(all_schools):
     return {s.id: s for s in all_schools}
 
 
-SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU()])
+SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue()])
 
 
 def refresh_all_terms(log=None):
@@ -5557,7 +5705,7 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA, SFSU, SacState, CSUN, IowaState, TAMU)):
+        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA, SFSU, SacState, CSUN, IowaState, TAMU, Purdue)):
             try:
                 s.refresh_term(log)
             except Exception:
