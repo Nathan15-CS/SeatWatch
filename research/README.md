@@ -201,6 +201,19 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   positive `EnrollmentMax - EnrollmentCurrent`; never treat `WaitlistAvailable` as class seats, and
   preserve title/permission/restriction text. This is a clean net-new four-year public liberal-arts
   candidate (official Spring 2025 headcount 2,801), but no production adapter exists; do not hand off.
+- **North Carolina Central University (NC) — SOURCE-GATED, adapter needed (Codex, July 11 2026).**
+  Official Eagles Self Service exposes public Banner schedule listings at
+  `https://ssbprod-nccu.uncecs.edu/pls/NCCUPROD/`: Fall 2026 is term `202710`, and the term picker
+  identifies completed Spring 2026 as `202620` (View only). Section detail pages expose a labeled
+  `Registration Availability` table with numeric `Capacity`, `Actual`, and `Remaining`, plus a stable
+  CRN and exact subject/course/section in the title. Fall `BIOL 1100` returned 16 unique CRNs: 14 full
+  (Remaining 0) and 2 open (CRNs `43209` = 35/34/1 and `43210` = 35/5/30). Spring `BIOL 1100`
+  returned 7 unique CRNs with 1 positive remaining (1/35) and six full/over-cap rows
+  (including -1 and -2), proving genuine mixed historical data. Listing/detail arithmetic is direct
+  `Remaining == Capacity - Actual`; exact CRN keys are mandatory and waitlist/permission notes must be
+  preserved. **Safe rule:** use only current selected term, exact subject+course+section/CRN, and
+  `Remaining > 0`; do not infer openness from listing presence. Public Banner pages are current and
+  no-auth, but production `Banner` integration has not been tested for this host; do not hand off yet.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very

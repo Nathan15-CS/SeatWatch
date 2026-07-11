@@ -13,7 +13,8 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Berkeley's public class-search detail pages are the latest validated lead, with reserved-seat-aware
   gating still pending a production adapter. UNC Asheville's official React schedule API is another
   fresh source-gated lead, with exact numeric seat arithmetic validated across current and completed
-  terms.
+  terms. NCCU's public Banner detail pages are a third fresh lead, with labeled Capacity/Actual/
+  Remaining fields and completed-term mixed results.
   No registry or builder changes.
 - **Prior July 11 Colleague round 4 is complete.** Round 3 found Camden County
   and Walsh College with real mixed numeric seats but both remain conditional pending the production
@@ -136,6 +137,14 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   term/department/course/CRN, require Open and positive arithmetic, never count waitlist seats, and
   retain permission/restriction text. Net-new four-year public liberal-arts candidate; source-gated
   pending adapter, no handoff or production changes.
+- **July 11, 2026 — North Carolina Central University public Banner pass.** Official public Eagles
+  Self Service (`ssbprod-nccu.uncecs.edu`) lists Fall 2026 as `202710` and Spring 2026 as `202620`
+  (View only). Detail pages expose labeled numeric Capacity/Actual/Remaining plus unique CRN and exact
+  section title. Fall `BIOL 1100` had 16 unique CRNs: 14 full and two open (35/34/1 and 35/5/30).
+  Spring had seven unique CRNs with one positive remaining and six full/over-cap (including -1/-2),
+  confirming a real mixed historical feed. Arithmetic was direct on every sample. A future adapter must
+  scope exact term+subject+course+section/CRN and require Remaining > 0, preserving waitlist/
+  permission notes; current `Banner` production fetch is untested. Source-gated; no handoff or code.
 - **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -
