@@ -1216,3 +1216,20 @@ family as the existing `VirginiaTech` adapter. Real NUMERIC seats.
 - example="CS 18000" (Problem Solving & OO Programming — huge intro, 41 sections). Dedup clean (no Purdue
   in schools.py; prior sessions cut it on wrong hosts, this host works). Needs a Banner-8 bespoke/VT-style
   adapter. seats=Remaining (real int), open=Remaining>0.
+
+## Handoffs 17+18 (TAMU, Iowa State, Bridgeport) — ✅ BUILT July 10: 3 added (643->646)
+- Texas A&M College Station (~58k): new `TAMU` bespoke adapter with a CLASS-LEVEL REFRESH
+  CACHE — its API ignores all filters and always returns the entire term (~21.7k rows/34MB/
+  ~40s), so per-poll fetch is impossible. Pulls the full term at most once per 20min under a
+  lock (only one thread ever runs the dump; concurrent callers get the stale copy), serves
+  per-course lookups from the cache (warm hit 0.000s). Status-only (STUSEAT_OPEN Y/N, seats
+  NA), keyed by CRN. Completed-term test passed (finished terms ~50/50, not fake all-open).
+  Filtered to '- College Station' campus. This is the caching-architecture template for any
+  future full-term-dump school.
+- Iowa State (~30k): new `IowaState` JSON adapter, real int openSeats, term via isCurrent
+  flag, exact-number filter (courseNumber substring-matches). Completed-term test passed.
+- U Bridgeport (Codex find): Colleague on the SaaS host directly (selfservice.* 301s to it
+  and POST doesn't follow — that's why sweeps missed it). New reusable `MainTermColleague`
+  drops program-prefixed parallel terms ('PA Fall 2026') so the picker lands on the main
+  'Fall 2026 Term' — without it, it picked the PA sub-population and returned nothing.
+  Codex's redirect-follow lesson may unlock more of the 11 '405' Colleague hosts.

@@ -16,6 +16,7 @@ import gzip
 import http.cookiejar
 import json
 import re
+import threading
 import time
 import urllib.parse
 import urllib.request
@@ -1494,6 +1495,246 @@ class CSUN:
             if dup:
                 continue
             out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+
+class IowaState:
+    """Iowa State University public class-search JSON API (api.classes.iastate.edu) — no
+    auth. Term auto-detects via the academic-periods endpoint's `isCurrent` flag. One
+    POST per course returns the course + its sections with REAL integer openSeats.
+    open = openSeats > 0 (Banner semantic). courseNumber SUBSTRING-matches ('150' also
+    returns '1500'), so results are filtered to the EXACT 'SUBJ NUM' before reading
+    sections. Sections keyed by their unique id. Status verified real via completed-term
+    test. The search POST requires ALL keys present and arrays as [] (null -> 500)."""
+    id = "iowastate"; name = "Iowa State University"
+    example = "MATH 1660"
+    term = "ACADEMIC_PERIOD-2026Fall"   # auto-detected via isCurrent
+    _active_term = None
+    _api = "https://api.classes.iastate.edu/api"
+    _RE = re.compile(r"^([A-Za-z]{2,6})\s+(\d+[A-Za-z]{0,2})$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return "https://classes.iastate.edu/"
+
+    def _post(self, path, body):
+        req = urllib.request.Request(self._api + path, data=json.dumps(body).encode(),
+                                     headers={"User-Agent": UA, "Content-Type": "application/json"})
+        return json.loads(urllib.request.urlopen(req, timeout=40).read().decode("utf-8", "replace"))
+
+    def resolve_term(self):
+        try:
+            d = json.loads(_http(self._api + "/academic-periods"))
+            cur = [p for p in d.get("data", []) if p.get("isCurrent")]
+            return cur[0]["id"] if cur else None
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            want = f"{subj} {num}"
+            body = {"academicPeriodId": self.cur_term(), "courseSubject": subj,
+                    "courseNumber": num, "level": None, "requirement": None,
+                    "instructor": None, "semesterTag": None, "credits": None,
+                    "openSeats": False, "daysOfTheWeek": [], "sectionStartDate": None,
+                    "sectionEndDate": None, "title": None, "deliveryMode": None,
+                    "allowedGradingBases": []}
+            try:
+                d = self._post("/courses/search", body)
+            except Exception:
+                continue
+            match = next((c for c in d.get("data", [])
+                          if (c.get("number") or "").upper() == want), None)   # exact, not substring
+            if not match:
+                out[course] = {"none": {"open": False, "seats": None}}
+                continue
+            secs, dup = {}, False
+            for s in match.get("sections") or []:
+                key = str(s.get("id"))
+                try:
+                    avail = int(s.get("openSeats"))
+                except (TypeError, ValueError):
+                    continue
+                if key in secs:
+                    dup = True
+                    break
+                secs[key] = {"open": avail > 0, "seats": max(avail, 0)}
+            if dup:
+                continue
+            out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+
+class TAMU:
+    """Texas A&M University, College Station (~58k) public class search
+    (howdyportal.tamu.edu). Its API IGNORES all filters and always returns the ENTIRE
+    term (~21.7k rows / ~34MB / ~31s), so a per-poll fetch is impossible — instead the
+    full term is pulled at most once per _TTL into a CLASS-LEVEL cache, and individual
+    watched-course lookups are served from it.
+
+    Concurrency: the poller fetches schools on a thread pool, so a lock ensures only ONE
+    thread ever runs the 31s dump; concurrent callers get the (stale) cached copy rather
+    than piling up duplicate 34MB fetches. Status-only: STUSEAT_OPEN is 'Y'/'N' (seat
+    counts are 'NA' for public queries), open = 'Y', seats=None — verified REAL via
+    completed-term tests (finished terms show ~50/50 Y/N, not fake all-open). Sections
+    keyed by CRN (globally unique). Term auto-rolls from /api/all-terms, filtered to the
+    '- College Station' campus variant (Galveston/Qatar/Half-Year excluded)."""
+    id = "tamu"; name = "Texas A&M University"
+    example = "ENGL 104"
+    term = "202631"                     # Fall 2026 - College Station (auto-rolls)
+    _active_term = None
+    _TTL = 1200                         # 20 min between full-term dumps
+    _lock = threading.Lock()
+    _cache = {}                         # term -> (timestamp, {(subj,num): {crn: {...}}})
+    _portal = "https://howdyportal.tamu.edu"
+    _RE = re.compile(r"^([A-Za-z]{2,6})\s+(\d+[A-Za-z]{0,2})$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self._portal + "/uPortal/p/public-class-search-ui.ctf1/max/render.uP"
+
+    def _session(self):
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", UA)]
+        op.open(self.reg_url(""), timeout=30).read()
+        return op
+
+    def resolve_term(self):
+        """Nearest upcoming '- College Station' term from /api/all-terms; None on fail."""
+        try:
+            op = self._session()
+            terms = json.loads(op.open(urllib.request.Request(
+                self._portal + "/api/all-terms", headers={"User-Agent": UA}), timeout=30).read())
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for t in terms:
+                desc = t.get("STVTERM_DESC") or ""
+                if "College Station" not in desc:
+                    continue
+                sm = re.search(r"(spring|summer|fall|winter)\s*(20\d\d)", desc, re.I)
+                if not sm:
+                    continue
+                season, year = sm.group(1).lower(), int(sm.group(2))
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, t.get("STVTERM_CODE")
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        if self._build_index(new):          # only adopt if the dump has real rows
+            if log:
+                log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+        else:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+
+    def _build_index(self, term):
+        """The 31s full-term dump -> {(subj,num): {crn: {open, seats:None}}}. Caches on
+        success and returns the index; returns {} on failure (cache untouched)."""
+        try:
+            op = self._session()
+            req = urllib.request.Request(self._portal + "/api/course-sections",
+                data=json.dumps({"startRow": 0, "endRow": 0, "termCode": term,
+                                 "publicSearch": "Y"}).encode(),
+                headers={"User-Agent": UA, "Content-Type": "application/json"})
+            rows = json.loads(op.open(req, timeout=120).read().decode("utf-8", "replace"))
+        except Exception:
+            return {}
+        if not rows:
+            return {}
+        idx = {}
+        for r in rows:
+            subj = (r.get("SWV_CLASS_SEARCH_SUBJECT") or "").upper()
+            num = str(r.get("SWV_CLASS_SEARCH_COURSE") or "").upper()
+            crn = str(r.get("SWV_CLASS_SEARCH_CRN") or "")
+            if not (subj and num and crn):
+                continue
+            idx.setdefault((subj, num), {})[crn] = {
+                "open": r.get("STUSEAT_OPEN") == "Y", "seats": None}
+        self._cache[term] = (time.time(), idx)
+        return idx
+
+    def _index(self):
+        """Return a course index for the current term, refreshing the cache at most once
+        per _TTL. Only one thread does the expensive dump; others use the stale copy."""
+        term = self.cur_term()
+        now = time.time()
+        cached = self._cache.get(term)
+        if cached and now - cached[0] < self._TTL:
+            return cached[1]
+        # stale/cold: one thread refreshes. If another is already on it and we have a
+        # stale copy, use the stale copy immediately instead of blocking/duplicating.
+        blocking = cached is None
+        if not self._lock.acquire(blocking=blocking):
+            return cached[1] if cached else {}
+        try:
+            cached = self._cache.get(term)                 # re-check after acquiring
+            if cached and time.time() - cached[0] < self._TTL:
+                return cached[1]
+            idx = self._build_index(term)
+            if idx:
+                return idx
+            return cached[1] if cached else {}             # refresh failed -> keep stale
+        finally:
+            self._lock.release()
+
+    def fetch(self, courses):
+        idx = self._index()
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            secs = idx.get((subj, num))
+            out[course] = dict(secs) if secs else {"none": {"open": False, "seats": None}}
         return out
 
 
@@ -4323,6 +4564,26 @@ class GeorgiaMilitary(QuarterColleague):
     example = "ENG 101"; host = "selfservice.gmc.cc.ga.us"
 
 
+class MainTermColleague(Colleague):
+    """Schools with PROGRAM-prefixed parallel terms ('PA Fall 2026', 'Nutrition Fall
+    2026', 'Health Sciences Fall 2026') alongside the main 'Fall 2026 Term'. The base
+    picker's shortest-desc tiebreak wrongly favors a short program prefix (e.g. 'PA
+    Fall 2026'), landing on a sub-population that lacks the watched course's sections.
+    Fix: drop any term with words BEFORE the season word, so only main-population terms
+    reach the base picker."""
+    def _pick_term(self, terms):
+        main = [t for t in terms
+                if not (lambda m: m and (t.get("Description") or "")[:m.start()].strip())(
+                    re.search(r"\b(spring|summer|fall|autumn|winter)\b", t.get("Description") or "", re.I))]
+        return super()._pick_term(main if main else terms)
+
+class Bridgeport(MainTermColleague):
+    # Live host is the SaaS domain; selfservice.bridgeport.edu 301-redirects to it but a
+    # POST doesn't follow the redirect, so point straight at the SaaS host.
+    id = "bridgeport"; name = "University of Bridgeport"
+    example = "ENGL 101"; host = "colss-prod.bridgeportsaas.elluciancloud.com"
+
+
 class AlnumSubjectColleague(Colleague):
     """Southwestern TX subjects embed digits ('ENG10 134', 'CHE51 101') — space
     separator required so the digits stay unambiguous."""
@@ -5236,7 +5497,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                                SouthwesternCCNC(), Daemen(), EasternOKState(),
                                SoutheasternOKState(), WesternOKState(), HolyFamily(),
                                MontgomeryCountyCC(), WestminsterUT(), WesternWyoming(),
-                               EdisonState(), GeorgiaMilitary(),
+                               EdisonState(), GeorgiaMilitary(), Bridgeport(),
                                OrangeCoast(), GoldenWest(), Coastline(),
                                Bakersfield(), CerroCoso(), Porterville()]
                             + [CtcLink(*t) for t in _CTCLINK]
@@ -5288,7 +5549,7 @@ def _guard_registry(all_schools):
     return {s.id: s for s in all_schools}
 
 
-SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN()])
+SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU()])
 
 
 def refresh_all_terms(log=None):
@@ -5296,7 +5557,7 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA, SFSU, SacState, CSUN)):
+        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA, SFSU, SacState, CSUN, IowaState, TAMU)):
             try:
                 s.refresh_term(log)
             except Exception:
