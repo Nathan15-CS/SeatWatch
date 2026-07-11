@@ -1606,8 +1606,8 @@ def run_cycle():
             if want == "":                  # watching ALL sections of the course
                 open_secs = [n for n, i in secs.items() if i["open"]]
                 if open_secs and not r["alerted"]:
-                    _alert(r, f"Open in {course}: {', '.join(sorted(open_secs))}", url)
-                    _set_alerted(r["id"], 1)
+                    if _alert(r, f"Open in {course}: {', '.join(sorted(open_secs))}", url):
+                        _set_alerted(r["id"], 1)   # latch only if it reached the student
                 elif not open_secs and r["alerted"]:
                     _set_alerted(r["id"], 0)
             else:
@@ -1618,8 +1618,8 @@ def run_cycle():
                     seats = info.get("seats")
                     msg = (f"{seats} seat(s) open in {course}-{want}!" if seats
                            else f"A seat opened in {course} section {want}!")
-                    _alert(r, msg, url)
-                    _set_alerted(r["id"], 1)
+                    if _alert(r, msg, url):
+                        _set_alerted(r["id"], 1)   # latch only if it reached the student
                 elif not info["open"] and r["alerted"]:
                     _set_alerted(r["id"], 0)
 
@@ -1689,7 +1689,14 @@ def send_email(to, subject, body_text, url):
         return False
 
 
+_undelivered = set()   # watch_ids whose last alert reached NOBODY (retrying each cycle)
+
+
 def _alert(r, message, url):
+    """Deliver a seat-open alert on every channel. Returns True iff AT LEAST ONE channel
+    actually delivered. On total failure the caller must NOT latch the watch, so it
+    retries next cycle instead of silently losing the seat — and the operator is paged
+    once (a real alert reached nobody)."""
     ok = sw.notify(f"Seat open: {r['course']}",
                    message + " Tap to register — go now.",
                    click_url=url, topic=r["topic"])
@@ -1703,8 +1710,20 @@ def _alert(r, message, url):
         if row and row["email"]:
             emailed = send_email(row["email"], f"Seat open: {r['course']} — go register",
                                  message + " Register now before it fills again.", url)
+    delivered = bool(ok) or (pushed > 0) or emailed
     sw.log(f"  ALERT {r['course']}-{r['section'] or 'ALL'} -> {r['topic']} "
-           f"(ntfy {'sent' if ok else 'FAILED'}; web-push {pushed}; email {'sent' if emailed else 'off'})")
+           f"(ntfy {'sent' if ok else 'FAILED'}; web-push {pushed}; email {'sent' if emailed else 'off'}"
+           f"{'; ⚠️DELIVERED-TO-NOBODY' if not delivered else ''})")
+    wid = r["id"]
+    if not delivered:
+        if wid not in _undelivered:            # page once, not every retry cycle
+            operator_alert(f"🚨 UNDELIVERED: {r['course']} seat opened but ntfy + web-push + "
+                           "email ALL failed — student was NOT notified. Retrying every cycle "
+                           "until a channel works; check ntfy/VAPID/email config.")
+            _undelivered.add(wid)
+    else:
+        _undelivered.discard(wid)              # recovered (or first success)
+    return delivered
 
 
 def _set_alerted(watch_id, val):
