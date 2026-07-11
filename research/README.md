@@ -306,6 +306,33 @@ work. Onondaga is the only fully gated pending handoff. Lebanon Valley, Augustan
 and Walsh College are validated numeric-API conditional leads that require one conservative production
 adapter (`status == 0` plus `Available > 0`, exact course filtering, and completed-term validation).
 
+### Fresh official-public-schedule pass — conditional findings (Codex, July 11 2026)
+
+**Fairfield University (CT) — source-gated, production adapter required.** Official public app:
+`https://course-search-net.fairfield.edu/`. Its Angular lazy module identifies `GET
+/api/course/courses`, a no-auth JSON response containing 2,251 sections. The response is marked
+`Cache-Control: no-store, max-age=0`; fetch latency was 7.23s. It includes seven current/future periods,
+including `Fall Semester 2026 (09/08/2026-12/19/2026)` with 1,929 rows. Fall data had 1,012 rows with
+positive `Remaining_Seats` and 917 at zero. The composite `Course_Subject_Number + Section_Number`
+key was unique across all 1,929 Fall rows. `Remaining_Seats` is explicit integer text; every positive
+row matched `capacity - enrolled` from `Enrolled_Capacity`. Some full/reserved rows are over-cap, so
+the adapter must use `Remaining_Seats` as authoritative and never derive openness from the enrollment
+pair. `BIOL 1107` had five unique Fall sections with 0/0/17/4/18 seats; sibling `BIOL 1107L` exists,
+so exact course scoping is mandatory. The API publishes no completed term, so the completed-term gate
+could not be run. Name dedup is clean. Fairfield's official 2025-26 fact sheet reports 5,464
+four-year undergraduates plus 1,697 graduate students. This is **not** a relay marker yet: the builder
+must production-test a bespoke adapter, validate reserved-seat behavior, and decide whether the
+7.2-second all-section response needs refresh caching.
+
+**UC Davis — blocked, no handoff.** The official registrar Class Search advertises live/open-seat data,
+but `registrar-apps.ucdavis.edu` returned a Cloudflare security block to the headless request. No
+bot-detection bypass was attempted.
+
+**Drew University — unresolved Banner search, no handoff.** Drew’s registrar documents a public Dynamic
+Schedule at `https://selfservice.drew.edu/prod/bwckschd.p_disp_dyn_sched`, and the Fall 2026 term page
+is public. Narrow Biology form probes returned the search form/no matching classes rather than section
+data, so no seat claim is made; leave for a browser/form-trace pass rather than guess at Banner fields.
+
 ### Fose systematic sweep (Fable, July 11 2026) — 0 net-new
 Swept classes./courses.{domain} for the fose srcDBs signature across all 2014 uncovered US domains. ONE
 hit: courses.upenn.edu = Penn (already live via bespoke `Penn` adapter — the known 4th-dup). Fose vein

@@ -20,6 +20,24 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Nathan's explicit approval.
 
 ## DONE this partnership
+- **July 11, 2026 — fresh public-schedule pass (Fairfield + UC Davis).**
+  - **Fairfield University (CT; `course-search-net.fairfield.edu`): SOURCE-GATED, conditional on
+    production adapter.** Official Angular app's lazy module identifies `GET /api/course/courses`.
+    Public response is 2,251 rows in 7.23s with `Cache-Control: no-store, max-age=0`; no auth or
+    course/time/day filter is involved. Seven current/future periods are present, including Fall
+    Semester 2026 (1,929 rows). Fall totals are 1,012 rows with `Remaining_Seats > 0` and 917 with
+    zero; all 1,929 course+section keys are unique. `Remaining_Seats` is explicit integer text and
+    every positive-seat row satisfies `capacity - enrolled == remaining` from `Enrolled_Capacity`;
+    closed rows can be over-cap/reserved, so use Remaining_Seats as the authoritative field. Example
+    `BIOL 1107` has 5 unique Fall sections: 0/0/17/4/18 seats; sibling `BIOL 1107L` exists (17 rows),
+    so exact `Course_Subject_Number` plus `Section_Number` scoping is mandatory. The API publishes no
+    completed term, so the completed-term gate cannot be run yet. Name dedup clean; official Fall 2025
+    fact sheet reports 5,464 four-year undergraduates + 1,697 graduate students. **Do not relay yet:**
+    builder must production-test a bespoke adapter, confirm no reserved-seat false opens, and decide
+    whether a 7.2s all-2,251-row response needs cache/refresh handling.
+  - **UC Davis:** blocked for this pass. Official public Class Search page advertises live open seats,
+    but the registrar host returned a Cloudflare security block to the headless request. No bypass or
+    handoff attempted.
 - **July 11, 2026 — remaining Colleague round 4 (Gustavus + Texas Wesleyan): closed.**
   - **Gustavus Adolphus College:** official `selfservice.gustavus.edu` 301s to
     `colselfsrvprod.gac.edu`, whose public page uses the legacy `GetCatalogAdvancedSearch` /
