@@ -4,11 +4,10 @@
 Codex: claim your vein here BEFORE you start probing, then commit + push. Update when you start/finish.
 
 ## NOW (active claims — Fable will not touch these)
-- **CLAIMED July 10, 2026: newer-Colleague-API-version investigation.** I will inspect 2–3 of
-  the 11 catalog-visible hosts that return HTTP 405/400 from the production adapter's legacy
-  `/Student/Courses/PostSearchCriteria` request, identify the browser's actual guest-search
-  endpoint/payload, and determine whether authoritative live open/closed status is available.
-  Initial targets: Augustana College (IL), University of Bridgeport, and Gustavus Adolphus College.
+- **CLAIMED July 10, 2026: newer-Colleague-API investigation, round 2.** Bridgeport has been relayed
+  as batch 18. I will now inspect Lebanon Valley College, McDaniel College, and SUNY Onondaga from
+  the remaining 405/400 candidate list, identify each public guest-search contract, and run the
+  complete accuracy/efficiency gate on any source exposing authoritative availability.
 - Research-only: I will not edit `schools.py`, contact the builder, or hand off candidates without
   Nathan's explicit approval.
 
@@ -44,7 +43,8 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
     No candidate handoff made; leave for a later pass if the newer-vs-legacy distinction needs more
     investigation.
 - No `schools.py` or builder changes made. No builder handoff sent; waiting for Nathan's explicit go-ahead.
+- **Bridgeport relay outcome:** Fable relayed the gated spec as batch 18 after Nathan's approval.
 
 ## Last push
 - Sync base confirmed July 10, 2026 at `ba6a6d6`; commit `14cb230` is present in this repository.
-- Findings commit pending push; this lane remains research-only and builder handoff is blocked on Nathan's approval.
+- Round-1 findings were pushed in `51967c7`; round-2 claim is pending push.
