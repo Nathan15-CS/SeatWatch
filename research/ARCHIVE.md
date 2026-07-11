@@ -1264,12 +1264,13 @@ Catalog (Self Service), but the live `/Student/Courses` request redirects unauth
 `/Student/Account/Unauthorized`. Guest authoritative availability is unavailable; do not re-probe
 unless McDaniel restores public catalog access. Name dedup is clean.
 
-**SUNY Onondaga Community College — active lead, incomplete gate.** The official historical URL
-`selfservice.sunyocc.edu/Student/Courses` redirects to the healthy public catalog at
-`colss-prod.ec.sunyocc.edu/Student/Courses` (page title `Course Catalog - MyOCC`). Its public metadata
-currently lists `UG26SP`, `UG26SU`, `UG26FA`, and `UG27WI`; subjects include BIO/ENG/MAT. Name dedup is
-clean. The mandatory production-path course fetch
-was not completed in this pass, so there is no status/seat claim and no go-ahead marker yet.
+**SUNY Onondaga Community College — GATED CLEAN July 11.** Official `selfservice.sunyocc.edu` redirects
+to `colss-prod.ec.sunyocc.edu`; existing production `Colleague` works unchanged. Three-course Fall
+fetch returned 115 mixed-status sections in 3.31s. Raw BIO 121 had 8 unique numbers: 2 textual Open
+with 4/1 seats, 6 Waitlisted with zero; counts published and arithmetic held 8/8. Completed Spring 2026
+BIO 121 returned 10 open/1 full with varied integer seats, ruling out fake all-open. Auto-term chose
+Fall 2026 Undergraduate; exact sibling filter and no-hidden-filter gates passed; name dedup clean.
+Builder-ready spec is pending in the lean README under the go-ahead marker.
 
 ### University of Florida (~55k) — API CRACKED but PERMANENT SKIP (Fable, July 10 2026): openSeats suppressed on public API
 Solved the public API that prior notes had as gated (one.ufl.edu SPA "Schedule of Courses"). The

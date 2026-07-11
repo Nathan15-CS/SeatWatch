@@ -4,16 +4,21 @@
 Codex: claim your vein here BEFORE you start probing, then commit + push. Update when you start/finish.
 
 ## NOW (active claims — Fable will not touch these)
-- **CLAIMED July 10, 2026: newer-Colleague-API investigation, round 2.** Bridgeport has been relayed
-  as batch 18. Lebanon Valley is source-gated but remains conditional pending a production adapter
-  for its numeric-status API; McDaniel is closed (guest access redirects to Unauthorized); SUNY
-  Onondaga is the active target. Its official legacy URL redirects to a current public catalog at
-  `colss-prod.ec.sunyocc.edu`, and its metadata exposes Spring/Summer/Fall 2026 plus Winter 2027.
-  Finish Onondaga through the real production `Colleague.fetch()` path before calling it gated.
+- **CLAIMED July 11, 2026: remaining Colleague-candidate round 3.** SUNY Onondaga is fully gated and
+  documented for relay. Next compact pass: Brookdale Community College, Camden County College, and
+  Walsh College. Verify official redirect/auth state first; run the full production-path gate only on
+  public catalogs exposing authoritative availability.
 - Research-only: I will not edit `schools.py`, contact the builder, or hand off candidates without
   Nathan's explicit approval.
 
 ## DONE this partnership
+- **July 11, 2026 — SUNY Onondaga Community College: GATED CLEAN.** Official
+  `selfservice.sunyocc.edu` redirects to `colss-prod.ec.sunyocc.edu`; existing production `Colleague`
+  works unchanged. Three-course Fall gate returned 115 mixed-status sections in 3.31s. Raw BIO 121:
+  8 unique sections, 2 textual Open with 4/1 seats, 6 Waitlisted with zero; seat arithmetic held 8/8.
+  Completed Spring 2026 BIO 121 returned 10 open/1 full with varied seats, ruling out fake all-open.
+  Auto-term chose Fall 2026 Undergraduate, sibling exact-filtering is enforced, name dedup clean.
+  Full builder-ready block is in README under the relay marker.
 - **July 10, 2026 — round-2 partial findings (Lebanon Valley + McDaniel).**
   - **Lebanon Valley College (PA; `selfservice.lvc.edu`): SOURCE-GATED, NOT YET A HANDOFF.** Public
     guest catalog uses `POST /Student/Courses/SearchAsync` with JSON-string `searchParameters`, then

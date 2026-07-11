@@ -13,8 +13,30 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 ---
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
-- None from Fable right now (Purdue was sent as batch 19). New gated finds appear here under an
-  `AWAITING GO-AHEAD` heading until Nathan says "check the README," then Fable relays + marks them sent.
+
+### SUNY Onondaga Community College — GATED, AWAITING GO-AHEAD (Codex, July 11 2026)
+
+Clean net-new Colleague add. The officially documented `https://selfservice.sunyocc.edu/Student/Courses`
+redirects to the live public catalog at `https://colss-prod.ec.sunyocc.edu/Student/Courses`. Existing
+production `Colleague` works unchanged. Builder subclass: `id="suny-onondaga"`,
+`name="SUNY Onondaga Community College"`, `host="colss-prod.ec.sunyocc.edu"`, `example="BIO 121"`.
+Name/host dedup is clean.
+
+- Real production `fetch(["BIO 121","ENG 103","MAT 104"])`: 115 Fall sections in 3.31s, with mixed
+  open/non-open results. BIO 121 = 8 sections (2 open/6 non-open); MAT 104 = 3 (1/2).
+- Raw Fall BIO 121: 2 textual `Open` rows with 4/1 available; 6 textual `Waitlisted` rows with 0.
+  `AreSeatCountsAvailable=true` and `Available == Capacity - Enrolled` held 8/8. Keep the existing
+  conservative rule: ONLY textual `AvailabilityStatus == "Open"` is open.
+- Completed-term production test passed: Spring 2026 BIO 121 = 11 unique sections, 10 open/1 full,
+  varied integer seats `[0,1,2,3,4,5]`; not a fake all-open guest view.
+- Auto-term passed: `ActivePlanTerms` extends through Summer 2028; existing picker selected
+  `Fall 2026 - Undergraduate`, not archive/View Only. Latency is safely below 30s.
+- Collapse/sibling/filter gates passed: Fall BIO 121 had 8/8 unique numbers. Search leaks BIO 121R and
+  other BIO courses, but existing production exact-filters `SubjectCode + Number` before section IDs.
+  Keyword-only request has no open-only, time, or day filter that could hide watched sections.
+
+Research-only: Codex did not edit `schools.py` or contact Builder. Fable is the sole relay after Nathan
+says “check the README.” Full chronology is also in `research/ARCHIVE.md` and Codex's lane.
 
 ## ACTIVE LEADS
 - **Newer-Colleague API (BUILD DECISION for Nathan).** Confirmed real: `SearchAsync`/`SectionsAsync`
