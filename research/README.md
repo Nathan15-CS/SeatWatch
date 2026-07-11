@@ -1186,3 +1186,33 @@ follow the 301, which is why the plain-host probe looked dead). Existing Colleag
 Sections flow works once pointed at the SaaS host. ENGL 101 Fall 2026 = 14 sections (8 Open/1 Closed/5
 Waitlisted), open↔positive Available, non-open↔0 Available, unique keys, completed-term (Spring 2026 =
 9 Open/1 Waitlisted) not all-open. Builder to gate through production adapter as final check.
+
+### Purdue University (~50k, West Lafayette main) — GATED, AWAITING GO-AHEAD (Fable, July 10 2026)
+The flagship-list target that prior sessions rejected ("Purdue main Banner hosts 404/500") — found the
+working public path. It's classic BANNER 8 (bwckschd, HTML scrape, guest-accessible, no login), same
+family as the existing `VirginiaTech` adapter. Real NUMERIC seats.
+- Term select: GET https://selfservice.mypurdue.purdue.edu/prod/bwckschd.p_disp_dyn_sched → term
+  <OPTION>s; "202710"="Fall 2026" (also has "(View only)" archive terms — the live upcoming term is the
+  non-View-only one; 202710 confirmed live).
+- Set term: POST /prod/bwckgens.p_proc_term_date {p_calling_proc:"bwckschd.p_disp_dyn_sched", p_term:TERM}
+  → subject list (CS="CS-Computer Sciences" etc).
+- Course listing: POST /prod/bwckschd.p_get_crse_unsec with the full Banner-8 param set (term_in, sel_subj
+  twice [first "dummy" then real], sel_crse, and the standard dummy/% filler fields — exact recipe in
+  scratchpad/, reproducible). Returns section headers "- <CRN> - <SUBJ> <NUM> - <SECTION>". ⚠️ Purdue
+  SUPPRESSES the seat table from this listing (no Capacity/Actual/Remaining inline).
+- Seats: per-CRN GET /prod/bwckschd.p_disp_detail_sched?term_in=TERM&crn_in=CRN → "Availability" table
+  with Capacity / Actual / Remaining (Seats row) + Waitlist row. open = Remaining>0, seats=Remaining.
+  ⚠️⚠️ N+1 ARCHITECTURE (efficiency flag for builder, not blocking): the listing gives CRNs but seats
+  need one detail call PER section. This is the Virginia Tech pattern — VT avoided per-section calls by
+  using an open_only listing filter (2 calls/course, open=CRN-in-open-set, seats=None). Purdue's
+  p_get_crse_unsec did not obviously expose an open_only filter in my probe; builder should either (a)
+  find/confirm an open-only Banner-8 filter to cut calls, or (b) only detail-call the SECTIONS actually
+  being watched (not the whole course) — fetch is per-watched-course so this is bounded in practice.
+- GATE: Fall 2026 (live) CS 18000 = 41 sections, CRNs 41/41 unique, all currently have seats (early
+  registration — expected). COMPLETED-TERM TEST on Fall 2025 (202610) CS 18000: real fill mix — sections
+  at Cap/Act/Rem (30,30,0) and (22,22,0) = genuinely FULL, alongside (30,15,15)/(30,28,2) with seats.
+  Real closed sections in a finished term ⇒ NOT fake-status; numeric enrollment counts can't be faked
+  open anyway (it's Actual-vs-Capacity, the real Banner semantic). PASSES.
+- example="CS 18000" (Problem Solving & OO Programming — huge intro, 41 sections). Dedup clean (no Purdue
+  in schools.py; prior sessions cut it on wrong hosts, this host works). Needs a Banner-8 bespoke/VT-style
+  adapter. seats=Remaining (real int), open=Remaining>0.
