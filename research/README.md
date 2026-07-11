@@ -573,3 +573,16 @@ pass. No key registration or bot-detection bypass was attempted.
 Swept classes./courses.{domain} for the fose srcDBs signature across all 2014 uncovered US domains. ONE
 hit: courses.upenn.edu = Penn (already live via bespoke `Penn` adapter — the known 4th-dup). Fose vein
 now confirmed EXHAUSTED via full sweep, not just spot-checks. No fose schools remain to find.
+
+### Batch 22 BUILT July 11 (649->653, commit 361008f) — newer-Colleague backlog cleared
+Lebanon Valley, Augustana IL, Camden County, Walsh College all shipped on NewColleague/YearSpanNewColleague.
+Accuracy gate PASSED live across all 19 rows: full-by-arithmetic sections ALWAYS carry non-0 status
+(fake-open-default trap disproven), status-0 rows ALWAYS have a bookable seat, Available==Cap-Enrolled
+19/19, keys unique, exact-course scoping isolates the watched course. Zero false-open risk.
+⚑ MULTI-BUILDER NOTE (correction): the NewColleague infra commit dc5ffd0 was made by a DIFFERENT builder
+session (shared git identity on Nathan's Mac — the multi-builder pattern). The current "Builder" session
+re-gated all 4 from scratch itself before shipping regardless, so no harm — but do NOT assume a given
+schools.py commit came from the session you're talking to. (Relay accuracy: attribute code to "a builder
+session," not "you," when I can't confirm the author.)
+⚠️ DEPLOY PENDING (Nathan): registry is at 653 in the repo but NOT yet live on seatwatchapp.com. Onondaga
+(649) + these 4 all go live together on Nathan's next scp + `sudo systemctl restart seatwatch`.
