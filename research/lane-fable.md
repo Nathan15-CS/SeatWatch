@@ -53,3 +53,9 @@ Update the "NOW" line whenever I start/finish a vein, then commit + push immedia
 
 ## Last push
 - see `git log --oneline -1` for the current commit
+
+## NOW (July 10, continued) — flagship gaps beyond the builder's 6-school list
+CLAIMED: alt-public-schedule hunt at big uncovered public flagships (non-overlapping with Codex's
+Colleague veins). Targets: Cincinnati, UGA, Utah, LSU, Kentucky, Kansas, Kansas State, Nebraska-Lincoln,
+Oregon, Louisville, Nevada (UNR/UNLV), Rhode Island, Hawaii. Method: find public non-login schedule ->
+completed-term test -> gate -> AWAITING GO-AHEAD in README.
