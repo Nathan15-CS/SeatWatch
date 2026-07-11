@@ -239,3 +239,21 @@ tapping out. Details so nobody re-treads:
 NET rounds 1-3: University of Utah shipped (648). Flagship-gaps vein now well-worked headlessly; the
 biggest remaining prizes (UNT, Kansas) need browser network-traces, which are blocked for the in-app
 browser on these domains. Diminishing returns confirmed — recommend pausing flagship grinding.
+
+### Flagship round 4 + CT-log test (Fable, July 10 2026) — vein confirmed EXHAUSTED for headless work
+Checked the last big uncovered publics + tested the CT-log lane. No clean win; documenting so it's not re-tread.
+- UNT (~46k): registrar's "public class search" link → my.unt.edu PeopleSoft Fluid, but the HCX IScript
+  returns "Authorization Error -- Contact your Security Administrator". GATED despite the "public" label.
+- UMass Amherst (~32k): the public tool (umass.edu/universityplus/classes/explore) is a Drupal/React app
+  under "universityplus" = the continuing-ed/UWW arm — scope is likely NOT the full SPIRE catalog, and its
+  data API isn't readily reachable (guessed endpoints 404/406, bundle exposes no plain path). SPIRE's own
+  guest "Search Classes" is classic PeopleSoft (fake-status risk). Low-value; not pursued further.
+- UT-Arlington/Kent State/UNM/Toledo/Akron/Illinois State/Ohio U/North Texas: NO guessable Banner 9 host.
+- CT-LOG TEST (certspotter free): probed unt/louisville/unl/uoregon/uky .edu for registration subdomains
+  — rate-limited partial results; surfaced only infrastructure/library hosts, no class-search host. Free
+  CT-log tooling is too incomplete to be productive (consistent with prior findings: crt.sh often 503,
+  certspotter rate-limits). Would need a paid CT-log API to make this lane viable.
+CONCLUSION: my hunting lanes (CSU, HighPoint/Fluid, full host-guess sweep, flagship bespoke schedules,
+CT-log) are all now exhausted or blocked for headless work at 648. Remaining real yield is NOT in more
+solo hunting — it's the new Builder building Codex's newer-Colleague adapter (SearchAsync/numeric status),
+which unlocks Lebanon Valley + Augustana + likely more of the redirect-host population in one shot.
