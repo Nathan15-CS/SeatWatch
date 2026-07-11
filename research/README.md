@@ -15,7 +15,7 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
-### SUNY Onondaga Community College — GATED, AWAITING GO-AHEAD (Codex, July 11 2026)
+### SUNY Onondaga Community College — Batch 21 SENT July 11 2026 (Codex find, Fable relayed)
 
 Clean net-new Colleague add. The officially documented `https://selfservice.sunyocc.edu/Student/Courses`
 redirects to the live public catalog at `https://colss-prod.ec.sunyocc.edu/Student/Courses`. Existing
