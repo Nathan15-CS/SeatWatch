@@ -1394,6 +1394,18 @@ class Handler(BaseHTTPRequestHandler):
 # ----------------------------------------------------------------- health guard
 health = {}            # course -> {fails, alerted, last_count}  (in-memory)
 
+# --- fake-all-open watchdog (accuracy backstop for the never-false-alert promise) ---
+# The one way a school could false-alert is a STATUS-ONLY guest view that reports every
+# section "open" even when it's full (the classic-PeopleSoft trap). Numeric-seat schools
+# are immune — the count is real — so we only watch status-only schools (every section
+# reports seats=None). A real status-only school shows closed sections routinely
+# (watched courses skew full); a faking one never does. If such a school accumulates a
+# large sample and has NEVER shown a single closed section, page the operator to re-run
+# the completed-term test. Page-ONLY: this never pauses a school or changes any alert,
+# so a heuristic false-positive can't silence a real school — it just prompts a human check.
+_ALLOPEN = {}          # school_id -> {"n": int, "closed": int, "flagged": bool}
+_ALLOPEN_MIN = 400     # sections observed before an all-open school is suspicious
+
 # The daily-summary and weekly-drill timers are PERSISTED to a small state file so
 # they survive restarts. Without this, every restart reset them to 0 and re-fired both
 # operator alerts immediately — so a day of frequent redeploys spammed the operator with
@@ -1574,6 +1586,20 @@ def run_cycle():
             if h["alerted"]:
                 operator_alert(f"{school.name} {course}: recovered ✅")
             h.update(fails=0, alerted=False, last_count=len(secs))
+
+            # fake-all-open watchdog — count real sections at STATUS-ONLY schools only
+            # (exclude the "none" not-offered sentinel; numeric-seat schools are immune).
+            real_secs = [i for n, i in secs.items() if n != "none"]
+            if real_secs and all(i.get("seats") is None for i in real_secs):
+                w = _ALLOPEN.setdefault(school_id, {"n": 0, "closed": 0, "flagged": False})
+                w["n"] += len(real_secs)
+                w["closed"] += sum(1 for i in real_secs if not i["open"])
+                if not w["flagged"] and w["n"] >= _ALLOPEN_MIN and w["closed"] == 0:
+                    operator_alert(f"⚠️ {school.name}: {w['n']} sections observed, NONE ever "
+                                   "closed — possible FAKE all-open status. Re-run the "
+                                   "completed-term test; pause this school if its guest view "
+                                   "fakes 'open' (false-alert risk).")
+                    w["flagged"] = True
 
             url = school.reg_url(course)
             want = r["section"]
