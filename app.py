@@ -39,6 +39,14 @@ try:                    # real Web Push (VAPID) — installed on the server; opt
 except ImportError:     # missing lib -> push features quietly disabled, everything else runs
     webpush, WebPushException = None, Exception
 
+try:                    # Sign in with Apple client-secret signing (ES256). The lib is
+    # already on the server as pywebpush's own dependency; optional locally.
+    from cryptography.hazmat.primitives import hashes as _ec_hashes, serialization as _ec_ser
+    from cryptography.hazmat.primitives.asymmetric import ec as _ec_ec
+    from cryptography.hazmat.primitives.asymmetric.utils import decode_dss_signature as _ec_dds
+except ImportError:     # missing lib -> Apple sign-in quietly disabled
+    _ec_ser = None
+
 HERE = os.path.dirname(os.path.abspath(__file__))
 # SECRETS & CONFIG come from ENVIRONMENT VARIABLES on the server — never hardcoded,
 # never committed to git. The fallbacks below are safe non-secrets for local dev only.
@@ -52,6 +60,17 @@ SECRET = os.environ.get("SEATWATCH_SECRET") or secrets.token_hex(32)  # random f
 GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 BASE_URL = os.environ.get("SEATWATCH_BASE_URL", "https://seatwatchapp.com")
+
+# --- Sign in with Apple (2nd provider; REQUIRED for the iOS app by App Store rule 4.8:
+# an app offering Google login must offer Apple's too). Invisible until ALL pieces are
+# in the server env: Apple issues them when the developer account exists. The private
+# key is the .p8 file Apple generates (an EC P-256 PEM).
+APPLE_TEAM_ID = os.environ.get("APPLE_TEAM_ID", "")
+APPLE_CLIENT_ID = os.environ.get("APPLE_CLIENT_ID", "")        # the "Services ID"
+APPLE_KEY_ID = os.environ.get("APPLE_KEY_ID", "")
+APPLE_PRIVATE_PEM = os.environ.get("APPLE_PRIVATE_PEM", os.path.join(HERE, "apple_signin.p8"))
+APPLE_ENABLED = bool(APPLE_TEAM_ID and APPLE_CLIENT_ID and APPLE_KEY_ID
+                     and _ec_ser and os.path.exists(APPLE_PRIVATE_PEM))
 DEV_LOGIN = os.environ.get("SEATWATCH_DEV") == "1"   # local testing only, never set in prod
 # Web Push (VAPID). Keys live on the server; page gets ONLY the public key.
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
@@ -214,6 +233,77 @@ def google_exchange(code):
         return {"sub": str(claims["sub"]), "email": claims.get("email", "")}
     except Exception as e:
         sw.log(f"  [warn] google_exchange failed: {e}")
+        return None
+
+
+def apple_auth_url(state):
+    # response_mode MUST be form_post when a scope is requested (Apple's rule); Apple
+    # then returns the user to us via a CROSS-SITE POST — which is why this flow's
+    # state cookie is set with SameSite=None (a Lax cookie doesn't ride that POST).
+    return "https://appleid.apple.com/auth/authorize?" + urlencode({
+        "client_id": APPLE_CLIENT_ID,
+        "redirect_uri": BASE_URL + "/auth/apple",
+        "response_type": "code",
+        "scope": "email",
+        "response_mode": "form_post",
+        "state": state,
+    })
+
+
+def _apple_client_secret():
+    """Apple's 'client secret' is not a static string — it's a fresh ES256 JWT
+    signed with the .p8 key, asserting our Team ID + Services ID."""
+    with open(APPLE_PRIVATE_PEM, "rb") as f:
+        key = _ec_ser.load_pem_private_key(f.read(), password=None)
+
+    def b64(d):
+        return base64.urlsafe_b64encode(d).rstrip(b"=")
+    now = int(time.time())
+    head = b64(json.dumps({"alg": "ES256", "kid": APPLE_KEY_ID},
+                          separators=(",", ":")).encode())
+    body = b64(json.dumps({"iss": APPLE_TEAM_ID, "iat": now, "exp": now + 3600,
+                           "aud": "https://appleid.apple.com", "sub": APPLE_CLIENT_ID},
+                          separators=(",", ":")).encode())
+    signing = head + b"." + body
+    r, s = _ec_dds(key.sign(signing, _ec_ec.ECDSA(_ec_hashes.SHA256())))
+    return (signing + b"." + b64(r.to_bytes(32, "big") + s.to_bytes(32, "big"))).decode()
+
+
+def apple_exchange(code):
+    """Swap Apple's one-time code for the user's identity. Returns {sub,email} or None.
+    Same trust model as google_exchange: the id_token arrives DIRECTLY from Apple over
+    HTTPS (server-to-server, authenticated by our signed client secret), so we verify
+    audience/issuer/expiry and fail closed. The email may be Apple's private-relay
+    address — real and forwarding, but only once the sending domain is registered in
+    the Apple developer console (deploy note for the owner)."""
+    try:
+        data = urlencode({
+            "code": code,
+            "client_id": APPLE_CLIENT_ID,
+            "client_secret": _apple_client_secret(),
+            "redirect_uri": BASE_URL + "/auth/apple",
+            "grant_type": "authorization_code"}).encode()
+        req = urllib.request.Request("https://appleid.apple.com/auth/token", data=data)
+        with urllib.request.urlopen(req, timeout=15) as r:
+            tok = json.loads(r.read().decode())
+        parts = tok.get("id_token", "").split(".")
+        if len(parts) != 3:
+            return None
+        pad = parts[1] + "=" * (-len(parts[1]) % 4)
+        claims = json.loads(base64.urlsafe_b64decode(pad))
+        if claims.get("aud") != APPLE_CLIENT_ID:
+            return None
+        if claims.get("iss") != "https://appleid.apple.com":
+            return None
+        if int(claims.get("exp", 0)) < time.time():
+            return None
+        if not claims.get("sub"):
+            return None
+        # 'apple:' prefix keeps Apple subs from ever colliding with Google subs in the
+        # shared users.google_sub column (same pattern as dev-login's 'dev:' prefix).
+        return {"sub": "apple:" + str(claims["sub"]), "email": claims.get("email", "") or ""}
+    except Exception as e:
+        sw.log(f"  [warn] apple_exchange failed: {e}")
         return None
 
 
@@ -507,9 +597,13 @@ CARD_LOGIN = """<div class="card reveal d2">
 __NOTICE__
 <h2 class="ct">Start watching your class</h2>
 <p class="cs">Sign in so your watches stay yours — one click, no password, no spam ever.</p>
-<a class="gbtn" href="/login"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Continue with Google</a>
+<a class="gbtn" href="/login/google"><svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/><path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/><path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/><path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/></svg>Continue with Google</a>
+__APPLEBTN__
 <p class="note">Free: watch <b>1 class (up to 2 sections)</b>. No card required.</p>
 </div>"""
+
+# Apple mandates the black button style; shown only when Sign in with Apple is live.
+APPLE_BTN = """<a class="gbtn" href="/login/apple" style="background:#000;color:#fff;border-color:#000;margin-top:10px"><svg width="17" height="17" viewBox="0 0 24 24" fill="currentColor"><path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.09zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z"/></svg>Continue with Apple</a>"""
 
 CARD_FORM = """<div class="card reveal d2">
 <div class="userbar"><span>Signed in as <b>__EMAIL__</b></span><a href="/logout"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>Sign out</a></div>
@@ -1095,7 +1189,8 @@ def push_block(tok):
 
 def form_page(notice="", user=None):
     if user is None:
-        card = CARD_LOGIN.replace("__NOTICE__", notice)
+        card = (CARD_LOGIN.replace("__NOTICE__", notice)
+                .replace("__APPLEBTN__", APPLE_BTN if APPLE_ENABLED else ""))
     else:
         tok = csrf_token(user["id"])
         card = (CARD_FORM.replace("__NOTICE__", notice)
@@ -1220,13 +1315,23 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/sitemap.xml":
             return self._send_bytes(SITEMAP.encode(), "application/xml; charset=utf-8",
                                     cache="public, max-age=86400")
-        if path == "/login":
+        if path in ("/login", "/login/google"):
             if not GOOGLE_CLIENT_ID:
                 return self._send(form_page(
                     "<div class='ok'>Sign-in is being switched on — check back shortly!</div>"))
+            if path == "/login" and APPLE_ENABLED:
+                # two providers exist -> /login becomes the chooser card; the direct
+                # /login/google and /login/apple links on it skip straight through.
+                return self._send(form_page())
             state = secrets.token_urlsafe(24)
             return self._redirect(google_auth_url(state), cookies=[
                 f"sw_state={state}; Path=/; Max-Age=600; HttpOnly; Secure; SameSite=Lax"])
+        if path == "/login/apple":
+            if not APPLE_ENABLED:
+                return self._redirect("/login")
+            state = secrets.token_urlsafe(24)
+            return self._redirect(apple_auth_url(state), cookies=[
+                f"sw_astate={state}; Path=/; Max-Age=600; HttpOnly; Secure; SameSite=None"])
         if path == "/auth/callback":
             state, code = qs.get("state", [""])[0], qs.get("code", [""])[0]
             want = self._cookie("sw_state")
@@ -1271,7 +1376,7 @@ class Handler(BaseHTTPRequestHandler):
 
     def do_POST(self):
         path = urlparse(self.path).path
-        if path not in ("/watch", "/unwatch", "/push/subscribe"):
+        if path not in ("/watch", "/unwatch", "/push/subscribe", "/auth/apple"):
             return self._send(page("<p>Not found.</p>"), 404)
 
         # (1) rate limit FIRST — blocks form-flooding before any work is done
@@ -1284,6 +1389,23 @@ class Handler(BaseHTTPRequestHandler):
             length = 0
         length = max(0, min(length, 4096))  # cap body size; never read(-1) on a forged header
         raw_body = self.rfile.read(length).decode("utf-8", "replace")
+
+        if path == "/auth/apple":           # Apple returns the signed-in user as a POST
+            if not APPLE_ENABLED:
+                return self._send(page("<p>Not found.</p>"), 404)
+            aform = parse_qs(raw_body)
+            state, code = aform.get("state", [""])[0], aform.get("code", [""])[0]
+            want = self._cookie("sw_astate")
+            clear = "sw_astate=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=None"
+            if not (state and want and code) or not hmac.compare_digest(state, want):
+                return self._send(form_page(
+                    "<div class='ok'>Sign-in didn't complete — please try again.</div>"))
+            info = apple_exchange(code)
+            if not info:
+                return self._send(form_page(
+                    "<div class='ok'>Apple sign-in failed — please try again.</div>"))
+            user = get_or_create_user(info["sub"], info["email"])
+            return self._redirect("/", cookies=[session_cookie(user["id"]), clear])
 
         # (2) WHO IS THIS? Signed session cookie or nothing. Entitlements are
         # per-account — an anonymous POST can no longer create watches at all.
