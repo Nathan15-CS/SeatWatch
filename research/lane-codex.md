@@ -105,6 +105,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   1,093 rows; BIOL 131 2/3 open). Closed rows can retain positive capacity arithmetic, so any adapter
   must require both `ENRL_STAT == O` and positive `ENRL_CAP - ENRL_TOT`; exact campus/subject/catalog
   filtering is mandatory. No production adapter or handoff marker yet.
+- **July 11, 2026 — Riverside Community College District public SharePoint API pass.** Moreno Valley,
+  Norco, and Riverside City are net-new registry candidates. The official MVC class finder JavaScript
+  calls `https://apps-studentrcc.msappproxy.net/schedule` lists and computes openness as
+  `Total Seats > Seats Used` while honoring `Last Day to Add`. Fall 2026 (`26FAL`) returned 1,004 MVC
+  sections (812 open), 1,054 Norco (911 open), and 2,330 Riverside (1,453 open); all current rows were
+  modified July 11 and section IDs were unique. Spring 2026 returned genuine mixed historical feeds:
+  MVC 939 (815/124), Norco 973 (929/44), Riverside 2,045 (1,679/366). Exact course+section filtering
+  is mandatory; withhold enrollment-limited rows. Full school blocks and official RCCD headcounts are
+  in README. These remain source-gated pending a production adapter; no handoff markers yet.
 - **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -

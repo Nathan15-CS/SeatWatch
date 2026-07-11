@@ -150,6 +150,27 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   `sectResv`, but no authoritative registration-status enum; the app's “Open Classes” filter is
   seat-only and Cypress warns that a class can show seats while closed due to waitlist/add-code rules.
   A production adapter needs a status source or a proven safe reservation rule before any add.
+- **Riverside CCD — Moreno Valley College (CA), SOURCE-GATED, adapter needed (Codex, July 11 2026).**
+  Official [class finder](https://www.mvc.edu/class-finder/index.php) exposes a public SharePoint API
+  at `https://apps-studentrcc.msappproxy.net/schedule`, list `ScheduleData_MOV`; Fall 2026 is term
+  `26FAL`. The API returned 1,004 unique sections, all modified July 11, with 812 open by the official
+  app rule `Total Seats > Seats Used` and add-deadline still current. `ENGL-C1000` had 92 sections
+  with mixed full/open rows (0 and 1/6/21/27 seats); Spring 2026 (`26SPR`) had 939 sections and a
+  genuine 815/124 open/full mix. Official RCCD FY2023-24 headcount is 17,118. Use exact
+  `College + Primary Subject + Section Number`, honor `Last Day to Add`, and withhold any nonempty
+  enrollment limitation/restriction. **Conditional:** no production adapter yet.
+- **Riverside CCD — Norco College (CA), SOURCE-GATED, adapter needed (Codex, July 11 2026).** Same
+  official API, list `ScheduleData_NOR`, term `26FAL`. Fall returned 1,054 unique sections, all modified
+  July 11, with 911 open and 143 full by the app's date-aware `Total Seats > Seats Used` rule. Exact
+  `ENGL-C1000` had 50 mixed sections; Spring 2026 had 973 sections with 929 open/44 full, confirming
+  real historical variation. Official RCCD FY2023-24 headcount is 17,324. Apply exact course/section
+  scoping, add-date gating, and restriction withholding. **Conditional:** no production adapter yet.
+- **Riverside CCD — Riverside City College (CA), SOURCE-GATED, adapter needed (Codex, July 11 2026).**
+  Same official API, list `ScheduleData_RIV`, term `26FAL`. Fall returned 2,330 unique sections, all
+  modified July 11, with 1,453 open and 877 full. `ENGL-C1000` had 142 mixed sections; Spring 2026
+  had 2,045 sections with 1,679 open/366 full. Official RCCD FY2023-24 headcount is 29,597. Use the
+  app's date-aware `Total Seats > Seats Used` rule plus exact `Primary Subject + Section Number` and
+  restriction checks. **Conditional:** no production adapter yet.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very
