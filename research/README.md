@@ -179,3 +179,20 @@ Probed the remaining unchecked flagships. No clean win this round.
   uoregon.edu NX; duckweb is the Banner-8 login portal), Nevada-Reno (404), URI (courses.uri.edu 200 but
   not obviously a class search). These need per-school registrar-page recon to find the real public tool.
 NET flagship-gaps result: 1 clean win (University of Utah, batch 20) + 2 revisit-leads (KU, Hawaii).
+
+### Batch 20 SHIPPED July 10 (648) + process finding
+University of Utah shipped 647->648 (commit be294fd). Builder resolved both my flags: FRESHNESS =
+real-time (server sends Cache-Control: no-cache/no-store/must-revalidate — generated per-request, not a
+daily snapshot; SeatsAvailable==Cap-Enrolled exact live arithmetic). ENGLISH SUBJECT = **WRTG** (177
+sections), not ENGL — record for any future Utah example. Completed-term reproduced, CRN-keyed, exact-
+CatalogNbr scoped, zero false-opens.
+
+⚑ PROCESS FINDING (builder flagged, verified by Fable): batches 17/18 adapter code reached schools.py
+BEFORE the builder's production gate saw it ("arrived already-committed"). Investigation: NO research-
+agent commit ever touched schools.py — every schools.py change is a builder-format "Add X — N->M" commit
+(Fable and Codex only ever commit research/*.md in "research:"/"lane:" format; git-verified). So the
+adapters were committed by a BUILDER-type session. Most likely cause = MORE THAN ONE builder session
+committing (they share one git identity on Nathan's Mac, so commit format can't disambiguate sessions),
+OR a single builder committing before its gate. The gate + registry-guard (crash-on-dup) + production
+re-fetch caught everything — nothing ungated actually shipped. FOR NATHAN: ensure only ONE builder
+session commits to schools.py; research agents stay hands-off (verified compliant).
