@@ -159,3 +159,6 @@ Checked big uncovered publics for bespoke public schedules. WIN: University of U
   uog744) — SSO-gated, no guest class search. The public UGA Bulletin is catalog-only.
 STILL UNCHECKED this vein (for a later pass): Kentucky, Kansas, Kansas State, Nebraska-Lincoln, Oregon,
 Louisville, Nevada (UNR/UNLV), Rhode Island, Hawaii-Manoa.
+
+## University of Utah — ✅ BUILT July 11 (batch 20): 647->648
+Bespoke public schedule (class-schedule.app.utah.edu), div.col HTML parse, REAL numeric seats (open=SeatsAvailable>0, ==Cap-Enrolled 100%). Freshness RESOLVED = real-time (Cache-Control no-store/must-revalidate, generated per request — not a daily snapshot). English subject = WRTG not ENGL. Completed-term test passed (Fall 2025 MATH 13 full sections). CRN-keyed, exact-CatalogNbr scoped (105 != 1050), term auto-rolls. Zero false-opens.

@@ -1498,6 +1498,110 @@ class CSUN:
         return out
 
 
+class UtahU:
+    """University of Utah, Salt Lake City (~35k) — bespoke PUBLIC class-availability
+    schedule (class-schedule.app.utah.edu), no login, server-rendered HTML, REAL numeric
+    seats. One GET per subject returns every section as ordered div.col cells: CRN,
+    Subject, CatalogNbr, Section, Title, Cap, WaitList, Enrolled, SeatsAvailable.
+    open = SeatsAvailable > 0, seats = SeatsAvailable (verified == Cap-Enrolled 100%,
+    live arithmetic not a sentinel). Section key = CRN (globally unique). Page is
+    subject-wide -> filtered to the exact CatalogNbr.
+
+    Freshness: server sends Cache-Control no-store/must-revalidate (generated per
+    request, not a daily snapshot) — real-time. Status verified real via completed-term
+    test (Fall 2025 MATH: 13 genuinely full sections). Note Utah's English/writing
+    subject code is 'WRTG', not 'ENGL'. Term auto-rolls from the landing page's term
+    list ('1268' = Fall 2026, PeopleSoft strm)."""
+    id = "utah"; name = "University of Utah"
+    example = "MATH 1050"
+    term = "1268"                       # Fall 2026 (auto-rolls)
+    _active_term = None
+    root = "https://class-schedule.app.utah.edu"
+    _RE = re.compile(r"^([A-Za-z]{2,6})\s+(\d+[A-Za-z]{0,2})$")
+    _CELL_RE = re.compile(r'<div class="col[^"]*"[^>]*>\s*(.*?)\s*</div>', re.S)
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self.root + "/"
+
+    def resolve_term(self):
+        """Nearest upcoming term's strm from the landing page's term list."""
+        try:
+            land = _http(self.root + "/")
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for code, label in re.findall(r"/main/(\d{4})/index\.html[^>]*>([^<]+)", land):
+                sm = re.search(r"(spring|summer|fall|winter)\s*(20\d\d)", label, re.I)
+                if not sm:
+                    continue
+                season, year = sm.group(1).lower(), int(sm.group(2))
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, code
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        by_subj = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if subj:
+                by_subj.setdefault(subj, []).append((course, num))
+        out = {}
+        for subj, items in by_subj.items():
+            try:
+                html = _http(f"{self.root}/main/{self.cur_term()}/seating_availability.html?subject={subj}")
+            except Exception:
+                continue
+            cells = [re.sub(r"<[^>]+>", "", c).strip() for c in self._CELL_RE.findall(html)]
+            # collect this subject's sections, grouped by catalog number
+            per_num = {}
+            i, n = 0, len(cells)
+            while i < n - 8:
+                if re.fullmatch(r"\d{5}", cells[i]) and cells[i + 1].upper() == subj:
+                    crn, cat = cells[i], cells[i + 2].upper()
+                    try:
+                        avail = int(cells[i + 8])
+                    except ValueError:
+                        i += 1
+                        continue
+                    per_num.setdefault(cat, {})[crn] = {"open": avail > 0, "seats": max(avail, 0)}
+                    i += 9
+                else:
+                    i += 1
+            for course, num in items:
+                secs = per_num.get(num)
+                out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+
 class Purdue:
     """Purdue University, West Lafayette (~50k) — classic Banner 8 self-service
     (bwckschd, HTML scrape, guest-accessible). Same family as VirginiaTech but Purdue
@@ -5697,7 +5801,7 @@ def _guard_registry(all_schools):
     return {s.id: s for s in all_schools}
 
 
-SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue()])
+SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU()])
 
 
 def refresh_all_terms(log=None):
@@ -5705,7 +5809,7 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA, SFSU, SacState, CSUN, IowaState, TAMU, Purdue)):
+        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA, SFSU, SacState, CSUN, IowaState, TAMU, Purdue, UtahU)):
             try:
                 s.refresh_term(log)
             except Exception:
