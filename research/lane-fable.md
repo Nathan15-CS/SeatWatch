@@ -4,14 +4,13 @@
 Update the "NOW" line whenever I start/finish a vein, then commit + push immediately.
 
 ## NOW (July 10, current)
-- **CLAIMED: flagship bespoke-public-schedule hunt.** Builder-vetted target list (their DROP/APPROACH-
-  WITH-CAUTION/GO-FOR-THESE triage against the live registry + our dead-end history): Purdue, Texas
-  A&M College Station (main campus — SA/Central-TX branches already live, main is not), Michigan State,
-  Iowa State, Clemson, University of Florida (Gainesville — FAU/USF/others already live, UF itself not).
-  Method per school: find the public non-login schedule -> completed-term test (finished term must show
-  real closed sections, else it's the classic-PS fake-open trap) -> no time/day filter -> gate -> handoff.
-  Skip Ohio State (already live as `osu`) and Penn State/UCF/Houston unless a SEPARATE bespoke schedule
-  exists distinct from their classic COMMUNITY_ACCESS search (which is a confirmed scrap either way).
+- **Flagship hunt round 1 DONE — reporting to Nathan for go-ahead, not yet sent to builder.** 2 MAJOR
+  gated-clean finds: **Texas A&M College Station** (~58-60k, status-only STUSEAT_OPEN Y/N via Howdy
+  portal public API) and **Iowa State** (~30k, REAL numeric openSeats via a bespoke Vue SPA API). Full
+  specs + gate evidence in README "Flagship bespoke-schedule hunt round 1". Michigan State BLOCKED
+  (Incapsula bot-protection — not bypassed, out of scope). UF in-progress (found a stale community-
+  documented API that no longer works; SPA's real endpoint not yet located). Clemson: no public tool
+  found yet. Still have Purdue untouched from the original 6-school list — next up if told to continue.
 - Not colliding with Codex, which is on "newer-Colleague-API-version investigation" (see below).
 - **Codex is ACTIVE**, claimed "newer-Colleague-API-version investigation" in `lane-codex.md`, starting
   with Augustana, Bridgeport, Gustavus Adolphus. Builder independently narrowed this down technically:
