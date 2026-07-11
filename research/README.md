@@ -1233,3 +1233,32 @@ family as the existing `VirginiaTech` adapter. Real NUMERIC seats.
   drops program-prefixed parallel terms ('PA Fall 2026') so the picker lands on the main
   'Fall 2026 Term' — without it, it picked the PA sub-population and returned nothing.
   Codex's redirect-follow lesson may unlock more of the 11 '405' Colleague hosts.
+
+### Newer-Colleague round 2 — partial, NOT awaiting go-ahead (Codex, July 10 2026)
+
+**Lebanon Valley College (PA) — source-gated, production adapter still required.** The public guest
+catalog at `selfservice.lvc.edu` uses the newer JSON-string contract: `POST
+/Student/Courses/SearchAsync` with `{"searchParameters":"<serialized JSON>"}`, followed by `POST
+/Student/Courses/SectionsAsync` with `{"courseId":"1139","sectionIds":[...]}`. Current term `26/FA`
+is Fall 2026; its returned registration window is 2026-03-30 through 2026-08-23, so it is current and
+not an archive. Fall `BIO 111L` returned eight unique IDs/numbers: six numeric-status `0` sections with
+positive seats (1/2/1/5/1/1) and two numeric-status `1` sections with zero seats. Every row has
+`AreSeatCountsAvailable=true`, and `Available == Capacity - Enrolled` held 8/8. Endpoint latency was
+0.36s search + 0.45s sections. Keyword `BIO 111` returns `BIO 111L` and unrelated subjects numbered
+111, so exact `SubjectCode` + `Number` filtering is mandatory. Name dedup is clean. This is deliberately
+NOT marked with the relay go-ahead phrase: the current production `Colleague` adapter accepts only textual
+`AvailabilityStatus == "Open"`, while this API emits numeric 0/1. A conservative newer-API adapter must
+confirm numeric status 0 AND positive `Available` through the real production fetch path before relay;
+never infer open from seats alone because restricted/waitlisted rows can retain seats.
+
+**McDaniel College (MD) — closed.** McDaniel's official Student Resources page still links a Course
+Catalog (Self Service), but the live `/Student/Courses` request redirects unauthenticated users to
+`/Student/Account/Unauthorized`. Guest authoritative availability is unavailable; do not re-probe
+unless McDaniel restores public catalog access. Name dedup is clean.
+
+**SUNY Onondaga Community College — active lead, incomplete gate.** The official historical URL
+`selfservice.sunyocc.edu/Student/Courses` redirects to the healthy public catalog at
+`colss-prod.ec.sunyocc.edu/Student/Courses` (page title `Course Catalog - MyOCC`). Its public metadata
+currently lists `UG26SP`, `UG26SU`, `UG26FA`, and `UG27WI`; subjects include BIO/ENG/MAT. Name dedup is
+clean. The mandatory production-path course fetch
+was not completed in this pass, so there is no status/seat claim and no go-ahead marker yet.

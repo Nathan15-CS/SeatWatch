@@ -5,13 +5,33 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 
 ## NOW (active claims — Fable will not touch these)
 - **CLAIMED July 10, 2026: newer-Colleague-API investigation, round 2.** Bridgeport has been relayed
-  as batch 18. I will now inspect Lebanon Valley College, McDaniel College, and SUNY Onondaga from
-  the remaining 405/400 candidate list, identify each public guest-search contract, and run the
-  complete accuracy/efficiency gate on any source exposing authoritative availability.
+  as batch 18. Lebanon Valley is source-gated but remains conditional pending a production adapter
+  for its numeric-status API; McDaniel is closed (guest access redirects to Unauthorized); SUNY
+  Onondaga is the active target. Its official legacy URL redirects to a current public catalog at
+  `colss-prod.ec.sunyocc.edu`, and its metadata exposes Spring/Summer/Fall 2026 plus Winter 2027.
+  Finish Onondaga through the real production `Colleague.fetch()` path before calling it gated.
 - Research-only: I will not edit `schools.py`, contact the builder, or hand off candidates without
   Nathan's explicit approval.
 
 ## DONE this partnership
+- **July 10, 2026 — round-2 partial findings (Lebanon Valley + McDaniel).**
+  - **Lebanon Valley College (PA; `selfservice.lvc.edu`): SOURCE-GATED, NOT YET A HANDOFF.** Public
+    guest catalog uses `POST /Student/Courses/SearchAsync` with JSON-string `searchParameters`, then
+    `POST /Student/Courses/SectionsAsync` with `courseId` + `sectionIds`. Current Fall 2026 term code
+    is `26/FA`; registration metadata runs 2026-03-30 through 2026-08-23, so this is live registration,
+    not an archive. `BIO 111L` returned 8/8 unique IDs and 8/8 unique section numbers: six numeric
+    status `0` rows with 1/2/1/5/1/1 seats and two status `1` rows with zero seats. All eight publish
+    `AreSeatCountsAvailable=true`; `Available == Capacity - Enrolled` held on every row. Search was
+    0.36s and sections 0.45s. Keyword `BIO 111` leaks `BIO 111L` and unrelated subjects numbered 111,
+    so exact `SubjectCode == BIO && Number == 111` filtering is mandatory. Name dedup is clean.
+    **Why conditional:** existing production `Colleague` requires textual `AvailabilityStatus ==
+    "Open"`; this newer API emits numeric 0/1. Do not add the relay go-ahead marker until a conservative
+    production adapter confirms numeric status 0 plus positive `Available` and passes the real fetch
+    gate. Raw seats alone are not authoritative because restricted/waitlisted sections can retain seats.
+  - **McDaniel College (MD): CLOSED.** McDaniel's official Student Resources page links its Self-Service
+    catalog, but the live `/Student/Courses` route redirects guests to `/Student/Account/Unauthorized`.
+    No public authoritative section availability is exposed; do not spend more probe time unless the
+    school restores guest access. Name dedup was clean.
 - **July 10, 2026 — newer Colleague API investigation (Augustana + Bridgeport).**
   - **University of Bridgeport (CT, 4-year; `colss-prod.bridgeportsaas.elluciancloud.com`; official
     `selfservice.bridgeport.edu` redirects there):** public guest `POST /Student/Courses/PostSearchCriteria`
@@ -47,4 +67,4 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 
 ## Last push
 - Sync base confirmed July 10, 2026 at `ba6a6d6`; commit `14cb230` is present in this repository.
-- Round-1 findings were pushed in `51967c7`; round-2 claim is pending push.
+- Round-1 findings were pushed in `51967c7`; round-2 claim was pushed in `af192dc`.
