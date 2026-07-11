@@ -71,6 +71,14 @@ APPLE_KEY_ID = os.environ.get("APPLE_KEY_ID", "")
 APPLE_PRIVATE_PEM = os.environ.get("APPLE_PRIVATE_PEM", os.path.join(HERE, "apple_signin.p8"))
 APPLE_ENABLED = bool(APPLE_TEAM_ID and APPLE_CLIENT_ID and APPLE_KEY_ID
                      and _ec_ser and os.path.exists(APPLE_PRIVATE_PEM))
+
+# --- Android app (Trusted Web Activity). assetlinks.json is how Android verifies the
+# Play-Store app is allowed to own seatwatchapp.com links. The SHA-256 fingerprint(s)
+# come from the Play console AFTER the listing exists (Google re-signs the app), so
+# they live in the env: empty -> the route 404s and nothing about the site changes.
+TWA_PACKAGE = os.environ.get("TWA_PACKAGE", "com.seatwatchapp.app")
+TWA_FINGERPRINTS = [f.strip() for f in
+                    os.environ.get("TWA_SHA256_FINGERPRINTS", "").split(",") if f.strip()]
 DEV_LOGIN = os.environ.get("SEATWATCH_DEV") == "1"   # local testing only, never set in prod
 # Web Push (VAPID). Keys live on the server; page gets ONLY the public key.
 VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
@@ -1299,6 +1307,13 @@ class Handler(BaseHTTPRequestHandler):
                                     cache="no-cache")
         if path == "/manifest.json":
             return self._send_bytes(MANIFEST.encode(), "application/manifest+json",
+                                    cache="public, max-age=3600")
+        if path == "/.well-known/assetlinks.json" and TWA_FINGERPRINTS:
+            body = json.dumps([{"relation": ["delegate_permission/common.handle_all_urls"],
+                                "target": {"namespace": "android_app",
+                                           "package_name": TWA_PACKAGE,
+                                           "sha256_cert_fingerprints": TWA_FINGERPRINTS}}])
+            return self._send_bytes(body.encode(), "application/json",
                                     cache="public, max-age=3600")
         if path == "/icon-192.png":
             return (self._send_bytes(ICON192, "image/png") if ICON192
