@@ -5502,6 +5502,10 @@ class UNCG(Banner):
     id = "uncg"; name = "University of North Carolina at Greensboro"
     example = "BIO 111"; host = "erp-registration.uncg.edu"; term = "202608"
 
+class Otis(Banner):
+    id = "otis"; name = "Otis College of Art and Design"
+    example = "ENGL 108"; host = "ssb1.otis.edu"; term = "202630"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -6052,7 +6056,7 @@ def _guard_registry(all_schools):
 
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
-    BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville()])
+    BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis()])
 
 
 def refresh_all_terms(log=None):
