@@ -1448,3 +1448,54 @@ already contains the `SUNYFarmingdale` adapter. It is not a new candidate and mu
 current-plus-completed numeric/status evidence bar but remain pending production-gate tests; Long Beach
 City is a CVC hold; BC3 and Hawkeye are clearly marked non-seat source leads. No
 `schools.py` edit, production adapter, or builder handoff was made.
+
+### Batch 19 — Wesleyan/Lakeland public schedules and two bounded follow-up leads (Codex, July 12 2026)
+
+These four identities are net-new against `schools.py` and the prior research notes. Wesleyan and
+Lakeland have reproducible current-plus-completed public seat data; York College of Pennsylvania and
+University of Houston are deliberately recorded as source-surface leads only because the public pages
+did not expose a complete guest row feed in this pass. No seat values are inferred for the latter two.
+
+1. **Wesleyan University (CT) — SOURCE-GATED, AWAITING FOLLOW-UP.** Official WesMaps course pages are
+   public and expose course/section, instructor, meeting data, total enrollment limit, `Seats Available`,
+   class-year/major bins, permission/prerequisite notes, and update timestamps. The public Fall 2026
+   all-offered index is `https://owaprod-pub.wesleyan.edu/reg/%21wesmaps_page.html?crse_list=XAMS&facid=NONE&offered=Y&stuid=`;
+   example Fall pages include ECON 301 (`term=1269`) with sections showing 30 available and 0 available
+   (`https://owaprod-pub.wesleyan.edu/reg/%21wesmaps_page.html?crse=003706&term=1269`), while the completed
+   Spring 2026 ECON 103 page (`term=1261`) has sections with 9 and 22 available
+   (`https://owaprod-pub.wesleyan.edu/reg/%21wesmaps_page.html?crse=016767&stuid=&term=1261`) and other
+   Spring courses show zero/negative availability. Registrar guidance explains that the displayed bins
+   can restrict seats by class year/major and that `X` means excluded
+   (`https://www.wesleyan.edu/registrar/information/wesmaps_navigation.html`). Gate exact term+CID+section;
+   do not turn a positive aggregate into universally open unless the eligible bin/permission state is
+   satisfied. Preserve cross-listings, prerequisites, POI, and `Drop/Add Enrollment Requests`; current
+   pages are live registration snapshots, not immutable catalog data.
+2. **Lakeland University (WI) — SOURCE-GATED, STATIC SNAPSHOT.** Registrar-published undergraduate PDFs
+   expose course, section, session, dates, meeting/location/instructor, and `Seats available: N of M`.
+   Current Fall 2026 is `https://lakeland.edu/pdfs/catalog/2026/FA26%20UGRD.pdf` (revised July 7, 2026;
+   e.g., GEN 110 sections with 8/18, 3/18, 18/18, and 0/18) and completed Spring 2026 is
+   `https://lakeland.edu/pdfs/catalog/2026/SP26%20UGRD.pdf` (revised February 10, 2026; e.g., ACC 396
+   rows with 30/30 and 10/30). The schedule index is `https://lakeland.edu/course-schedules`. Gate exact
+   term+course+section+session and `Seats available > 0`; these are timestamped PDFs rather than
+   real-time feeds. A section can appear on multiple meeting rows, so dedupe by course/section/session
+   while retaining all meeting data; preserve online/face-to-face modality and notes.
+3. **York College of Pennsylvania (PA) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** Official registrar
+   documentation at `https://www.ycp.edu/offices-departments/registrar` and schedule index
+   `https://www.ycp.edu/academics/calendars-schedules` state that YCPWeb's Schedule of Classes shows
+   section status, available seats, and waitlist seats/markers. The actual YCPWeb schedule currently
+   requires an authenticated student portal; this pass captured no guest rows, term IDs, or numeric
+   seats. Treat this as a discovery lead only. Follow up only if a public schedule endpoint can be
+   reproduced for Fall/Spring with exact CRN/section, capacity/available, status, and a completed-term
+   mixed sanity check.
+4. **University of Houston (TX) — LIMITED-SCOPE PUBLIC SEARCH LEAD.** The official online-session class
+   search at `https://www.uh.edu/online/sessions/class-search.php` documents a public search for short
+   Session 2–6 courses, including Fall 2026 dates, seat availability, and a twice-daily refresh. The
+   results are delivered through an embedded search frame and this pass did not capture a complete row
+   payload or a completed Spring 2026 comparison; it is not evidence for the regular UH schedule. Keep
+   this scoped to the named online short sessions and require a guest row capture plus current/completed
+   mixed status test before considering an adapter.
+
+**Batch status:** two additional identities (Wesleyan and Lakeland) meet the direct current-plus-completed
+numeric evidence bar but remain source-gated; York College of Pennsylvania and University of Houston are
+clearly marked non-seat/limited-scope leads. No `schools.py` edit, production adapter, or builder handoff
+was made.

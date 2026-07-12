@@ -413,3 +413,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   schedule/index leads without captured row-level availability. **Dedup correction:** Farmingdale was
   removed because `schools.py` already contains `SUNYFarmingdale`; it is not a new candidate. No
   `schools.py` edit and no builder message.
+
+## July 12 Batch 19 checkpoint
+- Batch 19 appended to `research/README.md`: Wesleyan University, Lakeland University, York College of
+  Pennsylvania, and University of Houston.
+- Wesleyan and Lakeland have reproducible current-plus-completed public seat evidence, with explicit
+  reserve/bin, snapshot, duplicate-meeting, and exact-key caveats. York is a login-gated YCPWeb lead and
+  Houston is limited to an embedded short-session search; neither has claimed numeric seats.
+- Dedup checks were clean against `schools.py` and prior notes. No registry or builder changes; continue
+  research-only until an explicit go-ahead.
