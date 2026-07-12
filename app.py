@@ -100,12 +100,33 @@ SMTP_PASS = os.environ.get("SMTP_PASS", "")
 SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USER)   # the visible "from" address
 EMAIL_ENABLED = bool(SMTP_HOST and SMTP_USER and SMTP_PASS)
 SESSION_DAYS = 90
-FREE_COURSES = 1                # per account: 1 free class (ALL of its sections)
-FREE_SECTIONS_PER_COURSE = 25   # generous anti-abuse guard, NOT a pricing limit —
-                                # the free class includes every section you want
-PLAN_MSG = ("Your free plan covers 1 class — all of its sections. Stop watching "
-            "your current class below to switch, or grab more classes when paid "
-            "plans launch ($19.95 per additional course, all sections included).")
+FREE_COURSES = 1                # free account: 1 class...
+FREE_SECTIONS_PER_COURSE = 2    # ...and up to 2 of its sections (the REAL free tier,
+                                # matching the site copy). Paid tiers watch ALL sections.
+PAID_MAX_SECTIONS = 400         # bot-sanity ceiling on a paid all-sections course (a
+                                # real course never has this many; never a pricing limit)
+
+# --- Paid tiers (Nathan-locked ladder). Ships DORMANT behind PAID_ENABLED: until that
+# env flag is "1", effective_tier() is always 0 (free) and the /pricing + Stripe routes
+# 404, so the free campaign is untouched. Entitlement = ONE-TIME per registration cycle
+# (not a subscription): paid access lasts PAID_TERM_DAYS from purchase, then reverts to
+# free. Upgrades charge only the DELTA. ---
+PAID_ENABLED = os.environ.get("PAID_ENABLED") == "1"
+PAID_TERM_DAYS = int(os.environ.get("PAID_TERM_DAYS", "150"))   # ~one reg+add/drop cycle
+TIER_COURSES = {0: 1, 1: 1, 2: 2, 3: 5}                        # courses allowed per tier
+TIER_PRICE_CENTS = {1: 1995, 2: 2495, 3: 2995}                 # one-time, USD cents
+TIER_NAME = {0: "Free", 1: "1 course — all sections",
+             2: "2 courses — all sections",
+             3: "Whole semester — up to 5 courses, all sections"}
+# Stripe (Checkout hosted — card data NEVER touches this server). All keys from env;
+# test keys first, live at launch. Nathan provides them; never hardcode.
+STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
+STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
+PAID_LIVE = bool(PAID_ENABLED and STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET)
+
+PLAN_MSG = ("Your free plan covers 1 class — up to 2 of its sections. Stop watching "
+            "your current class below to switch classes.")
 
 # --- operator guard (so the system watches itself and pings YOU, not the users) ---
 OPERATOR_TOPIC = os.environ.get("SEATWATCH_ADMIN_TOPIC", "seatwatch-admin-q7x2k9m4")
@@ -180,6 +201,27 @@ def init_db():
             user_id    INTEGER NOT NULL,
             first_seen REAL NOT NULL,
             UNIQUE(device_id, user_id))""")
+        # --- paid tiers (dormant until PAID_ENABLED) ---
+        if "plan_tier" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN plan_tier INTEGER NOT NULL DEFAULT 0")
+        if "plan_purchased_at" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN plan_purchased_at REAL")
+        if "plan_term" not in ucols:            # season label at purchase, for reporting
+            c.execute("ALTER TABLE users ADD COLUMN plan_term TEXT")
+        if "stripe_customer_id" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT")
+        # webhook idempotency — a Stripe event unlocks a tier AT MOST once, even on retries
+        c.execute("""CREATE TABLE IF NOT EXISTS stripe_events(
+            event_id  TEXT PRIMARY KEY,
+            kind      TEXT,
+            user_id   INTEGER,
+            processed REAL NOT NULL)""")
+        # conversion-intent signals (wall_hit / simultaneous_course_need) — the data
+        # Nathan watches to decide WHEN to flip paid on
+        c.execute("""CREATE TABLE IF NOT EXISTS conv_signals(
+            kind    TEXT NOT NULL,
+            user_id INTEGER,
+            created REAL NOT NULL)""")
         c.execute("""CREATE TABLE IF NOT EXISTS push_subs(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id  INTEGER NOT NULL,
@@ -266,6 +308,158 @@ def _abuse_clusters(c):
             clusters.append({"school": school, "course": course, "user_ids": uids,
                              "sections_covered": total, "signals": sorted(signals)})
     return clusters
+
+
+def current_season():
+    """Coarse registration season for reporting/labels (e.g. '2026-fall'). Registration
+    runs ahead of the term, so this maps the CALENDAR month to the season students are
+    signing up for; it's a label only — entitlement expiry is the fixed PAID_TERM_DAYS
+    window, not this."""
+    t = datetime.date.today()
+    season = "spring" if t.month <= 5 else "summer" if t.month <= 7 else "fall"
+    return f"{t.year}-{season}"
+
+
+def effective_tier(user):
+    """The tier a user is ACTUALLY entitled to right now. 0 (free) unless paid is live,
+    they hold a paid tier, AND it's still inside the PAID_TERM_DAYS window. Fail-closed:
+    any missing/odd data -> free. This one function gates every paid capability, so a
+    lapsed or dormant entitlement can never leak the paid perk."""
+    if not PAID_ENABLED:
+        return 0
+    try:
+        tier = int(user["plan_tier"] or 0)
+    except (KeyError, TypeError, ValueError, IndexError):
+        return 0
+    if tier <= 0:
+        return 0
+    bought = user["plan_purchased_at"] if "plan_purchased_at" in user.keys() else None
+    if not bought or (time.time() - float(bought)) > PAID_TERM_DAYS * 86400:
+        return 0                                  # expired -> back to free
+    return min(tier, 3)
+
+
+def tier_courses(tier):
+    return TIER_COURSES.get(tier, 1)
+
+
+def _conv_signal(kind, user_id):
+    try:
+        with db() as c:
+            c.execute("INSERT INTO conv_signals(kind,user_id,created) VALUES(?,?,?)",
+                      (kind, user_id, time.time()))
+    except Exception:
+        pass
+
+
+# ------------------------------------------------------------------- Stripe (stdlib)
+def _stripe_post(path, fields, idem=None):
+    """Minimal Stripe API call — form-encoded POST with the secret key as Bearer. No SDK
+    (keeps the stdlib-only posture). Returns parsed JSON or None on failure."""
+    data = urllib.parse.urlencode(fields, doseq=True).encode()
+    req = urllib.request.Request("https://api.stripe.com/v1" + path, data=data)
+    req.add_header("Authorization", "Bearer " + STRIPE_SECRET_KEY)
+    req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    if idem:
+        req.add_header("Idempotency-Key", idem)   # safe to retry without double-charge
+    try:
+        return json.loads(urllib.request.urlopen(req, timeout=20).read().decode())
+    except Exception as e:
+        sw.log(f"  [stripe] POST {path} failed: {e}")
+        return None
+
+
+def stripe_checkout_url(user, target_tier):
+    """Create a one-time hosted Checkout Session for an upgrade to target_tier and return
+    its URL. Charges only the DELTA above the user's current effective tier (never a
+    re-charge). None if paid isn't live or the tier is invalid/not an upgrade."""
+    if not PAID_LIVE or target_tier not in TIER_PRICE_CENTS:
+        return None
+    cur = effective_tier(user)
+    if target_tier <= cur:
+        return None
+    amount = TIER_PRICE_CENTS[target_tier] - TIER_PRICE_CENTS.get(cur, 0)
+    if amount <= 0:
+        return None
+    season = current_season()
+    fields = {
+        "mode": "payment",
+        "success_url": BASE_URL + "/checkout/success",
+        "cancel_url": BASE_URL + "/pricing",
+        "client_reference_id": str(user["id"]),
+        "line_items[0][quantity]": "1",
+        "line_items[0][price_data][currency]": "usd",
+        "line_items[0][price_data][unit_amount]": str(amount),
+        "line_items[0][price_data][product_data][name]":
+            f"SeatWatch — {TIER_NAME[target_tier]}"
+            + (f" (upgrade from {TIER_NAME[cur]})" if cur else ""),
+        # metadata is the ONLY thing the webhook trusts to unlock
+        "metadata[user_id]": str(user["id"]),
+        "metadata[target_tier]": str(target_tier),
+        "metadata[season]": season,
+    }
+    if user["stripe_customer_id"] if "stripe_customer_id" in user.keys() else None:
+        fields["customer"] = user["stripe_customer_id"]
+    sess = _stripe_post("/checkout/sessions", fields,
+                        idem=f"co-{user['id']}-{target_tier}-{int(time.time()//3600)}")
+    return sess.get("url") if sess else None
+
+
+def stripe_verify_webhook(payload_bytes, sig_header):
+    """Verify a Stripe webhook signature (t=<ts>,v1=<hmac>). Returns the parsed event on
+    success, else None. Signature + 5-min freshness are the gate — the redirect back from
+    Checkout is NEVER trusted to unlock; only a verified webhook is."""
+    if not STRIPE_WEBHOOK_SECRET or not sig_header:
+        return None
+    parts = dict(p.split("=", 1) for p in sig_header.split(",") if "=" in p)
+    ts, v1 = parts.get("t"), parts.get("v1")
+    if not ts or not v1:
+        return None
+    try:
+        if abs(time.time() - int(ts)) > 300:      # replay guard
+            return None
+    except ValueError:
+        return None
+    signed = ts.encode() + b"." + payload_bytes
+    expected = hmac.new(STRIPE_WEBHOOK_SECRET.encode(), signed, hashlib.sha256).hexdigest()
+    if not hmac.compare_digest(expected, v1):
+        return None
+    try:
+        return json.loads(payload_bytes.decode())
+    except Exception:
+        return None
+
+
+def stripe_apply_event(event):
+    """Unlock a tier from a VERIFIED checkout.session.completed event, idempotently."""
+    if not event or event.get("type") != "checkout.session.completed":
+        return
+    eid = event.get("id") or ""
+    sess = (event.get("data") or {}).get("object") or {}
+    meta = sess.get("metadata") or {}
+    try:
+        uid = int(meta.get("user_id"))
+        tier = int(meta.get("target_tier"))
+    except (TypeError, ValueError):
+        return
+    if tier not in TIER_PRICE_CENTS:
+        return
+    with db() as c:
+        if eid and c.execute("SELECT 1 FROM stripe_events WHERE event_id=?", (eid,)).fetchone():
+            return                                 # already processed this event
+        # only ever RAISE a tier (a stale/duplicate lower event can't downgrade)
+        row = c.execute("SELECT plan_tier FROM users WHERE id=?", (uid,)).fetchone()
+        if not row:
+            return
+        new_tier = max(int(row["plan_tier"] or 0), tier)
+        c.execute("UPDATE users SET plan_tier=?, plan_purchased_at=?, plan_term=?, "
+                  "stripe_customer_id=COALESCE(?,stripe_customer_id) WHERE id=?",
+                  (new_tier, time.time(), meta.get("season") or current_season(),
+                   sess.get("customer"), uid))
+        if eid:
+            c.execute("INSERT OR IGNORE INTO stripe_events(event_id,kind,user_id,processed) "
+                      "VALUES(?,?,?,?)", (eid, "checkout.session.completed", uid, time.time()))
+    sw.log(f"  [stripe] user {uid} unlocked tier {new_tier}")
 
 
 def google_auth_url(state):
@@ -680,9 +874,11 @@ __CARD__
     <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>No card required</li>
    </ul>
   </div>
-  <div class="price"><span class="tag soon">Coming soon</span><p class="amt">$19.95 <small>per additional course</small></p>
+  <div class="price"><span class="tag soon">Coming soon</span><p class="amt">$19.95<small>+ one-time, per term</small></p>
    <ul class="feat">
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><b>Includes all sections</b> of the course</li>
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><b>Every section</b> of your course — not just 2</li>
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Up to <b>5 classes</b> ($24.95 for 2, $29.95 for a whole semester)</li>
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>No subscription — pay once for the term</li>
    </ul>
   </div>
  </div>
@@ -756,7 +952,7 @@ __NOTICE__
  <input name="sections" placeholder="e.g. 0101, 0102" required>
  <button type="submit">Watch this class<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
 </form>
-<p class="note">Free plan: <b>1 class, up to 2 sections</b>. We only watch what you ask for.</p>
+<p class="note">Free plan: <b>1 class, up to 2 sections</b>. Heads up — a seat that opens in a section you're <i>not</i> watching won't alert you; paid plans watch every section.</p>
 __PUSHBLOCK__
 __WATCHES__
 <script>
@@ -1491,6 +1687,30 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/logout":
             return self._redirect("/", cookies=[
                 "sw_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"])
+        if path == "/pricing":
+            if not PAID_LIVE:
+                return self._send(page("<p>Paid plans are coming soon. "
+                                       "<a href='/'>Back</a></p>"))
+            return self._send(page(self._pricing_html(self._user())))
+        if path == "/checkout":
+            u = self._user()
+            if not u:
+                return self._redirect("/login")
+            try:
+                target = int(qs.get("tier", ["0"])[0])
+            except ValueError:
+                target = 0
+            url = stripe_checkout_url(u, target)   # None if not a valid paid upgrade
+            return self._redirect(url or "/pricing")
+        if path == "/checkout/success":
+            # unlock happens via the webhook, NOT here — this is just a friendly page.
+            return self._send(page(
+                "<div class='card reveal d2' style='text-align:center'>"
+                "<h2 class='ct'>You're upgraded 🎉</h2>"
+                "<p class='cs'>Your plan is active. It may take a moment to reflect — "
+                "add your classes below.</p>"
+                "<a href='/' style='display:block;margin-top:14px;font-weight:700'>"
+                "← Go watch your classes</a></div>"))
         if path == "/admin/stats":
             # operator-only usage aggregates (no PII). Rate-limit BEFORE the key compare
             # blunts brute force; every failure path is the ordinary 404 page.
@@ -1523,6 +1743,19 @@ class Handler(BaseHTTPRequestHandler):
                             "FROM users u WHERE u.risk_score>0 OR u.free_eligible=0 "
                             "ORDER BY u.risk_score DESC LIMIT 25")],
                     "suspected_abuse_clusters": _abuse_clusters(c),
+                    # paid-conversion instrumentation
+                    "paid_enabled": PAID_ENABLED,
+                    "users_by_tier": {str(r[0]): r[1] for r in c.execute(
+                        "SELECT plan_tier, COUNT(*) FROM users GROUP BY plan_tier")},
+                    "revenue_cents_by_tier": {str(t): TIER_PRICE_CENTS[t] * c.execute(
+                        "SELECT COUNT(*) FROM users WHERE plan_tier=? AND plan_purchased_at>?",
+                        (t, time.time() - PAID_TERM_DAYS * 86400)).fetchone()[0]
+                        for t in TIER_PRICE_CENTS},
+                    "conv_signals_total": {r[0]: r[1] for r in c.execute(
+                        "SELECT kind, COUNT(*) FROM conv_signals GROUP BY kind")},
+                    "conv_signals_7d": {r[0]: r[1] for r in c.execute(
+                        "SELECT kind, COUNT(*) FROM conv_signals WHERE created>? GROUP BY kind",
+                        (time.time() - 7 * 86400,))},
                 }
             return self._send_json(stats)
         if path == "/dev-login" and DEV_LOGIN:   # local testing only (env-gated)
@@ -1559,8 +1792,64 @@ class Handler(BaseHTTPRequestHandler):
         self._send(form_page(f"<div class='ok'>{self._OK_ICON}<span>{html.escape(msg)}</span></div>",
                              user=user), code)
 
+    @staticmethod
+    def _plan_upsell(tier):
+        """Message when a user hits their course-count ceiling. Names the next tier and
+        its price when paid is live; stays a plain limit message while paid is dormant."""
+        nxt = tier + 1
+        if PAID_LIVE and nxt in TIER_PRICE_CENTS:
+            delta = (TIER_PRICE_CENTS[nxt] - TIER_PRICE_CENTS.get(tier, 0)) / 100
+            return (f"Your plan covers {tier_courses(tier)} "
+                    f"class{'es' if tier_courses(tier) > 1 else ''}. Add another for "
+                    f"${delta:.2f} — visit Plans to upgrade.")
+        if tier == 0:
+            return PLAN_MSG + (" Paid plans (more classes, all sections) are coming soon."
+                               if not PAID_LIVE else "")
+        return f"Your plan covers {tier_courses(tier)} classes — stop one below to switch."
+
+    def _pricing_html(self, user):
+        """The upgrade ladder (only rendered when PAID_LIVE). Each button posts to
+        /checkout?tier=N; delta pricing is computed server-side at checkout."""
+        cur = effective_tier(user) if user else 0
+        cards = []
+        for t in (1, 2, 3):
+            price = f"${TIER_PRICE_CENTS[t] / 100:.2f}"
+            if not user:
+                btn = "<a class='cbtn' href='/login'>Sign in to choose</a>"
+            elif t == cur:
+                btn = "<span class='note'>Your current plan ✓</span>"
+            elif t < cur:
+                btn = "<span class='note'>Included</span>"
+            else:
+                delta = (TIER_PRICE_CENTS[t] - TIER_PRICE_CENTS.get(cur, 0)) / 100
+                label = (f"Upgrade for ${delta:.2f}" if cur else f"Choose — {price}")
+                btn = f"<a class='cbtn' href='/checkout?tier={t}'>{label}</a>"
+            cards.append(f"<div class='price'><p class='amt'>{price} "
+                         f"<small>one-time, this term</small></p>"
+                         f"<p style='font-weight:700;margin:6px 0'>{html.escape(TIER_NAME[t])}</p>"
+                         f"{btn}</div>")
+        return ("<div class='card reveal d2'><h2 class='ct'>Watch more classes</h2>"
+                "<p class='cs'>One-time for the term — no subscription. Upgrade anytime "
+                "and pay only the difference.</p><div class='prices'>"
+                + "".join(cards) + "</div>"
+                "<a href='/' style='display:block;margin-top:16px;font-weight:700'>← Back</a></div>")
+
     def do_POST(self):
         path = urlparse(self.path).path
+        if path == "/stripe/webhook":
+            # verified-signature webhook is the ONLY thing that unlocks a paid tier.
+            # No CSRF/session (Stripe calls it server-to-server); cap the body, verify HMAC.
+            length = max(0, min(int(self.headers.get("Content-Length", 0) or 0), 65536))
+            raw = self.rfile.read(length)
+            event = stripe_verify_webhook(raw, self.headers.get("Stripe-Signature", ""))
+            if event is None:
+                return self._send_json({"ok": False}, 400)   # bad/forged signature
+            try:
+                stripe_apply_event(event)
+            except Exception as e:
+                sw.log(f"  [stripe] apply failed: {e}")
+                return self._send_json({"ok": False}, 500)   # let Stripe retry
+            return self._send_json({"ok": True})
         if path not in ("/watch", "/unwatch", "/push/subscribe", "/auth/apple"):
             return self._send(page("<p>Not found.</p>"), 404)
 
@@ -1657,16 +1946,24 @@ class Handler(BaseHTTPRequestHandler):
         if not school:
             return self._notice("Please choose a valid school.", user=user)
         course = form.get("course", [""])[0].strip().upper()
+        tier = effective_tier(user)             # 0 = free (also the state when paid is off)
+        all_sections = tier >= 1                 # paid watches EVERY section of a course
+        max_courses = tier_courses(tier)
+
         raw = form.get("sections", [""])[0]
         # dict.fromkeys dedupes ("0101, 0101" would otherwise double-alert)
         sections = list(dict.fromkeys(s.strip().upper() for s in raw.split(",") if s.strip()))
-        if not sections:
-            return self._notice("Please add the section number(s) you want to watch — e.g. 0101.",
-                                user=user)
-        if len(sections) > FREE_SECTIONS_PER_COURSE:
-            return self._notice(f"That's a lot of sections at once — you can watch up to "
-                                f"{FREE_SECTIONS_PER_COURSE} sections of a class. Trim the list a bit.",
-                                user=user)
+        if not all_sections:
+            if not sections:
+                return self._notice("Please add the section number(s) you want to watch — e.g. 0101.",
+                                    user=user)
+            if len(sections) > FREE_SECTIONS_PER_COURSE:
+                _conv_signal("wall_hit", user["id"])   # tried >2 sections on free
+                return self._notice(
+                    f"Your free plan watches up to {FREE_SECTIONS_PER_COURSE} sections of "
+                    f"1 class. A seat in the others won't alert you — the paid plans watch "
+                    f"every section." + (" (Coming soon.)" if not PAID_LIVE else ""),
+                    user=user)
 
         # (3) per-school FORMAT validation — no junk reaches a fetch
         if not school.valid_course(course):
@@ -1676,14 +1973,15 @@ class Handler(BaseHTTPRequestHandler):
             if s and not SECTION_RE.match(s):
                 return self._notice(f"Invalid section: {s}", user=user)
 
-        # (3.5) cheap entitlement pre-check BEFORE the network fetch, so a
-        # limit-hit user can't make us hammer school sites (authoritative
-        # re-check happens under the lock below)
+        # (3.5) cheap COURSE-COUNT pre-check BEFORE the network fetch, so a limit-hit user
+        # can't make us hammer school sites (authoritative re-check happens under the lock)
         with db() as c:
             pre = {(r["school"], r["course"]) for r in c.execute(
                 "SELECT school,course FROM watches WHERE user_id=?", (user["id"],))}
-        if (school.id, course) not in pre and len(pre) >= FREE_COURSES:
-            return self._notice(PLAN_MSG, user=user)
+        if (school.id, course) not in pre and len(pre) >= max_courses:
+            if tier == 0:
+                _conv_signal("simultaneous_course_need", user["id"])   # wants >1 class
+            return self._notice(self._plan_upsell(tier), user=user)
 
         # (4) validate it ACTUALLY EXISTS — blocks fake-course flooding
         secs = school.fetch({course}).get(course, {})
@@ -1704,27 +2002,44 @@ class Handler(BaseHTTPRequestHandler):
                                  (user["id"],)).fetchall()
             my_courses = {(r["school"], r["course"]) for r in mine}
             key = (school.id, course)
-            if key not in my_courses and len(my_courses) >= FREE_COURSES:
-                return self._notice(PLAN_MSG, user=user)
+            if key not in my_courses and len(my_courses) >= max_courses:
+                return self._notice(self._plan_upsell(tier), user=user)
             have = {r["section"] for r in mine if (r["school"], r["course"]) == key}
-            new = [s for s in sections if s not in have]
-            if not new:
-                return self._notice("You're already watching those sections.", user=user)
-            if len(have) + len(new) > FREE_SECTIONS_PER_COURSE:
-                return self._notice(
-                    f"You're watching {len(have)} sections of this class already — that's near "
-                    f"the {FREE_SECTIONS_PER_COURSE}-section cap. Stop a few below to add more.",
-                    user=user)
 
-            # (6) store — alerts go to the account's one stable private channel
-            with db() as c:
-                for sec in new:
+            if all_sections:
+                # paid: ONE row with section="" watches EVERY section (the engine alerts
+                # on any open section, reading the fully-paginated fetch). Idempotent.
+                if "" in have:
+                    return self._notice("You're already watching all sections of this class.",
+                                        user=user)
+                with db() as c:
+                    c.execute("DELETE FROM watches WHERE user_id=? AND school=? AND course=?",
+                              (user["id"], school.id, course))   # collapse any old picks
                     c.execute("INSERT INTO watches(school,topic,course,section,term,created,user_id) "
                               "VALUES(?,?,?,?,?,?,?)",
-                              (school.id, user["topic"], course, sec,
+                              (school.id, user["topic"], course, "",
                                getattr(school, "term", ""), time.time(), user["id"]))
-        what = course + " " + ", ".join(new)
+                what = course + " (all sections)"
+            else:
+                new = [s for s in sections if s not in have]
+                if not new:
+                    return self._notice("You're already watching those sections.", user=user)
+                if len(have) + len(new) > FREE_SECTIONS_PER_COURSE:
+                    _conv_signal("wall_hit", user["id"])
+                    return self._notice(
+                        f"Your free plan watches {FREE_SECTIONS_PER_COURSE} sections of a "
+                        f"class; you already have {len(have)}. Stop one below, or the paid "
+                        f"plans watch every section." + (" (Coming soon.)" if not PAID_LIVE else ""),
+                        user=user)
+                with db() as c:
+                    for sec in new:
+                        c.execute("INSERT INTO watches(school,topic,course,section,term,created,user_id) "
+                                  "VALUES(?,?,?,?,?,?,?)",
+                                  (school.id, user["topic"], course, sec,
+                                   getattr(school, "term", ""), time.time(), user["id"]))
+                what = course + " " + ", ".join(new)
         self._send(done_page(f"{what} @ {school.name}", user))
+        return
 
     def log_message(self, *a):  # quiet
         pass
