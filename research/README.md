@@ -15,6 +15,24 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Codex adapter queue, cleanest 3 — ✅ BUILT July 11: UNCG + NCCU + UNC Asheville, 655->658 (commits 701a38f + 90d23df)
+All 3 gated through the registered production path; zero false-open risk. Deploy pending Nathan.
+- **UNCG (~18k)**: plain Banner-9 subclass — no bespoke code needed (Codex's endpoints = the standard
+  family flow). Verified AT THIS HOST: zero closed-but-seats>0 rows in current AND completed terms;
+  completed Spring's 6 waitlist-only "open" rows correctly withheld by the family seats>0 rule. 1.4s.
+- **NCCU (~8k)**: new `ListcrseBanner8` variant — guest search form answers "No classes were found"
+  for everything, but catalog `bwckctlg.p_disp_listcrse` serves the sections. 16 CRNs 2 open/14 full
+  (matches Codex exactly); Cap/Act/Rem detail verified; completed-term test reproduced through the
+  production builder (Spring 202620: 7 CRNs, 6 full). 3.3s cold / 0ms warm (Purdue-pattern cache).
+- **UNC Asheville (~2.8k)**: bespoke meteor.unca.edu JSON adapter; whole-term dump + 10-min TTL cache,
+  stale-if-error. open = Classification.Open AND remaining>0 — flag agreed with arithmetic 1,654/1,654
+  rows across live + completed terms, CRNs unique. Exact-course scoping via "SUBJ NUM." prefix. 0.4s.
+- ⚑ FOLLOW-UP LEAD (big): the same listcrse route shows LIVE sections at the batch-23 cut hosts —
+  Toledo 31 CRNs, Missouri State 81 (matching Fable's original counts!). They were search-form-blocked,
+  not unpublished. All 5 cuts are re-gate candidates on `ListcrseBanner8` in a future pass.
+- HELD per mandate (accuracy questions open, task-tracked): Berkeley (reserved-seat subtraction),
+  Fairfield (no completed term + whole-dump cache), SDCCD×3 (status semantics + 4k-row dump cache).
+
 ### Batch 23 (Banner-8) — ✅ BUILT July 11: SHIPPED 2 of 7, CUT 5 — 653->655 (commit 60ba544)
 Nathan's condition was "only send it if you can get flawless efficiency AND accuracy" → gated all 7
 LIVE through the production Purdue Banner-8 adapter; shipped ONLY the clean passes.
