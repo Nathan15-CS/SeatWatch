@@ -15,6 +15,36 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Worcester State University — ✅ BUILT July 12 (batch 26): 666->667
+Plain NewColleague subclass (EN not ENGL; != WPI). Re-gated live: 39 sections across EN/BI/PY 101,
+9 open/30 FULL, zero open-with-no-seat; family disproof satisfied (30 live full rows, non-0 status).
+2.4s. Grabber's first relay — evidence reproduced exactly. Deploy pending Nathan (covers 656-667).
+
+### Worcester State University (MA) — Batch 26 SENT July 11 2026 (Codex find, Grabber re-gated + relayed, Nathan-approved)
+~5,772 students, public 4-year. Fits existing `NewColleague` (host `selfservice.worcester.edu`, subj
+code `EN`, term auto-picks Fall 2026 `2026FA`). Re-gated LIVE through production `NewColleague.fetch()`:
+EN 101 = 33 sec (7 open/26 FULL), BI 101 = 4 full, PY 101 = 2 open; 39 sec total, 30 live full =
+disproof (no completed-term feed in this family; live full rows carry non-0 status). Reproduces Codex's
+spec to the section. Dedup clean (≠ Worcester Polytechnic). Relayed to Builder as Batch 26.
+
+### Winston-Salem State University (NC) — GATED, AWAITING GO-AHEAD (Codex find, Grabber re-gated July 11 2026)
+~18,682 students, public 4-year (HBCU). Sibling of already-shipped NCCU on the same UNC-ECS Banner-8
+host pattern — fits existing `ListcrseBanner8`. Suggested subclass:
+`base="https://ssbprod-wssu.uncecs.edu/pls/WSSUPROD"; term="202680"; example="BIO 1113"` (Fall 2026 =
+202680 here; completed Spring 2026 = 202620, per-host term semantics — labels win, batch-23 lesson).
+Re-gated LIVE through production `ListcrseBanner8.fetch()`: BIO 1113 = 6 sec (2 open/4 FULL, real seats
+[0,1,0,5,0,0]); completed 202620 BIO 1113 = 5 sec (3 open/2 full) — BOTH disproofs hold, numeric
+Cap/Act/Rem verified (Remaining==Capacity-Actual). Dedup clean. READY — awaiting Nathan's go to relay.
+
+### Shorter College (AR) — HELD, NOT ship-ready (Grabber production re-gate July 11 2026)
+Codex flagged it "production-compatible," but the production `NewColleague.fetch()` re-gate FAILS the
+fake-open disproof TODAY: ENGL 2803 = 1 live section, OPEN, no full rows; ENGL 1301/BIOL 1101 = no data.
+Tiny 2-yr HBCU (North Little Rock) — too few sections to show a live FULL row, and this Colleague family
+can't query the completed term through the adapter (guest search indexes active plan terms only), so
+Codex's Fall-2025 non-open evidence isn't reproducible via production. A single all-open section is
+exactly the fake-open profile I won't ship. DO NOT relay until a live full row (or an adapter-verifiable
+completed-term non-open row) exists. Handed back to Codex's lane to re-establish or drop.
+
 ### State College of Florida — ✅ BUILT July 11/12 (batch 25): 665->666 (commit follows Berkeley's)
 CT-log-vein first ship. Plain Banner-9 subclass on non-guessable banner.banprod.scf.edu. Re-gated
 live: ENC 1101 = 82 sec, 24 open/58 genuinely FULL (live Act==Cap disproof); completed Fall 2025
