@@ -15,6 +15,17 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### UC Berkeley — ✅ BUILT July 11: reserved-seat adapter shipped, 664->665 (commit 4b0034d)
+The held accuracy question is RESOLVED and live-verified: open = status 'O' AND
+(maxEnroll - enrolledCount - openReserved) > 0. The trap case reproduces exactly — BIOLOGY 1A/1AL
+read 'Open' with 21/20 seats, ALL cohort-reserved -> correctly WITHHELD; BIOLOGY 1B shows its real
+1 unreserved seat per lecture; COMPSCI 61A 620 unreserved of 1,253 (phased reservations); completed
+Spring status-C rows withheld. ENGLISH R1A stress 14 sections 21s cold/0ms warm (TTL cache).
+Exact scoping by slug fragment; spaced subjects slugify by deletion (POL SCI->polsci). Term facet
+auto-rolls from page labels verify-before-adopt. BONUS infra: refresh_all_terms now duck-types on
+refresh_term (was a hardcoded isinstance list) — one-off adapters self-maintain. Deploy pending
+Nathan (covers 656-665). Remaining held: Fairfield + SDCCD×3 (next).
+
 ### Batch-23 cuts RESURRECTED — ✅ BUILT July 11: all 5 shipped on ListcrseBanner8, 659->664 (commit 9751801)
 Missouri State (~24k, 81 CRNs 49/32, 14s cold), Toledo (~20k, 31 CRNs 19/12, 9s — its 202710 =
 SPRING 2027, pinned/detected 202640), Stephen F. Austin (58 CRNs 46/12, 18s — 202710 IS Fall 2026
