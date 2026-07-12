@@ -1,0 +1,29 @@
+{
+ "system": "College Scheduler / Civitas Learning public Course Search",
+ "api": "POST https://api.collegescheduler.com/graphql (no auth; header Origin: https://{slug}.search.collegescheduler.com)",
+ "open_rule": "openSeats>0 (totalSeats=capacity); clean numeric, no status enum",
+ "confirmed": [
+  {
+   "slug": "ivytech",
+   "name": "Ivy Tech Community College",
+   "enroll": 65000,
+   "term_example": "202620 Fall 2026",
+   "gate": "BIOL 196 sec, 77 open/19 full"
+  },
+  {
+   "slug": "uta",
+   "name": "University of Texas at Arlington",
+   "enroll": 42000,
+   "term_example": "2268 Fall 2026",
+   "gate": "BIOL 513 sec, 24 open/17 full sampled"
+  },
+  {
+   "slug": "alaska",
+   "name": "University of Alaska (system: UAF/UAA/UAS via campus field)",
+   "enroll": 26000,
+   "term_example": "202603 Fall 2026",
+   "gate": "BIOL 322 sec, 9 open/18 full sampled"
+  }
+ ],
+ "caveat": "public Course Search is opt-in; most CS clients gate behind SSO (asu/duke/alamo/bgsu/odu/vcu/ku all env-OK but courseSearchTerms=null). CT-log undercounts slugs (wildcard certs). These 3 confirmed live+current; more may exist."
+}

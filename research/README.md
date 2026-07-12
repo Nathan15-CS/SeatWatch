@@ -15,6 +15,28 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### College Scheduler / Civitas GraphQL — NEW VEIN, source-gated (Grabber, July 12 2026) — 3 big net-new schools, needs 1 bespoke adapter
+Fresh system type (not Banner/Colleague/PeopleSoft). College Scheduler (Civitas Learning) runs a
+PUBLIC, no-auth **GraphQL** API that returns clean numeric seats. ONE adapter serves every school that
+has the public "Course Search" enabled. Confirmed 3 LIVE + CURRENT + net-new (all deduped vs schools.py):
+- **Ivy Tech Community College (IN)** ~65k — slug `ivytech`, Fall 2026 `202620`; BIOL = 196 sec, 77 open/19 FULL.
+- **University of Texas at Arlington** ~42k — slug `uta`, Fall 2026 `2268`; BIOL = 513 sec, 24 open/17 FULL sampled.
+- **University of Alaska (system)** ~26k — slug `alaska`, Fall 2026 `202603`; campus field splits UAF/UAA/UAS;
+  BIOL = 322 sec, 9 open/18 FULL sampled.
+**Recipe (blind-reproducible):** `POST https://api.collegescheduler.com/graphql`, header
+`Origin: https://{slug}.search.collegescheduler.com`, no auth.
+- terms: `{ environment(name:"{slug}"){ courseSearchTerms{ code name } } }` (auto-pick current, like Banner picker)
+- courses: `{ environment(name:"{slug}"){ findCourses(termCode:"{code}", query:"BIOL 201", includeFullCourses:true, first:20){ edges{ node{ id courseNumber title } } } } }`
+- sections: `{ environment(name:"{slug}"){ getCourseSections(courseId:"{id}", includeFullSections:true, first:50){ edges{ node{ registrationNumber sectionNumber openSeats totalSeats campus } } } } }`
+**Gate rule:** open = `openSeats > 0`; `totalSeats` = capacity. Disproof PASSED at all 3 (live FULL rows
+openSeats=0 with totalSeats>0 — real enrollment, can't fake). No status enum to distrust. ~1-2s.
+**Caveats (honest):** public Course Search is OPT-IN — most CS clients gate it behind SSO (asu/duke/alamo/
+bgsu/odu/vcu/ku resolve `environment` but `courseSearchTerms`=null). CT-log undercounts slugs (wildcard
+certs), so the full public roster isn't enumerable; these 3 are confirmed, more may exist. Needs a bespoke
+`CollegeScheduler` adapter (source-gated, NOT production-gated — no existing adapter). Awaiting Nathan's go.
+Data: research/collegescheduler_lead.json.
+
+
 ### Winston-Salem State University — ✅ BUILT July 12 (batch 27): 667->668
 ListcrseBanner8 on NCCU's UNC-ECS sibling host. Re-gated live: Fall BIO 1113 = 6 CRNs 2 open/4 FULL;
 completed Spring 202620 = 5 CRNs 3/2 — both disproofs hold, Grabber's numbers reproduced exactly.

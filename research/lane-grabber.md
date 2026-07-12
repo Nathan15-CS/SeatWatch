@@ -21,6 +21,23 @@ Nathan's go, relay to Builder (session local_475a2545) as "Batch N" → mark SEN
   each needs a bespoke build; honest leads only): Fairfield (bench), SDCCD×3 City/Mesa/Miramar (bench),
   **RCCD×3 Moreno Valley/Norco/Riverside City (NET-NEW to Builder)** — SharePoint API, Codex source-gated.
 
+## ★ CREATIVE-HUNT WIN (July 12) — College Scheduler / Civitas public GraphQL vein
+Chased "biggest missing mega-schools" → found the system many of them use: **College Scheduler
+(Civitas)** runs a PUBLIC no-auth GraphQL API (`api.collegescheduler.com/graphql`) with clean numeric
+seats (`openSeats`/`totalSeats`). ONE bespoke adapter serves every school with public "Course Search" on.
+**3 confirmed LIVE + CURRENT + net-new (deduped):** Ivy Tech (~65k), UT Arlington (~42k), Univ. of Alaska
+system (~26k, campus-splittable) — ~133k students from one adapter. All gated PASS (live full rows,
+disproof holds). Full recipe + caveats in README block "College Scheduler / Civitas GraphQL"; data in
+collegescheduler_lead.json. CAVEAT: public search is opt-in (most CS clients — asu/duke/alamo — gate it
+behind SSO); can't fully enumerate the roster. Source-gated → needs a `CollegeScheduler` adapter, awaiting
+Nathan's go. This is the fresh vein Nathan asked for — highest-value find of the session.
+
+## SWEEP COMPLETE (July 12): 167/229 truly checked, 62 ct_FAIL need retry, 0 live Banner-9 SSB hits
+crt.sh degraded under sustained load (my CS/Ellucian queries added to it) → 62 domains failed and are
+queued in needs_retry.json (NOT swept — must retry before declaring done). 17 banner-host domains found;
+second-pass (Banner-8 listcrse) running to convert reachable ones (Missouri Southern, NE Illinois, MCLA,
+East Georgia). Reminder: many CT-log banner hosts are internal/cert-only (NXDOMAIN) — low net yield so far.
+
 ## CREATIVE-HUNT results (July 12) — 2 dead ends, 1 real-but-complex fresh vein
 Pushed beyond CT-log per Nathan. Honest outcomes:
 - **Coursedog → DEAD as a seat vein.** Its catalog product (`*.catalog.prod.coursedog.com`) is course
