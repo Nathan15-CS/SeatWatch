@@ -1393,3 +1393,61 @@ and Chaffey held at identity-only. All ten remain `SOURCE-LEVEL PARTIAL`/`HOLD` 
 exchange surface and the numeric/status contradiction is known. No `schools.py` edit, production
 adapter, or builder handoff was made. A follow-up should reconcile the strongest candidates (SBCC,
 Compton, Mission, Cuesta, Redwoods) against their direct schedules before any gate marker is added.
+
+### Batch 18 — additional direct registrar/schedule surfaces (Codex, July 12 2026)
+
+This sweep moved off CVC where possible. Clark University and Wabash have reproducible current and
+completed public rows; the remaining four are explicitly bounded source leads because the public page
+does not yet expose a complete, numeric, mixed-term feed without an additional browser/session step.
+
+1. **Clark University (MA) — SOURCE-GATED, AWAITING FOLLOW-UP.** Official registrar tables are
+   public at `https://apps.clarku.edu/course-listings/course-grid-fall-2026-ug-gs/ugopen` (Fall 2026)
+   and `https://apps.clarku.edu/course-listings/registrarSPRING26/undergraduate` (completed Spring
+   2026). Rows expose CRN, course/section, title, capacity (`CAP`), enrollment (`Enr`), instructor,
+   meeting pattern, room, prerequisites, and permission-only flags. Fall examples include PSYC 101-01
+   CRN 20059 (CAP 90 / Enr 47), PHYS 130-01 CRN 20037 (16/11), and HEBR 101-01 CRN 20187 (19/16);
+   Spring examples include MATH 119-01 CRN 30147 (25/10), MUSC 104-01 CRN 34700 (25/18), and
+   PSYC 108-01 CRN 30193 (75/37). Use `CAP - Enr` only after validating the table's reserve-seat and
+   permission semantics; preserve CRN + term + section and do not collapse cross-listed rows. The
+   current Fall page also has dedicated “courses with seats remaining” views, but an adapter must
+   fetch the all-courses table to retain closed and reserved sections.
+2. **Wabash College (IN) — SOURCE-GATED, AWAITING FOLLOW-UP.** Official registrar pages expose a
+   term selector and row-level status at `https://www.wabash.edu/apps/registrar/course-sections/?sortby=SectionName&term=26%2FFA`
+   (Fall 2026) and the same route with `term=26%2FSP` (completed Spring 2026). Each row publishes
+   section key, title, `OPEN`/`CLOSED`/`WAITLISTED`, dates, meeting fields, capacity, enrolled,
+   available, and waitlist counts. Fall examples: ACC-201-01 (25 capacity, 18 enrolled, 7 available,
+   open), ACC-301-01 (15/5/10, open), and ART-126-01 (10/10/0, waitlisted). Spring examples include
+   ACC-202-01 (60/35/25, open), ART-125-01 (12/11/1, open), and ART-202-01 (35/35/0, waitlisted).
+   Exact term + section is mandatory; cross-listed sections, senior/class-year restrictions, and
+   waitlist counts must remain separate from primary availability. This is a strong reusable source,
+   pending a production adapter's live-fetch and reserve/cross-list tests.
+3. **Long Beach City College (CA) — SOURCE-LEVEL PARTIAL, CVC HOLD.**
+   `https://search.cvc.edu/courses/12881068` identifies LBCC's ETHST1 and exposes Fall 2026 CRNs
+   71016/71015/71018 with 11/11/18 live seats and CRN 71013 with 0 and `Section Full`. The page has
+   exact dates, online format, CRNs, and a mixed current open/full set, but this capture did not
+   reproduce a completed term. Treat the source as CVC-only and subject to the known CVC numeric/status
+   contradiction; reconcile with LBCC's direct schedule before any handoff.
+4. **Butler County Community College / BC3 (PA) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.**
+   `https://www.bc3.edu/credit-schedule/index.html` publishes official Summer 2026 and Fall 2026
+   session links, registration dates, credit/online/hybrid format definitions, and links into the
+   college's Colleague schedule. The linked schedule currently requires the authenticated myBC3 flow,
+   so no numeric row or completed-term comparison was captured. Do not treat the term index as seat
+   availability; follow up only if the guest Colleague route exposes `Available`, capacity, and status.
+5. **Farmingdale State College (NY) — SCHEDULE-SURFACE LEAD, FOLLOW-UP REQUIRED.**
+   `https://www.farmingdale.edu/course-offerings/fall_schd_2026.html` is an official Fall 2026
+   schedule with CRN, subject, course, section, credits, title, dates, delivery/location, and
+   instructor fields across the full catalog. The published table does not expose seat counts or
+   open/closed status, and the page's wait-list note is policy-only. Keep as a discovery lead, not a
+   SeatWatch source, until OASIS or a public JSON endpoint yields numeric current and completed rows.
+6. **Hawkeye Community College (IA) — COLLEAGUE INDEX LEAD, FOLLOW-UP REQUIRED.**
+   `https://www.hawkeyecollege.edu/academics/credit-courses/` confirms that Summer/Fall 2026 course
+   search is public and directs users to the official `colss-prod.hawksaas.elluciancloud.com` search;
+   it also documents guest registration and exact Fall 2026 deadlines. The search route was not
+   captured as a row-level guest feed in this pass, so no seats or status are claimed. Follow up only
+   after reproducing a guest session with exact section IDs, capacity, available seats, and a completed
+   term.
+
+**Batch status:** six additional college identities were archived. Clark and Wabash meet the direct
+current-plus-completed numeric/status evidence bar but remain pending production-gate tests; Long Beach
+City is a CVC hold; BC3, Farmingdale, and Hawkeye are clearly marked non-seat source leads. No
+`schools.py` edit, production adapter, or builder handoff was made.

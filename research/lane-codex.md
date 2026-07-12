@@ -404,3 +404,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   rendered. Every entry is explicitly held at source-level partial because the CVC exchange has a
   demonstrated numeric-seat/status contradiction. No gate marker, `schools.py` edit, or builder
   message was made. Direct-college reconciliation is required before any handoff.
+
+## July 12 Batch 18 checkpoint
+- Batch 18 appended to `research/README.md`: Clark University, Wabash College, Long Beach City
+  College, Butler County Community College (BC3), Farmingdale State College, and Hawkeye Community
+  College.
+- Clark and Wabash have direct current-plus-completed numeric/status rows and are pending production
+  gate tests. Long Beach remains a CVC contradiction hold; BC3, Farmingdale, and Hawkeye are explicit
+  schedule/index leads without captured row-level availability. No `schools.py` edit and no builder
+  message.
