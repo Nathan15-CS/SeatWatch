@@ -1052,3 +1052,70 @@ course, section/CRN keys are mandatory in every future adapter; the named seat/s
 
 **Batch status:** all ten are research-only leads pending a production adapter and explicit go-ahead. No
 `schools.py` edits or builder message were made. Name/host dedup was clean for each candidate.
+
+### Batch 11 — new public schedule sources (Codex, July 12 2026)
+
+These are net-new against `schools.py` and the prior research notes. Five have direct current-plus-
+historical seat rows in this pass; the remaining five are explicit source leads or partial captures
+whose JavaScript/form/term coverage still needs a small follow-up probe. All remain research-only and
+source-gated.
+
+1. **Sandhills Community College (NC).** Official nightly seat tables: `https://olympus.sandhills.edu/seatsAvailable/2026FASeatsAvailable.htm`
+   and `https://olympus.sandhills.edu/seatsAvailable/2026SPSeatsAvailable.htm`. Both pages expose
+   `Dept Num Sec ... Max Seats Remaining Seats Comments`; Fall 2026 BIO 111 rows include 25/2 and
+   25/14 open sections alongside zero and negative rows, while Spring 2026 has mixed 25/8, 25/7,
+   and full rows. Gate exact term+subject+course+section and `Remaining Seats > 0`; attach blank
+   continuation rows to the preceding section. These are nightly snapshots, not real-time feeds.
+2. **The College of the Florida Keys (FL).** Official Banner detail pages: Fall 2026
+   `https://secure.cfk.edu/prod/bwckschd.p_disp_detail_sched?crn_in=11488&term_in=202710` (MAT 1033,
+   30/15/15) and Spring 2026 `https://secure.cfk.edu/prod/bwckschd.p_disp_detail_sched?crn_in=20654&term_in=202620`
+   (MAT 1033, 30/19/11). The same
+   pages show waitlist capacity separately. Gate exact term+subject+course+CRN and primary
+   `Remaining > 0`; ignore waitlist remaining and preserve credit-level restrictions.
+3. **Horry-Georgetown Technical College (SC).** Official Banner detail pages use host
+   `https://ssb.hgtc.edu/PROD9/bwckschd.p_disp_detail_sched`. Fall 2026 (`term_in=202610`, CRN 1108)
+   shows EGR 282 I02 at 18/11/7; Spring 2026 (`term_in=202520`, CRN 1108) shows RAD 115 S01 at
+   24/23/1, with restrictions and syllabus flags. Gate exact term+subject+course+CRN and primary
+   `Remaining > 0`; host term codes are local to this Banner instance.
+4. **Kenyon College (OH).** Official static seat tables: `https://registrar.kenyon.edu/schedgrid.htm`
+   links Fall 2026 `sep26_seats.htm` and Spring 2026 `jan26_seats.htm`. Spring page is timestamped
+   July 11, 2026 and lists CRN, subject/number, title, instructor, meeting data, and `SEATS`; rows
+   include open counts from 1 through 35. Gate exact term+CRN/section and `SEATS > 0`; the page is an
+   open-only view, so omission means unknown rather than closed.
+5. **Schoolcraft College (MI).** Official schedule viewer: `https://my.schoolcraft.edu/course-schedules/2026/Fall/All`
+   and `https://my.schoolcraft.edu/course-schedules/2026/Spring/All`. Fall rows publish timestamped
+   `Seat Available/Capacity/Waitlist` plus `Status` (for example 24/25/0 Open beside 0/14/0 Closed);
+   Spring page exposes the same fields and mixed open/closed rows. Gate exact term+course+section,
+   require `Status == Open` and positive first number, and preserve location, modality, fees, and
+   start-date/part-of-term headings.
+6. **Bentley University (MA).** Official real-time listing: `https://bentleyapps.azurewebsites.net/course-listing/`.
+   The public page exposes Fall 2026 and Spring 2026 selectors, Open/Closed status filters, section
+   identity, and a statement that enrollment/seats are updated in real time. The text-only fetch did
+   not render result rows, so treat this as source-gated pending a browser/API form probe; do not infer
+   seats from catalog presence.
+7. **Grayson College (TX).** Official public planner: `https://planner.grayson.edu/Planner/CourseSearch/607`
+   (Fall 2026) and `/Planner/CourseSearch/596` (Spring 2026). Rows include stable course-section IDs,
+   dates, campus, `Seats: open/maximum`, and `Status`; Fall has both open and closed sections, while
+   Spring has mixed rows (including 23/30 Open and 0/1 Open). Gate exact term+course-section ID,
+   require explicit `Status == Open` plus positive open seats, and retain campus/modality notes.
+8. **Catawba Valley Community College (NC).** Official viewer `https://cvcc.edu/schedules/` states
+   that its public interactive schedule is real-time, identifies open/closed sections, and shows seats;
+   the changelog documents refreshed Fall, Summer, and Spring 2026 JSON exports and `get_schedules.php`.
+   This is a source-level lead pending a direct JSON-row capture; do not add an adapter from the HTML
+   shell alone. Gate exact term+section, explicit status, and positive seats once the export is probed.
+9. **University at Albany (NY).** Official registrar schedule search: `https://www.albany.edu/registrar/schedule-classes`.
+   Public selectors include Spring 2026 (`0007`) and Fall 2026 (`0009`), a `Seats Available` filter,
+   and a freshness note (“updated every 30–60 minutes”). The result form is a public POST surface but
+   was not rendered by the text fetch; keep as source-gated until a browser/form capture confirms the
+   row schema and mixed-term status behavior.
+10. **Illinois Institute of Technology (IL).** Official BANR detail source:
+    `https://ssb.iit.edu/bnrprd/bwckschd.p_disp_detail_sched?crn_in=52298&term_in=202620` (Spring 2026,
+    CAE 474, 30/19/11) and the same host's public Banner catalog/detail route for Fall 2026. Spring
+    evidence is direct and numeric; Fall indexing was unavailable during this pass, so hold as a
+    source-gated lead until a Fall 2026 detail row is captured. Do not infer current availability from
+    the Spring row.
+
+**Batch status:** five rows have direct current/historical seat evidence; Kenyon has a current static
+seat table plus a linked Fall table, while Bentley, Catawba Valley CC, Albany, and IIT remain explicit
+source-surface/partial leads awaiting a browser, JSON, or missing-term capture. No `schools.py` edit,
+production adapter, or builder handoff was made.

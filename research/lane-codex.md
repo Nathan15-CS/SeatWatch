@@ -343,3 +343,13 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   schedule viewers documented in the batch section.
 - **Next:** continue the never-swept public-schedule/Colleague/CT-log search; keep accumulating a full batch
   before the next README update. Research-only boundary remains in force.
+
+## July 12 Batch 11 checkpoint
+- Batch 11 is appended to `research/README.md`: Sandhills, College of the Florida Keys,
+  Horry-Georgetown Technical, Kenyon, Schoolcraft, Bentley, Grayson, Catawba Valley CC,
+  University at Albany, and Illinois Tech.
+- Five have direct current/historical numeric or status rows. Kenyon has a current static table plus a
+  linked Fall table; Bentley, Catawba Valley CC, Albany, and Illinois Tech are explicitly marked as
+  source-surface/partial leads pending browser, JSON, or missing-term capture. This confidence split is
+  intentional—no inferred seats and no production handoff.
+- Name/host dedup checks were clean for the ten names; no `schools.py` edit and no builder message.
