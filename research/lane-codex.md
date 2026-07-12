@@ -230,6 +230,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   `Remaining > 0`, ignore waitlist/cross-list remaining, and preserve restriction/prerequisite
   text. Net-new public four-year lead; classic `bwckschd` is not the tested JSON Banner path, so
   no production adapter or handoff.
+- **July 11, 2026 — Framingham State University public classic Banner pass.** Official
+  `https://selfservice.framingham.edu/PROD/bwckschd.p_disp_dyn_sched` exposes current Fall 2026
+  (`202690`) and completed Spring 2026 (`202620`, View only). Detail pages publish stable CRNs and
+  primary/waitlist `Capacity`, `Actual`, and `Remaining`. Current Fall GEOG 316 CRN `91208` is
+  30/9/21. Completed Spring is mixed: ANTH 206 CRN `20424` = 30/30/0, BIOL 460 CRN `20095` =
+  5/4/1, and COMM 280 CRN `20146` = 14/14/0. Future adapter must key exact term+subject+course+
+  CRN, require primary `Remaining > 0`, ignore waitlist/cross-list remaining, and preserve
+  restriction/prerequisite text. Net-new public four-year lead; classic `bwckschd` is not the
+  tested JSON Banner path, so no production adapter or handoff.
 - **July 11, 2026 — North Central University recheck closed.** Its public newer-Colleague catalog
   exposed future terms, but exact section-bearing `ENG 496`, `MATH 115`, `MATH 110`, and `PSYC 258`
   samples returned only status-0 positive-seat rows across Summer/Fall 2026, with no full/non-open

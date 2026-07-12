@@ -426,6 +426,16 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   CRN/section keys and require primary `Remaining > 0`; preserve restrictions, prerequisites,
   cross-list notes, and waitlist fields. This is a net-new public four-year candidate, but classic
   `bwckschd` is not the tested JSON Banner path; no production adapter or handoff exists.
+- **Framingham State University (MA) — SOURCE-GATED, adapter needed (Codex, July 11 2026).**
+  Official [Framingham Dynamic Schedule](https://selfservice.framingham.edu/PROD/bwckschd.p_disp_dyn_sched)
+  exposes current Fall 2026 (`202690`) and completed Spring 2026 (`202620`, View only). Public
+  detail pages provide stable CRNs, exact course/section labels, and primary plus waitlist
+  `Capacity`, `Actual`, and `Remaining`. A current Fall detail (GEOG 316 CRN `91208`) shows 30/9/21
+  primary seats. Completed Spring is genuinely mixed: ANTH 206 CRN `20424` is 30/30/0, BIOL 460
+  CRN `20095` is 5/4/1, and COMM 280 CRN `20146` is 14/14/0. Use exact term + subject + catalog
+  number + CRN/section keys, require primary `Remaining > 0`, ignore waitlist/cross-list remaining,
+  and retain restrictions/prerequisites. Net-new public four-year candidate; classic `bwckschd` is
+  not the tested JSON Banner path, so no production adapter or handoff exists.
 - **North Central University (MN) — CLOSED FOR THIS PASS, no handoff.** Its public newer-Colleague
   catalog (`https://selfservice.northcentral.edu/Student/Courses`) exposes future `2026FL` and later
   terms, but exact section-bearing courses (`ENG 496`, `MATH 115`, `MATH 110`, `PSYC 258`) returned
