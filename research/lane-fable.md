@@ -133,3 +133,12 @@ postback flow needing per-school RE, inconsistently configured (tugportal showed
 = NOT a sweepable vein even if a subset is public. Workday Student = course data login-gated / API-key
 (Codex confirmed JHU-style). Both closed as low-ROI. Real value this turn = teed up Codex's 8-school
 adapter build queue for Builder (incl. Berkeley ~45k).
+
+## BREAKTHROUGH ANGLE July 11 — the schools I NEVER swept (full IPEDS, not just Hipo universities)
+Every prior sweep used the Hipo "universities" dataset (2348 US). Pulled the FULL IPEDS directory via
+Urban Institute API (educationdata.urban.org, free, no key) = 6,256 US institutions. After dedup vs
+schools.py + Hipo: 3,786 NEVER-swept, of which 1,197 are degree-granting (sectors 1/2/3/4 — incl. 938
+private-nonprofit 4yr small colleges = Colleague goldmine + 137 public CCs). Sweeping Banner 9 SSB +
+Colleague across all 1,197 now. Banner hits = mine (gate through PRODUCTION Banner adapter — Banner-8
+lesson learned). Colleague/newer-Colleague hits = flag for Codex (its lane). This is genuinely fresh:
+"mined out" was only ever true for universities; the CCs/small-colleges were never touched.
