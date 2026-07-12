@@ -1244,3 +1244,31 @@ handoff was made.
 **Batch status:** Monroe clears the direct current-plus-completed numeric gate and is marked
 `GATED, AWAITING GO-AHEAD`. UAA is a deliberately bounded source lead pending a college-wide public
 index/UAOnline capture. No production adapter, `schools.py` edit, or builder handoff was made.
+
+### Batch 14 — CVC Exchange source leads (Codex, July 12 2026)
+
+These are net-new colleges surfaced through the official California Virtual Campus (CVC) public
+exchange. CVC publishes live/timestamped seat counts and term/CRN rows, but it is a cross-college
+exchange rather than each college's primary schedule. They are therefore documented as source-level
+leads only until a direct college schedule or a formally validated CVC adapter scope is established.
+
+1. **Rio Hondo College (CA) — SOURCE-LEVEL PARTIAL, AWAITING FOLLOW-UP.** CVC course page
+   `https://search.cvc.edu/courses/687657` identifies Rio Hondo College and publishes exact term,
+   CRN, dates, modality, and `Live Seat Count`. The same course has Spring 2026 CRN 35358 with 20
+   available seats (historical snapshot), Fall 2026 CRN 74332 with 10 available and `Open`, and Fall
+   2025 CRN 74332 with 7 available. CVC warns that counts change rapidly and may not reflect the
+   latest status; the repeated CRN across terms proves that the key must include term + CRN. Follow-up
+   must compare CVC rows with Rio Hondo's direct schedule, preserve section dates/part-of-term and
+   prerequisites, and reject stale/`Already Started` rows for current alerts.
+2. **Laney College (Peralta Community College District, CA) — SOURCE-LEVEL PARTIAL, AWAITING
+   FOLLOW-UP.** CVC page `https://search.cvc.edu/courses/1031669` identifies Laney College and
+   exposes numeric live counts for both terms: Spring 2026 MATH 3C CRN 21753 has 5 available seats,
+   while Fall 2026 CRN 41750 has 24 available; both rows include exact dates, synchronous modality,
+   and meeting times. The page notes that counts are fast-changing and the college's own Peralta
+   email/Canvas instructions are included, but CVC is still an exchange surface. Gate exact term +
+   college + subject/course + CRN, use `Live Seat Count > 0`, retain term dates and notes, and verify
+   against Laney/Peralta's direct schedule before any production handoff.
+
+**Batch status:** both CVC entries have current-plus-completed numeric examples but remain deliberately
+source-level partials because CVC is an exchange surface and its freshness/college-scope contract needs
+to be validated. No production adapter, `schools.py` edit, or builder handoff was made.

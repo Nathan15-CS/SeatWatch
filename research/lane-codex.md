@@ -372,3 +372,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   exact term/course/section/CRN and repeated-meeting-row handling are documented. UAA has public
   numeric department pages plus one bounded Spring page, but remains partial until the full UAOnline
   index is captured. No `schools.py` edit and no builder message.
+
+## July 12 Batch 14 checkpoint
+- Batch 14 appended to `research/README.md`: Rio Hondo College and Laney College (Peralta CCD), both
+  surfaced through official CVC Exchange pages with current and completed numeric seat examples.
+- Both are explicitly source-level partials: CVC is a cross-college exchange and needs direct-college
+  freshness/scope validation before any adapter or handoff. Exact term+college+course+CRN keys and
+  stale/Already Started caveats are documented. No `schools.py` edit and no builder message.
