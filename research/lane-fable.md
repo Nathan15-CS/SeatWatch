@@ -112,3 +112,14 @@ Next candidates: SDCCD JSON feed (other CC districts?), the UNC-system Banner pa
 UNCAsheville) — I will NOT touch UNC. Gating discipline (post-Banner-8 lesson): verify real data + completed-
 term where possible; hand off as "same-as-Fairfield, needs that adapter" — do NOT claim production-gated
 without the production adapter.
+
+## Mining-Codex-patterns result July 11 — bespoke one-offs, NOT sweepable
+Tested the two most-mineable: (1) Fairfield course-search-net vendor — course-search-net.{domain} sweep
+across all 2014 domains = 0 hits; no vendor name in app; field signature (Course_Subject_Number/
+Remaining_Seats) is NOT a standard product per web search = custom one-school build. (2) SDCCD feed =
+district-specific host mws-api.sdccd.edu, not a shared vendor. CONCLUSION: Codex's finds are bespoke
+per-institution APIs (that's WHY they each need a bespoke adapter) — nothing to sweep for siblings.
+The sweepable veins (newer-Colleague full sweep, UNC-system Banner, UC/Berkeley) are all CODEX's active
+lane — will not collide. REAL UNLOCK now = Builder building the bespoke adapters for the ~8 schools Codex
+ALREADY found (Fairfield, SDCCD City/Mesa/Miramar, Berkeley, UNC Asheville, NCCU, UNCG) — that's 8 more
+schools, a Builder task not a mining task. My solo mining is genuinely tapped.
