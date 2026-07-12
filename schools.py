@@ -2149,6 +2149,134 @@ class UAlaska(CollegeScheduler):
     example = "BIOL F111L"; slug = "alaska"; term = "202603"
 
 
+class UOregon:
+    """University of Oregon — public DuckWeb class schedule (duckweb.uoregon.edu). NOT
+    standard Banner-8: the per-CRN detail route parses inconsistently (some sections show
+    seats, some don't — a silent-miss trap), so seats are read from the LISTING instead,
+    which carries an authoritative 'Avail' column (header-confirmed: CRN | Avail | Max |
+    ...). One POST per course to hwskdhnt.P_ListCrse (no N+1), then per section:
+    open = Avail > 0, seats = Avail, key = CRN. EXACT-course scoping is mandatory (the
+    result groups sections under a colspan course-title cell 'SUBJ NUM Title'; only the
+    group whose code == the requested 'SUBJ NUM' is read — a search can render neighbor
+    courses in a summary line). Numeric Avail can't fake open; verified real open/full mix
+    live AND in a completed term. NOTE Oregon renames some courses with a 'Z' suffix
+    (MATH 251 -> 251Z, WR 121 -> 121Z) — enter the exact catalog code. {} on any failure."""
+    id = "uoregon"; name = "University of Oregon"
+    example = "MATH 251Z"
+    term = "202601"                      # Fall 2026 (DuckWeb code; auto-rolls, verify-before-adopt)
+    _active_term = None
+    _BASE = "https://duckweb.uoregon.edu/duckweb"
+    _RE = re.compile(r"^([A-Za-z][A-Za-z ]*?)\s+(\d{2,3}[A-Za-z]?)$")
+    _GROUP_RE = re.compile(r'<td colspan="\d+"[^>]*>(?:<[^>]+>)*\s*([A-Z]{2,4}\s+\d{2,3}[A-Z]?)\s')
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        if not m:
+            return (None, None)
+        return (re.sub(r"\s+", " ", m.group(1).strip()).upper(), m.group(2).upper())
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        return f"{self._BASE}/hwskdhnt.p_search?term={self.cur_term()}"
+
+    def _listing(self, op, term, subj, num):
+        op.open(self._BASE + f"/hwskdhnt.p_search?term={term}", timeout=25).read()
+        form = [("term_in", term)] + [(k, "dummy") for k in (
+            "sel_subj", "sel_day", "sel_schd", "sel_insm", "sel_camp", "sel_levl",
+            "sel_sess", "sel_instr", "sel_ptrm", "sel_attr", "sel_cred", "sel_tuition",
+            "sel_open", "sel_weekend")] + [
+            ("sel_subj", subj), ("sel_crse", num), ("sel_crn", ""), ("sel_title", ""),
+            ("sel_from_cred", ""), ("sel_to_cred", ""),
+            ("begin_hh", "0"), ("begin_mi", "0"), ("begin_ap", "a"),
+            ("end_hh", "0"), ("end_mi", "0"), ("end_ap", "a"),
+            ("submit_btn", "Show Classes")]
+        return op.open(urllib.request.Request(
+            self._BASE + "/hwskdhnt.P_ListCrse",
+            data=urllib.parse.urlencode(form).encode()), timeout=30).read().decode("utf-8", "replace")
+
+    def _parse(self, h, subj, num):
+        want = f"{subj} {num}"
+        txt = h.replace("&nbsp;", " ")
+        bounds = [(m.start(), m.group(1).strip().upper()) for m in self._GROUP_RE.finditer(txt)]
+        secs = {}
+        for i, (pos, code) in enumerate(bounds):
+            if code != want:                        # exact-course scope, never a neighbor
+                continue
+            end = bounds[i + 1][0] if i + 1 < len(bounds) else len(txt)
+            block = txt[pos:end]
+            for m in re.finditer(r'crn=(\d{5})\b', block):
+                crn = m.group(1)
+                cells = re.findall(r'<td[^>]*>\s*(-?\d+)\s*</td>', block[m.end():m.end() + 400])
+                if len(cells) >= 2 and crn not in secs:   # [Avail, Max]; no count -> skip
+                    avail = int(cells[0])
+                    secs[crn] = {"open": avail > 0, "seats": max(avail, 0)}
+        return secs
+
+    def _session(self):
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", UA)]
+        return op
+
+    def resolve_term(self):
+        """Nearest upcoming Fall/Spring from the public term list (season-labeled)."""
+        try:
+            op = self._session()
+            h = op.open("https://classes.uoregon.edu/", timeout=20).read().decode("utf-8", "replace")
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for code, season, year in re.findall(
+                    r'term=(\d{6})"[^>]*>\s*(Spring|Summer|Fall|Winter)\s+(20\d\d)', h):
+                mon = _SEASON.get(season.lower(), 8)
+                delta = (int(year) - today.year) * 12 + (mon - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, code
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch([self.example]).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        try:
+            op = self._session()
+        except Exception:
+            return {}
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            try:
+                h = self._listing(op, self.cur_term(), subj, num)
+                secs = self._parse(h, subj, num)
+                if secs:
+                    out[course] = secs
+            except Exception:
+                continue
+        return out
+
+
 class UNCAsheville:
     """UNC Asheville — official public class-schedules JSON API (meteor.unca.edu). One
     GET per term returns EVERY section (~800 rows) with numeric enrollment and an
@@ -6420,7 +6548,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
     MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(),
-    IvyTech(), UTArlington(), UAlaska()])
+    IvyTech(), UTArlington(), UAlaska(), UOregon()])
 
 
 def refresh_all_terms(log=None):
