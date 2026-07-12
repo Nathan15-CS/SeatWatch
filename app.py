@@ -1363,26 +1363,47 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
       <h2 class="sw-h2" style="margin:16px 0 0;font-size:42px;font-weight:800;letter-spacing:-.03em;line-height:1.1;">Simple, fair pricing.</h2>
       <p style="margin:16px 0 0;font-size:17px;color:#4b5a72;">Start free. Upgrade only if you need more.</p>
     </div>
-    <div class="sw-price" style="display:grid;grid-template-columns:repeat(2,minmax(0,440px));gap:24px;justify-content:center;margin-top:56px;align-items:stretch;">
-      <div data-reveal style="position:relative;background:#f7f9fc;border:2px solid #17b26a;border-radius:22px;padding:34px;display:flex;flex-direction:column;box-shadow:0 20px 50px -20px rgba(23,178,106,.3);">
-        <span style="position:absolute;top:-13px;left:34px;background:#17b26a;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;">START FREE</span>
-        <div style="display:flex;align-items:baseline;gap:10px;margin-top:8px;"><span style="font-size:52px;font-weight:800;letter-spacing:-.03em;">$0</span><span style="font-size:15px;color:#6b7a92;">first class</span></div>
-        <div style="display:flex;flex-direction:column;gap:13px;margin-top:26px;flex:1;">
-          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>Your first class — completely free</div>
-          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>Instant phone alerts</div>
-          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>Never fake — real seats only</div>
-          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>No card required</div>
+    <div class="sw-price" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;justify-content:center;margin-top:56px;align-items:stretch;">
+      <div data-reveal style="position:relative;background:#f7f9fc;border:2px solid #17b26a;border-radius:22px;padding:28px;display:flex;flex-direction:column;box-shadow:0 20px 50px -20px rgba(23,178,106,.3);">
+        <span style="position:absolute;top:-13px;left:26px;background:#17b26a;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;">START FREE</span>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;"><span style="font-size:42px;font-weight:800;letter-spacing:-.03em;">$0</span></div>
+        <div style="margin-top:4px;font-size:14.5px;font-weight:700;color:#0b1526;">1 class · 2 sections</div>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-top:20px;flex:1;">
+          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>Instant phone alerts</div>
+          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>Never fake — real seats only</div>
+          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>No card required</div>
         </div>
-        <a href="/login" class="sw-dark" style="margin-top:30px;padding:15px;text-align:center;background:#0b1526;color:#fff;border-radius:100px;font-size:15px;font-weight:700;">Start watching free</a>
+        <a href="/login" class="sw-dark" style="margin-top:24px;padding:13px;text-align:center;background:#0b1526;color:#fff;border-radius:100px;font-size:14.5px;font-weight:700;">Start free</a>
       </div>
-      <div data-reveal style="position:relative;background:#fff;border:1px solid rgba(11,21,38,.09);border-radius:22px;padding:34px;display:flex;flex-direction:column;transition-delay:.08s;">
-        <span style="position:absolute;top:-13px;left:34px;background:#eef2f8;color:#4b5a72;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;border:1px solid rgba(11,21,38,.07);">COMING SOON</span>
-        <div style="display:flex;align-items:baseline;gap:10px;margin-top:8px;"><span style="font-size:52px;font-weight:800;letter-spacing:-.03em;">$19.95</span><span style="font-size:15px;color:#6b7a92;">per additional course</span></div>
-        <div style="display:flex;flex-direction:column;gap:13px;margin-top:26px;flex:1;">
-          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span><span><strong>Includes all sections</strong> of the course</span></div>
-          <div style="display:flex;gap:11px;font-size:15px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span>Same instant alerts, same engine</div>
+      <div data-reveal style="position:relative;background:#fff;border:1px solid rgba(11,21,38,.09);border-radius:22px;padding:28px;display:flex;flex-direction:column;transition-delay:.06s;">
+        <span style="position:absolute;top:-13px;left:26px;background:#eef2f8;color:#4b5a72;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;border:1px solid rgba(11,21,38,.07);">COMING SOON</span>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;"><span style="font-size:42px;font-weight:800;letter-spacing:-.03em;">$19.95</span><span style="font-size:13.5px;color:#6b7a92;">one-time · term</span></div>
+        <div style="margin-top:4px;font-size:14.5px;font-weight:700;color:#0b1526;">1 course · every section</div>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-top:20px;flex:1;">
+          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span><span><strong>All sections</strong> — not just 2</span></div>
+          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span>No subscription</div>
         </div>
-        <a href="/login" style="margin-top:30px;padding:15px;text-align:center;border:1px solid rgba(11,21,38,.12);color:#4b5a72;border-radius:100px;font-size:15px;font-weight:700;">Notify me</a>
+        <a href="/login" style="margin-top:24px;padding:13px;text-align:center;border:1px solid rgba(11,21,38,.12);color:#4b5a72;border-radius:100px;font-size:14.5px;font-weight:700;">Notify me</a>
+      </div>
+      <div data-reveal style="position:relative;background:#fff;border:1px solid rgba(11,21,38,.09);border-radius:22px;padding:28px;display:flex;flex-direction:column;transition-delay:.12s;">
+        <span style="position:absolute;top:-13px;left:26px;background:#eef2f8;color:#4b5a72;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;border:1px solid rgba(11,21,38,.07);">COMING SOON</span>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;"><span style="font-size:42px;font-weight:800;letter-spacing:-.03em;">$24.95</span><span style="font-size:13.5px;color:#6b7a92;">one-time · term</span></div>
+        <div style="margin-top:4px;font-size:14.5px;font-weight:700;color:#0b1526;">2 courses · every section</div>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-top:20px;flex:1;">
+          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span>Watch two classes at once</div>
+          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span>Upgrade anytime — pay the difference</div>
+        </div>
+        <a href="/login" style="margin-top:24px;padding:13px;text-align:center;border:1px solid rgba(11,21,38,.12);color:#4b5a72;border-radius:100px;font-size:14.5px;font-weight:700;">Notify me</a>
+      </div>
+      <div data-reveal style="position:relative;background:#0b1526;border:1px solid #0b1526;border-radius:22px;padding:28px;display:flex;flex-direction:column;transition-delay:.18s;box-shadow:0 20px 50px -18px rgba(11,21,38,.45);">
+        <span style="position:absolute;top:-13px;left:26px;background:#2563eb;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;">BEST VALUE · SOON</span>
+        <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;"><span style="font-size:42px;font-weight:800;letter-spacing:-.03em;color:#fff;">$29.95</span><span style="font-size:13.5px;color:#9fb0c8;">one-time · term</span></div>
+        <div style="margin-top:4px;font-size:14.5px;font-weight:700;color:#fff;">Whole semester · up to 5 courses</div>
+        <div style="display:flex;flex-direction:column;gap:11px;margin-top:20px;flex:1;">
+          <div style="display:flex;gap:10px;font-size:14px;color:#dbe4f0;"><span style="color:#34d399;font-weight:700;">✓</span>Every section of every course</div>
+          <div style="display:flex;gap:10px;font-size:14px;color:#dbe4f0;"><span style="color:#34d399;font-weight:700;">✓</span>Your whole schedule, covered</div>
+        </div>
+        <a href="/login" style="margin-top:24px;padding:13px;text-align:center;background:#2563eb;color:#fff;border-radius:100px;font-size:14.5px;font-weight:700;">Notify me</a>
       </div>
     </div>
   </div>
