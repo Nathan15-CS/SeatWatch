@@ -161,6 +161,25 @@ def init_db():
         cols = [r[1] for r in c.execute("PRAGMA table_info(watches)")]
         if "user_id" not in cols:              # migrate pre-accounts DBs in place
             c.execute("ALTER TABLE watches ADD COLUMN user_id INTEGER")
+        # --- free-tier abuse signals (all SOFT except free_eligible; detect-and-trim,
+        # never block-at-door — campus NAT means shared IPs are normal) ---
+        ucols = [r[1] for r in c.execute("PRAGMA table_info(users)")]
+        if "normalized_email" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN normalized_email TEXT")
+            for r in c.execute("SELECT id, email FROM users").fetchall():
+                c.execute("UPDATE users SET normalized_email=? WHERE id=?",
+                          (normalize_email(r["email"]), r["id"]))
+        if "risk_score" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN risk_score INTEGER NOT NULL DEFAULT 0")
+        if "free_eligible" not in ucols:       # 0 = this normalized email already used its
+            c.execute("ALTER TABLE users ADD COLUMN free_eligible INTEGER NOT NULL DEFAULT 1")
+        if "signup_ip" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN signup_ip TEXT")
+        c.execute("""CREATE TABLE IF NOT EXISTS device_markers(
+            device_id  TEXT NOT NULL,
+            user_id    INTEGER NOT NULL,
+            first_seen REAL NOT NULL,
+            UNIQUE(device_id, user_id))""")
         c.execute("""CREATE TABLE IF NOT EXISTS push_subs(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id  INTEGER NOT NULL,
@@ -202,6 +221,51 @@ def read_session_value(val):
 
 def csrf_token(user_id):
     return _sign(f"csrf:{user_id}")
+
+
+def _abuse_clusters(c):
+    """THE paid-perk protection, flag-only: correlated account groups collectively
+    covering more of one (school, course) than a single free account allows (>2
+    sections marketed). Correlation = shared device marker, same signup IP, same
+    normalized email, or signups within 24h. Surfaced to the operator via
+    /admin/stats; never auto-bans."""
+    rows = c.execute("SELECT school, course, user_id, COUNT(*) n FROM watches "
+                     "WHERE user_id IS NOT NULL GROUP BY school, course, user_id").fetchall()
+    by_course = {}
+    for r in rows:
+        by_course.setdefault((r["school"], r["course"]), []).append((r["user_id"], r["n"]))
+    clusters = []
+    for (school, course), members in by_course.items():
+        if len(members) < 2:
+            continue
+        total = sum(n for _, n in members)
+        if total <= 2:                      # fits one account's marketed allotment
+            continue
+        uids = sorted({u for u, _ in members})
+        ph = ",".join("?" * len(uids))
+        us = {r["id"]: r for r in c.execute(
+            f"SELECT id, normalized_email, signup_ip, created FROM users WHERE id IN ({ph})",
+            uids)}
+        signals = set()
+        for i in range(len(uids)):
+            for j in range(i + 1, len(uids)):
+                a, b = us.get(uids[i]), us.get(uids[j])
+                if not a or not b:
+                    continue
+                if a["normalized_email"] and a["normalized_email"] == b["normalized_email"]:
+                    signals.add("same_email")
+                if a["signup_ip"] and a["signup_ip"] == b["signup_ip"]:
+                    signals.add("same_ip")
+                if abs((a["created"] or 0) - (b["created"] or 0)) < 86400:
+                    signals.add("signup_window_24h")
+        if c.execute(f"SELECT 1 FROM device_markers WHERE user_id IN ({ph}) "
+                     "GROUP BY device_id HAVING COUNT(DISTINCT user_id)>1 LIMIT 1",
+                     uids).fetchone():
+            signals.add("shared_device")
+        if signals:
+            clusters.append({"school": school, "course": course, "user_ids": uids,
+                             "sections_covered": total, "signals": sorted(signals)})
+    return clusters
 
 
 def google_auth_url(state):
@@ -320,16 +384,60 @@ def apple_exchange(code):
         return None
 
 
-def get_or_create_user(sub, email):
+def normalize_email(email):
+    """Collapse the aliases ONE person controls into one identity. Google-correct:
+    lowercase; drop +tag everywhere; dots are insignificant ONLY on gmail/googlemail
+    (Workspace domains treat dots as real); googlemail.com == gmail.com."""
+    e = (email or "").strip().lower()
+    if "@" not in e:
+        return e
+    local, domain = e.rsplit("@", 1)
+    local = local.split("+", 1)[0]
+    if domain == "googlemail.com":
+        domain = "gmail.com"
+    if domain == "gmail.com":
+        local = local.replace(".", "")
+    return f"{local}@{domain}"
+
+
+def get_or_create_user(sub, email, ip=None, device_id=None):
+    """Returns the user row; on FIRST creation also records the soft abuse signals
+    (device marker, IP signup velocity, duplicate normalized email). Signals only
+    ever flag/score — the single hard rule is free_eligible=0 when this normalized
+    email already claimed its free allotment on another account (they can still sign
+    in; they just don't mint a fresh free class)."""
     with db() as c:
         row = c.execute("SELECT * FROM users WHERE google_sub=?", (sub,)).fetchone()
         if row:
             if email and row["email"] != email:
-                c.execute("UPDATE users SET email=? WHERE id=?", (email, row["id"]))
+                c.execute("UPDATE users SET email=?, normalized_email=? WHERE id=?",
+                          (email, normalize_email(email), row["id"]))
             return row
-        c.execute("INSERT INTO users(google_sub,email,topic,created) VALUES(?,?,?,?)",
-                  (sub, email, "seatwatch-" + secrets.token_hex(6), time.time()))
-        return c.execute("SELECT * FROM users WHERE google_sub=?", (sub,)).fetchone()
+        norm = normalize_email(email)
+        dup = c.execute("SELECT id FROM users WHERE normalized_email=? AND free_eligible=1",
+                        (norm,)).fetchone() if norm else None
+        risk = 0
+        if dup:
+            risk += 2
+        if ip:
+            recent = c.execute("SELECT COUNT(*) FROM users WHERE signup_ip=? AND created>?",
+                               (ip, time.time() - 86400)).fetchone()[0]
+            if recent >= 6:                   # generous: dorm/campus NAT is normal
+                risk += 1
+        if device_id:
+            other = c.execute("SELECT COUNT(*) FROM device_markers WHERE device_id=?",
+                              (device_id,)).fetchone()[0]
+            if other:
+                risk += 2                     # same device already created an account
+        c.execute("INSERT INTO users(google_sub,email,topic,created,normalized_email,"
+                  "risk_score,free_eligible,signup_ip) VALUES(?,?,?,?,?,?,?,?)",
+                  (sub, email, "seatwatch-" + secrets.token_hex(6), time.time(),
+                   norm, risk, 0 if dup else 1, ip or ""))
+        row = c.execute("SELECT * FROM users WHERE google_sub=?", (sub,)).fetchone()
+        if device_id:
+            c.execute("INSERT OR IGNORE INTO device_markers(device_id,user_id,first_seen) "
+                      "VALUES(?,?,?)", (device_id, row["id"], time.time()))
+        return row
 
 
 # ------------------------------------------------------------------------- html
@@ -511,6 +619,19 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 <header><div class="nav"><svg class="mark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><path d="M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z" fill="#fff" stroke="#2563eb" stroke-width="9" stroke-linejoin="round"/><rect x="42" y="32" width="28" height="24" rx="7" fill="url(#b)"/><rect x="38" y="56" width="40" height="11" rx="5.5" fill="url(#b)"/><rect x="42" y="67" width="8" height="15" rx="3" fill="url(#b)"/><rect x="66" y="67" width="8" height="15" rx="3" fill="url(#b)"/><circle cx="100" cy="20" r="11" fill="#10b981" stroke="#fff" stroke-width="5"/><path d="M100 4 V1 M111 9 L114 6 M116 20 H119" stroke="#10b981" stroke-width="4.5" stroke-linecap="round"/></svg><span class="word"><i>Seat</i>Watch</span><span class="spacer"></span><a class="signin" href="/login"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Sign in</a></div></header>
 <main>__BODY__</main>
 <footer><span class="tagline">We watch seats. <em>You get the class.</em></span><br>© 2026 SeatWatch &nbsp;·&nbsp; <a href="/terms">Terms</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a><br>Not affiliated with any university.</footer>
+<script>
+(function(){/* durable device marker: cookie + localStorage mirror (soft signal only) */
+try{
+ var m=document.cookie.match(/(?:^|; )sw_dev=([A-Za-z0-9-]{8,64})/),c=m&&m[1],l=null;
+ try{l=localStorage.getItem('sw_dev');}catch(e){}
+ var v=c||l;
+ if(!v){var a=new Uint8Array(16);(window.crypto||{}).getRandomValues?crypto.getRandomValues(a):a.forEach(function(_,i){a[i]=Math.floor(Math.random()*256);});
+  v=Array.prototype.map.call(a,function(b){return b.toString(16).padStart(2,'0');}).join('');}
+ if(!c)document.cookie='sw_dev='+v+'; Path=/; Max-Age=34560000; SameSite=Lax; Secure';
+ try{if(l!==v)localStorage.setItem('sw_dev',v);}catch(e){}
+}catch(e){}
+})();
+</script>
 </body></html>"""
 
 FORM = """<section class="hero">
@@ -1363,7 +1484,8 @@ class Handler(BaseHTTPRequestHandler):
             if not info:
                 return self._send(form_page(
                     "<div class='ok'>Google sign-in failed — please try again.</div>"))
-            user = get_or_create_user(info["sub"], info["email"])
+            user = get_or_create_user(info["sub"], info["email"],
+                                      ip=self._client_ip(), device_id=self._device_id())
             return self._redirect("/", cookies=[session_cookie(user["id"]), clear])
         if path == "/logout":
             return self._redirect("/", cookies=[
@@ -1388,11 +1510,24 @@ class Handler(BaseHTTPRequestHandler):
                     "watched_courses_top": {f"{r[0]} {r[1]}": r[2] for r in c.execute(
                         "SELECT school, course, COUNT(*) n FROM watches "
                         "GROUP BY school, course ORDER BY n DESC LIMIT 40")},
+                    # abuse review (ids only, never emails): soft risk signals + the
+                    # class-split detector
+                    "flagged_users": [
+                        {"id": r["id"], "risk": r["risk_score"],
+                         "free_eligible": r["free_eligible"],
+                         "watches": r["n"]}
+                        for r in c.execute(
+                            "SELECT u.id, u.risk_score, u.free_eligible, "
+                            "(SELECT COUNT(*) FROM watches w WHERE w.user_id=u.id) n "
+                            "FROM users u WHERE u.risk_score>0 OR u.free_eligible=0 "
+                            "ORDER BY u.risk_score DESC LIMIT 25")],
+                    "suspected_abuse_clusters": _abuse_clusters(c),
                 }
             return self._send_json(stats)
         if path == "/dev-login" and DEV_LOGIN:   # local testing only (env-gated)
             email = qs.get("email", ["dev@example.com"])[0][:80]
-            user = get_or_create_user("dev:" + email, email)
+            user = get_or_create_user("dev:" + email, email,
+                                      ip=self._client_ip(), device_id=self._device_id())
             return self._redirect("/", cookies=[session_cookie(user["id"])])
         if path != "/":
             return self._send(page("<p>Not found. <a href='/'>Home</a></p>"), 404)
@@ -1400,6 +1535,13 @@ class Handler(BaseHTTPRequestHandler):
         if u is None:
             return self._send(landing_page())
         self._send(form_page(user=u))
+
+    def _device_id(self):
+        """Soft device marker from the sw_dev cookie (JS keeps a localStorage mirror so
+        clearing cookies alone doesn't shed it). Advisory signal only — absent or forged
+        just means no signal, never a block."""
+        v = self._cookie("sw_dev") or ""
+        return v[:64] if re.fullmatch(r"[A-Za-z0-9-]{8,64}", v) else None
 
     def _client_ip(self):
         # Cloudflare sets CF-Connecting-IP itself and overwrites any value the
@@ -1446,7 +1588,8 @@ class Handler(BaseHTTPRequestHandler):
             if not info:
                 return self._send(form_page(
                     "<div class='ok'>Apple sign-in failed — please try again.</div>"))
-            user = get_or_create_user(info["sub"], info["email"])
+            user = get_or_create_user(info["sub"], info["email"],
+                                      ip=self._client_ip(), device_id=self._device_id())
             return self._redirect("/", cookies=[session_cookie(user["id"]), clear])
 
         # (2) WHO IS THIS? Signed session cookie or nothing. Entitlements are
@@ -1470,6 +1613,13 @@ class Handler(BaseHTTPRequestHandler):
                     or not (0 < len(p256dh) < 300) or not (0 < len(auth) < 300)):
                 return self._send_json({"ok": False, "err": "bad sub"}, 400)
             with db() as c:   # endpoint UNIQUE -> re-subscribes just refresh the row
+                prev = c.execute("SELECT user_id FROM push_subs WHERE endpoint=?",
+                                 (endpoint,)).fetchone()
+                if prev and prev["user_id"] != user["id"]:
+                    # same physical device subscribed under a different account before —
+                    # soft multi-account signal (shared/library machines exist; flag only)
+                    c.execute("UPDATE users SET risk_score=risk_score+2 WHERE id=?",
+                              (user["id"],))
                 c.execute("INSERT INTO push_subs(user_id,endpoint,p256dh,auth,created) "
                           "VALUES(?,?,?,?,?) ON CONFLICT(endpoint) DO UPDATE SET "
                           "user_id=excluded.user_id, p256dh=excluded.p256dh, auth=excluded.auth",
@@ -1495,6 +1645,12 @@ class Handler(BaseHTTPRequestHandler):
                     c.execute("DELETE FROM watches WHERE id=? AND user_id=?",
                               (int(wid), user["id"]))
             return self._notice("Stopped. You can watch a different class now.", user=user)
+
+        # the ONE hard abuse rule: a normalized email that already claimed its free
+        # class on another account doesn't mint a fresh allotment (sign-in still works)
+        if not user["free_eligible"]:
+            return self._notice("Your free class is already in use on your other account — "
+                                "sign in there to manage it.", user=user)
 
         school = schools.SCHOOLS.get(form.get("school", [""])[0].strip())
         if not school:
