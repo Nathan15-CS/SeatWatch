@@ -1306,3 +1306,22 @@ to be validated. No production adapter, `schools.py` edit, or builder handoff wa
 
 **Batch status:** Clarkson is a reproducibility-blocked source lead. The CVC audit is a deliberate
 quality hold, not a handoff. No production adapter, `schools.py` edit, or builder handoff was made.
+
+### Batch 16 — additional public schedule lead (Codex, July 12 2026)
+
+1. **Austin Community College (TX) — SOURCE-LEVEL PARTIAL, CONTINUING-EDUCATION ONLY.** ACC's
+   official Continuing Education schedule exposes timestamped HTML tables with `Open Seats`,
+   enrollment/capacity, synonym, section, dates, campus, modality, and an explicit legend: a numeric
+   first column is remaining seats, `c` is closed, and `x` is cancelled. Current Fall 2026 examples
+   from `https://continue.austincc.edu/schedule/schedule.php?ct=CE&op=browse&snid=31632&term=226FCE`
+   include ITSE 1091 synonym 54387 section 101 (2 open; 13/15 enrolled/capacity) and ITSE 1092
+   synonym 55851 section 102 (11 open; 5/16). Completed Spring 2026 examples from
+   `https://continue.austincc.edu/schedule/schedule.php?ct=CE&op=browse&snid=30986&term=226SCE`
+   include MATX 0101 synonym 48992 (11 open; 9/20) and synonym 48995 (19 open; 1/20). These are
+   continuing-education/non-credit offerings, not the regular ACC credit schedule; the feed is useful
+   as a separate source lead but must not be merged into a credit-course adapter. Follow-up gate:
+   confirm whether SeatWatch wants CE scope, key exact term+synonym/section, treat legend codes as
+   authoritative, and validate freshness across a completed term before any handoff.
+
+**Batch status:** Austin ACC is explicitly partial and scope-limited to Continuing Education. No
+production adapter, `schools.py` edit, or builder handoff was made.

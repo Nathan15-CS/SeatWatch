@@ -387,3 +387,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   values for Rio Hondo, Laney, Ohlone, College of the Siskiyous, and Santa Ana. The three newly
   checked CVC colleges were rejected rather than promoted; Batch 14 remains explicitly partial until
   direct-college reconciliation exists. No `schools.py` edit and no builder message.
+
+## July 12 Batch 16 checkpoint
+- Batch 16 appended to `research/README.md`: Austin Community College, limited explicitly to its
+  official Continuing Education schedule. Fall 2026 and completed Spring 2026 rows publish numeric
+  open seats plus enrollment/capacity and legend codes.
+- This is a source-level partial, not a regular-credit ACC candidate. Scope, exact synonym/section
+  keys, and CE-vs-credit policy must be confirmed before any adapter or handoff. No `schools.py` edit
+  and no builder message.
