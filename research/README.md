@@ -15,6 +15,16 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Batch 28 (College Scheduler vein) — ✅ BUILT July 12: Ivy Tech + UT Arlington + U Alaska, 668->671
+New CollegeScheduler GraphQL family. BOTH traps live-verified: fuzzy findCourses (exact filter
+mandatory — 'BIOL 101' ranks 221/211/201/240 first) AND a pagination trap Grabber's spec missed:
+getCourseSections caps at 60/page — Ivy Tech BIOL 101 is really 71 sections (handoff said 40).
+Adapter paginates via Relay cursors and SKIPS any course still truncated at 360 (no hidden watched
+sections, ever). open = openSeats>0, CRN keys, live-full-row disproof per school (1/7 full at Alaska,
+18/71 Ivy Tech, 12/35 UTA). Term picker reads the API's own term list, handles both name orders
+('Fall 2026' vs UTA's '2026 Fall'). ~133k students. Alaska ships as ONE system-wide entry (CRN-unique
+across campuses). Deploy pending Nathan (covers 656-671).
+
 ### College Scheduler / Civitas GraphQL — Batch 28 SENT July 12 2026 (Grabber, Nathan-approved) — NEW VEIN, 3 big net-new schools, needs 1 bespoke adapter
 Fresh system type (not Banner/Colleague/PeopleSoft). College Scheduler (Civitas Learning) runs a
 PUBLIC, no-auth **GraphQL** API that returns clean numeric seats. ONE adapter serves every school that
