@@ -316,6 +316,19 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   AreSeatCountsAvailable`; do not infer openness from seats alone. Official [Fall 2024 snapshot]
   (https://webcdn.worcester.edu/wp-content/uploads/2025/06/WSU-Fall-2024-Snapshot.pdf) reports
   5,772 total students. Net-new public four-year candidate; no builder handoff or registry change.
+- **Shorter College (AR) — SOURCE-GATED, production-compatible but not handed off (Codex, July 11 2026).**
+  Official public catalog is `https://selfservice.shortercollege.edu/Student/Courses`; its newer
+  Colleague client uses `SearchAsync`/`SectionsAsync` with JSON-string search parameters. Fall 2026
+  is `2026FA` (plus main-session variants); the exact subject/course is `ENGL 2803` (not a generic
+  101 course). A dynamic production `NewColleague` fetch returned Fall section `01` with
+  `status=0`, `Available=5`, and published counts. Raw Fall detail was 1 unique section with
+  `Capacity=45`, `Enrolled=40`, `Available=5`; Fall 2025 returned 5 unique rows including one
+  `status=2` non-open row and four status-0 rows with positive seats, so the guest view is not an
+  all-open default. `Available == Capacity - Enrolled` held on every sampled row. Safe rule is
+  `status==0 AND Available>0 AND AreSeatCountsAvailable`, with exact term + subject + course +
+  section scoping; preserve restrictions/waitlist notes. Shorter’s official [history page]
+  (https://shortercollege.edu/about-us/shorter-college-history/) identifies it as a private,
+  two-year HBCU in North Little Rock. No builder handoff or registry change.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very

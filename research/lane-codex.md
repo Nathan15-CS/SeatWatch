@@ -20,6 +20,8 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Capacity/Actual/Remaining detail fields and mixed current/completed-term samples.
   Worcester State University's public newer-Colleague catalog is a sixth fresh lead, and its
   dynamic production NewColleague fetch passes the exact-course/full-row gate.
+  Shorter College's public newer-Colleague catalog is a seventh fresh lead, with a current open
+  section and a historical non-open status row.
   No registry or builder changes.
 - **Prior July 11 Colleague round 4 is complete.** Round 3 found Camden County
   and Walsh College with real mixed numeric seats but both remain conditional pending the production
@@ -180,6 +182,16 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   were unique; `BI 101` and `PY 101` provided additional exact-course checks. Safe rule is
   `status==0 AND Available>0 AND AreSeatCountsAvailable`. Net-new public four-year candidate;
   source-gated and not handed off.
+- **July 11, 2026 — Shorter College public newer-Colleague pass.** Official public catalog is
+  `https://selfservice.shortercollege.edu/Student/Courses`; the client uses the JSON-string
+  `SearchAsync`/`SectionsAsync` contract. Fall 2026 is `2026FA` plus main-session variants; exact
+  `ENGL 2803` returned one Fall section (`01`) through dynamic production `NewColleague`, with
+  status 0 and 5 available seats. Raw detail was 45 capacity / 40 enrolled / 5 available. Fall
+  2025 returned five unique rows including one status-2 non-open row and four status-0 rows with
+  positive seats; `Available == Capacity - Enrolled` held on every sampled row. Apply
+  `status==0 AND Available>0 AND AreSeatCountsAvailable`, exact term+subject+course+section keys,
+  and preserve restrictions/waitlist notes. Net-new private two-year HBCU; source-gated and not
+  handed off.
 - **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -
