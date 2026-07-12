@@ -192,6 +192,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   `status==0 AND Available>0 AND AreSeatCountsAvailable`, exact term+subject+course+section keys,
   and preserve restrictions/waitlist notes. Net-new private two-year HBCU; source-gated and not
   handed off.
+- **July 11, 2026 — North Central University recheck closed.** Its public newer-Colleague catalog
+  exposed future terms, but exact section-bearing `ENG 496`, `MATH 115`, `MATH 110`, and `PSYC 258`
+  samples returned only status-0 positive-seat rows across Summer/Fall 2026, with no full/non-open
+  row to disprove an all-open default. No proposal. Southwestern Law remains the prior rolling-term
+  cut; Colorado Mountain remains held because Fall 2026 still returned no matching sections.
 - **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -

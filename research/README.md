@@ -329,6 +329,13 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   section scoping; preserve restrictions/waitlist notes. Shorter’s official [history page]
   (https://shortercollege.edu/about-us/shorter-college-history/) identifies it as a private,
   two-year HBCU in North Little Rock. No builder handoff or registry change.
+- **North Central University (MN) — CLOSED FOR THIS PASS, no handoff.** Its public newer-Colleague
+  catalog (`https://selfservice.northcentral.edu/Student/Courses`) exposes future `2026FL` and later
+  terms, but exact section-bearing courses (`ENG 496`, `MATH 115`, `MATH 110`, `PSYC 258`) returned
+  only numeric status-0 rows with positive seats across Summer/Fall 2026; no full or non-open row was
+  available to disprove an all-open default. Keep this out until a mixed live/historical course is
+  published. Southwestern Law remains the prior rolling-term cut; Colorado Mountain remains a hold
+  because its advertised Fall 2026 term still produced no matching sections.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very
