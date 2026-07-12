@@ -123,3 +123,13 @@ The sweepable veins (newer-Colleague full sweep, UNC-system Banner, UC/Berkeley)
 lane — will not collide. REAL UNLOCK now = Builder building the bespoke adapters for the ~8 schools Codex
 ALREADY found (Fairfield, SDCCD City/Mesa/Miramar, Berkeley, UNC Asheville, NCCU, UNCG) — that's 8 more
 schools, a Builder task not a mining task. My solo mining is genuinely tapped.
+
+## Jenzabar/Workday fresh-vein result July 11 — CLOSED, low ROI
+Jenzabar JICS course search (Course_Search.jnz portlet) LOOKS public in a headless probe (200 + search
+UI at mymount.msmary.edu / jics.philander.edu / jics.seu.edu / tugportal.jenzabarcloud.com) but the
+BROWSER shows the truth: Mount St. Mary's bounces to a "log in to access this content" page. So JICS
+course search is generally LOGIN-GATED (headless 200 was a false positive). It's also an ASP.NET
+postback flow needing per-school RE, inconsistently configured (tugportal showed seat-words, most don't)
+= NOT a sweepable vein even if a subset is public. Workday Student = course data login-gated / API-key
+(Codex confirmed JHU-style). Both closed as low-ROI. Real value this turn = teed up Codex's 8-school
+adapter build queue for Builder (incl. Berkeley ~45k).
