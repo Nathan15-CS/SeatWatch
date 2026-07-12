@@ -1691,23 +1691,29 @@ class Purdue:
         if log:
             log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
 
+    def _listing(self, op, term, subj, num):
+        """Section listing HTML for one course. Default = the class-schedule search form;
+        ListcrseBanner8 overrides with the catalog route for hosts whose guest search
+        form answers 'No classes were found' for everything."""
+        form = [("term_in", term), ("sel_subj", "dummy"), ("sel_day", "dummy"),
+                ("sel_schd", "dummy"), ("sel_insm", "dummy"), ("sel_camp", "dummy"),
+                ("sel_levl", "dummy"), ("sel_sess", "dummy"), ("sel_instr", "dummy"),
+                ("sel_ptrm", "dummy"), ("sel_attr", "dummy"), ("sel_subj", subj),
+                ("sel_crse", num), ("sel_title", ""), ("sel_schd", "%"),
+                ("sel_from_cred", ""), ("sel_to_cred", ""), ("sel_camp", "%"),
+                ("sel_ptrm", "%"), ("sel_instr", "%"), ("sel_attr", "%"),
+                ("begin_hh", "0"), ("begin_mi", "0"), ("begin_ap", "a"),
+                ("end_hh", "0"), ("end_mi", "0"), ("end_ap", "a")]
+        return op.open(urllib.request.Request(
+            self.base + "/bwckschd.p_get_crse_unsec",
+            data=urllib.parse.urlencode(form).encode()), timeout=45).read().decode("utf-8", "replace")
+
     def _build(self, term, subj, num):
         """Listing -> CRNs, then one detail GET per CRN -> {crn: {open, seats}}. Caches on
         success; returns {} on failure (cache untouched)."""
         try:
             op = self._session()
-            form = [("term_in", term), ("sel_subj", "dummy"), ("sel_day", "dummy"),
-                    ("sel_schd", "dummy"), ("sel_insm", "dummy"), ("sel_camp", "dummy"),
-                    ("sel_levl", "dummy"), ("sel_sess", "dummy"), ("sel_instr", "dummy"),
-                    ("sel_ptrm", "dummy"), ("sel_attr", "dummy"), ("sel_subj", subj),
-                    ("sel_crse", num), ("sel_title", ""), ("sel_schd", "%"),
-                    ("sel_from_cred", ""), ("sel_to_cred", ""), ("sel_camp", "%"),
-                    ("sel_ptrm", "%"), ("sel_instr", "%"), ("sel_attr", "%"),
-                    ("begin_hh", "0"), ("begin_mi", "0"), ("begin_ap", "a"),
-                    ("end_hh", "0"), ("end_mi", "0"), ("end_ap", "a")]
-            listing = op.open(urllib.request.Request(
-                self.base + "/bwckschd.p_get_crse_unsec",
-                data=urllib.parse.urlencode(form).encode()), timeout=45).read().decode("utf-8", "replace")
+            listing = self._listing(op, term, subj, num)
         except Exception:
             return {}
         crns = re.findall(rf"- (\d{{5}}) - {re.escape(subj)}\s+{re.escape(num)} - ", listing)
@@ -1772,6 +1778,108 @@ class Clovis(Purdue):
     id = "clovis"; name = "Clovis Community College (NM)"   # != Clovis CC (CA, State Center CCD)
     example = "ENGL 1110"; term = "202630"     # Fall 2026; 6 sec, Rem==Cap-Act verified
     base = "https://prodssb.clovis.edu/PROD"
+
+
+class ListcrseBanner8(Purdue):
+    """Banner-8 hosts whose guest CLASS-SEARCH form answers 'No classes were found' for
+    EVERYTHING, while the catalog section-listing route (bwckctlg.p_disp_listcrse) serves
+    the same sections fine (NCCU — and the same pattern showed live sections at the
+    batch-23 cut hosts). CRN discovery becomes one GET; seats still come from the same
+    per-CRN detail pages, same conservative parse, same per-instance cache."""
+    def _listing(self, op, term, subj, num):
+        return op.open(self.base + f"/bwckctlg.p_disp_listcrse?term_in={term}"
+                       f"&subj_in={subj}&crse_in={num}&schd_in=",
+                       timeout=45).read().decode("utf-8", "replace")
+
+class NCCU(ListcrseBanner8):
+    id = "nccu"; name = "North Carolina Central University"
+    example = "BIOL 1100"; term = "202710"     # Fall 2026; detail pages Cap/Act/Rem verified
+    base = "https://ssbprod-nccu.uncecs.edu/pls/NCCUPROD"
+
+
+class UNCAsheville:
+    """UNC Asheville — official public class-schedules JSON API (meteor.unca.edu). One
+    GET per term returns EVERY section (~800 rows) with numeric enrollment and an
+    authoritative Classification.Open flag; at gate time the flag agreed with
+    EnrollmentMax - EnrollmentCurrent arithmetic on 1,654/1,654 rows across a LIVE and a
+    COMPLETED term, and CRNs were unique in both. open = Open flag AND positive remaining
+    (two independent signals — never seats alone, never flag alone). The whole-term
+    response is cached per instance (10-min TTL, lock-guarded, stale-if-error) so polling
+    many courses costs one upstream GET per TTL. Sections keyed by CRN."""
+    id = "unca"; name = "University of North Carolina Asheville"
+    example = "BIOL 344"
+    _TTL = 600
+    _API = "https://meteor.unca.edu/registrar/class-schedules/api/v1/courses"
+    _RE = re.compile(r"^([A-Za-z]{2,5})\s+(\d{2,4}[A-Za-z]?)$")
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._cache = None            # (ts, (year, season), rows)
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        return "https://www.unca.edu/class-schedules/"
+
+    @staticmethod
+    def _term():
+        # Nearest registration-relevant term: spring through March, next spring from
+        # November, fall otherwise. A wrong pick fails SAFE (empty dump -> no alerts).
+        t = datetime.date.today()
+        if t.month <= 3:
+            return (t.year, "spring")
+        if t.month >= 11:
+            return (t.year + 1, "spring")
+        return (t.year, "fall")
+
+    def _rows(self):
+        term = self._term()
+        with self._lock:
+            c = self._cache
+            if c and c[1] == term and time.time() - c[0] < self._TTL:
+                return c[2]
+            try:
+                req = urllib.request.Request(f"{self._API}/{term[0]}/{term[1]}",
+                                             headers={"User-Agent": UA})
+                rows = json.loads(urllib.request.urlopen(req, timeout=30).read())
+            except Exception:
+                rows = None
+            if isinstance(rows, list) and rows:
+                self._cache = (time.time(), term, rows)
+                return rows
+            return c[2] if c and c[1] == term else []   # stale-if-error; never guess
+
+    def fetch(self, courses):
+        out = {}
+        rows = None
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            if rows is None:
+                rows = self._rows()
+            want = f"{subj} {num}."          # trailing dot: 'BIOL 344.' never matches 3440
+            secs = {}
+            for r in rows:
+                if not (r.get("Code") or "").upper().startswith(want):
+                    continue
+                crn = r.get("CRN")
+                try:
+                    remain = int(r.get("EnrollmentMax")) - int(r.get("EnrollmentCurrent"))
+                except (TypeError, ValueError):
+                    continue                 # no real numbers -> skip, never guess
+                if crn is None or str(crn) in secs:
+                    continue
+                is_open = bool((r.get("Classification") or {}).get("Open"))
+                secs[str(crn)] = {"open": is_open and remain > 0, "seats": max(remain, 0)}
+            if secs:
+                out[course] = secs
+        return out
 
 
 class IowaState:
@@ -5390,6 +5498,10 @@ class Guilford(Banner):
     id = "guilford"; name = "Guilford College"
     example = "ENGL 101"; host = "ssbp.guilford.edu"; term = "202630"
 
+class UNCG(Banner):
+    id = "uncg"; name = "University of North Carolina at Greensboro"
+    example = "BIO 111"; host = "erp-registration.uncg.edu"; term = "202608"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -5940,7 +6052,7 @@ def _guard_registry(all_schools):
 
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
-    BristolCC(), Clovis()])
+    BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville()])
 
 
 def refresh_all_terms(log=None):
