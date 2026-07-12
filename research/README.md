@@ -675,7 +675,7 @@ Root realization: every prior sweep used the Hipo "universities" dataset (2348).
 directory (Urban Institute API, free) = 6,256 US institutions; 1,197 degree-granting NEVER swept (mostly
 small private 4-yr on Colleague + public CCs). Swept Banner+Colleague, 2 host-pattern passes.
 
-✅ OTIS COLLEGE OF ART AND DESIGN (LA, ~1.1k) — GATED CLEAN, AWAITING GO-AHEAD. Existing Banner adapter,
+✅ OTIS COLLEGE OF ART AND DESIGN (LA, ~1.1k) — Batch 24 SENT July 11. Existing Banner adapter,
 4-line add: host="ssb1.otis.edu", term 202630 (Fall 2026), example "ENGL 108". GATED THROUGH THE
 PRODUCTION Banner adapter (not a probe — Banner-8 lesson applied): Fall 2026 ENGL 108 = 12 sections, 8
 open/4 full, real integer seats [7,4,2,0,11,1]. COMPLETED-TERM TEST PASSED (Fall 2025 View-Only ENGL
