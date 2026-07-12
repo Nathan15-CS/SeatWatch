@@ -359,6 +359,11 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   schedule PDFs and explicitly says the most up-to-date schedule is in Banner. The PDFs provide
   course offerings but no live capacity, enrollment, remaining-seat, or authoritative open/closed
   field, so this is catalog-only and not suitable for SeatWatch without a public Banner/API route.
+- **Northwood Technical College (WI) — STATUS BLOCKED, no handoff.** Official public course-search
+  app is `https://courses.northwoodtech.edu/` and its client posts to `/Search/CourseSearch`. The
+  endpoint answered successfully but returned `total=0` and an empty detail payload for both a broad
+  query and an ENGL query; the rendered page exposes no usable semester options or live capacity/
+  enrollment fields. Treat this as an unavailable current feed, not an empty schedule; do not hand off.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very

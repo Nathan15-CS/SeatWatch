@@ -203,6 +203,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   `https://schedule.nnmc.edu/academics/schedule-of-classes.html` publishes Summer/Fall 2026 PDFs
   and says the most up-to-date schedule is in Banner, but the PDFs contain no live capacity,
   enrollment, remaining-seat, or authoritative status field. Catalog-only; no proposal.
+- **July 11, 2026 — Northwood Technical College course-search pass closed.** Official app
+  `https://courses.northwoodtech.edu/` posts to `/Search/CourseSearch`, but broad and ENGL queries
+  returned success with `total=0` and empty detail; no usable semester options or live seat fields
+  were exposed. Unavailable current feed; no proposal.
 - **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -
