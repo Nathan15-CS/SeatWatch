@@ -201,6 +201,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   `ENGL` + `1301`, and keyword-only `English` each returned the portal's explicit no-classes result.
   No section rows or seat/status fields were available to validate, and the request contract was not
   safely inferable. Treat as a search/feed availability block, not an empty schedule; no handoff.
+- **July 11, 2026 — University of Southern Maine public Course Search pass.** Official
+  `https://usm.maine.edu/registration-scheduling-services/course-search/` exposes public term and
+  subject-filtered results with explicit `Status`, `Enrollment: used of capacity`, section number,
+  and stable class number. Fall 2026 (`strm=2710`, `subject=COS-busunit-UMS06`) has open COS 160
+  sections (class numbers `80083` at 8/28 and `80084` at 26/28). Completed Spring 2026 (`strm=2620`,
+  same subject) is mixed: COS 422 class `43026` is Closed at 23/28 and COS 430 class `41953` is
+  Closed at 24/28 while neighboring COS rows are Open. Use exact term+subject+course+class-number
+  keys, `Status == Open`, and positive `capacity - enrolled`; preserve prerequisite/restriction text.
+  Net-new public four-year lead; no production adapter and no handoff.
 - **July 11, 2026 — North Central University recheck closed.** Its public newer-Colleague catalog
   exposed future terms, but exact section-bearing `ENG 496`, `MATH 115`, `MATH 110`, and `PSYC 258`
   samples returned only status-0 positive-seat rows across Summer/Fall 2026, with no full/non-open

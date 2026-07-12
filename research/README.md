@@ -387,6 +387,20 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   underlying request contract could be validated, so this is a search/feed availability block rather
   than evidence that Brazosport has no courses. Revisit only after the portal exposes a working exact
   course query or a documented public endpoint; do not hand off.
+- **University of Southern Maine (ME) — SOURCE-GATED, adapter needed (Codex, July 11 2026).**
+  Official [Course Search](https://usm.maine.edu/registration-scheduling-services/course-search/)
+  exposes Fall 2026 (`strm=2710`) and a public subject-filtered result with explicit `Status`,
+  `Enrollment: used of capacity`, section number, and stable class number. A current Computer
+  Science query (`subject=COS-busunit-UMS06`) shows open Fall 2026 sections such as COS 160 class
+  numbers `80083` (8/28 enrolled) and `80084` (26/28); the page's closed-section checkbox is
+  available for conservative filtering. The completed Spring 2026 query (`strm=2620`, same subject)
+  returned a genuine mixed set: COS 160/161/184/280/350/398 had open rows, while COS 422 class
+  `43026` was `Closed` at 23/28 and COS 430 class `41953` was `Closed` at 24/28 (COS 530 also
+  closed at 5/28). Thus `Status` must remain authoritative; never infer openness from seats alone.
+  Keys should be exact term + subject + course + class number (not course title), and the safe rule
+  is `Status == Open` plus `capacity - enrolled > 0`, with restriction/prerequisite text preserved.
+  This is a net-new public four-year candidate, but no SeatWatch production adapter exists; do not
+  hand off or edit the registry.
 - **North Central University (MN) — CLOSED FOR THIS PASS, no handoff.** Its public newer-Colleague
   catalog (`https://selfservice.northcentral.edu/Student/Courses`) exposes future `2026FL` and later
   terms, but exact section-bearing courses (`ENG 496`, `MATH 115`, `MATH 110`, `PSYC 258`) returned
