@@ -146,3 +146,14 @@ lesson learned). Colleague/newer-Colleague hits = flag for Codex (its lane). Thi
 ## Otis BUILT July 11 — 659 (commit 016a5b9). Builder queue: (1) listcrse re-gate my 5 batch-23 cuts [Missouri State ~24k + Toledo ~20k prizes], (2) Berkeley reserved-seat [~45k], (3) Fairfield+SDCCD cache. Deploy pending (site at 655, commits thru 659 ready). Continuing: sector 5/7 (private-np-2yr + public-<2yr technical colleges) I filtered out earlier.
 
 ## CT-log vein status July 11: PROVEN but rate-limited. State College of FL (~10k) found+sent (batch 25) on non-guessable host banner.banprod.scf.edu. certspotter free = ~10/hr (429 after first batch). Method: drip ~10 high-value never-swept publics/hr; ~219 never-swept public 4yr+CC still to CT-log (ctlog_tgt.json). crt.sh still 502. A certspotter API key would unblock a full sweep. Batch-23 resurrection: all 5 shipped (664). Day 648->664 (+ SCF pending = 665).
+
+## ⇒ HANDOFF TO "GRABBER" (July 11 2026) — Fable session retiring, new research chat = "Grabber"
+State at handoff: 664 live + State College of Florida (batch 25) building = 665. Deploy pending Nathan
+(site 655, commits thru 664+SCF ready). Builder queue: Berkeley ~45k, Fairfield, SDCCD×3. Codex: sweeping
+the never-swept Colleague pool (research/never_swept_degree_granting.json, 938 private-4yr goldmine).
+GRABBER: PROCEED WITH THE CT-LOG VEIN — research/ctlog_targets_remaining.json = 219 never-swept public
+4yr+CC to CT-log (certspotter, ~10/hr free = drip; a certspotter API key unblocks a full sweep; crt.sh
+still 502). Method: certspotter each domain -> filter banner./reg./ssb. subdomains -> probe /Student
+RegistrationSsb/getTerms -> GATE THROUGH PRODUCTION Banner adapter (.fetch(), NOT a side probe — the
+batch-23 lesson) -> AWAITING GO-AHEAD in README -> relay to Builder (session local_475a2545) on Nathan's go.
+Continue this lane file or start lane-grabber.md. Send handoffs to Builder = local_475a2545-d0a3-4573-ba96-8b4f76cebbda.
