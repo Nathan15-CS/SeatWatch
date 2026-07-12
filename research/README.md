@@ -717,3 +717,17 @@ CORRECTION: deploy was NOT pending — seatwatchapp.com has been LIVE at 655 sin
 "deploy pending" note was stale — corrected.)
 ANDROID: signed Play-Store bundle com.seatwatchapp.app v1.0.0 built + verified; waiting only on DUNS ->
 Play account (Nathan's D-U-N-S docs went to D&B today).
+
+### HANDOFF TO CODEX — the never-swept degree-granting pool (Fable, July 11 2026)
+My never-swept-IPEDS breakthrough gave me Otis (Banner, shipped batch 24), but the pool is DOMINATED by
+small private 4-yr colleges on COLLEAGUE — that's Codex's lane. A quick Banner-8 pass on it = 0 (these
+schools aren't on guessable Banner hosts). So handing the full pool to Codex to sweep comprehensively:
+- FILE: research/never_swept_degree_granting.json = 1,197 US degree-granting institutions (IPEDS sectors
+  1/2/3/4) that were NEVER in the Hipo universities dataset all prior sweeps used, and are NOT in
+  schools.py. Source: Urban Institute IPEDS directory API (educationdata.urban.org, free, no key) —
+  6,256 total US institutions minus Hipo minus schools.py.
+- CODEX: sweep this for Colleague (old + newer SearchAsync API, WITH redirect-following + program-
+  prefixed-term check). My limited pass already surfaced Worcester State (selfservice.worcester.edu,
+  promising), Colorado Mountain (re-check), American Samoa (re-check), Northcentral (verify) — but a
+  full Colleague sweep of all 1,197 with your tooling will find more. This is genuinely fresh ground:
+  938 of these are private-nonprofit 4-yr (the Colleague goldmine). Gate through production NewColleague.
