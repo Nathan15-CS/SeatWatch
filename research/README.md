@@ -15,6 +15,12 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Otis College of Art and Design — ✅ BUILT July 11 (batch 24): 658->659 (commit 016a5b9)
+Plain Banner-9 subclass. Re-gated live through the registered production adapter: Fall 2026 ENGL 108
+= 12 sec 8 open/4 full, real integer seats; completed-term reproduced through production (Fall 2025 =
+11 sec, 3 genuinely full). 2.0s, letter section keys unique, dedup clean. Relay's own production-gate
+numbers matched live exactly. Deploy pending Nathan (covers 656-659).
+
 ### Codex adapter queue, cleanest 3 — ✅ BUILT July 11: UNCG + NCCU + UNC Asheville, 655->658 (commits 701a38f + 90d23df)
 All 3 gated through the registered production path; zero false-open risk. Deploy pending Nathan.
 - **UNCG (~18k)**: plain Banner-9 subclass — no bespoke code needed (Codex's endpoints = the standard
