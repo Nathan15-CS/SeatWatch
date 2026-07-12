@@ -949,19 +949,20 @@ TERMS = """<h2 style="font-size:20px;margin:6px 0 2px">Terms of Service</h2>
 <p style="font-size:13px;margin-top:16px"><a href="/">&larr; Back to SeatWatch</a> &nbsp;&middot;&nbsp; <a href="/privacy">Privacy Policy</a></p>""".replace("STYLE", _PSTYLE)
 
 PRIVACY = """<h2 style="font-size:20px;margin:6px 0 2px">Privacy Policy</h2>
-<p class="sub" style="margin-bottom:14px">Last updated: June 30, 2026</p>
+<p class="sub" style="margin-bottom:14px">Last updated: July 12, 2026</p>
 <div style="STYLE">
-<p><b>The short version:</b> we collect the bare minimum needed to run your alerts &mdash; your email (from Google sign-in) and the classes you watch &mdash; and we never sell your data.</p>
-<p><b>1. What we collect.</b> (a) your email address and Google account ID, via &ldquo;Sign in with Google&rdquo; (we never see or store your password); (b) the classes and sections you ask us to watch; (c) the private notification &ldquo;topic&rdquo; we assign your account, so we can push alerts to your phone; (d) your IP address, used only briefly to prevent spam and abuse (rate-limiting); (e) if you turn on phone alerts, the push subscription your browser creates &mdash; a device delivery address used only to send you your alerts, removed when you revoke it.</p>
-<p><b>2. What we do NOT collect.</b> No password (Google handles sign-in), no payment information, no location, no browsing history.</p>
+<p><b>The short version:</b> we collect the bare minimum needed to run your alerts &mdash; your email (from sign-in) and the classes you watch &mdash; plus a little more only to stop people from abusing the free plan. We never sell your data or use it for ads.</p>
+<p><b>1. What we collect.</b> (a) your email address and account ID, via &ldquo;Sign in with Google&rdquo; or &ldquo;Sign in with Apple&rdquo; (we never see or store your password); (b) the classes and sections you ask us to watch; (c) the private notification &ldquo;topic&rdquo; we assign your account, so we can push alerts to your phone; (d) your IP address, used to keep the service secure &mdash; rate-limiting and helping us spot abuse such as one person creating many accounts to get around free-plan limits; (e) if you turn on phone alerts, the push subscription your browser creates &mdash; a device delivery address used to send you your alerts and, if the same device signs up under several accounts, as an abuse signal; removed when you revoke it; (f) a device identifier &mdash; a random ID we generate and store in your browser (a cookie and local storage) used <b>solely</b> to detect fraud and free-plan abuse (for example, many accounts from one device). It is not an advertising ID and is never used to track you across other websites.</p>
+<p><b>2. What we do NOT collect.</b> No password (sign-in is handled by Google/Apple), no payment information, no location, no browsing history, and no browser &ldquo;fingerprinting&rdquo; or cross-site tracking.</p>
 <p><b>3. How alerts are delivered.</b> Push notifications are sent through the free third-party service <a href="https://ntfy.sh">ntfy.sh</a>. Anyone who knows your topic string could read your alerts, so keep it private.</p>
-<p><b>4. How we use your data.</b> Only to run the watch-and-alert service. Nothing else.</p>
-<p><b>5. Sharing.</b> We do not sell, rent, or share your data for advertising &mdash; ever.</p>
-<p><b>6. Retention.</b> A watch is kept only while it is active. Stop it (or ask us) and it is removed.</p>
-<p><b>7. Security.</b> We use reasonable safeguards to protect the service, but no system is 100% secure.</p>
-<p><b>8. Children.</b> SeatWatch is intended for college students and is not directed at children under 13.</p>
-<p><b>9. Changes.</b> We may update this policy; the &ldquo;last updated&rdquo; date above will change.</p>
-<p><b>10. Contact / data removal.</b> Want your data removed, or have a question? Contact the SeatWatch LLC team at <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a>.</p>
+<p><b>4. How we use your data.</b> To run the watch-and-alert service, and to keep it secure and fair (see below). Nothing else.</p>
+<p><b>5. Preventing abuse of the free plan.</b> So we can keep offering a free plan, we look for signs that one person is using multiple accounts to bypass the free limit &mdash; for example accounts that share a device, network/IP address, or email, or that together watch more of a class than one free account is meant to. To do this we use only the data described above (the device identifier, IP address, sign-in email, notification tokens, and your watch activity) &mdash; the minimum needed, and no invasive fingerprinting. This protects our legitimate interest in preventing fraud. If we find likely abuse, we may remove the extra watches or accounts, as permitted by our <a href="/terms">Terms of Service</a>. These checks are reviewed by a person before any action &mdash; <b>if you believe you were flagged by mistake, email <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a> and a human will help sort it out.</b></p>
+<p><b>6. Sharing.</b> We do not sell, rent, or share your data for advertising &mdash; ever.</p>
+<p><b>7. Retention.</b> A watch is kept only while it is active. Stop it (or ask us) and it is removed. Abuse-prevention signals are kept only as long as needed to protect the service.</p>
+<p><b>8. Security.</b> We use reasonable safeguards to protect the service, but no system is 100% secure.</p>
+<p><b>9. Children.</b> SeatWatch is intended for college students and is not directed at children under 13.</p>
+<p><b>10. Changes.</b> We may update this policy; the &ldquo;last updated&rdquo; date above will change.</p>
+<p><b>11. Contact / data removal.</b> Want your data removed, or have a question? Contact the SeatWatch LLC team at <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a>.</p>
 </div>
 <p style="font-size:13px;margin-top:16px"><a href="/">&larr; Back to SeatWatch</a> &nbsp;&middot;&nbsp; <a href="/terms">Terms of Service</a></p>""".replace("STYLE", _PSTYLE)
 
