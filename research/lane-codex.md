@@ -395,3 +395,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - This is a source-level partial, not a regular-credit ACC candidate. Scope, exact synonym/section
   keys, and CE-vs-credit policy must be confirmed before any adapter or handoff. No `schools.py` edit
   and no builder message.
+
+## July 12 Batch 17 checkpoint
+- Batch 17 appended to `research/README.md`: ten net-new CVC college leads — Cuesta, College of the
+  Redwoods, San Jose City, Berkeley City, Contra Costa, Mendocino, Mission, Santa Barbara City,
+  Compton, and Chaffey.
+- Nine have numeric CVC term/section examples; Chaffey is identity-only because no section rows were
+  rendered. Every entry is explicitly held at source-level partial because the CVC exchange has a
+  demonstrated numeric-seat/status contradiction. No gate marker, `schools.py` edit, or builder
+  message was made. Direct-college reconciliation is required before any handoff.

@@ -1325,3 +1325,71 @@ quality hold, not a handoff. No production adapter, `schools.py` edit, or builde
 
 **Batch status:** Austin ACC is explicitly partial and scope-limited to Continuing Education. No
 production adapter, `schools.py` edit, or builder handoff was made.
+
+### Batch 17 — ten additional CVC college leads (contradiction hold; Codex, July 12 2026)
+
+This batch deliberately records ten net-new college identities from the official California Virtual
+Campus (CVC) exchange. CVC pages expose term/section keys and numeric `Live Seat Count`, but direct
+inspection in Batch 15 found positive counts beside contradictory “Sorry, this section is full. Open.”
+labels. Accordingly, **none of these ten is gated or ready for production**. They are research leads
+for direct-college reconciliation; do not infer open/closed from the CVC count alone.
+
+1. **Cuesta College (CA) — SOURCE-LEVEL PARTIAL, HOLD.** `https://search.cvc.edu/courses/1076303`
+   identifies Cuesta and publishes Spring 2026 BIO212 section 30613 with 2 live seats, Summer 2026
+   sections 51633/50052 with 0, Fall 2026 sections 75925 and 70902 with 0 and `Section Full`, and a
+   completed Fall 2025 section 70902 with 0. Use exact term + subject/course + section; preserve
+   delivery mode, dates, prerequisites, and the sample-syllabus/first-day-materials notes. Follow-up
+   must reconcile CVC rows and statuses against Cuesta's own schedule before any adapter work.
+2. **College of the Redwoods (CA) — SOURCE-LEVEL PARTIAL, HOLD.**
+   `https://search.cvc.edu/courses/1051374` identifies BIOL7. Spring 2026 sections V0045/V1921 show
+   1 and 5 live seats; Summer 2026 V2467/V3117 show 3 each; Fall 2026 V1313 is 0 and `Section Full`;
+   completed Fall 2025 V0928/V9333 are 0. Rows warn that sections may be merged and include
+   proctoring/lab-material notes. Key by term + section (not course title alone), and reconcile with
+   Redwoods' direct schedule.
+3. **San Jose City College (CA) — SOURCE-LEVEL PARTIAL, HOLD.**
+   `https://search.cvc.edu/courses/1623201` identifies MATH78. Fall 2026 section MATH-078-101 reports
+   0 seats; completed Fall 2025's same section reports 14. The page explicitly warns that the MATH78/
+   MATH79 sequence should be completed at SJCC and that transfer institutions may reject split sequences.
+   Preserve the exact section, prerequisite, WebAssign/Respondus notes, and the CVC snapshot timestamp.
+4. **Berkeley City College (CA) — SOURCE-LEVEL PARTIAL, HOLD.**
+   `https://search.cvc.edu/courses/4681398` identifies MMAN24. Fall 2026 CRN 43403 reports 37 live
+   seats; completed Fall 2025 CRN 40487 reports 21. The page contains synchronous meeting times and
+   Peralta portal instructions. Key by term + CRN, retain both meeting rows, and reconcile against
+   Peralta/Berkeley City College's direct schedule.
+5. **Contra Costa College (CA) — SOURCE-LEVEL PARTIAL, HOLD.**
+   `https://search.cvc.edu/courses/1034345` identifies MATH292. Spring 2026 section 3694 reports 19
+   live seats and is marked already started; the page includes Canvas/Zoom and webcam requirements.
+   This capture did not reproduce a current Fall row, so do not claim a college-wide current-plus-
+   completed gate. Follow-up must find the direct schedule and a current term before handoff.
+6. **Mendocino College (CA) — SOURCE-LEVEL PARTIAL, HOLD.**
+   `https://search.cvc.edu/courses/1055903` identifies BIO200. Spring 2026 sections 5290/4132 show
+   positive CVC counts (23/1 in the captured page) while the rendered status text simultaneously says
+   “Sorry, this section is full. Open.”; completed Fall 2025 sections 0122/0131 show 3/5. The page is
+   a concrete example of the CVC contradiction, so status must be treated as untrusted until direct
+   Mendocino data is reconciled.
+7. **Mission College (CA) — SOURCE-LEVEL PARTIAL, HOLD.**
+   `https://search.cvc.edu/courses/1834171` identifies MAT12. Spring 2026 sections 31734/31735 are
+   0/0; Fall 2026 sections 71812/71810/71811 report 26/0/1, but the page renders contradictory
+   full/open and low-availability labels beside those counts. Preserve exact section, term, ZTC badge,
+   and prerequisite/placement text; verify with Mission's direct schedule.
+8. **Santa Barbara City College (CA) — SOURCE-LEVEL PARTIAL, HOLD.**
+   `https://search.cvc.edu/courses/1027746` identifies PHYS121. Spring 2026 sections 50169/50168
+   report 3/0; Fall 2026 sections 42281/42280 report 21/17; completed Fall 2025 sections 42280/42281
+   report 0/0. The page includes physics prerequisites and multiple online sections; reconcile exact
+   term + section against SBCC's own schedule and ignore the CVC open label until that check passes.
+9. **Compton College (CA) — SOURCE-LEVEL PARTIAL, HOLD.**
+   `https://search.cvc.edu/courses/10699511` identifies MATH140. Spring 2026 section 30635 reports
+   18 live seats; Fall 2026 section 70617 reports 19. Both rows carry ZTC and prerequisite information.
+   CVC status/count disagreement is still possible, so verify direct Compton data and retain term +
+   section as the key.
+10. **Chaffey College (CA) — IDENTITY/SOURCE LEAD ONLY, HOLD.**
+    `https://search.cvc.edu/courses/1049168` identifies Chaffey's ENGL1B (CCN ENGL C1001), location
+    Rancho Cucamonga, and its OEI/online-support badges, but the captured page rendered no section rows
+    or current/completed seat values. This is a discovery lead only; do not add a seat adapter unless a
+    direct Chaffey schedule or a reproducible CVC section response is captured.
+
+**Batch status:** ten new college names were archived, with nine having numeric CVC section evidence
+and Chaffey held at identity-only. All ten remain `SOURCE-LEVEL PARTIAL`/`HOLD` because CVC is an
+exchange surface and the numeric/status contradiction is known. No `schools.py` edit, production
+adapter, or builder handoff was made. A follow-up should reconcile the strongest candidates (SBCC,
+Compton, Mission, Cuesta, Redwoods) against their direct schedules before any gate marker is added.
