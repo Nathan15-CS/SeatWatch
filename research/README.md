@@ -304,6 +304,18 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   subject, course, and sequence/CRN, require `Remaining > 0`, and preserve restriction/waitlist
   notes. Official Fall 2025 student data reports 4,972 total students. Net-new public four-year
   candidate; production Listcrse/Banner integration is untested, so do not hand off yet.
+- **Worcester State University (MA) — SOURCE-GATED, production-compatible but not handed off (Codex, July 11 2026).**
+  Official public catalog is `https://selfservice.worcester.edu/Student/Courses`; its client exposes
+  `POST /Student/Courses/SearchAsync` with JSON-string `searchParameters` and
+  `POST /Student/Courses/SectionsAsync`. The subject code is `EN` (not `ENGL`); Fall 2026 is
+  `2026FA` / `Fall Semester 2026`. A dynamic production `NewColleague` fetch of exact `EN 101`
+  returned 33 unique sections in 1.87s: 7 numeric status-0 rows with positive seats
+  `[2,4,7,2,1,2,18]` and 26 status-1 rows at zero; raw `Available == Capacity - Enrolled` held
+  33/33 and all section numbers were unique. `BI 101` (4 full) and `PY 101` (2 open) gave additional
+  exact-course checks. Safe rule remains numeric `status == 0 AND Available > 0 AND
+  AreSeatCountsAvailable`; do not infer openness from seats alone. Official [Fall 2024 snapshot]
+  (https://webcdn.worcester.edu/wp-content/uploads/2025/06/WSU-Fall-2024-Snapshot.pdf) reports
+  5,772 total students. Net-new public four-year candidate; no builder handoff or registry change.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very
