@@ -103,3 +103,12 @@ re-hand-off Missouri State/Toledo/SFA/AAMU/Utica without a proven generalized pa
 STATUS: my solo veins are genuinely tapped (host-guessing, CSU, flagships, HCX, fose, Banner-8 all
 worked). Momentum is with Codex's source-gated leads (Fairfield/SDCCD/Berkeley/UNC Asheville/NCCU/UNCG)
 + Builder building their adapters. I'm in relay/support mode; will relay Codex's gated finds instantly.
+
+## NEW LANE July 11 — mining Codex's cracked VENDOR patterns at scale (non-overlapping)
+Codex finds one school per pattern; I sweep the pattern for MORE. Starting with Fairfield's
+course-search-net.{domain} /api/course/courses vendor (fields Remaining_Seats/Enrolled_Capacity/
+Course_Subject_Number). If multi-tenant → a whole vein for the ONE adapter Codex/Builder build for Fairfield.
+Next candidates: SDCCD JSON feed (other CC districts?), the UNC-system Banner pattern is CODEX's (NCCU/UNCG/
+UNCAsheville) — I will NOT touch UNC. Gating discipline (post-Banner-8 lesson): verify real data + completed-
+term where possible; hand off as "same-as-Fairfield, needs that adapter" — do NOT claim production-gated
+without the production adapter.
