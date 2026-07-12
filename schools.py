@@ -1796,6 +1796,11 @@ class NCCU(ListcrseBanner8):
     example = "BIOL 1100"; term = "202710"     # Fall 2026; detail pages Cap/Act/Rem verified
     base = "https://ssbprod-nccu.uncecs.edu/pls/NCCUPROD"
 
+class WSSU(ListcrseBanner8):
+    id = "wssu"; name = "Winston-Salem State University"   # NCCU's UNC-ECS sibling host
+    example = "BIO 1113"; term = "202680"      # Fall 2026 HERE (per-host codes; labels win)
+    base = "https://ssbprod-wssu.uncecs.edu/pls/WSSUPROD"
+
 # --- batch-23 cuts RESURRECTED on the listcrse route (their guest search form answers
 # 'No classes were found' for everything; the catalog route serves the same sections).
 class MissouriState(ListcrseBanner8):
@@ -6242,7 +6247,7 @@ def _guard_registry(all_schools):
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
-    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState()])
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU()])
 
 
 def refresh_all_terms(log=None):
