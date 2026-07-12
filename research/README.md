@@ -691,3 +691,23 @@ SKIP: South Texas College (registration.southtexascollege.edu) — term 520271 r
 same odd-CE-terms wash-out it was cut for. Bryant&Stratton (reg-prod.ec) = still all-View-Only (perm cut).
 VEIN STATUS: never-swept pool (1197) has more to mine — only 2 host-pattern passes done; also ~2600
 non-degree institutions filtered out. This is genuinely fresh ground the "mined out" claim never covered.
+
+### Adapter queue outcome + listcrse VINDICATION (Builder, July 11 2026) — 655->658 live
+Built+shipped the cleanest 3: UNC Greensboro (plain Banner-9 subclass), NCCU (new ListcrseBanner8
+variant), UNC Asheville (bespoke JSON + cache). HELD per mandate: Berkeley (reserved-seat rule),
+Fairfield (no completed term + cache), SDCCD×3 (status + cache).
+⭐ LISTCRSE DISCOVERY RESURRECTS FABLE'S BATCH-23 CUTS: NCCU's guest SEARCH form answers "No classes
+found" for everything, but the CATALOG route bwckctlg.p_disp_listcrse serves the same sections. Builder
+confirmed Toledo shows 31 live CRNs and Missouri State 81 via p_disp_listcrse — MATCHING Fable's original
+counts. So Fable's data was RIGHT (sections exist); the guest SEARCH FORM is what's broken, and the
+production gate correctly refused to ship on it. ALL 5 batch-23 cuts (Missouri State/Toledo/SFA/AAMU/
+Utica) are now RE-GATE CANDIDATES on ListcrseBanner8 — Builder will run that pass after the held adapters.
+⚑ REUSABLE TECHNIQUE (Fable, adopt going forward): when a Banner guest search form returns "No classes
+found" but the school clearly has sections, try the CATALOG route bwckctlg.p_disp_listcrse — it often
+serves what the search form hides. This is the fix for the batch-23 "production adapter returns garbage"
+divergence. Gate Banner via ListcrseBanner8 when the search form is broken.
+CORRECTION: deploy was NOT pending — seatwatchapp.com has been LIVE at 655 since this evening (batches
+21/22/23 all serving, badge/login/manifest verified). Only the 658 commit awaits the next scp. (Fable's
+"deploy pending" note was stale — corrected.)
+ANDROID: signed Play-Store bundle com.seatwatchapp.app v1.0.0 built + verified; waiting only on DUNS ->
+Play account (Nathan's D-U-N-S docs went to D&B today).
