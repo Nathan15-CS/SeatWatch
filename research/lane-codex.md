@@ -16,6 +16,8 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   terms. NCCU's public Banner detail pages are a third fresh lead, with labeled Capacity/Actual/
   Remaining fields and completed-term mixed results. UNC Greensboro's current Banner SSB API is a
   fourth fresh lead, with explicit seat counts and waitlist-only edge cases documented.
+  Winston-Salem State University's public Banner catalog is a fifth fresh lead, with exact
+  Capacity/Actual/Remaining detail fields and mixed current/completed-term samples.
   No registry or builder changes.
 - **Prior July 11 Colleague round 4 is complete.** Round 3 found Camden County
   and Walsh College with real mixed numeric seats but both remain conditional pending the production
@@ -156,6 +158,17 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   `openSection == true AND seatsAvailable > 0`, exact term/subject/course/sequence/CRN, and preserve
   restrictions/reserved-seat summaries. Net-new 18,682-student public research university; source-
   gated pending adapter, no handoff or production changes.
+- **July 11, 2026 — Winston-Salem State University public Banner pass.** Official public schedule
+  is `https://ssbprod-wssu.uncecs.edu/pls/WSSUPROD/bwckschd.p_disp_dyn_sched`; Fall 2026 is `202680`
+  and completed Spring 2026 is `202620` (View only). The public catalog route
+  `bwckctlg.p_disp_listcrse` exposes Biology listings and detail pages expose labeled numeric
+  Capacity/Actual/Remaining plus stable CRN and exact section title. Fall Biology exposed 73 unique
+  CRNs and Spring 69. Exact `BIO 1113` had six Fall sections (2 positive remaining: 1 and 5; four
+  full) and five Spring sections (3 positive: 1, 2, 11; two full); `Remaining == Capacity - Actual`
+  held on all sampled detail rows. A future adapter must use exact term + subject + course +
+  sequence/CRN and require `Remaining > 0`, preserving restriction/waitlist notes. Net-new public
+  four-year candidate; official Fall 2025 student data reports 4,972 total students. Source-gated
+  pending a production Listcrse/Banner adapter; no handoff or code changes.
 - **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -

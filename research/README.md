@@ -293,6 +293,17 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   Exact `term + subject + courseNumber + sequenceNumber + CRN` scoping is mandatory; preserve optional
   `reservedSeatSummary`, restrictions, and linked sections. Official Fall 2025 facts report 18,682 total
   students. Clean net-new large public research university, but no production adapter exists; do not hand off.
+- **Winston-Salem State University (NC) — SOURCE-GATED, adapter needed (Codex, July 11 2026).**
+  Official public schedule is `https://ssbprod-wssu.uncecs.edu/pls/WSSUPROD/bwckschd.p_disp_dyn_sched`;
+  Fall 2026 is term `202680` and completed Spring 2026 is `202620` (View only). The public catalog
+  route `bwckctlg.p_disp_listcrse` exposes Biology listings, while detail pages expose labeled numeric
+  `Capacity`, `Actual`, and `Remaining`, plus stable CRN and exact section title. Fall Biology exposed
+  73 unique CRNs and Spring 69. Exact `BIO 1113` had six Fall sections: two positive remaining (1 and
+  5) and four full; Spring had five sections: three positive (1, 2, and 11) and two full. On all
+  sampled detail rows, `Remaining == Capacity - Actual`. A future adapter must scope exact term,
+  subject, course, and sequence/CRN, require `Remaining > 0`, and preserve restriction/waitlist
+  notes. Official Fall 2025 student data reports 4,972 total students. Net-new public four-year
+  candidate; production Listcrse/Banner integration is untested, so do not hand off yet.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very
