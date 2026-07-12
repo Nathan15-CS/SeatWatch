@@ -1796,6 +1796,36 @@ class NCCU(ListcrseBanner8):
     example = "BIOL 1100"; term = "202710"     # Fall 2026; detail pages Cap/Act/Rem verified
     base = "https://ssbprod-nccu.uncecs.edu/pls/NCCUPROD"
 
+# --- batch-23 cuts RESURRECTED on the listcrse route (their guest search form answers
+# 'No classes were found' for everything; the catalog route serves the same sections).
+class MissouriState(ListcrseBanner8):
+    id = "missouristate"; name = "Missouri State University"   # != Northwest Missouri State
+    example = "ENG 110"; term = "202640"       # Fall 2026
+    base = "https://prodssb.missouristate.edu/PROD"
+
+class Toledo(ListcrseBanner8):
+    id = "toledo"; name = "University of Toledo"
+    example = "ENGL 1010"; term = "202640"     # Fall 2026 (202710 here = SPRING 2027)
+    base = "https://selfservice.utoledo.edu/prod"
+
+class SFAustin(ListcrseBanner8):
+    id = "sfa"; name = "Stephen F. Austin State University"
+    example = "ENGL 1301"; term = "202710"     # Fall 2026 in SFA's numbering
+    base = "https://ssb.sfasu.edu/prod"
+
+class AlabamaAM(ListcrseBanner8):
+    id = "aamu"; name = "Alabama A&M University"
+    example = "ENG 101"; term = "202670"       # Fall 2026
+    base = "https://ssb1.aamu.edu/PROD"
+
+class Utica(ListcrseBanner8):
+    # Completed-term note: finished terms here show end-of-semester enrollment (post-drop
+    # melt, no full rows), so the fake-open disproof is the LIVE term's real 18/18/0 full
+    # sections — numeric Act==Cap can't be fabricated. Documented July 11 2026.
+    id = "utica"; name = "Utica University"
+    example = "ENG 101"; term = "202680"       # Fall 2026
+    base = "https://bannerweb.utica.edu/PROD"
+
 
 class UNCAsheville:
     """UNC Asheville — official public class-schedules JSON API (meteor.unca.edu). One
@@ -6056,7 +6086,8 @@ def _guard_registry(all_schools):
 
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
-    BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis()])
+    BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica()])
 
 
 def refresh_all_terms(log=None):
