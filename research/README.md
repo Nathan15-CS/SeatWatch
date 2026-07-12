@@ -20,21 +20,14 @@ Plain NewColleague subclass (EN not ENGL; != WPI). Re-gated live: 39 sections ac
 9 open/30 FULL, zero open-with-no-seat; family disproof satisfied (30 live full rows, non-0 status).
 2.4s. Grabber's first relay — evidence reproduced exactly. Deploy pending Nathan (covers 656-667).
 
-### Worcester State University (MA) — Batch 26 SENT July 11 2026 (Codex find, Grabber re-gated + relayed, Nathan-approved)
-~5,772 students, public 4-year. Fits existing `NewColleague` (host `selfservice.worcester.edu`, subj
-code `EN`, term auto-picks Fall 2026 `2026FA`). Re-gated LIVE through production `NewColleague.fetch()`:
-EN 101 = 33 sec (7 open/26 FULL), BI 101 = 4 full, PY 101 = 2 open; 39 sec total, 30 live full =
-disproof (no completed-term feed in this family; live full rows carry non-0 status). Reproduces Codex's
-spec to the section. Dedup clean (≠ Worcester Polytechnic). Relayed to Builder as Batch 26.
-
-### Winston-Salem State University (NC) — GATED, AWAITING GO-AHEAD (Codex find, Grabber re-gated July 11 2026)
-~18,682 students, public 4-year (HBCU). Sibling of already-shipped NCCU on the same UNC-ECS Banner-8
+### Winston-Salem State University (NC) — Batch 27 SENT July 12 2026 (Codex find, Grabber re-gated + relayed, Nathan-approved)
+~4,972 students, public 4-year (HBCU). Sibling of already-shipped NCCU on the same UNC-ECS Banner-8
 host pattern — fits existing `ListcrseBanner8`. Suggested subclass:
 `base="https://ssbprod-wssu.uncecs.edu/pls/WSSUPROD"; term="202680"; example="BIO 1113"` (Fall 2026 =
 202680 here; completed Spring 2026 = 202620, per-host term semantics — labels win, batch-23 lesson).
 Re-gated LIVE through production `ListcrseBanner8.fetch()`: BIO 1113 = 6 sec (2 open/4 FULL, real seats
 [0,1,0,5,0,0]); completed 202620 BIO 1113 = 5 sec (3 open/2 full) — BOTH disproofs hold, numeric
-Cap/Act/Rem verified (Remaining==Capacity-Actual). Dedup clean. READY — awaiting Nathan's go to relay.
+Cap/Act/Rem verified (Remaining==Capacity-Actual). Dedup clean. Relayed to Builder as Batch 27.
 
 ### Shorter College (AR) — HELD, NOT ship-ready (Grabber production re-gate July 11 2026)
 Codex flagged it "production-compatible," but the production `NewColleague.fetch()` re-gate FAILS the

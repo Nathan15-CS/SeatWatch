@@ -4,16 +4,22 @@
 Single relay point to Builder is unchanged: gated finds → README under `AWAITING GO-AHEAD` → on
 Nathan's go, relay to Builder (session local_475a2545) as "Batch N" → mark SENT.
 
-## RELAY — Batch 26 SENT + "the three" maintenance (July 11, evening)
-- **Worcester State University (MA) → Batch 26 SENT to Builder** (Nathan-approved). Re-gated LIVE through
-  production `NewColleague`: EN 101 = 33 sec (7 open/26 full), 39 sec total / 30 live full = disproof.
-  Reproduces Codex's spec to the section. Fits existing adapter (host `selfservice.worcester.edu`, subj `EN`).
-- **WSSU (Winston-Salem State, NC) → GATED, AWAITING GO-AHEAD.** Re-gated LIVE through production
-  `ListcrseBanner8` (sibling of shipped NCCU, same UNC-ECS host): BIO 1113 live 2 open/4 full + completed
-  202620 3 open/2 full — both disproofs hold. ~18.7k, 4-year. READY, awaiting Nathan's go.
-- **Shorter College (AR) → HELD, NOT ship-ready.** Production `NewColleague` re-gate FAILS the fake-open
-  disproof (1 live open section, no full rows; completed term not adapter-queryable). Tiny 2-yr HBCU.
-  Handed back to Codex's lane. Do NOT relay until a live full row exists.
+## RELAY — Codex-work sweep: Batches 26 + 27 SENT (July 12)
+- **Worcester State (MA) → Batch 26, ✅ BUILT by Builder (667).** Re-gated live NewColleague: EN 101 33 sec
+  7 open/26 full; 30 live full = disproof. Fits existing adapter.
+- **WSSU (Winston-Salem State, NC) → Batch 27 SENT** (Nathan "send everything good"). Production-gated via
+  `ListcrseBanner8` (sibling of shipped NCCU): live BIO 1113 2 open/4 full + completed 202620 3 open/2 full.
+  ~4,972 students, 4-yr HBCU (corrected — earlier 18.7k was UNCG's number, not WSSU's).
+- **Shorter College (AR) → HELD, NOT ship-ready.** Production NewColleague re-gate FAILS fake-open disproof
+  (1 live open section, no full rows; completed term not adapter-queryable). Handed back to Codex.
+- **Full Codex-ledger dedup done.** Already SHIPPED (do not re-send): UNCG, UNCA, NCCU (the "cleanest-3"),
+  Otis, Onondaga, Berkeley, batch-22 four (LVC/Augustana/Camden/Walsh), Worcester. Blocked/closed: UC
+  Davis, Johns Hopkins, Gustavus, Texas Wesleyan, N.Central, Columbia, Northwood, N.New Mexico, Ventura.
+  ⚠️ DEDUP LESSON: an over-filtered `grep name= | grep class` FALSE-NEGATIVED the shipped UNCG/UNCA — always
+  dedup with a simple host/name grep, never a piped filter.
+- **Source-gated queue relayed to Builder as build-decisions** (NOT production-gated — no existing adapter,
+  each needs a bespoke build; honest leads only): Fairfield (bench), SDCCD×3 City/Mesa/Miramar (bench),
+  **RCCD×3 Moreno Valley/Norco/Riverside City (NET-NEW to Builder)** — SharePoint API, Codex source-gated.
 
 ## NOW (July 11, evening) — CT-log vein, corrected sweep in progress
 - **Running the CT-log sweep over the 229 never-swept public-college domains** (`ctlog_targets_remaining.json`).
