@@ -15,6 +15,11 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### State College of Florida — ✅ BUILT July 11/12 (batch 25): 665->666 (commit follows Berkeley's)
+CT-log-vein first ship. Plain Banner-9 subclass on non-guessable banner.banprod.scf.edu. Re-gated
+live: ENC 1101 = 82 sec, 24 open/58 genuinely FULL (live Act==Cap disproof); completed Fall 2025
+ENC 0022 reproduced spec exactly (1 open/5 full). 1.4s. Deploy pending Nathan (covers 656-666).
+
 ### UC Berkeley — ✅ BUILT July 11: reserved-seat adapter shipped, 664->665 (commit 4b0034d)
 The held accuracy question is RESOLVED and live-verified: open = status 'O' AND
 (maxEnroll - enrolledCount - openReserved) > 0. The trap case reproduces exactly — BIOLOGY 1A/1AL
