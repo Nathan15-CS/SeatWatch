@@ -973,3 +973,66 @@ So: for a numeric-seat Banner school, prefer "live term has Act==Cap full sectio
 clean completed-term is a bonus, not required. (State College of Florida already satisfies BOTH — Fall
 2025 had 5 full AND it's numeric enrollment.)
 South Texas College: re-confirmed DEAD (Banner-9, no listcrse route, empty-subjects wash-out stands).
+
+### Batch 10 — new official public seat sources (Codex, July 12 2026)
+
+These ten colleges are net-new against `schools.py` and the prior research notes. Every source passed
+the research gate with a current/upcoming term and a completed or historical term check. They are
+source-gated only: no production adapter, registry edit, or builder handoff has been made. Exact term,
+course, section/CRN keys are mandatory in every future adapter; the named seat/status field is authoritative.
+
+1. **Moorpark College (CA; VCCCD).** Official schedule: `https://schedule.vcccd.edu/list/?pace=1&site=1`.
+   Fall 2026 (`202607`) mixed ACCT M40 CRN 70892 FULL 1/1/0, ARTH M100 CRN 73180 OPEN 5/4/1, and
+   CS M125 CRN 70570 WAITLISTED 0/0/0; Spring 2026 (`202603`) had CLOSED rows including ACCT M01
+   CRN 32905 50/26/24 and COMM M04 CRN 30043 32/25/7. Gate `status == OPEN` and `Rem > 0`; FULL,
+   CLOSED, and WAITLISTED remain closed even when arithmetic is positive. Site/term/CRN scoping is required.
+2. **Ventura College (CA; VCCCD).** Official schedule: `https://schedule.vcccd.edu/list/?site=3&term=202603&ztc=1`
+   (Fall current is the same viewer with `site=3`). Fall examples include ACCT V03 CRN 73714 OPEN 32/11/21,
+   ASTR C1001 CRN 73090 OPEN 48/16/32, and a WAITLISTED 46/46/0 row; Spring includes ACCT V08 CRN 32492
+   OPEN 46/37/9 plus CLOSED rows with positive arithmetic. Same conservative VCCCD gate as Moorpark.
+   This supersedes the older generic VCCCD “zero-result” triage note; the site-specific viewers are live.
+3. **Community College of Rhode Island (RI).** Official Banner schedule:
+   `https://bannerweb.ccri.edu/pls/DORA/bwckschd.p_disp_dyn_sched`. Fall 2026 `202630` ENGL 1010 had
+   CRNs 38635 (25/20/5), 37948 (25/24/1), and full 13/13/0 rows; completed Spring 2026 `202610` had
+   positive and full rows (for example CRN 16785 12/8/4 and CRN 16768 12/12/0). Gate exact term+subject+
+   course+CRN/section and primary `Rem > 0`; ignore waitlist capacity.
+4. **San José State University (CA).** Official schedules: `https://www.sjsu.edu/classes/schedules/fall-2026.php`
+   and `/spring-2026.php`. Tables publish section, class number, mode, dates, and Open Seats; Fall examples
+   include ANI 31 class 49986 (10) and 49987 (12), alongside zero-seat rows; Spring examples include AAS 1
+   class 27509 (4) and AAS 25 classes 29124/29125 (19/16), with full rows present. Gate exact term+section+
+   class number and `Open Seats > 0`; preserve reserve/permission/modality notes. Page is refreshed nightly.
+5. **Lipscomb University (TN).** Official static tables: `https://courseschedule.lipscomb.edu/ScheduleP2026FALL.html`
+   and `ScheduleP2026SPRING.html`. Fall BY2424 sections show 40 total/38 filled/2 available and a full lab
+   20/20/0; Spring has mixed rows such as AAI1013 18/2/16, AM1213 16/15/1, and full sections. Gate exact
+   term+course+section code and `Seats Available > 0`; retain delivery, location, and course notes.
+6. **Foothill College (CA).** Official quarter viewer: `https://foothill.edu/schedule/index.html?Quarter=2026F&availability=all&dept=every`
+   (completed check `Quarter=2026S`). Fall 2026 viewer reports 1,077 scheduled classes and numeric “x of y
+   seats open” plus Open/Closed text (e.g., ACTG 1A CRN 20487 40/40); Spring includes ART 5B CRN 40423
+   Open 8/30 and mixed closed/open rows. Gate exact quarter+course/section+CRN, require textual Open and
+   positive open-seat count, and preserve modality/footnotes. This is a quarter calendar, not semester.
+7. **Mt. San Antonio College / Mt. SAC (CA).** Official open-class viewer:
+   `https://prod8s.mtsac.edu/prod/pw_sigsched.p_oclsonly?term_in=202620` (Spring completed `term_in=202510`).
+   Fall lists open-only rows such as AD 1 CRN 23400 (22 seats), AD 10 CRN 23402 (15), SIGN 101 CRN 23223
+   (15); Spring lists ID 10 CRN 44461 (13), LATN 2 CRN 43528 (20), and LEAD 55 CRN 42473 (22). Viewer
+   says it updates about every five minutes and lists at least two open seats. Gate listed `Seats Available > 0`;
+   omission means unknown, not closed, because this feed does not expose full rows. Preserve dates/modality.
+8. **Lakeland Community College (OH).** Official viewer: `https://lkn.lakelandcc.edu/internet/academics/schedule/`
+   (Fall 2026 current; Spring 2026 is View Only). Fall ARTS examples include CRN 10080 20/30 remaining,
+   10079 21/30, 10083 6/15, 10090 5/12, plus FULL rows; Spring examples include ENGL rows with 2, 4, and
+   6 remaining and full rows. Gate exact term+subject+course+CRN using the primary `N Remaining / Cap` field;
+   FULL and zero remaining are closed, and PERM/restriction notes must be retained.
+9. **University of Georgia (GA).** Official registrar schedule app: `https://reg.uga.edu/enrollment-and-registration/schedule-of-classes/`.
+   The public app supports Spring and Fall 2026 and reports a July 12, 2026 refresh. Spring examples include
+   AAEC 2580 CRN 61007 avail 36/100 and AAEC 3020 CRN 61009 avail 1/30 with full rows nearby; Fall includes
+   AAEC 2580 CRN 10752 avail 49/100 and AAEC 3010 CRN 45990 avail 25/87. Gate exact term+Course ID+CRN and
+   `Avail Seats > 0`; preserve campus/part-of-term/restrictions. This current registrar app supersedes the old
+   Athena-CAS blocker note; re-check the public app rather than assuming UGA is unavailable.
+10. **SUNY Potsdam (NY).** Official schedule page: `https://www.potsdam.edu/about/offices/registrar/class-schedules/class-schedule-department`.
+    Linked hourly PDFs expose `CODE SUBJ CRSE SEC ... REQ ENR AVL`; Fall 2026 examples include ANTH 106 CRN
+    91102 50/14/36, ANTH 106 CRN 91103 50/17/33, and BIOL 105 24/23/1 alongside closed/negative rows.
+    The completed Spring 2026 PDF has mixed WAYS 103 rows (25/1/24, 25/2/23, 25/21/4). Gate exact
+    term+subject+course+section/CRN and `AVL > 0`; `Closed` or negative values are closed. PDFs are hourly
+    snapshots (static after term), so do not describe them as real-time.
+
+**Batch status:** all ten are research-only leads pending a production adapter and explicit go-ahead. No
+`schools.py` edits or builder message were made. Name/host dedup was clean for each candidate.

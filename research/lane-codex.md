@@ -332,3 +332,14 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 ## Last push
 - Sync base confirmed July 10, 2026 at `ba6a6d6`; commit `14cb230` is present in this repository.
 - Round-1 findings were pushed in `51967c7`; round-2 claim was pushed in `af192dc`.
+
+## July 12 batch checkpoint
+- **Batch 10 complete (10 net-new, validated colleges):** Moorpark, Ventura, Community College of Rhode
+  Island, San José State, Lipscomb, Foothill, Mt. San Antonio/Mt. SAC, Lakeland, University of Georgia,
+  and SUNY Potsdam. README has the official URLs, current/historical samples, authoritative seat/status
+  fields, freshness caveats, and exact-key rules for all ten.
+- Every candidate is source-gated pending a production adapter; no `schools.py` or builder handoff was made.
+  Generic VCCCD triage and the old UGA Athena-CAS blocker are explicitly superseded by the live site-specific
+  schedule viewers documented in the batch section.
+- **Next:** continue the never-swept public-schedule/Colleague/CT-log search; keep accumulating a full batch
+  before the next README update. Research-only boundary remains in force.
