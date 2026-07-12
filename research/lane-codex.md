@@ -199,6 +199,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   samples returned only status-0 positive-seat rows across Summer/Fall 2026, with no full/non-open
   row to disprove an all-open default. No proposal. Southwestern Law remains the prior rolling-term
   cut; Colorado Mountain remains held because Fall 2026 still returned no matching sections.
+- **July 11, 2026 — Northern New Mexico College schedule pass closed.** Official schedule page
+  `https://schedule.nnmc.edu/academics/schedule-of-classes.html` publishes Summer/Fall 2026 PDFs
+  and says the most up-to-date schedule is in Banner, but the PDFs contain no live capacity,
+  enrollment, remaining-seat, or authoritative status field. Catalog-only; no proposal.
 - **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -

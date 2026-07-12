@@ -354,6 +354,11 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   available to disprove an all-open default. Keep this out until a mixed live/historical course is
   published. Southwestern Law remains the prior rolling-term cut; Colorado Mountain remains a hold
   because its advertised Fall 2026 term still produced no matching sections.
+- **Northern New Mexico College (NM) — STATUS BLOCKED, no handoff.** Official schedule surface is
+  `https://schedule.nnmc.edu/academics/schedule-of-classes.html`; it publishes Summer/Fall 2026
+  schedule PDFs and explicitly says the most up-to-date schedule is in Banner. The PDFs provide
+  course offerings but no live capacity, enrollment, remaining-seat, or authoritative open/closed
+  field, so this is catalog-only and not suitable for SeatWatch without a public Banner/API route.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very
