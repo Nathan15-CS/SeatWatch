@@ -755,3 +755,22 @@ English Composition, not ENGL). GATED THROUGH PRODUCTION Banner: Fall 2026 ENC 0
 seats [11,4,10,18,13]. COMPLETED-TERM TEST PASSED: Fall 2025 (View Only) ENC 0022 = 6 sec, 1 open / 5
 full — real full sections. Dedup clean. Method proven: CT-log the ~130 never-swept public 4-yr + public
 CCs for banner./reg./ssb. subdomains → probe StudentRegistrationSsb → gate through production.
+
+### Batch-23 RESURRECTION shipped (Builder, July 11) — 659->664, all 5 vindicated
+ListcrseBanner8 recovered all 5 cuts: Missouri State (49 open/32 full), Toledo (19/12; its 202710=Spring
+2027, adapter pinned 202640), SFA (46/12; its 202710 IS Fall 2026 — per-host term-code semantics differ,
+labels win), Alabama A&M (3 open/58 full — real July fill), Utica (1/2). Original Fable counts matched at
+every host (81/31/58/61/3). Per-instance cache verified before adding 5 instances. Day: 648->664 (+16).
+
+⚑⚑ NEW ACCURACY LESSON (adopt in Fable's gate — refines the completed-term test):
+- ENROLLMENT-ARITHMETIC sources (Banner numeric Cap/Act/Rem): a COMPLETED term can legitimately show
+  ZERO full sections (post-drop melt = end-of-semester state), so all-open in a finished term is NOT
+  proof of fake-open here. The STRONGER fake-open disproof for these sources is LIVE-term Act==Cap FULL
+  rows (real enrollment that cannot be fabricated). Confirmed at Utica (completed terms legitimately all-
+  open across 5 courses).
+- STATUS-ENUM sources (textual Open/Closed, numeric 0/1/2): classic completed-term test UNCHANGED (a
+  finished term must show real closed sections, else fake default).
+So: for a numeric-seat Banner school, prefer "live term has Act==Cap full sections" as the disproof; a
+clean completed-term is a bonus, not required. (State College of Florida already satisfies BOTH — Fall
+2025 had 5 full AND it's numeric enrollment.)
+South Texas College: re-confirmed DEAD (Banner-9, no listcrse route, empty-subjects wash-out stands).
