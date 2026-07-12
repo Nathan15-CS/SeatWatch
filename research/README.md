@@ -1208,3 +1208,39 @@ research-only: no adapter, `schools.py` edit, or builder handoff was made.
 marked `GATED, AWAITING GO-AHEAD`; Nicholls is a deliberately explicit source-level partial pending
 one PDF parse. Name/host dedup checks were clean for all six. No production adapter, `schools.py` edit,
 or builder handoff was made.
+
+### Batch 13 — new public seat sources (AWAITING GO-AHEAD; Codex, July 12 2026)
+
+This smaller follow-up batch adds one clean, net-new full source and one explicitly bounded public
+source lead. Both were deduped against `schools.py` and this archive. No production code or builder
+handoff was made.
+
+1. **Monroe Community College (NY) — GATED, AWAITING GO-AHEAD.** Official course pages expose
+   current Fall 2026 sections, e.g. `https://www.monroecc.edu/classes/eng-101-sections/`, and the
+   same route exposes completed Spring 2026 pages, e.g. `https://www.monroecc.edu/classes/202620/spc-141-sections/`
+   and `https://www.monroecc.edu/classes/phl-250-sections/`. Each page publishes the exact course,
+   section, CRN, modality/location, meeting dates, `Seats Remaining`, and `Already on Waitlist`.
+   Fall ENG-101 examples include CRN 10048 (5 remaining), 10049 (21), 10051 (0), and 10073 (11);
+   Fall MTH-211 includes CRNs 11960 (13), 11966 (17), 11968 (0 with waitlist 1), and 12733 (12).
+   Completed Spring PHL-250 has CRNs 32789 (0), 33254 (14), and 35945 (3); Spring TRS-099 CRN
+   33849 reports 7 remaining. The source has mixed positive/zero rows in both terms and is not an
+   all-open status shell. Gate exact term + subject/course + section + CRN, use `Seats Remaining > 0`
+   as the primary signal, keep waitlist count separate, and collapse repeated meeting rows for the
+   same CRN. Preserve modality, campus, date range, corequisite/permission text, and late-start
+   filters. The college page is per-course rather than one giant list, so discovery must follow the
+   subject/course index or a bounded course set; do not treat catalog-only pages as availability.
+2. **University of Alaska Anchorage (AK) — SOURCE-LEVEL PARTIAL, AWAITING FOLLOW-UP.** UAA
+   department schedule pages are public and publish `CRN`, section, dates, and numeric `Open Seats`,
+   for example Fall 2026 Philosophy (`https://www.uaa.alaska.edu/academics/college-of-arts-and-sciences/departments/philosophy/degree-programs/schedule.cshtml`)
+   with PHIL A101 CRNs 71238 (6), 71236 (5), and 71237 (21), and Fall Alaska Native Studies with
+   CRNs 70464 (4), 71626 (12), and 75021 (11). A completed-term page exists for a bounded program,
+   Spring 2026 Civic Engagement (`https://www.uaa.alaska.edu/academics/office-of-academic-affairs/faculty-development-instructional-support/community-engagement/current-cel-course-offerings.cshtml`),
+   where CEL A390 CRN 36352 reports 55 open seats. These pages explicitly direct users to UAOnline
+   for the authoritative full schedule; only department/program pages were captured here, so this is
+   not yet a college-wide gate. Follow-up must discover the public UAOnline/department index, prove
+   current-plus-completed mixed rows across more than one department, and retain exact term+CRN keys;
+   never infer closed rows from omitted sections.
+
+**Batch status:** Monroe clears the direct current-plus-completed numeric gate and is marked
+`GATED, AWAITING GO-AHEAD`. UAA is a deliberately bounded source lead pending a college-wide public
+index/UAOnline capture. No production adapter, `schools.py` edit, or builder handoff was made.

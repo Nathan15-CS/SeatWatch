@@ -364,3 +364,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - Exact term/course/section/CRN rules, snapshot freshness, reserved/cross-list/waitlist caveats, and
   dedup notes are in the README. Research-only boundary remains in force: no `schools.py` edit and no
   builder message.
+
+## July 12 Batch 13 checkpoint
+- Batch 13 appended to `research/README.md`: Monroe Community College (full gated source) and
+  University of Alaska Anchorage (explicit department-level source lead).
+- Monroe has mixed numeric `Seats Remaining` rows in current Fall 2026 and completed Spring 2026;
+  exact term/course/section/CRN and repeated-meeting-row handling are documented. UAA has public
+  numeric department pages plus one bounded Spring page, but remains partial until the full UAOnline
+  index is captured. No `schools.py` edit and no builder message.
