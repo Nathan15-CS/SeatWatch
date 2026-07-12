@@ -862,41 +862,7 @@ __CARD__
   <div class="quote"><div class="stars"><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg><svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.3 6.9.7-5.1 4.6 1.4 6.8L12 17.8 5.9 20.4l1.4-6.8L2.2 9l6.9-.7z"/></svg></div><p>"The class I needed to graduate on time was full all summer. Got the alert in August, registered from my phone in the dining hall. Unreal."</p><div class="who"><span class="av" style="background:linear-gradient(135deg,#7C3AED,#A855F7)">DK</span><div><div class="nm">Devin K.</div><div class="mt">Senior · Business</div></div></div></div>
  </div>
 </section>
-<section class="blk sr">
- <h2>Simple, fair pricing</h2>
- <p class="lede2">Start free. Upgrade only if you need more.</p>
- <div class="prices">
-  <div class="price free"><span class="tag">Start free</span><p class="amt">$0</p>
-   <p style="font-weight:700;font-size:14px;margin:-6px 0 12px;color:var(--navy)">1 class · 2 sections</p>
-   <ul class="feat">
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Instant phone alerts</span></li>
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Never fake — real seats only</span></li>
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>No card required</span></li>
-   </ul>
-  </div>
-  <div class="price"><span class="tag soon">Coming soon</span><p class="amt">$19.95 <small>term</small></p>
-   <p style="font-weight:700;font-size:14px;margin:-6px 0 12px;color:var(--navy)">1 course · all sections</p>
-   <ul class="feat">
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span><b>Every section</b> — not just 2</span></li>
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>One-time, no subscription</span></li>
-   </ul>
-  </div>
-  <div class="price"><span class="tag soon">Coming soon</span><p class="amt">$24.95 <small>term</small></p>
-   <p style="font-weight:700;font-size:14px;margin:-6px 0 12px;color:var(--navy)">2 courses · all sections</p>
-   <ul class="feat">
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Watch two classes at once</span></li>
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Upgrade anytime — pay the difference</span></li>
-   </ul>
-  </div>
-  <div class="price"><span class="tag soon">Best value</span><p class="amt">$29.95 <small>term</small></p>
-   <p style="font-weight:700;font-size:14px;margin:-6px 0 12px;color:var(--navy)">Whole semester · up to 5</p>
-   <ul class="feat">
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Every section of every course</span></li>
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Your whole schedule, covered</span></li>
-   </ul>
-  </div>
- </div>
-</section>
+__PRICING__
 <section class="blk sr">
  <h2>Questions, answered.</h2>
  <p class="lede2">The stuff students actually ask us.</p>
@@ -1370,58 +1336,7 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
   </div>
 </section>
 
-<section id="sw-pricing" style="background:#fff;border-top:1px solid rgba(11,21,38,.06);border-bottom:1px solid rgba(11,21,38,.06);">
-  <div style="max-width:1140px;margin:0 auto;padding:110px 28px;">
-    <div data-reveal style="text-align:center;max-width:520px;margin:0 auto;">
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.12em;color:#2563eb;">PRICING</div>
-      <h2 class="sw-h2" style="margin:16px 0 0;font-size:42px;font-weight:800;letter-spacing:-.03em;line-height:1.1;">Simple, fair pricing.</h2>
-      <p style="margin:16px 0 0;font-size:17px;color:#4b5a72;">Start free. Upgrade only if you need more.</p>
-    </div>
-    <div class="sw-price" style="display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;justify-content:center;margin-top:56px;align-items:stretch;">
-      <div data-reveal style="position:relative;background:#f7f9fc;border:2px solid #17b26a;border-radius:22px;padding:28px;display:flex;flex-direction:column;box-shadow:0 20px 50px -20px rgba(23,178,106,.3);">
-        <span style="position:absolute;top:-13px;left:26px;background:#17b26a;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;">START FREE</span>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;"><span style="font-size:42px;font-weight:800;letter-spacing:-.03em;">$0</span></div>
-        <div style="margin-top:4px;font-size:14.5px;font-weight:700;color:#0b1526;">1 class · 2 sections</div>
-        <div style="display:flex;flex-direction:column;gap:11px;margin-top:20px;flex:1;">
-          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>Instant phone alerts</div>
-          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>Never fake — real seats only</div>
-          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#17b26a;font-weight:700;">✓</span>No card required</div>
-        </div>
-        <a href="/login" class="sw-dark" style="margin-top:24px;padding:13px;text-align:center;background:#0b1526;color:#fff;border-radius:100px;font-size:14.5px;font-weight:700;">Start free</a>
-      </div>
-      <div data-reveal style="position:relative;background:#fff;border:1px solid rgba(11,21,38,.09);border-radius:22px;padding:28px;display:flex;flex-direction:column;transition-delay:.06s;">
-        <span style="position:absolute;top:-13px;left:26px;background:#eef2f8;color:#4b5a72;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;border:1px solid rgba(11,21,38,.07);">COMING SOON</span>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;"><span style="font-size:42px;font-weight:800;letter-spacing:-.03em;">$19.95</span><span style="font-size:13.5px;color:#6b7a92;">one-time · term</span></div>
-        <div style="margin-top:4px;font-size:14.5px;font-weight:700;color:#0b1526;">1 course · every section</div>
-        <div style="display:flex;flex-direction:column;gap:11px;margin-top:20px;flex:1;">
-          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span><span><strong>All sections</strong> — not just 2</span></div>
-          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span>No subscription</div>
-        </div>
-        <a href="/login" style="margin-top:24px;padding:13px;text-align:center;border:1px solid rgba(11,21,38,.12);color:#4b5a72;border-radius:100px;font-size:14.5px;font-weight:700;">Notify me</a>
-      </div>
-      <div data-reveal style="position:relative;background:#fff;border:1px solid rgba(11,21,38,.09);border-radius:22px;padding:28px;display:flex;flex-direction:column;transition-delay:.12s;">
-        <span style="position:absolute;top:-13px;left:26px;background:#eef2f8;color:#4b5a72;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;border:1px solid rgba(11,21,38,.07);">COMING SOON</span>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;"><span style="font-size:42px;font-weight:800;letter-spacing:-.03em;">$24.95</span><span style="font-size:13.5px;color:#6b7a92;">one-time · term</span></div>
-        <div style="margin-top:4px;font-size:14.5px;font-weight:700;color:#0b1526;">2 courses · every section</div>
-        <div style="display:flex;flex-direction:column;gap:11px;margin-top:20px;flex:1;">
-          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span>Watch two classes at once</div>
-          <div style="display:flex;gap:10px;font-size:14px;color:#243247;"><span style="color:#2563eb;font-weight:700;">✓</span>Upgrade anytime — pay the difference</div>
-        </div>
-        <a href="/login" style="margin-top:24px;padding:13px;text-align:center;border:1px solid rgba(11,21,38,.12);color:#4b5a72;border-radius:100px;font-size:14.5px;font-weight:700;">Notify me</a>
-      </div>
-      <div data-reveal style="position:relative;background:#0b1526;border:1px solid #0b1526;border-radius:22px;padding:28px;display:flex;flex-direction:column;transition-delay:.18s;box-shadow:0 20px 50px -18px rgba(11,21,38,.45);">
-        <span style="position:absolute;top:-13px;left:26px;background:#2563eb;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.1em;padding:5px 13px;border-radius:100px;">BEST VALUE · SOON</span>
-        <div style="display:flex;align-items:baseline;gap:8px;margin-top:8px;"><span style="font-size:42px;font-weight:800;letter-spacing:-.03em;color:#fff;">$29.95</span><span style="font-size:13.5px;color:#9fb0c8;">one-time · term</span></div>
-        <div style="margin-top:4px;font-size:14.5px;font-weight:700;color:#fff;">Whole semester · up to 5 courses</div>
-        <div style="display:flex;flex-direction:column;gap:11px;margin-top:20px;flex:1;">
-          <div style="display:flex;gap:10px;font-size:14px;color:#dbe4f0;"><span style="color:#34d399;font-weight:700;">✓</span>Every section of every course</div>
-          <div style="display:flex;gap:10px;font-size:14px;color:#dbe4f0;"><span style="color:#34d399;font-weight:700;">✓</span>Your whole schedule, covered</div>
-        </div>
-        <a href="/login" style="margin-top:24px;padding:13px;text-align:center;background:#2563eb;color:#fff;border-radius:100px;font-size:14.5px;font-weight:700;">Notify me</a>
-      </div>
-    </div>
-  </div>
-</section>
+__PRICING__
 
 <section id="sw-faq" style="max-width:760px;margin:0 auto;padding:110px 28px;">
   <div data-reveal style="text-align:center;">
@@ -1507,10 +1422,111 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 """
 
 
+def pricing_section():
+    """ONE conversion pricing block, injected into BOTH the logged-out landing and the
+    logged-in form page so the two surfaces are byte-identical. Self-contained scoped
+    (.pw-*) CSS incl. responsive (4-across / 2x2 / 1-col) so it renders the same in either
+    template. Whole-semester tier is the hero on every breakpoint. While paid is dormant
+    (PAID_LIVE off) the paid CTAs are 'Notify me' (a warm early-access list + intent
+    signal) with a 'Coming soon' tag; when PAID_ENABLED flips on they become buy actions
+    to /checkout. Badge is 'Best value' (factually the best per-class price) — never
+    fabricated popularity, per the never-fake brand."""
+    soon = not PAID_LIVE
+    def cta(tier, label, solid):
+        href = "/login" if soon else f"/checkout?tier={tier}"
+        text = "Notify me" if soon else label
+        if solid:
+            style = "background:#2563eb;color:#fff;border:1px solid #2563eb"
+        else:
+            style = "background:#fff;color:#4b5a72;border:1px solid rgba(11,21,38,.14)"
+        return (f'<a href="{href}" class="pw-cta" style="{style}">{text}</a>')
+    tag_soon = ('<span class="pw-tag pw-soon">Coming soon</span>' if soon else "")
+    ck = ('<span class="pw-ck">'
+          '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+          'stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">'
+          '<path d="M20 6 9 17l-5-5"/></svg></span>')
+    def feat(t):
+        return f'<div class="pw-feat">{ck}<span>{t}</span></div>'
+    return f"""<section id="sw-pricing" class="pw-wrap">
+<style>
+.pw-wrap{{background:#fff;border-top:1px solid rgba(11,21,38,.06);border-bottom:1px solid rgba(11,21,38,.06)}}
+.pw-inner{{max-width:1140px;margin:0 auto;padding:96px 24px}}
+.pw-head{{text-align:center;max-width:620px;margin:0 auto}}
+.pw-eyebrow{{font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.12em;color:#2563eb}}
+.pw-h2{{margin:15px 0 0;font-size:40px;font-weight:800;letter-spacing:-.03em;line-height:1.12;color:#0b1526}}
+.pw-sub{{margin:15px auto 0;font-size:16.5px;line-height:1.6;color:#4b5a72;max-width:560px}}
+.pw-grid{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:18px;margin-top:52px;align-items:stretch}}
+.pw-card{{position:relative;background:#fff;border:1px solid rgba(11,21,38,.1);border-radius:20px;padding:26px 24px;display:flex;flex-direction:column}}
+.pw-card.free{{border:1.5px solid #17b26a;background:#f7fcf9}}
+.pw-card.hero{{border:2px solid #2563eb;box-shadow:0 24px 54px -20px rgba(37,99,235,.45)}}
+.pw-tag{{position:absolute;top:-12px;left:22px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;font-weight:600;letter-spacing:.1em;padding:5px 12px;border-radius:100px}}
+.pw-free-tag{{background:#17b26a;color:#fff}}
+.pw-soon{{background:#eef2f8;color:#7c8aa0;border:1px solid rgba(11,21,38,.07)}}
+.pw-best{{background:#2563eb;color:#fff}}
+.pw-amt{{font-size:38px;font-weight:800;letter-spacing:-.03em;color:#0b1526;margin-top:6px}}
+.pw-amt small{{font-size:13px;font-weight:500;color:#6b7a92;letter-spacing:0}}
+.pw-name{{margin-top:3px;font-size:14.5px;font-weight:700;color:#0b1526}}
+.pw-each{{margin-top:5px;font-size:13px;font-weight:600;color:#2563eb}}
+.pw-list{{display:flex;flex-direction:column;gap:10px;margin-top:18px;flex:1}}
+.pw-feat{{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;line-height:1.45;color:#243247}}
+.pw-ck{{flex:none;color:#2563eb;margin-top:1px;display:flex}}
+.pw-card.free .pw-ck{{color:#17b26a}}
+.pw-anchor{{margin-top:14px;font-size:12.5px;font-weight:600;color:#2563eb}}
+.pw-cta{{margin-top:18px;padding:13px;text-align:center;border-radius:100px;font-size:14.5px;font-weight:700;text-decoration:none;transition:transform .15s ease}}
+.pw-cta:hover{{transform:translateY(-1px)}}
+.pw-cta.dark{{background:#0b1526;color:#fff;border:1px solid #0b1526}}
+.pw-trust{{text-align:center;margin-top:34px;font-size:14px;color:#4b5a72}}
+.pw-stars{{color:#f59e0b;letter-spacing:2px;font-size:15px}}
+@media(max-width:900px){{.pw-grid{{grid-template-columns:repeat(2,1fr)}}}}
+@media(max-width:560px){{.pw-grid{{grid-template-columns:1fr}}.pw-inner{{padding:64px 20px}}.pw-h2{{font-size:31px}}}}
+</style>
+<div class="pw-inner">
+ <div class="pw-head">
+  <div class="pw-eyebrow">PRICING</div>
+  <h2 class="pw-h2">Get into every class you need.</h2>
+  <p class="pw-sub">Start free. Pay once per term if you need more — never a subscription. Less than a textbook to not lose a semester.</p>
+ </div>
+ <div class="pw-grid">
+  <div class="pw-card free">
+   <span class="pw-tag pw-free-tag">Start free</span>
+   <div class="pw-amt">$0</div>
+   <div class="pw-name">1 class · 2 sections</div>
+   <div class="pw-list">{feat("Instant phone alerts")}{feat("Real seats only — never fake")}{feat("No card to start")}</div>
+   <a href="/login" class="pw-cta dark">Start free</a>
+  </div>
+  <div class="pw-card">
+   {tag_soon}
+   <div class="pw-amt">$19.95 <small>one-time · per term</small></div>
+   <div class="pw-name">One class</div>
+   <div class="pw-list">{feat("<b>Every section</b> — not just 2")}{feat("Land your exact professor")}</div>
+   {cta(1, "Choose", False)}
+  </div>
+  <div class="pw-card">
+   {tag_soon}
+   <div class="pw-amt">$24.95 <small>one-time · per term</small></div>
+   <div class="pw-name">Two classes</div>
+   <div class="pw-list">{feat("Two classes, all sections")}{feat("Upgrade later — pay only the $5")}</div>
+   {cta(2, "Choose", False)}
+  </div>
+  <div class="pw-card hero">
+   <span class="pw-tag pw-best">Best value{"" if not soon else " · soon"}</span>
+   <div class="pw-amt">$29.95 <small>one-time · per term</small></div>
+   <div class="pw-name">Whole semester</div>
+   <div class="pw-each">up to 5 classes · about $6 each</div>
+   <div class="pw-list">{feat("Every section of every class")}{feat("Your whole schedule, covered")}</div>
+   <div class="pw-anchor">Just $5 more than two classes.</div>
+   {cta(3, "Cover my whole schedule", True)}
+  </div>
+ </div>
+ <div class="pw-trust"><span class="pw-stars">★★★★★</span> &nbsp;"Saved my semester." — real students. You only pay if your free class isn't enough.</div>
+</div>
+</section>"""
+
+
 def landing_page():
     """The redesigned marketing landing page (logged-out home). Fills the live
     school count; all CTAs route to /login (Google sign-in)."""
-    return LANDING.replace("__COUNT__", str(len(schools.SCHOOLS)))
+    return LANDING.replace("__COUNT__", str(len(schools.SCHOOLS))).replace("__PRICING__", pricing_section())
 
 def page(body):
     return PAGE.replace("__BODY__", body)
@@ -1565,7 +1581,7 @@ def form_page(notice="", user=None):
                 .replace("__CSRF__", tok)
                 .replace("__WATCHES__", watches_html(user["id"], tok))
                 .replace("__SCHOOLS__", SCHOOLS_JS))
-    return page(FORM.replace("__CARD__", card))
+    return page(FORM.replace("__CARD__", card).replace("__PRICING__", pricing_section()))
 
 
 def alert_intro(user):
