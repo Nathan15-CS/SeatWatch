@@ -758,7 +758,7 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
  .step .chip{margin:0;flex:none}
  .step b{display:block;font-size:15px;margin-bottom:3px;color:var(--navy);font-weight:700}
  .step span{font-size:13.5px;color:var(--mut);line-height:1.55}
- .prices{display:grid;gap:14px;grid-template-columns:1fr 1fr}
+ .prices{display:grid;gap:14px;grid-template-columns:repeat(4,1fr);max-width:1040px;margin:0 auto}
  .price{position:relative;background:#fff;border:1px solid var(--line);border-radius:20px;padding:24px;box-shadow:0 1px 3px rgba(15,23,42,.05);transition:transform .22s var(--spring),box-shadow .22s var(--ease)}
  .price:hover{transform:translateY(-4px);box-shadow:0 22px 46px rgba(15,23,42,.12)}
  .price.free{border:1.5px solid var(--green);box-shadow:0 10px 34px rgba(16,185,129,.16)}
@@ -866,19 +866,33 @@ __CARD__
  <h2>Simple, fair pricing</h2>
  <p class="lede2">Start free. Upgrade only if you need more.</p>
  <div class="prices">
-  <div class="price free"><span class="tag">Start free</span><p class="amt">$0 <small>first class</small></p>
+  <div class="price free"><span class="tag">Start free</span><p class="amt">$0</p>
+   <p style="font-weight:700;font-size:14px;margin:-6px 0 12px;color:var(--navy)">1 class · 2 sections</p>
    <ul class="feat">
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Your first class — completely free</li>
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Instant phone alerts</li>
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Never fake — real seats only</li>
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>No card required</li>
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Instant phone alerts</span></li>
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Never fake — real seats only</span></li>
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>No card required</span></li>
    </ul>
   </div>
-  <div class="price"><span class="tag soon">Coming soon</span><p class="amt">$19.95<small>+ one-time, per term</small></p>
+  <div class="price"><span class="tag soon">Coming soon</span><p class="amt">$19.95 <small>term</small></p>
+   <p style="font-weight:700;font-size:14px;margin:-6px 0 12px;color:var(--navy)">1 course · all sections</p>
    <ul class="feat">
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><b>Every section</b> of your course — not just 2</li>
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Up to <b>5 classes</b> ($24.95 for 2, $29.95 for a whole semester)</li>
-    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>No subscription — pay once for the term</li>
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span><b>Every section</b> — not just 2</span></li>
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>One-time, no subscription</span></li>
+   </ul>
+  </div>
+  <div class="price"><span class="tag soon">Coming soon</span><p class="amt">$24.95 <small>term</small></p>
+   <p style="font-weight:700;font-size:14px;margin:-6px 0 12px;color:var(--navy)">2 courses · all sections</p>
+   <ul class="feat">
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Watch two classes at once</span></li>
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Upgrade anytime — pay the difference</span></li>
+   </ul>
+  </div>
+  <div class="price"><span class="tag soon">Best value</span><p class="amt">$29.95 <small>term</small></p>
+   <p style="font-weight:700;font-size:14px;margin:-6px 0 12px;color:var(--navy)">Whole semester · up to 5</p>
+   <ul class="feat">
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Every section of every course</span></li>
+    <li><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg><span>Your whole schedule, covered</span></li>
    </ul>
   </div>
  </div>
