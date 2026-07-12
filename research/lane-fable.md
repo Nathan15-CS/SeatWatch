@@ -144,3 +144,5 @@ lesson learned). Colleague/newer-Colleague hits = flag for Codex (its lane). Thi
 "mined out" was only ever true for universities; the CCs/small-colleges were never touched.
 
 ## Otis BUILT July 11 — 659 (commit 016a5b9). Builder queue: (1) listcrse re-gate my 5 batch-23 cuts [Missouri State ~24k + Toledo ~20k prizes], (2) Berkeley reserved-seat [~45k], (3) Fairfield+SDCCD cache. Deploy pending (site at 655, commits thru 659 ready). Continuing: sector 5/7 (private-np-2yr + public-<2yr technical colleges) I filtered out earlier.
+
+## CT-log vein status July 11: PROVEN but rate-limited. State College of FL (~10k) found+sent (batch 25) on non-guessable host banner.banprod.scf.edu. certspotter free = ~10/hr (429 after first batch). Method: drip ~10 high-value never-swept publics/hr; ~219 never-swept public 4yr+CC still to CT-log (ctlog_tgt.json). crt.sh still 502. A certspotter API key would unblock a full sweep. Batch-23 resurrection: all 5 shipped (664). Day 648->664 (+ SCF pending = 665).

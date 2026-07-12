@@ -748,7 +748,7 @@ schools aren't on guessable Banner hosts). So handing the full pool to Codex to 
 crt.sh still 502, but certspotter API works. CT-logging the never-swept PUBLIC colleges reveals Banner
 registration hosts that host-guessing structurally CANNOT find. First pass (10 targets) → 1 clean win:
 
-✅ STATE COLLEGE OF FLORIDA-Manatee-Sarasota (~10k) — GATED CLEAN, AWAITING GO-AHEAD. Existing Banner
+✅ STATE COLLEGE OF FLORIDA-Manatee-Sarasota (~10k) — Batch 25 SENT July 11. Existing Banner
 adapter, ~3-line add. ⚠️ HOST IS NON-GUESSABLE: banner.banprod.scf.edu (StudentRegistrationSsb at root)
 — found ONLY via CT-log. term 202710 (Fall 2026), example "ENC 1101" (43 sections; Florida uses ENC for
 English Composition, not ENGL). GATED THROUGH PRODUCTION Banner: Fall 2026 ENC 0022 = 5 sec 5 open real
