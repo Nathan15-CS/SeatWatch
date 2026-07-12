@@ -21,6 +21,18 @@ Nathan's go, relay to Builder (session local_475a2545) as "Batch N" → mark SEN
   each needs a bespoke build; honest leads only): Fairfield (bench), SDCCD×3 City/Mesa/Miramar (bench),
   **RCCD×3 Moreno Valley/Norco/Riverside City (NET-NEW to Builder)** — SharePoint API, Codex source-gated.
 
+## ✅ College Scheduler vein BUILT (Batch 28) — 668→671, ~133k students on one adapter
+Ivy Tech + UT Arlington + Univ of Alaska (shipped as one system-wide entry; CRNs unique across campuses).
+⚑⚑ **MY GATE MISSED A PAGINATION TRAP (Builder caught + fixed) — adopt for all future CS gating:**
+`getCourseSections` PAGINATES at 60/page. I reported Ivy Tech BIOL 101 = 40 sections; it's really **71**.
+My gate used `first:30/first:60` and reported the truncated count as complete — a SILENT-MISS risk (watched
+sections invisible = a missed alert, the mirror of a false alert). **FIX: always follow Relay
+pageInfo/endCursor to hasNextPage=false before counting/trusting sections; skip any course still truncated
+at the cap (accuracy over coverage).** The vein CONCLUSION was still right (real full rows, gate PASS), but
+the section COUNT was undercounted. Builder's adapter pages fully + skips >360-section courses. Also: term
+auto-pick must handle BOTH label orders ("Fall 2026" Ivy Tech vs "2026 Fall" UTA) — Builder's parser covers
+year-first. Any future public-search CS school = ~3-line add.
+
 ## ★ CREATIVE-HUNT WIN (July 12) — College Scheduler / Civitas public GraphQL vein
 Chased "biggest missing mega-schools" → found the system many of them use: **College Scheduler
 (Civitas)** runs a PUBLIC no-auth GraphQL API (`api.collegescheduler.com/graphql`) with clean numeric
