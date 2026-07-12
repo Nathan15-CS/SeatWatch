@@ -4,6 +4,17 @@
 Single relay point to Builder is unchanged: gated finds → README under `AWAITING GO-AHEAD` → on
 Nathan's go, relay to Builder (session local_475a2545) as "Batch N" → mark SENT.
 
+## RELAY — Batch 26 SENT + "the three" maintenance (July 11, evening)
+- **Worcester State University (MA) → Batch 26 SENT to Builder** (Nathan-approved). Re-gated LIVE through
+  production `NewColleague`: EN 101 = 33 sec (7 open/26 full), 39 sec total / 30 live full = disproof.
+  Reproduces Codex's spec to the section. Fits existing adapter (host `selfservice.worcester.edu`, subj `EN`).
+- **WSSU (Winston-Salem State, NC) → GATED, AWAITING GO-AHEAD.** Re-gated LIVE through production
+  `ListcrseBanner8` (sibling of shipped NCCU, same UNC-ECS host): BIO 1113 live 2 open/4 full + completed
+  202620 3 open/2 full — both disproofs hold. ~18.7k, 4-year. READY, awaiting Nathan's go.
+- **Shorter College (AR) → HELD, NOT ship-ready.** Production `NewColleague` re-gate FAILS the fake-open
+  disproof (1 live open section, no full rows; completed term not adapter-queryable). Tiny 2-yr HBCU.
+  Handed back to Codex's lane. Do NOT relay until a live full row exists.
+
 ## NOW (July 11, evening) — CT-log vein, corrected sweep in progress
 - **Running the CT-log sweep over the 229 never-swept public-college domains** (`ctlog_targets_remaining.json`).
   Method: crt.sh (recovered — HTTP 200 again, **unlimited**, replaces rate-limited certspotter) →
