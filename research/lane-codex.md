@@ -239,6 +239,16 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   CRN, require primary `Remaining > 0`, ignore waitlist/cross-list remaining, and preserve
   restriction/prerequisite text. Net-new public four-year lead; classic `bwckschd` is not the
   tested JSON Banner path, so no production adapter or handoff.
+- **July 12, 2026 — University of Nebraska Omaha public Class Search pass.** Official
+  `https://www.unomaha.edu/registrar/students/before-you-enroll/class-search/` exposes exact
+  term/subject query parameters and public result pages. Fall 2026 (`term=1268`) has explicit
+  mixed sections: HIST 8030 section 001/class `11821` is Open at 16/18/2; HIST 8010 class `11607`
+  is Closed at 0/0/0; HIST 8916 class `14370` is Closed at 5/5/0. Completed Spring 2026
+  (`term=1261`) independently mixes CMST 1110 class `16231` Open at 6/20/14 with BLST 3410 class
+  `12500` Closed at 10/10/0 and HIST 4910 class `19413` Closed at 2/2/0. Future adapter must key
+  exact term+subject+catalog+section/class number, require explicit Open and positive Seats
+  Available, and preserve notes/prerequisites/cross-listings/modality. Net-new public four-year
+  lead; no production adapter or handoff.
 - **July 11, 2026 — North Central University recheck closed.** Its public newer-Colleague catalog
   exposed future terms, but exact section-bearing `ENG 496`, `MATH 115`, `MATH 110`, and `PSYC 258`
   samples returned only status-0 positive-seat rows across Summer/Fall 2026, with no full/non-open

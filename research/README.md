@@ -435,6 +435,18 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   number + CRN/section keys, require primary `Remaining > 0`, ignore waitlist/cross-list remaining,
   and retain restrictions/prerequisites. Net-new public four-year candidate; classic `bwckschd` is
   not the tested JSON Banner path, so no production adapter or handoff exists.
+- **University of Nebraska Omaha (NE) — SOURCE-GATED, adapter needed (Codex, July 12 2026).**
+  Official [UNO Class Search](https://www.unomaha.edu/registrar/students/before-you-enroll/class-search/)
+  is a public query surface with exact term/subject parameters and no login. Fall 2026 (`term=1268`)
+  History results expose explicit section `Open`/`Closed`, stable Class Number, Enrolled, Class Max,
+  and Seats Available fields: HIST 8030 section 001/class `11821` is Open at 16/18/2, while HIST
+  8010 section 801/class `11607` is Closed at 0/0/0 and HIST 8916 section 001/class `14370` is
+  Closed at 5/5/0. Completed Spring 2026 (`term=1261`) is also mixed: CMST 1110 class `16231`
+  is Open at 6/20/14, while BLST 3410 class `12500` is Closed at 10/10/0 and HIST 4910 class
+  `19413` is Closed at 2/2/0. Use exact term + subject + catalog number + section/class number,
+  require explicit `Open` plus positive `Seats Available`, and preserve prerequisites, notes,
+  cross-listings, and modality. This is a net-new public four-year candidate; no SeatWatch
+  production adapter exists and no handoff is authorized.
 - **North Central University (MN) — CLOSED FOR THIS PASS, no handoff.** Its public newer-Colleague
   catalog (`https://selfservice.northcentral.edu/Student/Courses`) exposes future `2026FL` and later
   terms, but exact section-bearing courses (`ENG 496`, `MATH 115`, `MATH 110`, `PSYC 258`) returned
