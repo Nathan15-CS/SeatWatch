@@ -1801,6 +1801,18 @@ class WSSU(ListcrseBanner8):
     example = "BIO 1113"; term = "202680"      # Fall 2026 HERE (per-host codes; labels win)
     base = "https://ssbprod-wssu.uncecs.edu/pls/WSSUPROD"
 
+class MTSU(ListcrseBanner8):
+    # ENGL 1010 is 147 sections -> ~42s cold N+1 build, then 10-min cache (0ms warm);
+    # in line with the accepted TAMU/Purdue cache-backed pattern, lock-guarded.
+    id = "mtsu"; name = "Middle Tennessee State University"
+    example = "ENGL 1010"; term = "202680"     # Fall 2026 (completed Spring = 202610)
+    base = "https://ssb.mtsu.edu/pls/PROD"
+
+class Framingham(ListcrseBanner8):
+    id = "framingham"; name = "Framingham State University"
+    example = "PSYC 101"; term = "202690"      # Fall 2026 HERE (per-host codes differ)
+    base = "https://selfservice.framingham.edu/PROD"
+
 # --- batch-23 cuts RESURRECTED on the listcrse route (their guest search form answers
 # 'No classes were found' for everything; the catalog route serves the same sections).
 class MissouriState(ListcrseBanner8):
@@ -6407,7 +6419,7 @@ def _guard_registry(all_schools):
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
-    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(),
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(),
     IvyTech(), UTArlington(), UAlaska()])
 
 
