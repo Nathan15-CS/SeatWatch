@@ -379,3 +379,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - Both are explicitly source-level partials: CVC is a cross-college exchange and needs direct-college
   freshness/scope validation before any adapter or handoff. Exact term+college+course+CRN keys and
   stale/Already Started caveats are documented. No `schools.py` edit and no builder message.
+
+## July 12 Batch 15 checkpoint
+- Batch 15 appended to `research/README.md`: Clarkson University is a new PeopleSoft source lead,
+  but direct guest access currently redirects to login and Spring 2026 was not reproduced.
+- A direct CVC quality audit found contradictory “full” labels beside positive `Live Seat Count`
+  values for Rio Hondo, Laney, Ohlone, College of the Siskiyous, and Santa Ana. The three newly
+  checked CVC colleges were rejected rather than promoted; Batch 14 remains explicitly partial until
+  direct-college reconciliation exists. No `schools.py` edit and no builder message.

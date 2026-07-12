@@ -1272,3 +1272,28 @@ leads only until a direct college schedule or a formally validated CVC adapter s
 **Batch status:** both CVC entries have current-plus-completed numeric examples but remain deliberately
 source-level partials because CVC is an exchange surface and its freshness/college-scope contract needs
 to be validated. No production adapter, `schools.py` edit, or builder handoff was made.
+
+### Batch 15 — reproducibility and status-quality audit (Codex, July 12 2026)
+
+1. **Clarkson University (NY) — SOURCE-LEVEL PARTIAL, AWAITING FOLLOW-UP.** A public PeopleSoft
+   enrollment table is indexed at `https://mycu-g.clarkson.edu/psc/guest/EMPLOYEE/SA/c/CU_SELF_SERVICE.CU_SR_CLSS_ENR.GBL`.
+   The Fall 2026 snapshot advertises 1,736 rows and explicit `Capacity`, `Section Enrolled`, `Total
+   Enrolled`, `Available Seats`, waitlist, class number, subject/catalog/section, dates, and meeting
+   fields; examples include AC 202 class 8846 (50/37/13), COMM 217 class 8505 (20/19/1), and CS 141
+   class 8331 (48/13/35). Direct guest fetch currently redirects to a PeopleSoft login/cookie gate,
+   and a completed Spring 2026 table was not reproduced in this pass. Keep as a lead only: a follow-up
+   must establish a stable guest session, capture both term selectors, and prove row freshness before
+   any adapter or handoff.
+2. **CVC Exchange contradiction audit — do not promote additional colleges yet.** Direct inspection
+   of the Rio Hondo (`https://search.cvc.edu/courses/687657`), Laney (`https://search.cvc.edu/courses/1031669`),
+   Ohlone (`https://search.cvc.edu/courses/15188594`), College of the Siskiyous
+   (`https://search.cvc.edu/courses/1078969`), and Santa Ana (`https://search.cvc.edu/courses/1839541`)
+   pages found positive `Live Seat Count` values alongside contradictory text such as “Sorry, this
+   section is full. Open.” Because the numeric count and status label disagree, CVC `Live Seat Count`
+   cannot be treated as a production open/closed signal by itself. Batch 14 remains source-level only;
+   any future CVC candidate needs direct-college reconciliation or an independently verified status
+   contract. The contradictory Ohlone, Siskiyous, and Santa Ana pages were intentionally rejected rather
+   than added as candidates.
+
+**Batch status:** Clarkson is a reproducibility-blocked source lead. The CVC audit is a deliberate
+quality hold, not a handoff. No production adapter, `schools.py` edit, or builder handoff was made.
