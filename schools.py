@@ -5371,6 +5371,10 @@ class WalshCollege(NewColleague):          # ≠ Walsh University (id 'walsh', a
     id = "walshcollege"; name = "Walsh College"
     example = "ACC 316"; host = "selfservice.walshcollege.edu"
 
+class WorcesterState(NewColleague):        # ≠ Worcester Polytechnic; subject EN not ENGL
+    id = "worcesterstate"; name = "Worcester State University"
+    example = "EN 101"; host = "selfservice.worcester.edu"
+
 
 class Mercer(Colleague):
     id = "mercer"; name = "Mercer University"
@@ -6238,7 +6242,7 @@ def _guard_registry(all_schools):
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
-    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF()])
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState()])
 
 
 def refresh_all_terms(log=None):
