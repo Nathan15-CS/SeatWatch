@@ -669,3 +669,25 @@ GOOD CATCH by Builder worth noting: Purdue held _cache/_lock as CLASS-level stat
 with no school id — subclassing for multiple schools would cross-serve one school's seats for another
 when term+subj+num coincide (Toledo/SFA/Purdue all 202710). Builder moved it per-instance before adding
 anyone. Real latent false-data bug, caught by gating through production. Net today: 648->655 real.
+
+### NEVER-SWEPT IPEDS breakthrough (Fable, July 11 2026) — Otis GATED, + Colleague leads for Codex
+Root realization: every prior sweep used the Hipo "universities" dataset (2348). Pulled the FULL IPEDS
+directory (Urban Institute API, free) = 6,256 US institutions; 1,197 degree-granting NEVER swept (mostly
+small private 4-yr on Colleague + public CCs). Swept Banner+Colleague, 2 host-pattern passes.
+
+✅ OTIS COLLEGE OF ART AND DESIGN (LA, ~1.1k) — GATED CLEAN, AWAITING GO-AHEAD. Existing Banner adapter,
+4-line add: host="ssb1.otis.edu", term 202630 (Fall 2026), example "ENGL 108". GATED THROUGH THE
+PRODUCTION Banner adapter (not a probe — Banner-8 lesson applied): Fall 2026 ENGL 108 = 12 sections, 8
+open/4 full, real integer seats [7,4,2,0,11,1]. COMPLETED-TERM TEST PASSED (Fall 2025 View-Only ENGL
+108 = 11 sec, 8 open/3 full — real full sections). Dedup clean. Small but real. Art subjects use codes
+ANIM/DRWG/FINA/FSHD etc.; ENGL/ENTR standard.
+
+COLLEAGUE LEADS FOR CODEX (never-swept, Colleague = Codex's lane — pick up + gate through production):
+- Worcester State University (MA public 4-yr ~5-6k) — selfservice.worcester.edu — looks genuinely NEW, most promising.
+- Colorado Mountain College — selfservice.coloradomtn.edu — was HOLD (fall not loaded); RE-CHECK now.
+- American Samoa CC — amsamoa-ss.colleague.elluciancloud.com — was HOLD; re-check.
+- Northcentral University — selfservice.northcentral.edu — verify (likely online/rolling terms).
+SKIP: South Texas College (registration.southtexascollege.edu) — term 520271 returns EMPTY subjects =
+same odd-CE-terms wash-out it was cut for. Bryant&Stratton (reg-prod.ec) = still all-View-Only (perm cut).
+VEIN STATUS: never-swept pool (1197) has more to mine — only 2 host-pattern passes done; also ~2600
+non-degree institutions filtered out. This is genuinely fresh ground the "mined out" claim never covered.
