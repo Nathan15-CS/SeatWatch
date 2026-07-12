@@ -364,6 +364,12 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   endpoint answered successfully but returned `total=0` and an empty detail payload for both a broad
   query and an ENGL query; the rendered page exposes no usable semester options or live capacity/
   enrollment fields. Treat this as an unavailable current feed, not an empty schedule; do not hand off.
+- **Columbia University (NY) — STATUS BLOCKED, no handoff.** Columbia’s official [Open Data Service]
+  (https://opendataservice.columbia.edu/doc) documents a course JSON feed with `NumEnrolled`,
+  `MaxSize`, and `EnrollmentStatus` (`O`/`C`). However, the documented live endpoint
+  `https://academic.cuit.columbia.edu/opendataservice/doc/json` currently redirects to Columbia CAS
+  authentication, and the documentation host is Cloudflare-challenged from this environment. No live
+  rows were accepted; revisit only if the feed becomes publicly reachable again.
 - **Ventura County Community College District (CA) — deferred triage, no handoff.** Its official
   `https://schedule.vcccd.edu/` page is a server-rendered Banner-style HTML schedule (Summer 2026
   only in this pass; current Fall/Spring term URLs returned zero rows). The Summer response is very

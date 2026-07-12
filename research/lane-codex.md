@@ -207,6 +207,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   `https://courses.northwoodtech.edu/` posts to `/Search/CourseSearch`, but broad and ENGL queries
   returned success with `total=0` and empty detail; no usable semester options or live seat fields
   were exposed. Unavailable current feed; no proposal.
+- **July 11, 2026 — Columbia University Open Data Service pass closed.** Official documentation
+  describes `NumEnrolled`, `MaxSize`, and `EnrollmentStatus` (`O`/`C`), but the documented JSON URL
+  now redirects to Columbia CAS authentication and the docs host is Cloudflare-challenged here. No
+  live rows accepted; no proposal.
 - **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -
