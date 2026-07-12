@@ -5681,6 +5681,12 @@ class Otis(Banner):
     id = "otis"; name = "Otis College of Art and Design"
     example = "ENGL 108"; host = "ssb1.otis.edu"; term = "202630"
 
+class SCF(Banner):
+    # CT-log discovery: non-guessable host no pattern sweep could hit. Florida
+    # English = ENC. Live gate: ENC 1101 = 82 sec with 58 Act==Cap FULL rows.
+    id = "scf"; name = "State College of Florida, Manatee-Sarasota"
+    example = "ENC 1101"; host = "banner.banprod.scf.edu"; term = "202710"
+
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
 # TESTING artifact from aggressive concurrent probing — under gentle production polling
@@ -6232,7 +6238,7 @@ def _guard_registry(all_schools):
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
-    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley()])
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF()])
 
 
 def refresh_all_terms(log=None):
