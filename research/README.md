@@ -15,6 +15,12 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Winston-Salem State University — ✅ BUILT July 12 (batch 27): 667->668
+ListcrseBanner8 on NCCU's UNC-ECS sibling host. Re-gated live: Fall BIO 1113 = 6 CRNs 2 open/4 FULL;
+completed Spring 202620 = 5 CRNs 3/2 — both disproofs hold, Grabber's numbers reproduced exactly.
+2.2s. RCCD×3 added to Builder's held-adapter bench (bespoke SharePoint API) alongside Fairfield +
+SDCCD×3. Deploy pending Nathan (covers 656-668).
+
 ### Worcester State University — ✅ BUILT July 12 (batch 26): 666->667
 Plain NewColleague subclass (EN not ENGL; != WPI). Re-gated live: 39 sections across EN/BI/PY 101,
 9 open/30 FULL, zero open-with-no-seat; family disproof satisfied (30 live full rows, non-0 status).
