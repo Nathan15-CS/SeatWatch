@@ -15,6 +15,17 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Batch-23 cuts RESURRECTED — ✅ BUILT July 11: all 5 shipped on ListcrseBanner8, 659->664 (commit 9751801)
+Missouri State (~24k, 81 CRNs 49/32, 14s cold), Toledo (~20k, 31 CRNs 19/12, 9s — its 202710 =
+SPRING 2027, pinned/detected 202640), Stephen F. Austin (58 CRNs 46/12, 18s — 202710 IS Fall 2026
+there; per-host code semantics differ, labels win), Alabama A&M (61 CRNs 3 open/58 full, 15s),
+Utica (3 CRNs 1/2, 1s). All re-gated through registered production adapters; warm fetches 0ms
+(per-instance cache verified before adding 5 instances). Completed-term evidence per school in the
+commit; NEW LESSON at Utica: completed terms on numeric-ENROLLMENT sources show end-of-semester
+melt (can be all-open legitimately) — the fake-open disproof there is live-term Act==Cap full rows,
+which can't be fabricated. South Texas College re-checked: dead as cut (Banner-9 host, no listcrse
+route, empty subjects stand). Deploy pending Nathan (covers 656-664).
+
 ### Otis College of Art and Design — ✅ BUILT July 11 (batch 24): 658->659 (commit 016a5b9)
 Plain Banner-9 subclass. Re-gated live through the registered production adapter: Fall 2026 ENGL 108
 = 12 sec 8 open/4 full, real integer seats; completed-term reproduced through production (Fall 2025 =
