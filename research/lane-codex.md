@@ -171,8 +171,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   full) and five Spring sections (3 positive: 1, 2, 11; two full); `Remaining == Capacity - Actual`
   held on all sampled detail rows. A future adapter must use exact term + subject + course +
   sequence/CRN and require `Remaining > 0`, preserving restriction/waitlist notes. Net-new public
-  four-year candidate; official Fall 2025 student data reports 4,972 total students. Source-gated
-  pending a production Listcrse/Banner adapter; no handoff or code changes.
+  four-year candidate; official Fall 2025 student data reports 4,972 total students. The existing
+  production `ListcrseBanner8` path was tested dynamically: exact `BIO 1113` returned 6 sections in
+  2.48s, with 2 open/4 full and identical Remaining values. Production-compatible, but still no
+  handoff or code changes.
 - **July 11, 2026 — Worcester State University public newer-Colleague pass.** Official public catalog
   is `https://selfservice.worcester.edu/Student/Courses`; `SearchAsync` + `SectionsAsync` use the
   JSON-string search contract. Subject code is `EN` (not `ENGL`), and Fall 2026 is `2026FA` /
