@@ -1127,3 +1127,84 @@ source-gated.
 seat table plus a linked Fall table, while Bentley, Catawba Valley CC, Albany, and IIT remain explicit
 source-surface/partial leads awaiting a browser, JSON, or missing-term capture. No `schools.py` edit,
 production adapter, or builder handoff was made.
+
+### Batch 12 — new public seat sources (AWAITING GO-AHEAD; Codex, July 12 2026)
+
+These are net-new against `schools.py` and the prior research archive. Five are direct numeric
+current-plus-completed-term sources that clear the research gate; Nicholls is intentionally retained as
+a source-level partial because the current Fall PDF was linked but not parsed in this pass. All remain
+research-only: no adapter, `schools.py` edit, or builder handoff was made.
+
+1. **University of Oregon (OR) — GATED, AWAITING GO-AHEAD.** Official DuckWeb detail pages expose
+   exact `term` + CRN rows at `https://duckweb.uoregon.edu/duckweb/hwskdhnt.p_viewdetl?crn=15278&term=202601`
+   (Fall 2026 STAT 243Z, Avail 52/Max 322) and
+   `https://duckweb.uoregon.edu/duckweb/hwskdhnt.p_viewdetl?crn=36117&term=202503`
+   (completed Spring 2026 UGST 101, Avail 29/Max 30); other tested rows include current MATH 281
+   (7/30) and completed PPPM/CLAS sections with both open and full values. The page labels the term
+   and publishes `CRN`, `Avail`, and `Max`; Spring explicitly says registration is over, so the
+   historical mixed values are a completed-term test. Gate exact term+CRN (and subject/course when
+   selecting the row), use `Avail > 0`, and preserve `!`, `U`, `A`, discussion/lab relationships and
+   any restriction text. Direct detail URLs are required; do not infer seats from a catalog/search shell.
+   This supersedes the older archive note that DuckWeb had not yet been tested; the current detail route
+   is live and numeric.
+2. **University of the Virgin Islands (USVI) — GATED, AWAITING GO-AHEAD.** Official public schedule
+   tables are split by campus but belong to one institution: St Thomas/St John
+   `https://schedclass.uvi.edu/stxschedule.aspx?term=202608` (Fall 2026) and St Croix
+   `https://schedclass.uvi.edu/sttschedule.aspx?term=202608`; St Martin is exposed at
+   `https://schedclass.uvi.edu/sxmschedule.aspx?term=202601` for completed Spring 2026. Rows publish
+   `CRN`, `MAX`, `ENROLL`, `AVAIL`, wait fields, and `STATUS`. Fall examples include ACC 201 CRNs
+   82901 (20/2/18), 82902 (20/9/11), BIO 141A CRN 82594 (16/16/0), and NUR 318C CRN 82441 (8/8/0);
+   Spring examples include EDU 250 CRN 15389 (20/3/17), EDU 302 CRN 15390 (20/18/2), and EDU 354
+   CRN 15392 (20/21/-1). `STATUS` is `ACTIVE` even for full rows, so it is not an open-seat signal;
+   gate exact campus term+CRN and primary `AVAIL > 0`, treating zero/negative availability as closed
+   and ignoring waitlist capacity for seat alerts. Do not create separate schools for the campuses.
+3. **Cal Poly Humboldt / California State Polytechnic University, Humboldt (CA) — GATED, AWAITING
+   GO-AHEAD.** Official Registrar schedule landing page: `https://www.humboldt.edu/registrar/register/class-schedule`.
+   Its linked reports are current Fall (`https://pine.humboldt.edu/anstud/cgi-bin/filt_schd.pl?relevant=sched_ind_Fall.out`)
+   and completed Spring (`https://pine.humboldt.edu/anstud/cgi-bin/filt_schd.pl?relevant=sched_ind_Spring.out`),
+   with subject reports such as `https://pine.humboldt.edu/anstud/cgi-bin/filter.pl?relevant=.%2Fcschd%2FschedFallART.out`.
+   Tables publish `Class`, `Sect`, `CN#`, `Cap`, `Enr`, `Rsrvd`, `Avail`, and wait columns. Fall ART
+   rows include CN 41185 (45/40/5), CN 41186 (45/26/19), and full CN 41187 (24/24/0); Spring rows
+   include CN 21115 (45/43/2), CN 21116 (24/18/6), and a negative-availability cross-list row.
+   Reports are updated once daily and explain that `Avail` is seats open to all students and can be
+   reduced by cross-listed enrollment. Gate exact term+subject+CN#/section and `Avail > 0`; preserve
+   reserved, cross-list, and note fields. These are daily snapshots, not real-time feeds.
+4. **Lawrence University (WI) — GATED, AWAITING GO-AHEAD.** Official schedule entry point:
+   `https://www.lawrence.edu/offices/registrar/class-schedule-and-course-catalog`. Public Banner
+   summary routes such as `https://bannerweb.lawrence.edu/pls/voyager/zwglolib.call_class_schd_from_web_p?p_attr_code=G046&p_attr_code=N011&p_subj_code=%25`
+   expose exact CRNs and `L:<limit> R:<registered> W:<waitlist>` values; Fall 2026 CHJA 202 CRNs 5197/5198
+   are 10/3/0 and 10/2/0, while CHJA 212 CRNs 5200/5201 are 10/2/0 and 10/0/0. Direct Banner detail
+   pages also publish numeric enrollment/seat fields, e.g. Fall 2026 BIOL 130 CRN 5278
+   (`https://bannerweb.lawrence.edu/pls/voyager/bwckschd.p_lu_call_unsec?crn_in=5278&crse_numb_in=130&last_term_in=202650&ptrm_in=1&seq_numb_in=A&subj_code_in=BIOL&term_in=202650`)
+   has 16 seats remaining from a 24-seat limit. Completed Spring 2026 (`202630`) detail rows are
+   available through the same route and are explicitly past-registration. Gate exact term+subject+
+   course+CRN/sequence, use primary seats remaining (`L-R` or detail available seats), ignore waitlist
+   capacity, and preserve cross-list/restriction notes.
+5. **Concordia University Chicago (IL) — GATED, AWAITING GO-AHEAD.** Official timestamped PDFs:
+   current Fall 2026 `https://webserv.cuchicago.edu/files/forms-repository/registrar/academic-schedules/Fall_UG_Schedule.pdf`
+   and completed Spring 2026 `https://webserv.cuchicago.edu/files/forms-repository/registrar/academic-schedules/Spring_UG_Schedule.pdf`.
+   The header defines `Seats=Available Seats/Enrollment Cap`; Fall examples include BIO-1201 CRNs
+   15736/15737/15738/15739 at 1/18, 3/18, 0/18, and 11/18, and BUS-1001 CRNs 16112/16113 at 23/25 and
+   25/25. Spring examples include COM-1100 CRNs 13136/13137/13138 at 2/25, 0/25, and 13/25, plus
+   COM-2200 CRN 13143 at 1/25 and a negative-availability CRJ row. Gate exact term+course+section+CRN;
+   use the first number in `Seats` as the primary availability, treating zero/negative as closed, and
+   preserve `F`/`R`/`P` flags (fee/reserve/prerequisite), modality, and part-of-term. PDFs are dated
+   snapshots (Fall file last updated 05/18/2026; Spring 04/08/2026), not real-time.
+6. **Nicholls State University (LA) — SOURCE-LEVEL PARTIAL, AWAITING FOLLOW-UP.** Official registrar
+   page `https://www.nicholls.edu/register/2026-fall-semester/` links the current Fall 2026 schedule
+   PDF (`https://www.nicholls.edu/register/wp-content/uploads/sites/81/2026/07/07-10-Fall-2026.pdf`)
+   and the web view. The same official archive exposes parsed Spring PDFs, including
+   `https://www.nicholls.edu/register/wp-content/uploads/sites/81/2026/02/02-06-Spring-2026.pdf` and
+   `https://www.nicholls.edu/register/wp-content/uploads/sites/81/2026/01/01-30-Spring-2026.pdf`.
+   Rows publish `Subject`, `Num`, `Sec`, `CRN`, `Max`, `Enr`, `Avail`, `Wl Max`, and `Wl Actual`, with
+   mixed completed-term values such as CULA 105 CRN 19454 (20/9/11), CULA 101 CRN 18586 (30/32/0),
+   PSYC 101 CRN 19407 (75/29/46), PSYC 210 CRN 18386 (20/19/1), and NURS 255 CRN 18215 (90/87/3).
+   The current Fall PDF is linked from the official page and dated 07/10, but its body was not parsed
+   in this pass; do not claim current Fall rows until a direct download/parse confirms the same schema.
+   Follow-up gate: exact term+subject+number+section+CRN and `Avail > 0`, with waitlist fields kept
+   separate from primary seats.
+
+**Batch status:** five candidates have direct current and completed-term numeric evidence and are
+marked `GATED, AWAITING GO-AHEAD`; Nicholls is a deliberately explicit source-level partial pending
+one PDF parse. Name/host dedup checks were clean for all six. No production adapter, `schools.py` edit,
+or builder handoff was made.

@@ -353,3 +353,14 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   source-surface/partial leads pending browser, JSON, or missing-term capture. This confidence split is
   intentional—no inferred seats and no production handoff.
 - Name/host dedup checks were clean for the ten names; no `schools.py` edit and no builder message.
+
+## July 12 Batch 12 checkpoint
+- Batch 12 appended to `research/README.md`: University of Oregon, University of the Virgin Islands,
+  Cal Poly Humboldt, Lawrence University, Concordia University Chicago, and Nicholls State University.
+- Oregon, UVI, Cal Poly Humboldt, Lawrence, and Concordia have direct current-plus-completed-term
+  numeric evidence and are marked `GATED, AWAITING GO-AHEAD`; Nicholls is explicitly source-level
+  partial because the current Fall PDF link was verified but not parsed in this pass (Spring PDFs are
+  numeric and mixed).
+- Exact term/course/section/CRN rules, snapshot freshness, reserved/cross-list/waitlist caveats, and
+  dedup notes are in the README. Research-only boundary remains in force: no `schools.py` edit and no
+  builder message.
