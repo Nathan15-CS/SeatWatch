@@ -194,6 +194,13 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   `status==0 AND Available>0 AND AreSeatCountsAvailable`, exact term+subject+course+section keys,
   and preserve restrictions/waitlist notes. Net-new private two-year HBCU; source-gated and not
   handed off.
+- **July 11, 2026 — Brazosport College Common Course Schedule pass (status blocked).** Official
+  `https://mybcnext.brazosport.edu/CMCPortal/Common/CourseSchedule.aspx` is publicly reachable and
+  exposes MAIN Campus plus Fall 2026 (`2026-27 Fall - 16 Week`, value `1207`), Keyword/Course fields,
+  and an explicit `Open & Closed` radio. Focused official-form submissions for `ENGL` + `ENGL 1301`,
+  `ENGL` + `1301`, and keyword-only `English` each returned the portal's explicit no-classes result.
+  No section rows or seat/status fields were available to validate, and the request contract was not
+  safely inferable. Treat as a search/feed availability block, not an empty schedule; no handoff.
 - **July 11, 2026 — North Central University recheck closed.** Its public newer-Colleague catalog
   exposed future terms, but exact section-bearing `ENG 496`, `MATH 115`, `MATH 110`, and `PSYC 258`
   samples returned only status-0 positive-seat rows across Summer/Fall 2026, with no full/non-open

@@ -377,6 +377,16 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   section scoping; preserve restrictions/waitlist notes. Shorter’s official [history page]
   (https://shortercollege.edu/about-us/shorter-college-history/) identifies it as a private,
   two-year HBCU in North Little Rock. No builder handoff or registry change.
+- **Brazosport College (TX) — STATUS BLOCKED, no handoff (Codex, July 11 2026).** Official public
+  Common Course Schedule is `https://mybcnext.brazosport.edu/CMCPortal/Common/CourseSchedule.aspx`.
+  The guest form exposes Brazosport MAIN Campus, Fall 2026 (`2026-27 Fall - 16 Week`, value `1207`),
+  a Keyword field, a Course field, and an explicit `Open & Closed` section filter. Three focused
+  browser submissions against the official form (Keyword `ENGL` + Course `ENGL 1301`; Keyword `ENGL`
+  + Course `1301`; Keyword `English` with Course blank) all returned the site's explicit “There are no
+  classes that meet your search criteria” result. No section rows, seat fields, status values, or
+  underlying request contract could be validated, so this is a search/feed availability block rather
+  than evidence that Brazosport has no courses. Revisit only after the portal exposes a working exact
+  course query or a documented public endpoint; do not hand off.
 - **North Central University (MN) — CLOSED FOR THIS PASS, no handoff.** Its public newer-Colleague
   catalog (`https://selfservice.northcentral.edu/Student/Courses`) exposes future `2026FL` and later
   terms, but exact section-bearing courses (`ENG 496`, `MATH 115`, `MATH 110`, `PSYC 258`) returned
