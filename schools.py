@@ -1827,6 +1827,151 @@ class Utica(ListcrseBanner8):
     base = "https://bannerweb.utica.edu/PROD"
 
 
+class Berkeley:
+    """UC Berkeley — official public class pages (classes.berkeley.edu, Drupal). A quoted
+    course search with the term facet returns the PRIMARY (enrollable) section pages;
+    results are fuzzy, so sections are scoped by the slug fragment
+    '-{subject-sans-spaces}-{number}-' (trailing dash: 1b can never match 1bl; spaced
+    subjects slugify by deletion, POL SCI -> polsci, live-verified). Each section page
+    embeds authoritative live enrollment JSON (ucb.enrollment.available.enrollmentStatus).
+
+    RESERVED SEATS are why a naive seats adapter would false-alert here: a section can be
+    'Open' with N seats where ALL N are cohort-reserved and unbookable by a general
+    student (live-verified: BIOLOGY 1A = status O, 21 open, all 21 reserved). Rule:
+    open = status 'O' AND (maxEnroll - enrolledCount - openReserved) > 0; seats = that
+    unreserved remainder. Closed rows carry status 'C' (verified live, incl. completed-
+    term rows with real mixed enrollment — not a fake-all-open source). Results cached
+    per (term, course), 10-min TTL, per instance (one search + one GET per section per
+    rebuild; alerts lag at most the TTL). Term facet auto-rolls from the search page's
+    own term labels, verify-before-adopt."""
+    id = "berkeley"; name = "University of California, Berkeley"
+    example = "BIOLOGY 1B"
+    term = "8588"                       # Fall 2026 facet id (auto-rolls)
+    _TTL = 600
+    _SITE = "https://classes.berkeley.edu"
+    _RE = re.compile(r"^([A-Za-z][A-Za-z& ]*?)\s+([A-Za-z]{0,2}\d{1,4}[A-Za-z]{0,3})$")
+    _JSON_RE = re.compile(r'data-drupal-selector="drupal-settings-json">(.*?)</script>', re.S)
+
+    def __init__(self):
+        self._lock = threading.Lock()
+        self._cache = {}                # (term, subj, num) -> (ts, {sec: {open, seats}})
+        self._active_term = None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        if not m:
+            return (None, None)
+        return (re.sub(r"\s+", " ", m.group(1).strip()).upper(), m.group(2).upper())
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        return self._SITE + "/"
+
+    def _get(self, url):
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        return urllib.request.urlopen(req, timeout=30).read().decode("utf-8", "replace")
+
+    def _search(self, term, subj, num):
+        q = urllib.parse.quote(f'"{subj} {num}"')
+        return self._get(f"{self._SITE}/search/class?f%5B0%5D=term%3A{term}&search={q}")
+
+    def resolve_term(self):
+        """Nearest upcoming Fall/Spring from the search page's own term-facet labels."""
+        try:
+            h = self._search(self.cur_term(), *self._norm(self.example))
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for tid, blob in re.findall(
+                    r'href="[^"]*f%5B1%5D=term%3A(\d+)[^"]*"[^>]*>(.{0,120}?)</a>', h, re.S):
+                m = re.search(r"(Spring|Fall)\s+(20\d\d)", blob)
+                if not m:
+                    continue
+                season, year = m.group(1).lower(), int(m.group(2))
+                delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+                if delta < 1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, tid
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self._build(new, *self._norm(self.example)))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def _build(self, term, subj, num):
+        try:
+            h = self._search(term, subj, num)
+        except Exception:
+            return {}
+        frag = "-" + subj.replace(" ", "").replace("&", "").lower() + "-" + num.lower() + "-"
+        slugs = [s for s in dict.fromkeys(re.findall(r'href="(/content/[^"]+)"', h))
+                 if frag in s]
+        secs = {}
+        for slug in slugs[:40]:                 # defensive cap; real courses sit far under
+            try:
+                m = self._JSON_RE.search(self._get(self._SITE + slug))
+                e = ((((json.loads(m.group(1)).get("ucb") or {}).get("enrollment") or {})
+                      .get("available") or {}).get("enrollmentStatus") or {})
+                cap = int(e.get("maxEnroll"))
+                enr = int(e.get("enrolledCount"))
+                orv = int(e.get("openReserved") or 0)
+            except Exception:
+                continue                        # missing/odd detail -> skip, never guess
+            code = ((e.get("status") or {}).get("code") or "")
+            key = slug.rstrip("/").rsplit("-", 3)[-3]   # ...-1b-001-lec-001 -> '001'
+            if key in secs:                     # collapse guard
+                continue
+            unres = cap - enr - orv             # seats a GENERAL student can actually take
+            secs[key] = {"open": code == "O" and unres > 0, "seats": max(unres, 0)}
+        if secs:
+            self._cache[(term, subj, num)] = (time.time(), secs)
+        return secs
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            key = (self.cur_term(), subj, num)
+            cached = self._cache.get(key)
+            if cached and time.time() - cached[0] < self._TTL:
+                out[course] = cached[1]
+                continue
+            blocking = cached is None
+            if not self._lock.acquire(blocking=blocking):
+                out[course] = cached[1] if cached else {"none": {"open": False, "seats": None}}
+                continue
+            try:
+                again = self._cache.get(key)
+                if again and time.time() - again[0] < self._TTL:
+                    secs = again[1]
+                else:
+                    secs = self._build(*key) or (again[1] if again else {})
+            finally:
+                self._lock.release()
+            out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+
 class UNCAsheville:
     """UNC Asheville — official public class-schedules JSON API (meteor.unca.edu). One
     GET per term returns EVERY section (~800 rows) with numeric enrollment and an
@@ -6087,7 +6232,7 @@ def _guard_registry(all_schools):
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
-    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica()])
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley()])
 
 
 def refresh_all_terms(log=None):
@@ -6095,7 +6240,9 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
-        if isinstance(s, (Banner, PeopleSoft, MinnState, UIUC, Fose, UCI, UCSC, UCSB, UCLA, SFSU, SacState, CSUN, IowaState, TAMU, Purdue, UtahU)):
+        # duck-typed: any adapter exposing refresh_term participates (they all follow
+        # verify-before-adopt), so new one-off adapters (Berkeley) self-maintain too.
+        if callable(getattr(s, "refresh_term", None)):
             try:
                 s.refresh_term(log)
             except Exception:
