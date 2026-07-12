@@ -15,6 +15,15 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### University of Oregon — ✅ BUILT July 12 (batch 12): 673->674
+Bespoke UOregon DuckWeb adapter. Grabber's silent-miss concern RESOLVED: the per-CRN detail route
+parses inconsistently, so seats are read from the LISTING's header-confirmed 'Avail' column (one POST
+per course, no N+1). open=Avail>0. Exact-scope via colspan course-title group cell. Gate: MATH 251Z
+12 sec 11/1, WR 121Z 18 real full rows, ENG 101 5 sec 2/3, ZERO seats=None anywhere; completed 202503
+7/1; term auto-rolls (resolves 202601). Oregon renames courses w/ 'Z' suffix (251->251Z). USVI +
+Lawrence still on bench (both bespoke, smaller). ⚑ COUNT-BUMP GOTCHA: app.py SVG path coords now contain
+'673'/'674' — blind replace_all corrupts them; use targeted count-string replacement (the assert caught it).
+
 ### Batch 29 (MTSU + Framingham) — ✅ BUILT July 12: 671->673
 Two Codex "adapter needed" leads that actually DROP INTO ListcrseBanner8 (catalog route, like
 WSSU/NCCU). Re-gated live: MTSU ENGL 1010 147 sec 84 open/63 FULL (~42s cold N+1 then 10-min cache,
