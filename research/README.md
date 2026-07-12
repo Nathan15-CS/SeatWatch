@@ -731,3 +731,4 @@ schools aren't on guessable Banner hosts). So handing the full pool to Codex to 
   promising), Colorado Mountain (re-check), American Samoa (re-check), Northcentral (verify) — but a
   full Colleague sweep of all 1,197 with your tooling will find more. This is genuinely fresh ground:
   938 of these are private-nonprofit 4-yr (the Colleague goldmine). Gate through production NewColleague.
+- Shorter College (AR, small HBCU 2yr) — selfservice.shortercollege.edu — Colleague, from sector-5/7 never-swept sweep. Add to Codex Colleague pile.
