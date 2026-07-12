@@ -72,6 +72,11 @@ APPLE_PRIVATE_PEM = os.environ.get("APPLE_PRIVATE_PEM", os.path.join(HERE, "appl
 APPLE_ENABLED = bool(APPLE_TEAM_ID and APPLE_CLIENT_ID and APPLE_KEY_ID
                      and _ec_ser and os.path.exists(APPLE_PRIVATE_PEM))
 
+# Operator stats endpoint (/admin/stats): AGGREGATES ONLY, never raw rows/PII. Off
+# until this key is set in the server env; wrong or missing key answers a plain 404,
+# indistinguishable from the route not existing.
+STATS_KEY = os.environ.get("SEATWATCH_STATS_KEY", "")
+
 # --- Android app (Trusted Web Activity). assetlinks.json is how Android verifies the
 # Play-Store app is allowed to own seatwatchapp.com links. The SHA-256 fingerprint(s)
 # come from the Play console AFTER the listing exists (Google re-signs the app), so
@@ -1363,6 +1368,28 @@ class Handler(BaseHTTPRequestHandler):
         if path == "/logout":
             return self._redirect("/", cookies=[
                 "sw_session=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"])
+        if path == "/admin/stats":
+            # operator-only usage aggregates (no PII). Rate-limit BEFORE the key compare
+            # blunts brute force; every failure path is the ordinary 404 page.
+            if (not rate_ok(self._client_ip()) or not STATS_KEY
+                    or not hmac.compare_digest(qs.get("key", [""])[0], STATS_KEY)):
+                return self._send(page("<p>Not found. <a href='/'>Home</a></p>"), 404)
+            with db() as c:
+                stats = {
+                    "users": c.execute("SELECT COUNT(*) FROM users").fetchone()[0],
+                    "watches": c.execute("SELECT COUNT(*) FROM watches").fetchone()[0],
+                    "push_devices": c.execute("SELECT COUNT(*) FROM push_subs").fetchone()[0],
+                    "signups_by_day": {r[0]: r[1] for r in c.execute(
+                        "SELECT date(created,'unixepoch') d, COUNT(*) FROM users "
+                        "GROUP BY d ORDER BY d")},
+                    "watches_by_school": {r[0]: r[1] for r in c.execute(
+                        "SELECT school, COUNT(*) n FROM watches "
+                        "GROUP BY school ORDER BY n DESC LIMIT 40")},
+                    "watched_courses_top": {f"{r[0]} {r[1]}": r[2] for r in c.execute(
+                        "SELECT school, course, COUNT(*) n FROM watches "
+                        "GROUP BY school, course ORDER BY n DESC LIMIT 40")},
+                }
+            return self._send_json(stats)
         if path == "/dev-login" and DEV_LOGIN:   # local testing only (env-gated)
             email = qs.get("email", ["dev@example.com"])[0][:80]
             user = get_or_create_user("dev:" + email, email)
