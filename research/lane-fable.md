@@ -142,3 +142,5 @@ private-nonprofit 4yr small colleges = Colleague goldmine + 137 public CCs). Swe
 Colleague across all 1,197 now. Banner hits = mine (gate through PRODUCTION Banner adapter — Banner-8
 lesson learned). Colleague/newer-Colleague hits = flag for Codex (its lane). This is genuinely fresh:
 "mined out" was only ever true for universities; the CCs/small-colleges were never touched.
+
+## Otis BUILT July 11 — 659 (commit 016a5b9). Builder queue: (1) listcrse re-gate my 5 batch-23 cuts [Missouri State ~24k + Toledo ~20k prizes], (2) Berkeley reserved-seat [~45k], (3) Fairfield+SDCCD cache. Deploy pending (site at 655, commits thru 659 ready). Continuing: sector 5/7 (private-np-2yr + public-<2yr technical colleges) I filtered out earlier.
