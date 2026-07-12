@@ -21,6 +21,36 @@ Nathan's go, relay to Builder (session local_475a2545) as "Batch N" → mark SEN
   each needs a bespoke build; honest leads only): Fairfield (bench), SDCCD×3 City/Mesa/Miramar (bench),
   **RCCD×3 Moreno Valley/Norco/Riverside City (NET-NEW to Builder)** — SharePoint API, Codex source-gated.
 
+## CREATIVE-HUNT results (July 12) — 2 dead ends, 1 real-but-complex fresh vein
+Pushed beyond CT-log per Nathan. Honest outcomes:
+- **Coursedog → DEAD as a seat vein.** Its catalog product (`*.catalog.prod.coursedog.com`) is course
+  descriptions only (no seats). Its scheduling product "sits on the SIS and syncs" — the student-facing
+  search stays Banner/PeopleSoft. No distinct public-seat surface.
+- **Ellucian-cloud CT-log (`crt.sh %.elluciancloud.com`) → DEAD.** 1,125 subdomains but Ellucian uses
+  WILDCARD certs for real school tenants (so individual schools don't appear), and what's exposed is
+  Ellucian's internal dev infra (numeric tenant IDs 10321/10005…, `*-api-*`, dev names). The visible
+  numeric Banner tenants (`banner.10004…`) return empty getTerms. Can't enumerate schools this way.
+- **CVC.edu / Quottly → REAL fresh vein, but COMPLEX (parked as a bespoke-adapter lead).** California
+  Virtual Campus (`search.cvc.edu`, backend `courses.quottly.com`) is a PUBLIC no-auth course search
+  across ~115 CA community colleges with real-time seats. Confirmed API: `/api/universities.json`
+  (college list) + `/api/search.json?query=&university_id=` (course autocomplete, e.g. university_id 88
+  = Cosumnes River → 159 bio courses). BUT seat_count loads REACTIVELY via StimulusReflex/ActionCable
+  WEBSOCKET (`Sections#seat_count_reload`) — the `/search` results HTML is empty until the socket fills
+  it; no clean REST/HTML seat endpoint. So gating needs a headless-browser or ActionCable-protocol
+  adapter. Accuracy caveats: seats are opt-in per college ("unavailable" for many), timestamped
+  (staleness), coverage skews to online/exchange sections. Verdict: genuine but a bespoke Builder build
+  with a freshness check — lower priority than direct-SIS given our flawless-accuracy bar. Quottly may
+  power other consortia (same complexity). Handed to Builder as a research lead, NOT ship-ready.
+
+## SWEEP-YIELD reality (July 12): a banner-ish cert ≠ a reachable public SSB
+Sweep found ~16 banner-host domains, but batch-gating the Banner-9 ones exposed the catch: many CT-log
+banner hosts are INTERNAL/cert-only — `banner.delhi.edu`, `banner9prod.framingham.edu`,
+`prodssb.guamcc.edu` = NXDOMAIN (cert exists, no public DNS); `ssb.mssu.edu`/`ssb.neiu.edu` resolve but
+firewall/404. Net-new deduped candidates worth the 2nd-pass (Banner-8 listcrse route): Missouri Southern
+(mssu, reachable), NE Illinois (neiu, 404→maybe B8), + banweb.* B8 hosts (MCLA, East Georgia). Colleague
+`selfservice.*` leads for Codex: asutr, cei, gmc, lincolnu. Gordon State + Univ. of Guam already shipped
+(guamcc = Guam COMMUNITY College, distinct, net-new). Run ctlog_secondpass.py after the sweep completes.
+
 ## NOW (July 11, evening) — CT-log vein, corrected sweep in progress
 - **Running the CT-log sweep over the 229 never-swept public-college domains** (`ctlog_targets_remaining.json`).
   Method: crt.sh (recovered — HTTP 200 again, **unlimited**, replaces rate-limited certspotter) →
