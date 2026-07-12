@@ -15,6 +15,14 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Batch 29 (MTSU + Framingham) — ✅ BUILT July 12: 671->673
+Two Codex "adapter needed" leads that actually DROP INTO ListcrseBanner8 (catalog route, like
+WSSU/NCCU). Re-gated live: MTSU ENGL 1010 147 sec 84 open/63 FULL (~42s cold N+1 then 10-min cache,
+Purdue/TAMU pattern), completed 202610 16 full; Framingham live CHEM 107 2 FULL + completed 202620
+ANTH 206/COMM 280 FULL — both independently reproduced. Per-host Fall codes differ (MTSU 202680,
+Framingham 202690). RPI HELD by Grabber (live term all-open = fails numeric live-full disproof;
+correct hold — revisit when it fills). Deploy pending Nathan (covers 656-673).
+
 ### Batch 28 (College Scheduler vein) — ✅ BUILT July 12: Ivy Tech + UT Arlington + U Alaska, 668->671
 New CollegeScheduler GraphQL family. BOTH traps live-verified: fuzzy findCourses (exact filter
 mandatory — 'BIOL 101' ranks 221/211/201/240 first) AND a pagination trap Grabber's spec missed:
