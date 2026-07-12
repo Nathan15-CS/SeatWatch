@@ -34,9 +34,14 @@ Nathan's go. This is the fresh vein Nathan asked for — highest-value find of t
 
 ## SWEEP COMPLETE (July 12): 167/229 truly checked, 62 ct_FAIL need retry, 0 live Banner-9 SSB hits
 crt.sh degraded under sustained load (my CS/Ellucian queries added to it) → 62 domains failed and are
-queued in needs_retry.json (NOT swept — must retry before declaring done). 17 banner-host domains found;
-second-pass (Banner-8 listcrse) running to convert reachable ones (Missouri Southern, NE Illinois, MCLA,
-East Georgia). Reminder: many CT-log banner hosts are internal/cert-only (NXDOMAIN) — low net yield so far.
+queued in needs_retry.json (NOT swept — must retry before declaring done). 17 banner-host domains found.
+**Second-pass DONE: 0 gate-able Banner (SSB-registration=0, Banner-8=0)** — banner hosts were internal/
+unreachable and the banweb.* B8 hosts didn't answer the catalog route (possible false-neg on path guesses,
+but these are tiny schools — MCLA ~1.4k, East Georgia ~2.5k — low priority). **Net Banner yield from this
+229-domain CT-log batch = 0.** Honest read: CT-log on tiny never-swept publics is largely tapped.
+→ **HANDOFF TO CODEX: 19 `selfservice.*` Colleague hosts** in research/colleague_leads_for_codex.json;
+net-new worth a look: **stlcc (St. Louis CC ~13k)**, framingham, massart, westmoreland, asutr (rough dedup —
+Codex verify). Still TODO: crt.sh RETRY pass on the 62 ct_FAIL domains (needs_retry.json) for completeness.
 
 ## CREATIVE-HUNT results (July 12) — 2 dead ends, 1 real-but-complex fresh vein
 Pushed beyond CT-log per Nathan. Honest outcomes:

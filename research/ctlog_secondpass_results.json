@@ -1,0 +1,82 @@
+{
+ "ssb_registration": [],
+ "banner8": [],
+ "colleague": [
+  {
+   "domain": "asutr.edu",
+   "host": "selfservice.asutr.edu"
+  },
+  {
+   "domain": "cei.edu",
+   "host": "selfservice.cei.edu"
+  },
+  {
+   "domain": "framingham.edu",
+   "host": "selfservice.framingham.edu"
+  },
+  {
+   "domain": "framingham.edu",
+   "host": "www.selfservice.framingham.edu"
+  },
+  {
+   "domain": "gmc.edu",
+   "host": "selfservice.gmc.edu"
+  },
+  {
+   "domain": "lincolnu.edu",
+   "host": "selfservice.lincolnu.edu"
+  },
+  {
+   "domain": "massart.edu",
+   "host": "selfservice.massart.edu"
+  },
+  {
+   "domain": "massart.edu",
+   "host": "selfservice.mca.massart.edu"
+  },
+  {
+   "domain": "massart.edu",
+   "host": "selfservice2018.mca.massart.edu"
+  },
+  {
+   "domain": "massart.edu",
+   "host": "selfservicetest.massart.edu"
+  },
+  {
+   "domain": "massart.edu",
+   "host": "selfservicetest.mca.massart.edu"
+  },
+  {
+   "domain": "massart.edu",
+   "host": "www.selfservice.massart.edu"
+  },
+  {
+   "domain": "massart.edu",
+   "host": "www.selfservicetest.massart.edu"
+  },
+  {
+   "domain": "stlcc.edu",
+   "host": "selfservice.stlcc.edu"
+  },
+  {
+   "domain": "stlcc.edu",
+   "host": "selfservicedev.stlcc.edu"
+  },
+  {
+   "domain": "stlcc.edu",
+   "host": "selfservicetest.stlcc.edu"
+  },
+  {
+   "domain": "westmoreland.edu",
+   "host": "selfservice.westmoreland.edu"
+  },
+  {
+   "domain": "worcester.edu",
+   "host": "selfservice.worcester.edu"
+  },
+  {
+   "domain": "wsc.edu",
+   "host": "selfservice.wsc.edu"
+  }
+ ]
+}
