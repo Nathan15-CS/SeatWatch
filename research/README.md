@@ -1433,13 +1433,7 @@ does not yet expose a complete, numeric, mixed-term feed without an additional b
    college's Colleague schedule. The linked schedule currently requires the authenticated myBC3 flow,
    so no numeric row or completed-term comparison was captured. Do not treat the term index as seat
    availability; follow up only if the guest Colleague route exposes `Available`, capacity, and status.
-5. **Farmingdale State College (NY) — SCHEDULE-SURFACE LEAD, FOLLOW-UP REQUIRED.**
-   `https://www.farmingdale.edu/course-offerings/fall_schd_2026.html` is an official Fall 2026
-   schedule with CRN, subject, course, section, credits, title, dates, delivery/location, and
-   instructor fields across the full catalog. The published table does not expose seat counts or
-   open/closed status, and the page's wait-list note is policy-only. Keep as a discovery lead, not a
-   SeatWatch source, until OASIS or a public JSON endpoint yields numeric current and completed rows.
-6. **Hawkeye Community College (IA) — COLLEAGUE INDEX LEAD, FOLLOW-UP REQUIRED.**
+5. **Hawkeye Community College (IA) — COLLEAGUE INDEX LEAD, FOLLOW-UP REQUIRED.**
    `https://www.hawkeyecollege.edu/academics/credit-courses/` confirms that Summer/Fall 2026 course
    search is public and directs users to the official `colss-prod.hawksaas.elluciancloud.com` search;
    it also documents guest registration and exact Fall 2026 deadlines. The search route was not
@@ -1447,7 +1441,10 @@ does not yet expose a complete, numeric, mixed-term feed without an additional b
    after reproducing a guest session with exact section IDs, capacity, available seats, and a completed
    term.
 
-**Batch status:** six additional college identities were archived. Clark and Wabash meet the direct
+**Dedup correction:** Farmingdale State College was removed from this batch because `schools.py`
+already contains the `SUNYFarmingdale` adapter. It is not a new candidate and must not be added again.
+
+**Batch status:** five additional college identities were archived. Clark and Wabash meet the direct
 current-plus-completed numeric/status evidence bar but remain pending production-gate tests; Long Beach
-City is a CVC hold; BC3, Farmingdale, and Hawkeye are clearly marked non-seat source leads. No
+City is a CVC hold; BC3 and Hawkeye are clearly marked non-seat source leads. No
 `schools.py` edit, production adapter, or builder handoff was made.

@@ -407,9 +407,9 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 
 ## July 12 Batch 18 checkpoint
 - Batch 18 appended to `research/README.md`: Clark University, Wabash College, Long Beach City
-  College, Butler County Community College (BC3), Farmingdale State College, and Hawkeye Community
-  College.
+  College, Butler County Community College (BC3), and Hawkeye Community College.
 - Clark and Wabash have direct current-plus-completed numeric/status rows and are pending production
   gate tests. Long Beach remains a CVC contradiction hold; BC3, Farmingdale, and Hawkeye are explicit
-  schedule/index leads without captured row-level availability. No `schools.py` edit and no builder
-  message.
+  schedule/index leads without captured row-level availability. **Dedup correction:** Farmingdale was
+  removed because `schools.py` already contains `SUNYFarmingdale`; it is not a new candidate. No
+  `schools.py` edit and no builder message.
