@@ -401,6 +401,19 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   is `Status == Open` plus `capacity - enrolled > 0`, with restriction/prerequisite text preserved.
   This is a net-new public four-year candidate, but no SeatWatch production adapter exists; do not
   hand off or edit the registry.
+- **Rensselaer Polytechnic Institute (NY) — SOURCE-GATED, adapter needed (Codex, July 11 2026).**
+  Official [Rensselaer Self-Service Dynamic Schedule](https://sis.rpi.edu/rss/bwckschd.p_disp_dyn_sched)
+  is public and exposes current Fall 2026 (`202609`) plus completed Spring 2026 (`202601`, View only).
+  Public detail pages carry stable CRNs, exact subject/course/section labels, and a labeled
+  `Registration Availability` table with `Capacity`, `Actual`, and `Remaining`, plus separate
+  waitlist capacity/actual/remaining. Fall examples include CSCI 2200 CRN `78037` (32/31/1) and
+  CSCI 2600 CRN `79735` (24/2/22). Completed Spring is genuinely mixed: CSCI 2600 CRN `37370`
+  is 24/25/-1 and PSYC 4200 CRN `36882` is 60/60/0, while CSCI 6964 CRN `38797` is 10/8/2.
+  Therefore use exact term + subject + catalog number + CRN/section keys and require
+  `Remaining > 0`; never treat waitlist remaining or cross-list remaining as primary seats, and
+  preserve prerequisites/restrictions. This is a net-new public four-year Banner-class candidate,
+  but the host uses classic `bwckschd` pages rather than SeatWatch's tested JSON Banner path; no
+  production adapter exists and no handoff is authorized.
 - **North Central University (MN) — CLOSED FOR THIS PASS, no handoff.** Its public newer-Colleague
   catalog (`https://selfservice.northcentral.edu/Student/Courses`) exposes future `2026FL` and later
   terms, but exact section-bearing courses (`ENG 496`, `MATH 115`, `MATH 110`, `PSYC 258`) returned

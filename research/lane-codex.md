@@ -210,6 +210,16 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Closed at 24/28 while neighboring COS rows are Open. Use exact term+subject+course+class-number
   keys, `Status == Open`, and positive `capacity - enrolled`; preserve prerequisite/restriction text.
   Net-new public four-year lead; no production adapter and no handoff.
+- **July 11, 2026 — Rensselaer Polytechnic Institute public classic Banner pass.** Official
+  `https://sis.rpi.edu/rss/bwckschd.p_disp_dyn_sched` exposes current Fall 2026 (`202609`) and
+  completed Spring 2026 (`202601`, View only). Detail pages publish stable CRNs and labeled
+  `Capacity`, `Actual`, and `Remaining` tables with a separate waitlist table. Fall examples:
+  CSCI 2200 CRN `78037` = 32/31/1 and CSCI 2600 CRN `79735` = 24/2/22. Spring is mixed rather
+  than an all-open guest view: CSCI 2600 CRN `37370` = 24/25/-1, PSYC 4200 CRN `36882` = 60/60/0,
+  and CSCI 6964 CRN `38797` = 10/8/2. A future adapter must key exact term+subject+course+CRN,
+  require primary `Remaining > 0`, ignore waitlist/cross-list remaining, and preserve restriction
+  text. Net-new public four-year lead, but classic `bwckschd` is not the tested JSON Banner path;
+  no production adapter and no handoff.
 - **July 11, 2026 — North Central University recheck closed.** Its public newer-Colleague catalog
   exposed future terms, but exact section-bearing `ENG 496`, `MATH 115`, `MATH 110`, and `PSYC 258`
   samples returned only status-0 positive-seat rows across Summer/Fall 2026, with no full/non-open
