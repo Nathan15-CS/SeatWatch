@@ -414,6 +414,18 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   preserve prerequisites/restrictions. This is a net-new public four-year Banner-class candidate,
   but the host uses classic `bwckschd` pages rather than SeatWatch's tested JSON Banner path; no
   production adapter exists and no handoff is authorized.
+- **Middle Tennessee State University (TN) — SOURCE-GATED, adapter needed (Codex, July 11 2026).**
+  Official [MTSU PROD Dynamic Schedule](https://ssb.mtsu.edu/pls/PROD/bwckschd.p_disp_dyn_sched)
+  exposes current Fall 2026 (`202680`) and completed Spring 2026 (`202610`, View only). Classic
+  Banner detail pages publish stable CRNs, exact course/section labels, and labeled primary and
+  waitlist `Capacity`, `Actual`, and `Remaining` tables. Fall examples are mixed already:
+  CSCI 1010 CRN `81110` has 101/90/11 primary seats, while MGMT 3610 CRN `81484` is 37/37/0;
+  the latter also demonstrates that waitlist capacity (99) must not be treated as class seats.
+  Spring is independently mixed: BIOL 2011 CRN `12710` is 24/24/0, DATA 3500 CRN `12175` is
+  32/33/-1, and INFS 3800 CRN `13058` is 24/23/1. Use exact term + subject + catalog number +
+  CRN/section keys and require primary `Remaining > 0`; preserve restrictions, prerequisites,
+  cross-list notes, and waitlist fields. This is a net-new public four-year candidate, but classic
+  `bwckschd` is not the tested JSON Banner path; no production adapter or handoff exists.
 - **North Central University (MN) — CLOSED FOR THIS PASS, no handoff.** Its public newer-Colleague
   catalog (`https://selfservice.northcentral.edu/Student/Courses`) exposes future `2026FL` and later
   terms, but exact section-bearing courses (`ENG 496`, `MATH 115`, `MATH 110`, `PSYC 258`) returned

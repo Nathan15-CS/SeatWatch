@@ -220,6 +220,16 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   require primary `Remaining > 0`, ignore waitlist/cross-list remaining, and preserve restriction
   text. Net-new public four-year lead, but classic `bwckschd` is not the tested JSON Banner path;
   no production adapter and no handoff.
+- **July 11, 2026 — Middle Tennessee State University public classic Banner pass.** Official
+  `https://ssb.mtsu.edu/pls/PROD/bwckschd.p_disp_dyn_sched` exposes Fall 2026 (`202680`) and
+  completed Spring 2026 (`202610`, View only). Detail pages publish stable CRNs plus primary and
+  waitlist `Capacity`, `Actual`, and `Remaining`. Fall is mixed: CSCI 1010 CRN `81110` = 101/90/11,
+  while MGMT 3610 CRN `81484` = 37/37/0 with a separate 99-seat waitlist. Spring confirms mixed
+  results: BIOL 2011 CRN `12710` = 24/24/0, DATA 3500 CRN `12175` = 32/33/-1, and INFS 3800 CRN
+  `13058` = 24/23/1. Future adapter must key exact term+subject+course+CRN, require primary
+  `Remaining > 0`, ignore waitlist/cross-list remaining, and preserve restriction/prerequisite
+  text. Net-new public four-year lead; classic `bwckschd` is not the tested JSON Banner path, so
+  no production adapter or handoff.
 - **July 11, 2026 — North Central University recheck closed.** Its public newer-Colleague catalog
   exposed future terms, but exact section-bearing `ENG 496`, `MATH 115`, `MATH 110`, and `PSYC 258`
   samples returned only status-0 positive-seat rows across Summer/Fall 2026, with no full/non-open
