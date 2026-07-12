@@ -1977,6 +1977,166 @@ class Berkeley:
         return out
 
 
+class CollegeScheduler:
+    """College Scheduler (Civitas Learning) public Course Search GraphQL
+    (api.collegescheduler.com) — institution scoped by the Origin header, no auth,
+    no cookies. TWO traps, both live-verified July 12 2026:
+    (1) findCourses is FUZZY/RANKED — query 'BIOL 101' ranks BIOL 221/211/201/240
+        ABOVE 101, so edges are filtered to EXACT subject.shortName + courseNumber
+        before the courseId is used (taking edge[0] = watching the wrong course).
+    (2) getCourseSections paginates at 60 — Ivy Tech BIOL 101 is really 71 sections
+        across 2 pages. Relay pageInfo/after is followed; if a course is STILL
+        truncated at the defensive page cap, the course is skipped entirely (a
+        watched section silently hidden by truncation must never be possible).
+    open = openSeats > 0, seats = openSeats (clean numeric; live full rows verified
+    per school — this family exposes no reliable completed term, same standard as
+    SCF/Berkeley). Section key = registrationNumber (CRN, verified unique). Term
+    auto-picks from the API's own courseSearchTerms list (nearest upcoming,
+    verify-before-adopt via refresh_term). Subclass sets: id, name, example, slug."""
+    example = ""
+    slug = ""
+    term = ""                            # pinned fallback; auto-rolls
+    _API = "https://api.collegescheduler.com/graphql"
+    _RE = re.compile(r"^([A-Za-z][A-Za-z& ]*?)\s+([A-Za-z]?\d{1,4}[A-Za-z]{0,2})$")
+
+    def __init__(self):
+        self._active_term = None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        if not m:
+            return (None, None)
+        return (re.sub(r"\s+", " ", m.group(1).strip()).upper(), m.group(2).upper())
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        return f"https://{self.slug}.search.collegescheduler.com/"
+
+    def _gql(self, query):
+        req = urllib.request.Request(self._API, data=json.dumps({"query": query}).encode(),
+                                     headers={"Content-Type": "application/json",
+                                              "User-Agent": UA,
+                                              "Origin": f"https://{self.slug}.search.collegescheduler.com"})
+        return json.loads(urllib.request.urlopen(req, timeout=30).read())
+
+    def resolve_term(self):
+        """Nearest upcoming term from the API's own courseSearchTerms names."""
+        try:
+            d = self._gql('{ environment(name:"%s"){ courseSearchTerms{ code name } } }'
+                          % self.slug)
+            terms = (d.get("data") or {}).get("environment", {}).get("courseSearchTerms") or []
+            today = datetime.date.today()
+            best, best_delta = None, None
+            for t in terms:
+                nm = t.get("name") or ""
+                # both orders live in this family: Ivy Tech 'Fall 2026', UTA '2026 Fall'
+                m = (re.search(r"(spring|summer|fall|autumn|winter)\D{0,12}(20\d\d)", nm, re.I)
+                     or re.search(r"(20\d\d)\D{0,12}(spring|summer|fall|autumn|winter)", nm, re.I))
+                if not m:
+                    continue
+                g = m.groups()
+                season, year = (g[0], g[1]) if g[0][0].isalpha() else (g[1], g[0])
+                season = season.lower()
+                mon = _SEASON.get(season if season != "autumn" else "fall", 8)
+                delta = (int(year) - today.year) * 12 + (mon - today.month)
+                if delta < -1:
+                    continue
+                if best_delta is None or delta < best_delta:
+                    best_delta, best = delta, str(t.get("code"))
+            return best
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch([self.example]).get(self.example)) if self.example else False
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            try:
+                term = self.cur_term()
+                d = self._gql('{ environment(name:"%s"){ findCourses(termCode:"%s", '
+                              'query:"%s %s", includeFullCourses:true, first:20){ edges{ '
+                              'node{ id courseNumber subject{ shortName } } } } } }'
+                              % (self.slug, term, subj, num))
+                edges = ((d.get("data") or {}).get("environment", {})
+                         .get("findCourses", {}) or {}).get("edges") or []
+                # fuzzy-rank trap: EXACT subject+number only, never edge[0]
+                cid = next((e["node"]["id"] for e in edges
+                            if (e["node"]["subject"] or {}).get("shortName", "").upper() == subj
+                            and str(e["node"].get("courseNumber", "")).upper() == num), None)
+                if not cid:
+                    continue
+                secs, cursor = {}, ""
+                for _page in range(6):               # 360 sections max, then bail out
+                    after = ', after:"%s"' % cursor if cursor else ""
+                    d = self._gql('{ environment(name:"%s"){ getCourseSections('
+                                  'courseId:"%s", includeFullSections:true, first:60%s){ '
+                                  'pageInfo{ hasNextPage endCursor } edges{ node{ '
+                                  'registrationNumber openSeats totalSeats } } } } }'
+                                  % (self.slug, cid, after))
+                    g = ((d.get("data") or {}).get("environment", {})
+                         .get("getCourseSections", {}) or {})
+                    for e in g.get("edges") or []:
+                        n = e.get("node") or {}
+                        key = str(n.get("registrationNumber") or "")
+                        try:
+                            open_seats = int(n.get("openSeats"))
+                        except (TypeError, ValueError):
+                            continue                 # no real count -> skip, never guess
+                        if not key or key in secs:   # collapse guard
+                            continue
+                        secs[key] = {"open": open_seats > 0, "seats": max(open_seats, 0)}
+                    pi = g.get("pageInfo") or {}
+                    if not pi.get("hasNextPage"):
+                        break
+                    cursor = pi.get("endCursor") or ""
+                    if not cursor:
+                        break
+                else:
+                    continue                         # STILL truncated at cap -> skip course
+                if secs:
+                    out[course] = secs
+            except Exception:
+                continue
+        return out
+
+
+class IvyTech(CollegeScheduler):
+    id = "ivytech"; name = "Ivy Tech Community College"
+    example = "BIOL 101"; slug = "ivytech"; term = "202620"
+
+class UTArlington(CollegeScheduler):
+    id = "uta"; name = "University of Texas at Arlington"
+    example = "BIOL 1441"; slug = "uta"; term = "2268"
+
+class UAlaska(CollegeScheduler):
+    # One system-wide entry (UAF/UAA/UAS share the environment); sections are CRN-keyed
+    # and campus-unique, so a student watching their CRN gets exactly their section.
+    id = "alaska"; name = "University of Alaska"
+    example = "BIOL F111L"; slug = "alaska"; term = "202603"
+
+
 class UNCAsheville:
     """UNC Asheville — official public class-schedules JSON API (meteor.unca.edu). One
     GET per term returns EVERY section (~800 rows) with numeric enrollment and an
@@ -6247,7 +6407,8 @@ def _guard_registry(all_schools):
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
-    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU()])
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(),
+    IvyTech(), UTArlington(), UAlaska()])
 
 
 def refresh_all_terms(log=None):
