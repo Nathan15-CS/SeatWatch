@@ -29,8 +29,10 @@ seats (`openSeats`/`totalSeats`). ONE bespoke adapter serves every school with p
 system (~26k, campus-splittable) — ~133k students from one adapter. All gated PASS (live full rows,
 disproof holds). Full recipe + caveats in README block "College Scheduler / Civitas GraphQL"; data in
 collegescheduler_lead.json. CAVEAT: public search is opt-in (most CS clients — asu/duke/alamo — gate it
-behind SSO); can't fully enumerate the roster. Source-gated → needs a `CollegeScheduler` adapter, awaiting
-Nathan's go. This is the fresh vein Nathan asked for — highest-value find of the session.
+behind SSO); can't fully enumerate the roster. **→ Batch 28 SENT to Builder** (Nathan-approved). Verified before sending: `findCourses` is FUZZY/RANKED
+(query "BIOL 101" → 221,211,201,240,101) so the adapter MUST exact-match subject.shortName+courseNumber
+(else wrong course = false alerts); registrationNumber keys unique. This is the fresh vein Nathan asked
+for — highest-value find of the session (~133k students, one reusable adapter).
 
 ## SWEEP COMPLETE (July 12): 167/229 truly checked, 62 ct_FAIL need retry, 0 live Banner-9 SSB hits
 crt.sh degraded under sustained load (my CS/Ellucian queries added to it) → 62 domains failed and are

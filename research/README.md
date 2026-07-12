@@ -15,7 +15,7 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
-### College Scheduler / Civitas GraphQL — NEW VEIN, source-gated (Grabber, July 12 2026) — 3 big net-new schools, needs 1 bespoke adapter
+### College Scheduler / Civitas GraphQL — Batch 28 SENT July 12 2026 (Grabber, Nathan-approved) — NEW VEIN, 3 big net-new schools, needs 1 bespoke adapter
 Fresh system type (not Banner/Colleague/PeopleSoft). College Scheduler (Civitas Learning) runs a
 PUBLIC, no-auth **GraphQL** API that returns clean numeric seats. ONE adapter serves every school that
 has the public "Course Search" enabled. Confirmed 3 LIVE + CURRENT + net-new (all deduped vs schools.py):
@@ -28,13 +28,19 @@ has the public "Course Search" enabled. Confirmed 3 LIVE + CURRENT + net-new (al
 - terms: `{ environment(name:"{slug}"){ courseSearchTerms{ code name } } }` (auto-pick current, like Banner picker)
 - courses: `{ environment(name:"{slug}"){ findCourses(termCode:"{code}", query:"BIOL 201", includeFullCourses:true, first:20){ edges{ node{ id courseNumber title } } } } }`
 - sections: `{ environment(name:"{slug}"){ getCourseSections(courseId:"{id}", includeFullSections:true, first:50){ edges{ node{ registrationNumber sectionNumber openSeats totalSeats campus } } } } }`
-**Gate rule:** open = `openSeats > 0`; `totalSeats` = capacity. Disproof PASSED at all 3 (live FULL rows
-openSeats=0 with totalSeats>0 — real enrollment, can't fake). No status enum to distrust. ~1-2s.
+**⚠️ ACCURACY-CRITICAL:** `findCourses` is FUZZY/RANKED, not exact — query "BIOL 101" returns BIOL 221,
+211, 201, 240, THEN 101. Adapter MUST filter edges to EXACT `subject.shortName == SUBJ AND courseNumber
+== NUM` before taking the courseId (first result = wrong course = false alerts). `subject` fields are
+`shortName`/`longName` (NOT `abbreviation`).
+**Gate rule:** open = `openSeats > 0`; `totalSeats` = capacity. Section key = `registrationNumber` (CRN,
+verified UNIQUE — no collapse). Disproof PASSED at all 3 (live FULL rows openSeats=0 with totalSeats>0 —
+real enrollment, can't fake). No status enum to distrust. ~1-2s. Example courses (exact, 2+ live sec):
+ivytech BIOL 101 (40 sec), uta BIOL 1441/1442, alaska BIOL F111L (8 sec).
 **Caveats (honest):** public Course Search is OPT-IN — most CS clients gate it behind SSO (asu/duke/alamo/
 bgsu/odu/vcu/ku resolve `environment` but `courseSearchTerms`=null). CT-log undercounts slugs (wildcard
 certs), so the full public roster isn't enumerable; these 3 are confirmed, more may exist. Needs a bespoke
-`CollegeScheduler` adapter (source-gated, NOT production-gated — no existing adapter). Awaiting Nathan's go.
-Data: research/collegescheduler_lead.json.
+`CollegeScheduler` adapter (source-gated, NOT production-gated — no existing adapter). Relayed to Builder
+as Batch 28 (Nathan-approved) with the exact-match rule above. Data: research/collegescheduler_lead.json.
 
 
 ### Winston-Salem State University — ✅ BUILT July 12 (batch 27): 667->668
