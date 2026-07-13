@@ -16,6 +16,25 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Brandeis — Grab CRACKED + gate-passed July 13 (single-college, PeopleSoft-backed server-rendered HTML)
+Net-new private R1 (~5.8k). Public registrar schedule, no auth, server-rendered HTML per subject.
+- Terms: `GET /registrar/schedule/search?strm={strm}` → the page's `<option value="1263">Fall 2026</option>`
+  dropdown gives strm codes (Fall 2026=**1263**, completed Spring 2026=1261, Fall 2025=1253; labels win).
+- Subjects: SAME search page has a subject `<option value="1800">English</option>` dropdown (codes are
+  3-4 digit: 1750 Engineering, 1800 English, 1900 Env Studies...). Enumerate these for the school's subjects.
+- Per-subject page: `GET https://registrar-prod.unet.brandeis.edu/registrar/schedule/classes/2026/Fall/{code}/UGRD`
+  (Term name Capitalized in the path; also a GRAD career). Columns: Course#, Title, Time, **Enrl / Lim / Wait**,
+  Instructor + a status word (Open/Waitlist).
+- OPEN RULE: status=="Open" AND (Lim - Enrl) > 0. "Waitlist" status = FULL (Enrl>=Lim; verified: ENG 19A
+  11/11 wait 3 = Waitlist, ENG 12A 11/22 = Open). Status agrees with arithmetic.
+- ⚠️ TWO PARSE TRAPS: (1) the table is MULTI-COLUMN — 3 course-blocks per `<tr>`; parse each block, not
+  per-row, or 2/3 of sections vanish (silent miss). (2) the displayed Course# REPEATS across sections —
+  the real unique section key is in each row's popUp href: `crse_id` + `class_section` (+ strm), e.g.
+  `popUp('course?acad_year=2027&crse_id=013231&strm=1263&class_section=1')`. Key by crse_id+class_section,
+  NEVER the course number.
+- GATE (live Fall 1263, English/1800): 59 sections, **44 Open / 15 Waitlist(full)** — decisive LIVE mix
+  (not an all-open lead). Completed terms 1261/1253 available for extra disproof. Dedup clean.
+
 ### ⭐ RCCD ×3 — Grab CRACKED + gate-passed July 13 (was HELD "bespoke SharePoint"; now a ready spec)
 The RCCD hold is RESOLVED — I reverse-engineered the msappproxy feed (it's PnPjs→SharePoint REST, not a
 custom API). Anonymous, no auth, real numeric seats. 3 net-new colleges (Moreno Valley, Norco, Riverside
@@ -3133,6 +3152,61 @@ blockers. No `schools.py`, registry, deployment, or builder changes were made.
 **Batch status:** Quinsigamond and MassArt are fully documented bespoke candidates and await Nathan’s explicit
 go-ahead. UMD was a freshness recheck only; Webster and Williston are held out. No production approval or code
 change was made.
+
+### Codex Batch 64 — public source-lead gate-resolution supplements (July 13 2026)
+
+This batch resolved five existing source leads without repeating hostname sweeps. One school cleared the full
+current/completed gate; four are held out with reproducible blockers. Clark College was removed immediately as a
+duplicate (`schools.py` already contains `wa-clark`); Lewis & Clark College is a distinct school and was checked
+instead. No production code or builder handoff was made.
+
+1. **Wabash College (IN, ~900 students, private four-year) — GATED, AWAITING GO-AHEAD.** Official current
+   schedule: `https://www.wabash.edu/apps/registrar/course-sections/?sortby=SectionName&term=26%2FFA`; completed
+   schedule: the same route with `term=26%2FSP`. Both are public HTML tables with no login, no result cap, and
+   native detail links carrying unique `csid` values. Fall 2026 returned 407 table rows with 311 `OPEN`, 54
+   `WAITLISTED`, and 32 `CLOSED`; examples include `ACC-201-01` 18/25 enrolled/available (open), `ART-126-01`
+   10/13 with waitlist 1, and explicit closed rows at zero available. Spring 2026 returned 422 rows with 305 open,
+   40 waitlisted, and 67 closed; examples include `ACC-202-01` 19/20/1 open and closed rows in the same table.
+   Each row preserves term, section label, title, cross-list links, dates, meeting times, location, instructor,
+   capacity, enrolled, available, waitlist, course type, credits, and restrictions. Use `term + section + csid`
+   as the key; keep cross-listed and senior-only variants separate, and do not collapse rows with the same meeting.
+   Requests completed in roughly 3–4 seconds and pagination was absent (full table rendered). This is a bespoke HTML
+   adapter candidate; fail closed if the term label, status, `csid`, or seat triplet disappears.
+
+2. **Lewis & Clark College (OR, private four-year) — HOLD OUT: login-gated Self-Service.** Official public
+   documentation points to `https://go.lclark.edu/selfservice` and describes CAS Fall 2026/Spring 2027 section
+   status, seats, and waitlists, but the live redirect resolves to
+   `https://selfservice.lclark.edu:8083/Student/Account/Login` and shows only a username/password form. No guest
+   rows or completed-term replay were obtained; do not infer availability from the documentation or visual schedule.
+
+3. **Hawkeye Community College (IA, public community college) — HOLD OUT: completed-term status gate unresolved.**
+   Official guest catalog: `https://hcc-sservice.hawkeyecollege.edu/Student/Courses` (linked from
+   `https://www.hawkeyecollege.edu/academics/credit-courses/`). Fall 2026 `ENG English Composition` search exposed
+   exact section labels such as `ENG-105-509`, numeric `Seats Available/Capacity/Waitlisted` triplets (for example
+   4/20/0 and 17/20/0), dates, campus/online location, modality, and separate waitlisted rows. Spring 2026 replay
+   returned true Jan 12–May 7 dates and numeric positive-seat rows, but the tested intro-course result contained no
+   closed section and the surface does not publish a trustworthy closed/full status for that replay. Hold until a
+   finished-term mixed closed/waitlist result is reproducible; preserve the native section plus synonym and exact
+   subject filters if re-probed.
+
+4. **Butler County Community College / BC3 (PA, public community college) — HOLD OUT: historical term empty.**
+   Official credit schedule: `https://www.bc3.edu/credit-schedule/index.html`; public Fall route:
+   `https://colss-prod.ec.bc3.edu/Student/Courses/Search?TopicCodes=S1&Terms=2026FL&SearchResultsView=1`.
+   Fall 2026 Session 1 returned 491 public sections with exact `ACCT-203-B01`-style keys, explicit Open status,
+   numeric availability triplets (23/28/0, 4/23/0, etc.), campus/modality/session fields, and multiple locations.
+   The sanctioned term-pattern replay `Terms=2026SP` returned `No Sections Found` with empty filters, so no
+   completed-term mixed-status test is possible. Hold; do not treat the empty historical catalog as closed data.
+
+5. **University of Houston (TX, public four-year) — HOLD OUT: limited short-session source/no replay.** Official
+   source: `https://www.uh.edu/online/sessions/class-search.php`. The guest iframe offers only Summer/Fall 2026
+   short sessions (not the regular UH catalog), program-level and subject controls, and current Fall Session 1
+   `ENGL` results with mixed `Open`/`Closed` and numeric enrollment/capacity (e.g. closed 25/25 rows). It has no
+   Spring 2026 or other completed-term option, and the university explicitly scopes it to condensed Session 2–6
+   courses refreshed twice daily. This is insufficient for a full UH adapter; hold unless a separate regular-catalog
+   guest endpoint and completed-term replay are found.
+
+**Batch status:** Wabash is the only new full-gate candidate and is `GATED, AWAITING GO-AHEAD`. Lewis & Clark,
+Hawkeye, BC3, and UH remain explicit hold-outs. No `schools.py` or production changes were made.
 
 ### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
 Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.

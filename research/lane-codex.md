@@ -851,3 +851,17 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   completed-term surfaces, seeking real mixed seat/status rows, exact section identity, scope/career controls,
   pagination, freshness, and sub-30-second request paths. Only full-gate results will be promoted in README; no
   `schools.py` edits or builder contact.
+
+## July 13 Codex Batch 64 checkpoint — one gated candidate, four explicit hold-outs
+- Wabash College cleared current Fall 2026 and completed Spring 2026 on the official public registrar table:
+  407/422 rows, mixed OPEN/WAITLISTED/CLOSED statuses, numeric enrolled/available/waitlist triplets, unique csid
+  detail links, cross-list/restriction fields, full-table pagination check, and roughly 3–4 second requests. It is
+  `GATED, AWAITING GO-AHEAD`; bespoke HTML adapter only.
+- Lewis & Clark College was checked as the replacement for Clark College; Clark was released as a duplicate already
+  present in `schools.py`. Lewis & Clark redirects its Self-Service route to a login form, so it is held.
+- Hawkeye has current numeric and waitlisted rows, but the completed Spring 2026 intro-course replay had no closed
+  rows and no trustworthy closed/full status; hold. BC3 has a strong Fall 2026 public table, but its Spring 2026
+  replay is empty. UH’s public iframe has mixed current Fall short-session statuses but no completed term and only a
+  limited online/special-program scope; hold.
+- README now records exact official URLs, recipes, examples, scope/freshness/latency guards, duplicate correction,
+  and blockers. No `schools.py` or production changes were made.
