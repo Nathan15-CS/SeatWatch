@@ -117,7 +117,7 @@ TIER_COURSES = {0: 1, 1: 1, 2: 2, 3: 5}                        # courses allowed
 TIER_PRICE_CENTS = {1: 1995, 2: 2495, 3: 2995}                 # one-time, USD cents
 TIER_NAME = {0: "Free", 1: "1 course — unlimited sections",
              2: "2 courses — unlimited sections",
-             3: "Whole semester — up to 5 courses, unlimited sections"}
+             3: "5 courses — unlimited sections"}
 # Stripe (Checkout hosted — card data NEVER touches this server). All keys from env;
 # test keys first, live at launch. Nathan provides them; never hardcode.
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
@@ -832,7 +832,7 @@ FORM = """<section class="hero">
  <div class="badge reveal"><span class="dotlive"></span>LIVE — WATCHING 710 UNIVERSITIES</div>
  <h1 class="reveal d1">Get into the class you <span class="grad">actually need</span>.</h1>
  <p class="lede reveal d2">That full class you're stuck on? We watch it around the clock and buzz your phone the instant a seat opens — free to start, and we never show fake openings.</p>
- <div class="notif reveal d3" aria-hidden="true"><svg class="nicon" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z" fill="#fff" stroke="#2563eb" stroke-width="9" stroke-linejoin="round"/><rect x="42" y="32" width="28" height="24" rx="7" fill="url(#b)"/><rect x="38" y="56" width="40" height="11" rx="5.5" fill="url(#b)"/><rect x="42" y="67" width="8" height="15" rx="3" fill="url(#b)"/><rect x="66" y="67" width="8" height="15" rx="3" fill="url(#b)"/><circle cx="100" cy="20" r="11" fill="#10b981" stroke="#fff" stroke-width="5"/></svg><div class="nbody"><div class="nrow"><b>SeatWatch</b><span class="live"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>now</span></div><p>Seat open: <b>ENG101-0101</b> — 2 seats just opened. Tap to register!</p></div></div>
+ <div class="notif reveal d3" aria-hidden="true"><svg class="nicon" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><path d="M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z" fill="#fff" stroke="#2563eb" stroke-width="9" stroke-linejoin="round"/><rect x="42" y="32" width="28" height="24" rx="7" fill="url(#b)"/><rect x="38" y="56" width="40" height="11" rx="5.5" fill="url(#b)"/><rect x="42" y="67" width="8" height="15" rx="3" fill="url(#b)"/><rect x="66" y="67" width="8" height="15" rx="3" fill="url(#b)"/><circle cx="100" cy="20" r="11" fill="#10b981" stroke="#fff" stroke-width="5"/></svg><div class="nbody"><div class="nrow"><b>SeatWatch</b><span class="live"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>now</span></div><p>Seat open: <b>ENG101-0101</b> — 2 seats just opened.</p></div></div>
  <div class="stats reveal d4">
   <div class="stat"><div class="chip"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/><path d="M22 10v6"/><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/></svg></div><b data-count="710">710</b><span>universities</span></div>
   <div class="stat"><div class="chip"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><b>20s</b><span>check interval</span></div>
@@ -1276,7 +1276,7 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
           
         </div>
         <div id="sw-feed" style="display:flex;flex-direction:column;gap:12px;padding-top:16px;min-height:328px;">
-          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(23,178,106,.25);border-radius:16px;box-shadow:0 6px 18px -6px rgba(11,21,38,.1);"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(23,178,106,.12);display:flex;align-items:center;justify-content:center;font-size:17px;">🔔</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Seat open: ENG101-0101</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">2 seats just opened. Tap to register! · <span style="color:#17b26a;font-weight:600;">now</span></div></div></div>
+          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(23,178,106,.25);border-radius:16px;box-shadow:0 6px 18px -6px rgba(11,21,38,.1);"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(23,178,106,.12);display:flex;align-items:center;justify-content:center;font-size:17px;">🔔</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Seat open: ENG101-0101</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">2 seats just opened. · <span style="color:#17b26a;font-weight:600;">now</span></div></div></div>
           <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(37,99,235,.1);display:flex;align-items:center;justify-content:center;font-size:17px;">👀</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Watching CHEM 231 · Sec 03</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">Checked 4 seconds ago · still full</div></div></div>
           <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(37,99,235,.1);display:flex;align-items:center;justify-content:center;font-size:17px;">👀</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Watching MATH 140 · Sec 01</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">Checked 11 seconds ago · still full</div></div></div>
           <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(23,178,106,.12);display:flex;align-items:center;justify-content:center;font-size:17px;">✅</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Maya claimed her seat</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">BIO 1A · alerted → registered in 41s</div></div></div>
@@ -1422,7 +1422,7 @@ __PRICING__
    var sec=function(){return '0'+(1+((Math.random()*4)|0))+'0'+(1+((Math.random()*9)|0));};
    var last='';
    function ev(){var c=pick(courses);while(c===last)c=pick(courses);last=c;var r=Math.random();
-     if(r<0.34){var s=1+((Math.random()*3)|0);return{icon:'🔔',green:true,title:'Seat open: '+c.replace(' ','')+'-'+sec(),sub:s+(s===1?' seat':' seats')+' just opened. Tap to register! · <span style="color:#17b26a;font-weight:600;">now</span>'};}
+     if(r<0.34){var s=1+((Math.random()*3)|0);return{icon:'🔔',green:true,title:'Seat open: '+c.replace(' ','')+'-'+sec(),sub:s+(s===1?' seat':' seats')+' just opened. · <span style="color:#17b26a;font-weight:600;">now</span>'};}
      else if(r<0.72){var ss=2+((Math.random()*17)|0);return{icon:'👀',green:false,title:'Watching '+c+' · Sec 0'+(1+((Math.random()*4)|0)),sub:'Checked '+ss+' seconds ago · still full'};}
      else{var sp=25+((Math.random()*70)|0);return{icon:'✅',green:true,title:pick(names)+' claimed a seat',sub:c+' · alerted → registered in '+sp+'s'};}}
    setInterval(function(){var e=ev();var row=document.createElement('div');
@@ -1526,7 +1526,7 @@ def pricing_section():
   <div class="pw-card hero">
    <span class="pw-tag pw-best">Best value{"" if not soon else " · soon"}</span>
    <div class="pw-amt">$29.95</div>
-   <div class="pw-name">Whole semester</div>
+   <div class="pw-name">5 courses</div>
    <div class="pw-each">up to 5 classes · about $6 each</div>
    <div class="pw-list">{feat("Unlimited sections, every class")}{feat("Your whole schedule, covered")}</div>
    <div class="pw-anchor">Just $5 more than two classes.</div>
