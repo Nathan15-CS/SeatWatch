@@ -911,3 +911,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   matching identity in `schools.py`. I will probe only official current/completed schedule surfaces, requiring
   authoritative mixed status/seat rows, exact section keys and campus scope, pagination, freshness, and sub-30-second
   response paths. No `schools.py` edits or builder contact.
+
+## July 13 Codex Batch 67 checkpoint — one gated candidate, four explicit hold-outs
+- Indiana University Bloomington cleared a bounded iGPS gate: exact Bloomington/English/ENG-L 111 Fall 2026
+  returned class 23672 closed at 0/30; exact Spring 2026 replay returned class 29885 open at 1/24, with native
+  class numbers, waitlist fields, dates, instructor, room, and regular-session scope. `ENG-G 901` supplied a
+  second positive-seat cross-term check. It is `GATED, AWAITING GO-AHEAD`, pending production iGPS verification.
+- Cayuga has a timestamped Fall table with 473 numeric-availability rows but no completed-term selector. Washington
+  College is a static Fall PDF without a completed/live replay. CSULB's current static slice has blank OPEN SEATS
+  cells and no completed term. Le Moyne's guest selector is current/future-only and its legacy table has no seat
+  field. All four remain hold-outs.
+- README now records official URLs, exact IU recipes/evidence, scope and key guards, and every blocker. No
+  `schools.py` or production changes were made.

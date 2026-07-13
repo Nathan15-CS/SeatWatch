@@ -3346,6 +3346,60 @@ run; each blocker is recorded so a later agent can resume without treating a con
 Great Bay, Wayne, Navarro, and Wheaton remain explicit hold-outs. No `schools.py`, registry, deployment, or builder
 changes were made.
 
+### Codex Batch 67 — archived public schedule gate-resolution supplements (July 13 2026)
+
+This pass revisited five remaining archived leads. One public source cleared a bounded current/completed replay;
+four are held with explicit, reproducible blockers. No `schools.py` or production changes were made.
+
+1. **Indiana University Bloomington (IN, public four-year) — GATED, AWAITING GO-AHEAD.** Official context says the
+   schedule is updated daily and points to the no-login iGPS search:
+   `https://studentcentral.indiana.edu/register/schedule-classes/fall-2026.html` and
+   `https://sisjee.iu.edu/sisigps-prd/web/igps/course/search`. Select campus `IU Bloomington`, then exact term,
+   subject `English`, and course `ENG-L 111`; retain the class detail's native class number. Fall 2026 returned
+   class **23672**, `Closed`, Open Seats `0/30`, regular session 8/24/2026–12/18/2026. The exact completed Spring
+   2026 replay returned class **29885**, `Open`, Open Seats `1/24`, regular session 1/12/2026–5/8/2026. Both
+   rows preserve campus, term, subject/course, class number, instructor, meeting/room, status, capacity/open
+   seats, and waitlist (`0`). A second exact cross-term check (`ENG-G 901`) also returned numeric open rows (Fall
+   82/99; Spring 20/50). Use campus + term + native class number as the key; do not merge lecture/lab
+   components, and keep the exact subject/course filter to prevent sibling leakage. Term selectors exposed
+   Fall 2026 code `4268` and Spring 2026 code `4262`; builder should resolve these through the production iGPS
+   request path rather than hard-code them. UI searches completed in roughly 1–2 seconds. This is source-gated
+   and awaits production adapter verification.
+
+2. **Cayuga Community College (NY) — HOLD OUT: no completed-term selector.** Official Fall schedule:
+   `https://www.cayuga-cc.edu/academics/schedule-of-classes/fall/`; the page was last updated July 13, 2026 at
+   4:45 PM and returned 473 rows with CRN, course/section, dates, instructor, campus, modality/session, and
+   numeric `Availability` (including positive and zero values). The official selector currently exposes Summer
+   2026, Fall 2026, and Intersession 2027 only; there is no completed Spring replay, and the page itself directs
+   users to myCayuga for real-time lookup. Hold until a populated completed term or a reproducible guest Banner
+   replay proves status/reserve semantics.
+
+3. **Washington College (MD) — HOLD OUT: timestamped snapshot only.** Registrar instructions:
+   `https://www.washcoll.edu/people_departments/offices/registrar/registration-instructions.php`; the linked Fall
+   2026 PDF carries capacity, currently enrolled, remaining available seats, waitlist, cross-list, and restriction
+   fields. It is a static current snapshot with no completed Spring row or live guest feed captured in this pass.
+   Hold; do not infer real-time availability from the PDF alone.
+
+4. **California State University, Long Beach (CA) — HOLD OUT: limited static slice and blank open-seat field.**
+   Official Fall schedule index: `https://web.csulb.edu/depts/enrollment/registration/class_schedule/Fall_2026/By_College/index.html`;
+   the English slice is `https://web.csulb.edu/depts/enrollment/registration/class_schedule/Fall_2026/By_College/ENGL.html`.
+   The page is timestamped July 13, 2026 and preserves section/class number, capacity/reserve notes, modality,
+   location, and instructor, but the captured `OPEN SEATS` cells were blank and no completed Spring schedule was
+   replayed. EOP/English is not a college-wide live feed; hold until numeric current and completed rows are
+   reproducible with reserve-seat semantics.
+
+5. **Le Moyne College (NY) — HOLD OUT: current/future-only guest terms and no seat field in legacy table.**
+   Official index: `https://www.lemoyne.edu/academics/classes-calendars-catalogs/`; guest search:
+   `https://phinfo.lemoyne.edu/Student/Courses`; legacy Fall table:
+   `https://echo.lemoyne.edu/courseavail/Q09VUlNFLTI2L0ZB.htm`. The guest selector exposes Maymester/Summer/Fall
+   2026 and Winter 2027 but no Spring 2026 completed term. The legacy Fall table is timestamped July 13, 2026 and
+   has native synonym/section/date/modality rows, but no authoritative seat/status field. Hold until a completed
+   replay and numeric/status payload are available.
+
+**Batch status:** Indiana University Bloomington is the only new `GATED, AWAITING GO-AHEAD` candidate; Cayuga,
+Washington College, CSULB, and Le Moyne remain explicit hold-outs. No `schools.py`, registry, deployment, or builder
+changes were made.
+
 ### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
 Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.
 Bespoke `Princeton` adapter, 2-call public api.princeton.edu (classes list + student-app/courses/seats),
