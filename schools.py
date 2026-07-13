@@ -1835,6 +1835,25 @@ class UNM(ListcrseBanner8):
     example = "ENGL 1110"; term = "202680"     # Fall 2026 (completed Spring = 202610)
     base = "https://lobowebapp.unm.edu/ban_ssb"
 
+class WrightState(ListcrseBanner8):
+    # Guest search form answers "No classes were found" for everything; catalog route
+    # serves the same sections (ENG 1100 = 12+ CRNs live). Detail pages carry numeric
+    # Cap/Act/Rem (Codex archived Fall full 15/15/0 + Spring 60/53/7 + over-cap -5;
+    # re-gated live here before ship).
+    id = "wrightstate"; name = "Wright State University"
+    example = "ENG 1100"; term = "202680"      # Fall 2026 (Spring 2027 = 202730 not yet live)
+    base = "https://wingsexpress.wright.edu/pls/PROD"
+
+class RPI(ListcrseBanner8):
+    # sis.rpi.edu catalog route. Live Fall is currently ALL-OPEN (RPI's cycle hasn't
+    # filled yet) — the completed-term read through THIS exact parse shows real mixed
+    # enrollment (Spring 202601: CSCI 2600 = 4 open/6 FULL), disproving fake-open at
+    # host level per the NCCU/Shorter standard; all-open-now is an unfilled term, and
+    # empty/skip stays safe by design until sections fill in August.
+    id = "rpi"; name = "Rensselaer Polytechnic Institute"
+    example = "CSCI 1100"; term = "202609"     # Fall 2026 (completed Spring = 202601)
+    base = "https://sis.rpi.edu/rss"
+
 
 class CampusBanner8(Purdue):
     """Banner-8 host shared by SEVERAL colleges in one district (Chabot-Las Positas), where
@@ -3125,6 +3144,14 @@ class Banner:
         term, and what students at those schools register with anyway)."""
         return r.get("sequenceNumber")
 
+    def _campus_ok(self, r):
+        """Per-row campus guard for SHARED-POOL hosts. Default: first word of
+        campusDescription must equal `campus` (SD regental pattern, where campuses are
+        'Brookings'/'Vermillion'/...). Hosts whose campus labels all share a first word
+        (NMSU: 'NMSU - Las Cruces (Main)' vs 'NMSU - Alamogordo') override with an
+        exact-match rule instead — first-word matching cannot separate those."""
+        return not self.campus or (r.get("campusDescription") or "").split(" ")[0] == self.campus
+
     @staticmethod
     def _retry(fn, tries=3):
         """Retry transient network blips (timeouts under load) before giving up."""
@@ -3203,7 +3230,7 @@ class Banner:
                     continue
                 if (r.get("subject") or "").upper() != subj:   # guard cross-subject collisions
                     continue
-                if self.campus and (r.get("campusDescription") or "").split(" ")[0] != self.campus:
+                if not self._campus_ok(r):
                     continue                            # shared-pool host: only OUR campus
                 seq = self._seckey(r)
                 try:
@@ -3238,6 +3265,185 @@ class Wyoming(Banner):
 class CNM(Banner):
     id = "cnm"; name = "Central New Mexico College"
     example = "CSCI 1220"; host = "banner.cnm.edu"; term = "202670"
+
+class Duquesne(Banner):
+    """Standard Banner 9 JSON except the default bootstrap page is broken FOR GUESTS:
+    /classSearch/classSearch 302s to a plain-http registration URL whose port 80 is
+    firewalled (3 retries x 30s hang = Drake-class latency and {} forever). The
+    /term/termSelection?mode=search page sets the same session cookies and the rest of
+    the flow is stock — so only the two bootstrap GETs are overridden. Live-verified:
+    BIOL 111 returns numeric cap/enrolled/seatsAvailable (225/213/12)."""
+    id = "duquesne"; name = "Duquesne University"
+    example = "BIOL 111"; host = "bannerprodss.duq.edu"; term = "202710"  # Fall 2026
+
+    def _bootstrap(self, op, base):
+        self._retry(lambda: op.open(base + "/term/termSelection?mode=search", timeout=30).read())
+
+    def _get_terms(self):
+        base = f"https://{self.host}/{self.base_path}/ssb"
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", UA)]
+        self._bootstrap(op, base)
+        raw = self._retry(lambda: op.open(
+            base + "/classSearch/getTerms?searchTerm=&offset=1&max=40&_=1", timeout=30).read())
+        return json.loads(raw)
+
+    def _session(self):
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", UA)]
+        base = f"https://{self.host}/{self.base_path}/ssb"
+        self._bootstrap(op, base)
+        data = urllib.parse.urlencode({"term": self.cur_term()}).encode()
+        self._retry(lambda: op.open(
+            urllib.request.Request(base + "/term/search?mode=search", data=data),
+            timeout=30).read())
+        return op, base
+
+class NMSU(Banner):
+    """New Mexico State University — Las Cruces flagship ONLY, on the shared
+    banner-public.nmsu.edu instance that also serves Alamogordo/Grants/Global and
+    Doña Ana CC. Every campus label starts with 'NMSU'/'DACC', so the default
+    first-word campus guard can't separate them — exact campusDescription match
+    instead. Live disproof on THIS host: ENGL 1110G Las Cruces M01-M05 all
+    cap27/enr27/avail0 (numeric enrolled=capacity) while openSection=True — the
+    standard Banner lie; we read seatsAvailable only. (Supersedes the July 8
+    exclusion, which was against a different, non-public host.)"""
+    id = "nmsu"; name = "New Mexico State University"
+    example = "ENGL 1110G"; host = "banner-public.nmsu.edu"; term = "202640"  # Fall 2026
+    _CAMPUS = "NMSU - Las Cruces (Main)"
+
+    def _campus_ok(self, r):
+        return (r.get("campusDescription") or "") == self._CAMPUS
+
+
+class USC:
+    """University of Southern California — public same-origin REST API behind
+    classes.usc.edu (Angular SPA; no auth, plain UA, 0.4-0.9s per course, one GET).
+
+    /api/Terms/All gives status Active/Archived per term; termCode = YYYY + season
+    digit (1=Spring 2=Summer 3=Fall). /api/Courses/Course?termCode=&courseCode= takes
+    the code SMASHED ("CSCI104", no space). Re-gated live 2026-07-13: 533 sections
+    audited, isFull vs (totalSeats-registeredSeats) agreed 533/533 including over-cap
+    fulls (16/15); WRIT 150 Fall = 162 sec 11 open/151 FULL; completed Spring = 38
+    open/112 FULL (real mixed history). sisSectionId = the 5-digit number students
+    register with, verified unique per term.
+
+    TRAPS (each live-verified):
+    - DUAL RESPONSE SHAPE: usually a bare course object, sometimes {"courses":[...]}.
+      Parse both — handling only one silently reads as 'not offered'.
+    - Unknown/malformed codes can be HTTP 500, not just 204 -> any failure = {} skip.
+    - SEVERAL terms are 'Active' at once (Spring stays Active into July): the term
+      picker season-deltas among Actives, never 'first Active'.
+    - isCancelled rows excluded. hasDClearance seats are REAL (a USC department-
+      clearance step, not a fake open) — alert normally.
+    - Cross-listing is server-side (CLAS202/ANTH202 -> same courseId + sections);
+      exact courseCode is all the scoping needed.
+    open = not isCancelled and not isFull and totalSeats-registeredSeats > 0;
+    seats = max(totalSeats - registeredSeats, 0)."""
+    id = "usc"; name = "University of Southern California"
+    example = "WRIT 150"
+    term = "20263"                       # Fall 2026 (auto-rolls via Terms/All)
+    _active_term = None
+    _RE = re.compile(r"^([A-Za-z]{2,4})\s*-?\s*(\d{2,3}[A-Za-z]{0,2})$")
+
+    def _smash(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1) + m.group(2)).upper() if m else None
+
+    def valid_course(self, course):
+        return self._smash(course) is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return "https://classes.usc.edu/"
+
+    def _fetch_term(self, term, course):
+        code = self._smash(course)
+        if not code:
+            return None
+        try:
+            req = urllib.request.Request(
+                f"https://classes.usc.edu/api/Courses/Course?termCode={term}&courseCode={code}",
+                headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                body = r.read()
+                if r.status == 204 or not body.strip():
+                    return {}                      # not offered -> safe empty
+                j = json.loads(body)
+        except Exception:
+            return None                            # incl. the HTTP-500-on-junk trap
+        if isinstance(j, dict) and "courses" in j:
+            courses = j["courses"]
+        elif isinstance(j, list):
+            courses = j
+        else:
+            courses = [j]
+        secs = {}
+        for c in courses or []:
+            for s in (c.get("sections") or []) if isinstance(c, dict) else []:
+                sid = str(s.get("sisSectionId") or "")
+                if not sid or s.get("isCancelled"):
+                    continue
+                if sid in secs:
+                    return None                    # collapse guard — never merge blind
+                tot, reg = s.get("totalSeats"), s.get("registeredSeats")
+                if not (isinstance(tot, int) and isinstance(reg, int)):
+                    continue                       # no numbers -> skip, never guess
+                avail = tot - reg
+                secs[sid] = {"open": (not s.get("isFull")) and avail > 0,
+                             "seats": max(avail, 0)}
+        return secs
+
+    def resolve_term(self):
+        try:
+            req = urllib.request.Request("https://classes.usc.edu/api/Terms/All",
+                                         headers={"User-Agent": UA})
+            with urllib.request.urlopen(req, timeout=30) as r:
+                terms = json.loads(r.read())
+        except Exception:
+            return None
+        today = datetime.date.today()
+        best, best_delta = None, None
+        for t in terms:
+            if t.get("status") != "Active":
+                continue
+            season = str(t.get("season") or "").lower()
+            year = t.get("year")
+            if season not in _SEASON or not isinstance(year, int):
+                continue
+            delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+            if delta < 1:
+                continue                           # skip in-progress Actives
+            if best_delta is None or delta < best_delta:
+                best_delta, best = delta, str(t.get("termCode"))
+        return best
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self._fetch_term(new, self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            secs = self._fetch_term(self.cur_term(), course)
+            if secs:
+                out[course] = secs
+        return out
 
 class GeorgiaTech(Banner):
     id = "gatech"; name = "Georgia Tech"
@@ -6821,7 +7027,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
     MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(), SanDiegoCity(), SanDiegoMesa(), SanDiegoMiramar(), Fairfield(),
-    IvyTech(), UTArlington(), UAlaska(), UOregon()])
+    IvyTech(), UTArlington(), UAlaska(), UOregon(),
+    WrightState(), RPI(), Duquesne(), NMSU(), USC()])
 
 
 def refresh_all_terms(log=None):
