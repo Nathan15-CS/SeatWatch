@@ -27,6 +27,21 @@ dept clearance (preserve as note, not a fake-open). `waitlistedSeats` null every
 WRIT 150 live = 162 sec 11 open/151 FULL; WRIT 340 = 120 sec 2/118; completed Spring mixed (38/112) —
 real history. example="WRIT 150". Dedup clean. ~49k students. Full recipe relayed to Build.
 
+### Rice (elite lead) — SOURCE-GATED + SENT to Build July 13 2026 (Grab): bespoke adapter needed
+Second elite crack. Rice runs a CUSTOM Banner package: `courses.rice.edu/courses/!SWKSCAT.cat`.
+Listing: `?p_action=QUERY&p_term={term}&p_name=&p_subj=ENGL` → rows `CRN | 'ENGL 109 001' | ...`
+(99 live ENGL CRNs). Detail: `?p_action=COURSE&p_term={term}&p_crn={crn}` → labeled
+`<b>Section Max Enrollment:</b> / <b>Section Enrolled:</b> / <b>Total Cross-list Max/Enrolled:</b> /
+<b>Waitlisted:</b> N (Max M)` + **`Enrollment data as of: 12-JUL-2026 11:22PM`** (live freshness stamp,
+refreshes even on completed terms — a real DB view, and an adapter-checkable staleness guard).
+Terms Banner-style per-host: Fall 2026 = `202710`, completed Spring 2026 = `202520`. **Accuracy rules
+(BOTH mandatory):** (1) Rice states waitlist members have priority for open seats → open requires
+`Waitlisted == 0` (or absent) besides `SectionMax-SectionEnrolled > 0`; (2) cross-listed sections also
+need `TotalXlistMax - TotalXlistEnrolled > 0` (found live: sec 10/10 with xlist 15/16 → NOT-OPEN).
+Completed-term disproof through the same parse: Spring CRN 22430 genuinely full. Live term all-open
+TODAY (RPI-class: fall cycle hasn't filled; empty=safe). N+1 shape (listing→detail) like Banner-8
+family, needs the custom regex parse. ~8.5k students, elite. Dedup clean.
+
 ### Batch 31 (parser-resurrection resweep) — SENT July 13 2026 (Grab): NMSU + RPI, both production-gated
 The dead-Banner re-sweep's first real yield — 2 resurrections, ~39k students, both near-drop-ins.
 - **New Mexico State University (Las Cruces Main, ~21k)** — Banner-9 on the PUBLIC host
@@ -2358,3 +2373,13 @@ only after it appears AND returns mixed open/full rows. No schools.py edit, no r
 5. **Pennsylvania State University (PA) — LIONPATH PUBLIC-SEARCH LEAD, FOLLOW-UP REQUIRED.** Penn State’s official registrar materials document Fall 2026 schedule publication and instruction-mode fields (`https://www.registrar.psu.edu/registration/instruction-modes.cfm`); Penn State World Campus directs visitors to the public LionPATH course search (`https://www.worldcampus.psu.edu/degrees-and-certificates/penn-state-online-history-bachelor-of-arts-degree`). Scope is system-wide/multi-campus until a campus-filtered numeric response is verified; preserve University Park/Commonwealth/World Campus, career, session, restrictions, and waitlists.
 
 **Batch status:** five net-new identities archived. UMass Lowell has the strongest public status evidence; Cedar Crest advertises an unauthenticated search, while Harvard, USD, and Penn State require school/campus/guest-route validation. No numeric seats were inferred, and no production approval was made.
+
+### Codex Batch 44 — West Coast and Massachusetts public course-search leads (July 13 2026)
+
+1. **Sierra College (CA) — PUBLIC CLASS-SCHEDULE LEAD, FOLLOW-UP REQUIRED.** Sierra’s official registration guidance (`https://www.sierracollege.edu/admissions/register-for-classes/`) directs visitors to the online Class Schedule for Fall 2026 and documents campus, subject, course-number, keyword, part-of-term, and `Open Sections Only` filters. No numeric row was captured; verify the live endpoint, preserve campus/online and prerequisite semantics, and replay a completed term.
+2. **Lewis & Clark College (OR) — SELF-SERVICE OPEN-SECTIONS LEAD, FOLLOW-UP REQUIRED.** Lewis & Clark’s official advising guidance (`https://college.lclark.edu/academics/support/advising/transfer-students/how-to-register/`) documents Fall 2026 Course Catalog section search with an `Open Sections Only` filter. The workflow is Self-Service based; no numeric guest row was captured. Verify public access, course/section identifiers, restrictions, waitlist behavior, and completed-term replay.
+3. **University of Massachusetts Amherst (MA) — ARTS EXTENSION CAMPUS-CLASS LEAD, SCOPE REQUIRED.** UMass Amherst’s official Arts Extension Service page (`https://www.umass.edu/arts-extension-service/academics/campus-classes`) lists three Fall 2026 on-campus ARTS-EXT classes with class numbers and meeting times. This is Arts Extension only, not the full Amherst catalog; confirm SPIRE visibility and numeric availability before any adapter consideration.
+4. **University of Massachusetts Dartmouth (MA) — ONLINE COURSE-LISTINGS LEAD, FOLLOW-UP REQUIRED.** UMass Dartmouth’s official online course listings (`https://www.umassd.edu/online/course-listings/`) provide a Fall 2026 browse surface for prospective, guest, and continuing students, while the registrar documents Fall 2026 registration timing. No numeric row was captured; verify online-program scope, session/career, eligibility, waitlist, and completed-term semantics.
+5. **Trinity College (CT) — PUBLIC COURSE-INFO NUMERIC LEAD, SCOPE REQUIRED.** Trinity’s official course-info endpoint (`https://internet3.trincoll.edu/ptools/CourseInfo.aspx?clsnbr=2311&strm=1271`) exposes a Fall 2026 Rome-campus internship seminar with `Enrollment: 0/12`, `Available seats: 15`, course career/session, permission requirement, and dates. This is a single study-away/Rome course, not proof of a broad Trinity catalog; validate endpoint stability and term replay before adapter work.
+
+**Batch status:** five net-new identities archived. Trinity has the strongest numeric evidence but is narrowly scoped; Sierra and Lewis & Clark expose open-section filters, while both UMass entries are program/online subsets. No production approval was made.

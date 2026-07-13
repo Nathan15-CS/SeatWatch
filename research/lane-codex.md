@@ -614,3 +614,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   USD, and Penn State require school/campus/guest-route validation. No numeric seats were inferred. All five
   require campus/career, waitlist, eligibility, freshness, and current/completed-term checks before adapter work.
   No `schools.py` or builder changes.
+
+## July 13 Codex Batch 44 checkpoint
+- Batch 44 appended five net-new identities: Sierra College, Lewis & Clark College, University of Massachusetts
+  Amherst, University of Massachusetts Dartmouth, and Trinity College.
+- Trinity has a narrow Rome-campus numeric course-info row; Sierra and Lewis & Clark expose open-section filters,
+  while both UMass entries are program/online subsets. All five require scope, campus/career, eligibility,
+  waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or builder changes.
