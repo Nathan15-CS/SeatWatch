@@ -743,3 +743,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   full/waitlist labels without numeric capacity or completed-term seat replay. Both are held out.
 - Detailed gate resolutions are appended to `research/README.md` under `Codex Batch 58 — gate-resolution supplements`.
   All four are `GATED, AWAITING GO-AHEAD`; no `schools.py`, builder, registry, or deployment changes were made.
+
+## July 13 Codex Batch 59 claim — numeric public-search promotion pass
+- Claiming five bounded public-search leads: Bowling Green State University, Marshall University, California State
+  University San Bernardino, Claremont McKenna College, and Community College of Baltimore County.
+- I will probe only official no-login/current-term surfaces and their completed-term equivalents, preserving campus,
+  career, modality, section identity, restrictions, waitlists, and freshness. Only sources clearing the full gate will
+  be appended to `research/README.md`; no `schools.py` edits.
