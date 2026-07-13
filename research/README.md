@@ -1648,3 +1648,61 @@ no seat value below is treated as production evidence unless the source and term
 numeric availability surface; Washington College and CSULB expose seat-bearing static/current fields;
 the rest are explicitly bounded schedule or dynamic-endpoint leads. None passed the full production gate
 in this research-only pass. No `schools.py` edit, registry change, deployment, or builder handoff was made.
+
+### Codex Batch 23 — Ten additional public schedule surfaces (July 12 2026)
+
+These ten identities are net-new after exact-name checks against `schools.py` and all prior research
+notes. They are intentionally separated into current public surfaces and legacy/retiring UH pages; no
+stale or restricted row is presented as live production evidence.
+
+1. **Portland Community College (OR) — SOURCE-LEVEL PARTIAL, FOLLOW-UP REQUIRED.** PCC's Fall 2026
+   schedule pages (for example `https://www.pcc.edu/schedule/fall/fn/fn225/`) expose CRN, modality,
+   dates, instructor, and a `Seats available` field; the public topic index is
+   `https://www.pcc.edu/schedule/fall/`. Some captured rows returned `Available` while others said
+   `Data currently unavailable`, so exact row freshness and a completed-term comparison are required.
+2. **MiraCosta College (CA) — SOURCE-LEVEL PARTIAL, FOLLOW-UP REQUIRED.** The official PeopleSoft open-
+   classes list (`https://surf.miracosta.edu/psc/ps/EMPLOYEE/SA/c/MCC_CUSTOM_FL.MZ_CLASS_LIST_FL.GBL?TERM=FALL`)
+   advertises 1,122 Fall 2026 open-credit rows with class number, dates, modality, and `Seats Open`.
+   Direct replay redirected to login in this pass; reproduce a guest session, exact class keys, and a
+   completed-term full/closed sanity set before any adapter.
+3. **Northern Arizona University (AZ) — PUBLIC PEOPLESOFT LEAD, FOLLOW-UP REQUIRED.** NAU's public Fall
+   2026 class search (`https://www.peoplesoft.nau.edu/psc/ps92prcs/EMPLOYEE/SA/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL`)
+   exposes section, session, available seats, status icons, and reserved-seat indicators. Search-result
+   rows were visible for Fall 2026, but this pass did not reproduce a full current/completed comparison;
+   preserve reserved seats and exact section/SUN keys.
+4. **Purchase College (NY) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** The registrar's official guide
+   (`https://www.purchase.edu/offices/registrar/registration-guide/`) documents Fall 2026 registration,
+   add/drop, parts of term, and MyHeliotrope access. No public row-level seat payload was captured;
+   follow up only if the schedule can be reproduced without student login and with exact CRN/status.
+5. **Massachusetts College of Liberal Arts (MA) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** The official
+   Fall 2026 registration PDF (`https://mcla.edu/_pdfs/administration/registrar/2026-fall-registration-info.pdf`)
+   confirms the current term and CRN-based registration workflow, but no guest seat rows were captured.
+   Do not infer availability from the registration guide; require a public current/completed schedule.
+6. **Honolulu Community College (HI) — LEGACY PUBLIC SEAT LEAD, DO NOT HAND OFF YET.** The UH legacy page
+   (`https://www.sis.hawaii.edu/uhdad/avail.classes?frames=y&i=HON&s=HAW&t=202630`) exposes Fall/Spring-
+   style CRN rows with enrolled, seats available, waitlist, dates, and restrictions; a Spring 2026
+   example shows 20 seats available. The page is explicitly marked as unavailable after December 2025,
+   so this is historical evidence only until the replacement UH Banner route is found.
+7. **Kapiolani Community College (HI) — LEGACY PUBLIC SEAT LEAD, DO NOT HAND OFF YET.** A Spring 2026
+   detailed page (`https://www.sis.hawaii.edu/uhdad/bwckschd.p_disp_detail_sched?crn_in=33859&inst_in=KAP&term_in=202630`)
+   shows `Seats 0 / Remaining 20`, term, campus, and restrictions. The UH service is a retiring legacy
+   surface; capture the replacement before treating this as live.
+8. **University of Hawaiʻi Maui College (HI) — LEGACY PUBLIC SEAT LEAD, DO NOT HAND OFF YET.** The
+   Spring 2026 class-availability page (`https://www.sis.hawaii.edu/uhdad/avail.classes?i=MAU&s=IS&t=202630`)
+   publishes CRN, enrolled, seats available, reserved seats, waitlist, dates, and restrictions. It
+   explicitly says the page will not be available after December 2025; no current Fall replacement was
+   captured, so retain only as a bounded historical lead.
+9. **Windward Community College (HI) — LEGACY PUBLIC SCHEDULE LEAD, DO NOT HAND OFF YET.** The official
+   institution page (`https://www.sis.hawaii.edu/uhdad/avail.classes?i=WIN`) lists Spring 2026 as a
+   formerly active term and explicitly warns that the webpage will not be available after December 2025.
+   No current replacement rows were captured; this is identity/system reconnaissance only.
+10. **Hawaiʻi Community College (HI) — LEGACY PUBLIC SEAT LEAD, DO NOT HAND OFF YET.** The UH detailed
+    page (`https://www.sis.hawaii.edu/uhdad/avail.class?c=15199&i=HAW&t=202610`) identifies the campus,
+    term, CRN, section, course dates, and registration details for Fall 2025; the companion UH listing
+    documents numeric seat fields on the legacy surface. It is not current Fall 2026 evidence and must
+    not be promoted until a replacement guest feed is verified.
+
+**Batch status:** ten additional identities were archived. PCC, MiraCosta, and NAU have the most useful
+current public schedule/seat-field leads; Purchase and MCLA are registration-surface leads. The five UH
+entries are explicitly legacy/retiring and are held out of any builder handoff. No `schools.py` edit,
+registry change, deployment, or builder handoff was made.

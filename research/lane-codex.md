@@ -450,3 +450,14 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   are explicitly bounded public schedule or dynamic-endpoint leads with no inferred seat values.
 - All fifteen were deduped by exact name against `schools.py` and prior research notes. None passed the
   full production gate in this research-only pass; no `schools.py` or builder changes were made.
+
+## July 12 Codex Batch 23 checkpoint
+- Batch 23 appended to `research/README.md`: Portland Community College, MiraCosta College, Northern
+  Arizona University, Purchase College, Massachusetts College of Liberal Arts, Honolulu Community
+  College, Kapiolani Community College, University of Hawaiʻi Maui College, Windward Community College,
+  and Hawaiʻi Community College.
+- PCC, MiraCosta, and NAU are current public schedule/seat-field leads requiring guest replay and
+  completed-term tests. Purchase and MCLA are registration-surface leads with no seat rows captured.
+- The five UH identities are explicitly marked legacy/retiring because the official service warns it was
+  unavailable after December 2025; they are historical/system leads only and were not handed off.
+- All ten were deduped against `schools.py` and prior research notes. No `schools.py` or builder changes.
