@@ -3259,3 +3259,20 @@ Nathan-assigned validation of Codex batches 40-42 (15 candidates). Outcome:
   UMBC (PeopleSoft H_BROWSE_CLASSES), UCCS/Alabama-myBama/Stetson (portal/dashboard-gated), ECU
   (departmental page only), GW (my.gwu.edu antibot), Central Michigan (portal), Michigan-Ann Arbor
   (Okta-gated — Grab confirmed blocked). These are Grab's to resolve if worth it.
+
+### RCCD ×3 — ✅ SHIPPED July 13 (Build): 704->707
+Moreno Valley / Norco / Riverside City, one `RCCD` base + 3 subclasses. SharePoint REST on the
+msappproxy Azure-AD proxy, anonymous, real numeric seats. Re-gated through the REGISTERED adapters;
+TWO spec corrections vs Grab's relay (both accuracy-relevant):
+- ⚠️ THE LIST ACCUMULATES 4 TERMS, not "current-only" as relayed: MOV = Fall 1004 + Winter 255 +
+  Spring 939 + Summer 284 = 2482. Grab's counts (2482/826-open) mixed all four incl. PAST Spring/Winter
+  2026. FIX: server-side $filter=Term eq '{term}'. This ALSO drops RIV from 5410(all-terms) to 2330(Fall)
+  = under the 5080 one-page cap, so the "paging mandatory" trap DISAPPEARS (still follow nextLink + fail-
+  closed defensively). Term auto-rolls from ScheduleTermOptions (resolve_term->26FAL verified).
+- nometadata header mandatory (plain GET = XML SPA shell). Open rule = Total-Used>0 AND Last_Day_to_Add
+  >= today (matches RCCD's app; date gate independently excludes stale-term rows — 26SPR deadlines all
+  pre-today — so belt-AND-suspenders with the Term filter; unparseable date -> not open, conservative).
+  Over-cap rows negative -> not open. Key = Section_x0020_ID (unique). Exact Primary_x0020_Subject scope
+  (ACC-1A ≠ ACC-1B, both live). Separate list per college = inherent campus isolation (Section_ID overlap
+  EMPTY across all 3). Gate: MOV ENGL-C1000 92 sec 68/24, NOR 50 sec 39/11, RIV 142 sec 60/82. Server
+  reaches msappproxy (prod fetch RIV 142 60/82 matches). Deployed, badge 707. RCCD CLOSED as a lead.
