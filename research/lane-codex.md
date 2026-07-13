@@ -520,6 +520,14 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   field capture, completed-term replay, and separation of PACE/non-degree eligibility from the main catalog
   remain required. No `schools.py` or builder changes.
 
+## July 12 Codex Batch 34 checkpoint
+- Batch 34 appended five net-new identities: Eastern Kentucky University, College of Saint Benedict,
+  Saint John’s University, Scripps College, and Colorado College.
+- EKU is currently limited to a Corbin regional PDF with Cap/Enr fields; the main campus search is gated.
+  CSB and SJU share a public Fall 2026 search but require campus isolation. Scripps advertises a public
+  Claremont consortium search but its endpoint was not captured. Colorado College advertises a public
+  catalog but returned HTTP 403 here. No `schools.py` or builder changes.
+
 ## July 12 Codex Batch 24 checkpoint
 - Batch 24 appended to `research/README.md`: eleven net-new identities — University of Southern
   California, University at Buffalo (SUNY), University of Wisconsin–Eau Claire, University of Minnesota,

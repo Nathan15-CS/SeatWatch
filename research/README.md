@@ -2029,3 +2029,43 @@ was made.
 **Batch status:** one net-new U.S. college identity was archived as a current public status lead. No
 numeric value was inferred from the status banner, and no `schools.py` edit, registry change, deployment,
 or builder handoff was made.
+
+### Codex Batch 34 — Additional public/registrar schedule leads (July 12 2026)
+
+1. **Eastern Kentucky University (KY) — PUBLIC REGIONAL-SCHEDULE LEAD, FOLLOW-UP REQUIRED.** EKU’s
+   official Fall 2026 Corbin regional-campus schedule PDF exposes CRN, course/section, meeting dates,
+   campus, room capacity (`Cap`), and enrollment (`Enr`) fields (for example, MAT 105 CRN 11495 is
+   Cap 12 / Enr 1): `https://www.eku.edu/wp-content/uploads/2026/04/Fall-2026-Corbin-Master-Schedule-4.7.26-NCCRN.pdf`.
+   EKU’s registrar guide documents an `Open Sections Only` class-search option, but the main search is
+   login-gated. Treat the PDF as Corbin-only evidence; capture a main-campus guest route, explicit
+   available-seat/status fields, a full/waitlisted row, and a completed term before adapter work.
+2. **College of Saint Benedict (MN) — PUBLIC SHARED COURSE-SEARCH LEAD, FOLLOW-UP REQUIRED.** The
+   official CSB+SJU course-schedule page says the new no-login Class Search tool supports Fall 2026,
+   campus selection (CSB, SJU, web, embedded, study abroad), and an “open sections” filter:
+   `https://catalog.csbsju.edu/registration/course-schedule/`. The shared Banner registration hosts are
+   `https://registration.csbsju.edu/StudentRegistrationSsb/ssb/registration/?mepCode=B` and the public
+   search page is `https://catalog.csbsju.edu/course-search/`. No numeric guest rows were captured here;
+   preserve CSB campus identity, reserved-seat groups, waitlists, prerequisites, and cross-registration.
+3. **Saint John’s University (MN) — PUBLIC SHARED COURSE-SEARCH LEAD, FOLLOW-UP REQUIRED.** Saint John’s
+   uses the same official CSB+SJU Fall 2026 public search and Banner host, with campus code `J`:
+   `https://registration.csbsju.edu/StudentRegistrationSsb/ssb/registration/?mepCode=J`. The registrar
+   explicitly states that faculty/staff/public users can Browse for Classes and filter to open sections
+   (`https://catalog.csbsju.edu/registration/instructions/`). No guest numeric rows were captured; follow
+   up by isolating campus `J` from CSB, web, and embedded sections and testing a completed term.
+4. **Scripps College (CA) — PUBLIC CONSORTIUM-SEARCH LEAD, FOLLOW-UP REQUIRED.** Scripps’ official
+   portal states that Fall 2026 course schedules are visible and that visitors may use the Public Course
+   Search on the Claremont McKenna portal (`https://mycampus.scrippscollege.edu/ICS/Portal_Homepage.jnz`).
+   The registrar’s calendar confirms Fall 2026 schedule visibility from April 6
+   (`https://www.scrippscollege.edu/registrar/academic-calendar`). The CMC public-search endpoint was not
+   captured in this pass, so no seats/status are inferred; follow up with the sanctioned public search,
+   preserving Scripps/5C campus and cross-registration semantics.
+5. **Colorado College (CO) — PUBLIC CATALOG/SCHEDULE LEAD, FOLLOW-UP REQUIRED.** The official registrar
+   states that non-campus members may view course schedules through the public Catalog of Courses and
+   documents Fall 2026 registration/add-drop deadlines (`https://www.coloradocollege.edu/offices/registrar/course-schedule.html`).
+   The linked catalog returned HTTP 403 to this pass, so no rows or seat values are inferred. Follow up
+   through the sanctioned catalog/search route and capture current open/full/waitlist status, a completed
+   block/term, and block-plan semantics before adapter work.
+
+**Batch status:** five net-new U.S. college identities were archived with bounded scope. No production
+seat claims were made for any entry. No
+`schools.py` edit, registry change, deployment, or builder handoff was made.
