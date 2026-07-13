@@ -2418,7 +2418,7 @@ adapters (commit bc1108c, deployed, live site verified 689):
   (ENGL 1110G = 38 of 108 systemwide, 10 open/28 FULL cap=enr). Supersedes the July 8 exclusion
   (different host). DACC rider NOT taken (4-year priority; decision open to Nathan).
 - **RPI** (ListcrseBanner8): live Fall all-open (unfilled cycle — safe by design); completed Spring
-  202601 через production _build: CSCI 2600 = 4 open/6 FULL -> host-level fake-open disproof per
+  202601 through production _build: CSCI 2600 = 4 open/6 FULL -> host-level fake-open disproof per
   NCCU/Shorter standard. July-12 hold RESOLVED.
 - **Wright State** (ListcrseBanner8): guest search form dead ('No classes were found'), catalog
   route live — ENG 1100 = 48 CRNs 27 open/21 FULL, 15.4s cold/0.00s warm (TAMU envelope).
