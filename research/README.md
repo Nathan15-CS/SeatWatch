@@ -3296,6 +3296,56 @@ found no existing `schools.py` identity for any of the five. No production code 
 **Batch status:** UTC is the only new full-gate candidate and is `GATED, AWAITING GO-AHEAD`; Aims, UVM, UH
 Mānoa, and Rochester are explicit hold-outs. No `schools.py`, registry, deployment, or builder changes were made.
 
+### Codex Batch 66 — public schedule follow-up supplements (July 13 2026)
+
+This pass revisited five archived public-schedule leads. None cleared the full current/completed row gate in this
+run; each blocker is recorded so a later agent can resume without treating a control shell as seat evidence. No
+`schools.py` or production changes were made.
+
+1. **Hope College (MI) — HOLD OUT: completed replay not populated for a tested exact course.** Official schedule:
+   `https://schedule.hope.edu/`; registrar publication guidance:
+   `https://hope.edu/offices/registrar/registration-schedules/`. The public table supports term, subject, course,
+   status, campus, CRN, delivery, and seat fields. Fall 2026 exact `Accounting / ACCT 321` returned two native
+   rows: CRN 83346 `OPEN`, Cap 21 / Act 13 / Rem 8, and CRN 83507 `CLOSED`, Cap 21 / Act 21 / Rem 0. This is
+   strong current mixed evidence with unique CRNs. Replaying the same exact subject/course in Spring 2026 returned
+   `No matching records found` after the page settled; the separate ENGL 210 replay produced only one closed row.
+   Without a populated completed-term mixed set, hold rather than infer historical status semantics.
+
+2. **Great Bay Community College (NH) — HOLD OUT: guest result rows not reproducible.** Official schedule guidance:
+   `https://mygbcc.greatbay.edu/academics/academic-affairs/course-schedule-offerings/`; public Banner host:
+   `https://sis.ccsnh.edu/ssb8/bwckschd.p_disp_dyn_sched`. The Fall 2026 selector exposes the CCSNH college filter
+   (including Great Bay CC), subject/course filters, and Spring 2026 view-only term. An attempted Great Bay/ENGL
+   query returned `No classes were found`; subsequent submissions timed out before a row listing could be captured.
+   No CRN, seat, waitlist, or completed-term row evidence is claimed. Hold until the guest result endpoint can be
+   replayed with exact college scope and mixed current/completed rows.
+
+3. **Wayne Community College (NC) — HOLD OUT: section-details endpoint stalled.** Official schedule page:
+   `https://www.waynecc.edu/admissions/course-schedules/`; guest search:
+   `https://ss-prod.cloud.waynecc.edu/Student/Courses`. Fall 2026 with the exact `ENG` subject filter returned
+   nine catalog matches (ENG-025, ENG-102, ENG-111, ENG-112, ENG-114, ENG-125, ENG-232, ENG-235, ENG-242) and
+   exposed the public term/subject/campus controls. Every `View Available Sections` panel remained
+   `Retrieving section information...`; no section ID, capacity, available seats, waitlist, or completed Spring
+   replay was obtained. Do not treat the nine course matches as seat data.
+
+4. **Navarro College (TX) — HOLD OUT: current-only term set and unstable search interaction.** Official schedule
+   index: `https://www.navarrocollege.edu/registration-calendar.html`; guest catalog:
+   `https://selfservice.navarrocollege.edu/Student/Courses`. The guest selector currently exposes Summer I 2026,
+   Summer II 2026, and Fall 2026 only—no Spring 2026 or other completed term. The official index confirms the
+   public-access link and weekly printable schedules, but the attempted Fall English search did not yield a stable
+   row payload in this pass. Hold until a public row-level search plus completed-term replay is available.
+
+5. **Wheaton College (IL) — HOLD OUT: official links are static PDFs/dynamic Banner, but no row payload captured.**
+   Official registrar schedule index: `https://www.wheaton.edu/about-wheaton/offices-and-services/office-of-the-registrar/schedules`.
+   It links the real-time Banner Self-Service schedule and official Spring 2026/Fall 2026 registration-packet PDFs;
+   the dynamic course-schedule URL previously tried in this queue is now a 404. This pass did not extract a
+   reproducible row-level current/completed seat set from the PDF viewer or a guest Banner endpoint. Hold rather
+   than infer availability from the existence of the packets; resume only with exact section/seat fields and a
+   completed-term mixed check.
+
+**Batch status:** zero new full-gate candidates; Hope has current mixed evidence but no completed replay, while
+Great Bay, Wayne, Navarro, and Wheaton remain explicit hold-outs. No `schools.py`, registry, deployment, or builder
+changes were made.
+
 ### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
 Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.
 Bespoke `Princeton` adapter, 2-call public api.princeton.edu (classes list + student-app/courses/seats),

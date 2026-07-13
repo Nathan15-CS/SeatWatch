@@ -892,3 +892,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   identity in `schools.py`. I will probe only official no-login schedule surfaces, requiring current and completed
   terms, authoritative mixed statuses or numeric seats, exact section identity/scope, pagination, freshness, and
   sub-30-second requests. No `schools.py` edits or builder contact.
+
+## July 13 Codex Batch 66 checkpoint — zero gated candidates, five explicit hold-outs
+- Hope College exposed strong current Fall 2026 exact `ACCT 321` evidence (CRNs 83346 open with 8 seats and 83507
+  closed/full), but the same exact course had no Spring 2026 rows after replay; hold.
+- Great Bay's CCSNH Banner shell exposed college/subject/course controls and Spring view-only, but no reproducible
+  guest result rows; Wayne's Fall ENG catalog returned nine course matches while every section panel stalled at
+  `Retrieving section information...`; both hold.
+- Navarro's guest selector is current-only (Summer I/II and Fall 2026) with no completed term. Wheaton's official
+  registrar page links static Spring/Fall PDFs and dynamic Banner, but no row-level seat payload was captured. Both
+  hold.
+- README now records official URLs, exact current evidence, replay failures, and resume conditions. No `schools.py`
+  or production changes were made.
