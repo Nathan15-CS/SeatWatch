@@ -115,9 +115,9 @@ PAID_ENABLED = os.environ.get("PAID_ENABLED") == "1"
 PAID_TERM_DAYS = int(os.environ.get("PAID_TERM_DAYS", "150"))   # ~one reg+add/drop cycle
 TIER_COURSES = {0: 1, 1: 1, 2: 2, 3: 5}                        # courses allowed per tier
 TIER_PRICE_CENTS = {1: 1995, 2: 2495, 3: 2995}                 # one-time, USD cents
-TIER_NAME = {0: "Free", 1: "1 course — all sections",
-             2: "2 courses — all sections",
-             3: "Whole semester — up to 5 courses, all sections"}
+TIER_NAME = {0: "Free", 1: "1 course — unlimited sections",
+             2: "2 courses — unlimited sections",
+             3: "Whole semester — up to 5 courses, unlimited sections"}
 # Stripe (Checkout hosted — card data NEVER touches this server). All keys from env;
 # test keys first, live at launch. Nathan provides them; never hardcode.
 STRIPE_SECRET_KEY = os.environ.get("STRIPE_SECRET_KEY", "")
@@ -932,7 +932,7 @@ __NOTICE__
  <input name="sections" placeholder="e.g. 0101, 0102" required>
  <button type="submit">Watch this class<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
 </form>
-<p class="note">Free plan: <b>1 class, up to 2 sections</b>. Heads up — a seat that opens in a section you're <i>not</i> watching won't alert you; paid plans watch every section.</p>
+<p class="note">Free plan: <b>1 class, up to 2 sections</b>. Heads up — a seat that opens in a section you're <i>not</i> watching won't alert you; paid plans watch unlimited sections.</p>
 __PUSHBLOCK__
 __WATCHES__
 <script>
@@ -1498,14 +1498,14 @@ def pricing_section():
    {tag_soon}
    <div class="pw-amt">$19.95</div>
    <div class="pw-name">One class</div>
-   <div class="pw-list">{feat("<b>Every section</b> — not just 2")}</div>
+   <div class="pw-list">{feat("<b>Unlimited sections</b> — not just 2")}</div>
    {cta(1, "Choose", False)}
   </div>
   <div class="pw-card">
    {tag_soon}
    <div class="pw-amt">$24.95</div>
    <div class="pw-name">Two classes</div>
-   <div class="pw-list">{feat("Two classes, all sections")}</div>
+   <div class="pw-list">{feat("Two classes, unlimited sections")}</div>
    {cta(2, "Choose", False)}
   </div>
   <div class="pw-card hero">
@@ -1513,7 +1513,7 @@ def pricing_section():
    <div class="pw-amt">$29.95</div>
    <div class="pw-name">Whole semester</div>
    <div class="pw-each">up to 5 classes · about $6 each</div>
-   <div class="pw-list">{feat("Every section of every class")}{feat("Your whole schedule, covered")}</div>
+   <div class="pw-list">{feat("Unlimited sections, every class")}{feat("Your whole schedule, covered")}</div>
    <div class="pw-anchor">Just $5 more than two classes.</div>
    {cta(3, "Cover my whole schedule", True)}
   </div>
@@ -1854,7 +1854,7 @@ class Handler(BaseHTTPRequestHandler):
                     f"class{'es' if tier_courses(tier) > 1 else ''}. Add another for "
                     f"${delta:.2f} — visit Plans to upgrade.")
         if tier == 0:
-            return PLAN_MSG + (" Paid plans (more classes, all sections) are coming soon."
+            return PLAN_MSG + (" Paid plans (more classes, unlimited sections) are coming soon."
                                if not PAID_LIVE else "")
         return f"Your plan covers {tier_courses(tier)} classes — stop one below to switch."
 
@@ -2013,7 +2013,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._notice(
                     f"Your free plan watches up to {FREE_SECTIONS_PER_COURSE} sections of "
                     f"1 class. A seat in the others won't alert you — the paid plans watch "
-                    f"every section." + (" (Coming soon.)" if not PAID_LIVE else ""),
+                    f"unlimited sections." + (" (Coming soon.)" if not PAID_LIVE else ""),
                     user=user)
 
         # (3) per-school FORMAT validation — no junk reaches a fetch
@@ -2061,7 +2061,7 @@ class Handler(BaseHTTPRequestHandler):
                 # paid: ONE row with section="" watches EVERY section (the engine alerts
                 # on any open section, reading the fully-paginated fetch). Idempotent.
                 if "" in have:
-                    return self._notice("You're already watching all sections of this class.",
+                    return self._notice("You're already watching unlimited sections of this class.",
                                         user=user)
                 with db() as c:
                     c.execute("DELETE FROM watches WHERE user_id=? AND school=? AND course=?",
@@ -2070,7 +2070,7 @@ class Handler(BaseHTTPRequestHandler):
                               "VALUES(?,?,?,?,?,?,?)",
                               (school.id, user["topic"], course, "",
                                getattr(school, "term", ""), time.time(), user["id"]))
-                what = course + " (all sections)"
+                what = course + " (unlimited sections)"
             else:
                 new = [s for s in sections if s not in have]
                 if not new:
@@ -2080,7 +2080,7 @@ class Handler(BaseHTTPRequestHandler):
                     return self._notice(
                         f"Your free plan watches {FREE_SECTIONS_PER_COURSE} sections of a "
                         f"class; you already have {len(have)}. Stop one below, or the paid "
-                        f"plans watch every section." + (" (Coming soon.)" if not PAID_LIVE else ""),
+                        f"plans watch unlimited sections." + (" (Coming soon.)" if not PAID_LIVE else ""),
                         user=user)
                 with db() as c:
                     for sec in new:
