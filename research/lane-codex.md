@@ -865,3 +865,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   limited online/special-program scope; hold.
 - README now records exact official URLs, recipes, examples, scope/freshness/latency guards, duplicate correction,
   and blockers. No `schools.py` or production changes were made.
+
+## July 13 Codex Batch 65 claim — public-search follow-up vein
+- Claiming five bounded follow-ups from the existing public-lead archive: Aims Community College; University of
+  Rochester (NY); University of Vermont; University of Hawaiʻi at Mānoa; and University of Tennessee at Chattanooga.
+  Name checks found no exact identity in `schools.py` for these five. I will probe only the official public search or
+  schedule endpoints, with current/completed-term replay, mixed authoritative statuses or numeric seats, section-key
+  uniqueness, scope/freshness, pagination, and latency checks. No `schools.py` edits or builder contact.
