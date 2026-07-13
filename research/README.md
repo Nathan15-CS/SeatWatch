@@ -3489,3 +3489,10 @@ complexity + accuracy risk for one ~5.8k school. DEFERRED (not a false-open risk
 coverage-integrity risk). Revisit only if Brandeis exposes a course-scoped endpoint. No schools.py edit.
 LESSON for relays: for schedule sites, gate ADDRESSABILITY (arbitrary course → its exact sections), not
 just one hand-picked page's numbers.
+
+### SDCCD Mesa + Miramar — ALREADY LIVE (dedup catch, July 13 Build): NOT a new ship
+Grab relayed SDCCD Mesa+Miramar as "gate-passed, both net-new" — but sdmesa (MESA) and sdmiramar (MIRA)
+were ALREADY shipped alongside sdcity on the SDCCD adapter. Verified live+healthy through the registered
+adapters: Mesa MATH 121 = 13 sec 8/5, Miramar BIOL 131 = 3 sec 2/1 (served 0.0s from the shared dump cache
+Mesa's fetch populated). No change made. The registry guard would have crashed on the duplicate ids anyway.
+LESSON: dedup by name/id against schools.py BEFORE gating a "net-new" campus on an already-live shared feed.
