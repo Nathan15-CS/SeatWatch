@@ -4,8 +4,9 @@ Cross-session research log for SeatWatch school expansion. **This file is kept l
 the full chronological batch-by-batch history lives in `research/ARCHIVE.md` (grep it for any past
 detail). Read THIS file + the lane files; only open ARCHIVE for a specific past finding.
 
-- **Live count: 691 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 13, 2026
-  (684→689 Batch31 NMSU+RPI+USC+Wright State+Duquesne; →690 Rice; →691 Princeton, all shipped by Build).
+- **Live count: 703 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 13, 2026
+  (684→691 Batch31+USC+Rice+Princeton+WrightState+Duquesne; →703 Maricopa ×10 + more, all Build). RCCD ×3
+  cracked below = next.
 - **Who's doing what right now:** `research/lane-grabber.md` (Grab) + `research/lane-codex.md` (short, always current).
 - **How we work / accuracy+efficiency gate:** `research/PARTNER-NOTE-codex.md` and repo-root
   `CONTRIBUTING_AGENT.md`. Handoffs to the builder go through Fable; gated-but-unapproved candidates
