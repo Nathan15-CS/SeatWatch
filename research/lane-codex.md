@@ -629,3 +629,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   validation, while UMass Boston is a limited non-degree graduate subset. All five require scope, campus/career,
   eligibility, waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or builder
   changes.
+
+## July 13 Codex Batch 46 checkpoint
+- Batch 46 appended five net-new identities: Harper College, Mt. San Jacinto College, Bradley University,
+  University of Chicago, and Cuyamaca College.
+- UChicago has published undergraduate CRN/seat-field evidence; Harper, Mt. San Jacinto, and Bradley expose public
+  schedule/search surfaces, while Cuyamaca requires live endpoint validation. All five require scope, campus/career,
+  eligibility, waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or builder
+  changes.
