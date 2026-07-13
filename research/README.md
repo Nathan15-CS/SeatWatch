@@ -3543,3 +3543,52 @@ were ALREADY shipped alongside sdcity on the SDCCD adapter. Verified live+health
 adapters: Mesa MATH 121 = 13 sec 8/5, Miramar BIOL 131 = 3 sec 2/1 (served 0.0s from the shared dump cache
 Mesa's fetch populated). No change made. The registry guard would have crashed on the duplicate ids anyway.
 LESSON: dedup by name/id against schools.py BEFORE gating a "net-new" campus on an already-live shared feed.
+
+### Codex Batch 69 — public interactive-search follow-up (July 13 2026)
+
+This pass checked five previously untested public interactive-search leads. Hellenic College Holy Cross produced
+the strongest row-level evidence, but its completed replay falsely retained an `Open` status after the class ended;
+the other four did not provide a complete current-plus-completed, seat-bearing guest feed in this pass. Nothing in
+this batch is safe to add to production.
+
+1. **Hellenic College Holy Cross Greek Orthodox School of Theology (MA) — HOLD OUT: stale completed-term status.**
+   Official public Jenzabar search: `https://my.hchc.edu/ICS/Home.jnz?portlet=AddDrop_Courses&screen=Advanced+Course+Search&screenType=next`.
+   Exact course-code query `ENGL 1101`, Undergraduate, returns Fall 2026 row `English Composition I: Comp & Style`
+   (Farrell), `1/25` seats open, `Open`, MW 9:10–10:30, Main Campus Skouras Hall 222, 3 credits, dates
+   8/31/2026–12/17/2026. The same exact query on completed Fall 2025 returns `8/20`, still `Open`, with dates
+   8/25/2025–12/17/2025 (already ended by the July 13, 2026 run). Spring 2026 exact replay was empty. The native
+   numeric `seats open` field is useful, but an ended row labeled `Open` is a decisive freshness/status contradiction;
+   hold until HCHC documents historical semantics or exposes a trustworthy closed/full replay. Requests completed
+   well under 30 seconds.
+
+2. **Florida State College at Jacksonville (FL) — HOLD OUT: current/future-only PeopleSoft surface and no row
+   payload captured.** Official guest search: `https://csprd.fscj.edu/psc/csprd_1/EMPLOYEE/HRMS/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL`.
+   The public form exposes institution FSCJ1, Fall/Summer 2026 terms, subject/course/career, campus, session,
+   mode, class number, and open-only controls, but no completed Spring 2026 term is exposed and no reproducible
+   row-level seat/status payload was captured in this pass. Hold until a completed replay and numeric/status rows
+   are available with campus/career scope preserved.
+
+3. **College of Lake County (IL) — HOLD OUT: no completed term in guest selector.** Official search:
+   `https://www.clcillinois.edu/class-search` (redirects to the public term search). The guest UI currently offers
+   Summer 2026, Fall 2026, and Spring 2027, requires at least two criteria, and exposes subject, mode, and location
+   controls (including Online); Spring 2026 is absent. No current-plus-completed seat/status replay is therefore
+   possible. Hold until CLC publishes a populated completed term or a stable history endpoint.
+
+4. **Webster University (MO) — HOLD OUT: public form did not yield a verifiable exact row.** Official entry:
+   `https://classes.webster.edu/` (redirects to the public MyWebster course search). The page exposes 2025–26
+   Summer/Fall/Spring and 2026–27 Summer/Fall terms, exact/begins/contains code filters, division, subterm,
+   meeting type, and Open/Full/Waitlisted status filters. An exact-code query for `ENGL 1010` in 2026–27 Fall
+   returned the empty results table (“To see courses, enter criteria…”), so there is no trustworthy section key,
+   seat count, or status to compare. Hold pending a row-producing official course-code query and completed replay;
+   do not infer a code or scrape the login path.
+
+5. **Seminole State College of Florida — HOLD OUT: course page defaults to open-only current snapshot.** Official
+   catalog search: `https://www.seminolestate.edu/catalog/courses/mvk2121m`. The Fall 2026 page for `MVK2121M Class
+   Piano III` says it is showing classes with open seats and college credit; one row is visible (class `71262`,
+   Sanford/Lake Mary, Hybrid/Reduced On-Campus Time, M/W 1:00–1:50, 1 class available). The term controls include
+   Spring 2026, but the captured page suppresses closed/full rows by default and exposes no completed numeric/status
+   comparison. Hold until the open-only filter can be disabled and a completed replay proves full/closed semantics.
+
+**Batch status:** zero new full-gate candidates; HCHC is a documented numeric source with a decisive stale-status
+contradiction, while FSCJ, CLC, Webster, and Seminole remain explicit hold-outs. No `schools.py`, registry,
+deployment, or builder changes were made.

@@ -948,3 +948,14 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   public search/course pages, requiring current/completed terms, authoritative mixed status or numeric seats, exact
   section identity/scope, pagination, freshness, and sub-30-second response paths. No `schools.py` edits or builder
   contact.
+
+## July 13 Codex Batch 69 checkpoint — zero gated candidates, five explicit hold-outs
+- Hellenic College Holy Cross exposed exact `ENGL 1101` Fall 2026 numeric evidence (`1/25`, Open) but its exact
+  completed Fall 2025 replay still says `8/20`, Open after the 12/17/2025 end date; this is a decisive freshness /
+  status contradiction. Spring 2026 exact replay was empty. Hold pending trustworthy historical semantics.
+- FSCJ exposes a public PeopleSoft form but only Fall/Summer 2026 terms and no captured row payload; CLC exposes
+  Summer 2026/Fall 2026/Spring 2027 only and omits completed Spring 2026; Webster exposes many term/status controls
+  but the exact `ENGL 1010` test returned no verifiable row; Seminole's course page is an open-only current
+  snapshot (one `MVK2121M` row, class 71262) with no closed/completed comparison. All four remain hold-outs.
+- README records official URLs, exact recipes, current/completed evidence, contradictions, and resume conditions.
+  No `schools.py` or production changes were made.
