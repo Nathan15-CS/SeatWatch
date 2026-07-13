@@ -1722,6 +1722,40 @@ current public schedule/seat-field leads; Purchase and MCLA are registration-sur
 entries are explicitly legacy/retiring and are held out of any builder handoff. No `schools.py` edit,
 registry change, deployment, or builder handoff was made.
 
+### Codex Batch 38 — Ohio Valley and Midwest public schedule leads (July 12 2026)
+
+1. **Bowling Green State University (OH) — PUBLIC NUMERIC-DETAIL CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.**
+   BGSU’s public search at `https://services.bgsu.edu/ClassSearch/search.htm` exposes Fall 2026, career,
+   Main/Firelands campus, distance/online, subject, course number, attributes, and class-number filters.
+   BGSU’s official guide says course-title details include enrollment information. Capture current and completed
+   terms, preserving Main versus Firelands, undergraduate/graduate career, instruction mode, capacity, and
+   waitlist/restriction semantics.
+2. **Marshall University (WV) — PUBLIC NUMERIC-SCHEDULE LEAD, FOLLOW-UP REQUIRED.** Marshall’s official
+   registrar schedule at `https://mubert.marshall.edu/scheduleofcourses.php` currently exposes Fall 2026,
+   campus choices (Huntington, Off-Campus, South Charleston, Electronic, WV Rocks, Technology Based), part-
+   of-term filters, and an Open Class List route. Capture public section details and a completed term; preserve
+   campus, modality, part-of-term, open/closed, waitlist, and permission fields before adapter work.
+3. **University of Northern Iowa (IA) — PUBLIC REAL-TIME SCHEDULE LEAD, FOLLOW-UP REQUIRED.** UNI’s registrar
+   explicitly publishes a Fall 2026 Online Public Search and says it is updated in real time
+   (`https://registrar.uni.edu/schedule-of-classes`; linked search `https://sis.uni.edu/psp/cssprd/EMPLOYEE/HRMS/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL?Folder=MYFAVORITES&PAGE=SSR_CLSRCH_ENTRY`).
+   The linked PeopleSoft page redirected to sign-in here, so no seats are inferred. Confirm a guest route,
+   then replay current/completed terms and preserve UNI career, campus, status, waitlist, and restriction fields.
+4. **Duquesne University (PA) — PUBLIC BANNER CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.** Duquesne’s registrar
+   links a public Banner term-selection/class-search endpoint at `https://bannerprodss.duq.edu/StudentRegistrationSsb/ssb/term/termSelection?mode=search`.
+   The official registrar identifies schedule publication, Banner support, and Fall 2026 academic services;
+   this pass captured the guest term selector but no populated rows. Replay Fall 2026 and a completed term,
+   preserving undergraduate/graduate career, cross-registration, reserve, waitlist, and permission semantics.
+5. **West Virginia University (WV) — PUBLIC COURSE-LISTING/OPEN-SECTION LEAD, FOLLOW-UP REQUIRED.** WVU’s
+   official FAQ directs users to `https://courses.wvu.edu`, and its ACCESS guide documents semester, subject,
+   WVU-campus-only, and “Open Sections Only” filters for the same course listing. No numeric guest row was
+   captured; verify Fall 2026 plus a completed term, isolate Morgantown/other campuses and Web-Based sections,
+   and preserve seat, waitlist, eligibility, and non-degree/ACCESS restrictions.
+
+**Batch status:** five net-new U.S. college identities were archived. BGSU, Marshall, Duquesne, and WVU expose
+public schedule routes; UNI is advertised as public but redirected to PeopleSoft sign-in here. No seats were
+inferred. All five were deduped against `schools.py` and prior research. No production approval, `schools.py`
+edit, registry change, deployment, or builder handoff was made.
+
 ### Codex Batch 36 — Five new public schedule pathways (July 12 2026)
 
 1. **Rutgers University (NJ) — PUBLIC MULTI-CAMPUS SCHEDULE LEAD, FOLLOW-UP REQUIRED.** Rutgers’ official

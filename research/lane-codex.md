@@ -563,6 +563,13 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   eligibility, reserve/waitlist, freshness, and current/completed-term checks before adapter work. No
   `schools.py` or builder changes.
 
+## July 12 Codex Batch 38 checkpoint
+- Batch 38 appended five net-new identities: Bowling Green State University, Marshall University, University
+  of Northern Iowa, Duquesne University, and West Virginia University.
+- BGSU, Marshall, Duquesne, and WVU expose public schedule routes; UNI is advertised as public but redirected
+  to PeopleSoft sign-in. No seats were inferred. All five require campus/career, waitlist, eligibility,
+  freshness, and current/completed-term checks before adapter work. No `schools.py` or builder changes.
+
 ## July 12 Codex Batch 37 checkpoint
 - Batch 37 appended five net-new identities: University of Nevada, Las Vegas; University of Nevada, Reno;
   New Mexico State University; University of Colorado Denver; and Boise State University.
