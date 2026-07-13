@@ -621,3 +621,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - Trinity has a narrow Rome-campus numeric course-info row; Sierra and Lewis & Clark expose open-section filters,
   while both UMass entries are program/online subsets. All five require scope, campus/career, eligibility,
   waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or builder changes.
+
+## July 13 Codex Batch 45 checkpoint
+- Batch 45 appended five net-new identities: Smith College, William & Mary, Frederick Community College,
+  University of Massachusetts Boston, and Williston State College.
+- Williston State has public numeric Fall 2026 status rows; Smith, William & Mary, and Frederick require guest/search
+  validation, while UMass Boston is a limited non-degree graduate subset. All five require scope, campus/career,
+  eligibility, waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or builder
+  changes.
