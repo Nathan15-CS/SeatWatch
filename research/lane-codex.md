@@ -668,3 +668,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   search. Diné, Duke, and UWM require live endpoint/scope validation. All five require scope, campus/career,
   eligibility, waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or
   builder changes.
+
+## July 13 Codex Batch 51 checkpoint
+- Batch 51 appended five net-new identities: University of Maryland, College Park, Florida State University,
+  Webster University, Hellenic College Holy Cross Greek Orthodox School of Theology, and Quinsigamond Community
+  College.
+- UMD has direct numeric public seat rows; FSU, Webster, HCHC, and QCC require live endpoint/response validation.
+  All five require scope, campus/career, eligibility, waitlist, freshness, and current/completed-term checks before
+  adapter work. No `schools.py` or builder changes.
