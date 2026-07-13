@@ -904,3 +904,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   hold.
 - README now records official URLs, exact current evidence, replay failures, and resume conditions. No `schools.py`
   or production changes were made.
+
+## July 13 Codex Batch 67 claim — archived public schedule gate-resolution vein
+- Claiming five bounded leads from the remaining queue: Cayuga Community College; Washington College; California
+  State University, Long Beach; Indiana University Bloomington; and Le Moyne College. Exact-name checks found no
+  matching identity in `schools.py`. I will probe only official current/completed schedule surfaces, requiring
+  authoritative mixed status/seat rows, exact section keys and campus scope, pagination, freshness, and sub-30-second
+  response paths. No `schools.py` edits or builder contact.
