@@ -930,3 +930,13 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   `schools.py`. I will probe only official public schedule/search surfaces, requiring current/completed terms,
   authoritative mixed status or numeric seats, exact section identity/scope, freshness, pagination, and sub-30-second
   response paths. No `schools.py` edits or builder contact.
+
+## July 13 Codex Batch 68 checkpoint — zero gated candidates, five explicit hold-outs
+- Shasta's exact ENGL-31 Fall 2026 replay returned two numeric rows (open 20/30 and waitlisted 0/30 with waitlist
+  2); Spring 2026 returned two numeric rows but both said `Open` and `THIS CLASS HAS ENDED`, a decisive freshness/
+  status contradiction. Hold pending semantics clarification.
+- Kalamazoo's public Fall table has CRNs and schedule metadata but no seats/status or completed replay. Middlebury's
+  browse shell exposed a term picker but no reproducible guest rows. Westmont Waypoint is SSO-gated. Arcadia's
+  advertised no-login Section Search redirected to login. All five remain hold-outs.
+- README now records exact Shasta evidence, official URLs, the contradiction, and resume conditions. No `schools.py`
+  or production changes were made.

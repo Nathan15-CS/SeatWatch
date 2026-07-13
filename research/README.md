@@ -3400,6 +3400,53 @@ four are held with explicit, reproducible blockers. No `schools.py` or productio
 Washington College, CSULB, and Le Moyne remain explicit hold-outs. No `schools.py`, registry, deployment, or builder
 changes were made.
 
+### Codex Batch 68 — remaining public-index gate-resolution supplements (July 13 2026)
+
+This pass revisited five untested public-index leads. No school cleared the full production gate. Shasta exposed
+useful numeric rows but failed the historical freshness/status consistency test; the other four had no usable
+guest seat feed in this pass. No `schools.py` or production changes were made.
+
+1. **Shasta College (CA) — HOLD OUT: completed-term status contradicts freshness marker.** Official index:
+   `https://www.shastacollege.edu/academics/course-catalogs-and-class-schedules/`; guest catalog:
+   `https://mysc.shastacollege.edu/Student/Courses`. The guest search supports Spring/Summer/Fall 2026 and exact
+   subject/course filters. Exact `ENGL-31` Fall 2026 returned two native sections on one page: `ENGL-31-F8691`
+   `Open`, 20 / 10 / 30 / 0 (available / enrolled / capacity / waitlist), SC Main Campus; and `ENGL-31-F8713`
+   `Waitlisted`, 0 / 30 / 30 / 2, SC Online. Exact Spring 2026 replay returned `ENGL-31-S0490` 12 / 18 / 30 / 0
+   and `ENGL-31-S9855` 21 / 9 / 30 / 0, both labeled `Open` but also marked `**THIS CLASS HAS ENDED**`. Native
+   section names, dates, campus, modality, meeting data, faculty, credits, and pagination were present, and the
+   requests completed in roughly 2–3 seconds. The ended/open contradiction makes status freshness unsafe; hold
+   until the guest endpoint's historical semantics are explained or a trustworthy closed-row replay is captured.
+
+2. **Kalamazoo Valley Community College (MI) — HOLD OUT: schedule has no seat/status payload.** Official
+   announcement links the public schedule at `https://www.kvcc.edu/news/stories/2026-04-07_FallRegistration.php` and
+   `https://schedule.kvcc.edu/`. Fall 2026 is a public course table with CRNs, dates, instructors, locations,
+   methods, and parts of term, but no availability, enrollment, capacity, or waitlist field. The site exposes
+   Winter/Summer/Fall 2026 only; no completed Spring replay was found. Hold until a guest seat-bearing endpoint
+   is reproducible.
+
+3. **Middlebury College (VT) — HOLD OUT: browse shell did not yield rows.** Registrar guidance:
+   `https://www.middlebury.edu/registrar/registration/fall-reg-dates`; Banner browse entry:
+   `https://reg-pntr.ec.middlebury.edu/StudentRegistrationSsb/ssb/term/termSelection?mode=search`. The public
+   browse page exposes a term selector and Browse Course Catalog, but the term picker did not produce a selectable
+   row feed in this pass; registration/search actions are otherwise login-gated. No current/completed CRN or seat
+   rows are claimed. Resume only after selecting Fall and Spring terms and capturing reservation-aware seats.
+
+4. **Westmont College (CA) — HOLD OUT: Waypoint login gate.** Official registration page:
+   `https://www.westmont.edu/office-registrar/registration`; its Access Waypoint link resolves to
+   `https://waypoint.westmont.edu/Student/courses`, which returned Westmont Single Sign-On with username/password.
+   Registrar prose confirms Fall 2026 and Spring 2026 dates but no guest rows or seat/status fields were obtained.
+   Hold; do not infer availability from registration dates.
+
+5. **Arcadia University (PA) — HOLD OUT: advertised guest search redirected to login.** Official course-listings
+   page: `https://www.arcadia.edu/academics/resources-advising/registrar/course-listings/`; it says Section Search
+   needs no login and links `http://selfservice.arcadia.edu/`. The live PowerCampus menu exposed Course/Section
+   options, but selecting Section redirected to `SelfService/Home/LogIn`; no term, section, seat, or completed
+   replay was captured. Hold until the no-login route is reproducible rather than bypassing authentication.
+
+**Batch status:** zero new full-gate candidates; Shasta is a documented numeric source with a decisive historical
+freshness contradiction, and Kalamazoo, Middlebury, Westmont, and Arcadia remain explicit hold-outs. No
+`schools.py`, registry, deployment, or builder changes were made.
+
 ### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
 Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.
 Bespoke `Princeton` adapter, 2-call public api.princeton.edu (classes list + student-app/courses/seats),
