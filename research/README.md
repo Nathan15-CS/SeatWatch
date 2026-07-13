@@ -3650,6 +3650,54 @@ full gate: no production change is safe from this batch.
 **Batch status:** zero new full-gate candidates; five explicit hold-outs documented above. No `schools.py`, registry,
 deployment, or builder changes were made.
 
+### Codex Batch 71 — northern public class-search vein (July 13 2026)
+
+This pass checked five exact-name-new colleges against official public schedule/search surfaces. Northern Arizona
+University produced a strong current/completed cross-term replay and is gated for builder review; the other four did
+not meet the full gate. Nothing from this batch is safe to add to production without the documented follow-up.
+
+1. **Northern Arizona University (AZ) — GATED, AWAITING GO-AHEAD: public PeopleSoft rows with native keys and seats.**
+   Official guest entry: `https://www.peoplesoft.nau.edu/psc/ps92prcs/EMPLOYEE/SA/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL`.
+   Exact ART 161 query in Fall 2026 (`strm=1267`, `subj=ART`, `nbr=161`) returned four Flagstaff Mountain/In Person
+   sections: 001/2710, 003/2712, 004/2771, and 008/9493; each had `Available Seats: 0`. The status column is icon-
+   backed (`Wait List` plus the PeopleSoft `Open` helper/legend). Exact Spring 2026 replay (`strm=1261`) returned
+   001/2029 and 002/2030 with 2 seats and `Open`, plus 004/2031 and 005/2032 with 0 seats and `Closed` + `Open`
+   helper icons. Both terms expose section code, native class number, session, meeting dates, campus, instruction
+   mode, instructor, and meeting data. Direct reproducible URLs used:
+   - Fall: `https://www.peoplesoft.nau.edu/psc/ps92prcs/EMPLOYEE/SA/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL?PAGE=SSR_CLSRCH_RSLT&Page=SSR_CLSRCH_ENTRY&inst=NAU0000&nbr=161&open=N&search=true&strm=1267&subj=ART`
+   - Spring: `https://www.peoplesoft.nau.edu/psc/ps92prcs/EMPLOYEE/SA/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL?Page=SSR_CLSRCH_ENTRY&inst=NAU0000&nbr=161&open=N&search=true&strm=1261&subj=ART`
+   The native class number is the candidate section key; preserve institution/term/subject/number and campus scope.
+   Before production, builder must replay both terms, confirm icon semantics (especially the helper `Open` title on
+   closed rows), and verify pagination/response timing. No `schools.py` change was made.
+
+2. **Montana State University (MT) — HOLD OUT: public APEX form but no row replay captured.** Official schedule page
+   `https://www.montana.edu/registrar/ScheduleofClasses.html` links the public APEX search at
+   `https://apexprod.msu.montana.edu/apex/r/esg/s_class_schedule_gf/class-schedule`. The form exposes Fall, Summer,
+   and Spring 2026 plus older terms, subject/instructor comboboxes, course number, and “Only Sections with Open
+   Seats.” No repeatable exact subject/course row payload with section keys and numeric/status availability was
+   captured; hold until current and completed rows can be replayed.
+
+3. **University of Alaska Fairbanks (AK) — HOLD OUT: no completed term in guest search.** Official
+   `https://catalog.uaf.edu/class-search/` states that section information updates overnight and exposes search
+   controls, but its current guest picker shows only Fall 2026 and Summer 2026. No seat-bearing completed replay was
+   captured; the course catalog is not a substitute for live sections.
+
+4. **University of Alaska Anchorage (AK) — HOLD OUT: UAOnline SAML gate.** Official registration page
+   `https://www.uaa.alaska.edu/students/registration/` routes schedules to the official UAOnline page
+   `https://www.alaska.edu/uaonline/`. The UAA student entry redirects to the University of Alaska identity provider
+   before exposing a guest class-search or seat rows. No login bypass was attempted; hold until UAA documents a
+   permitted guest feed with exact sections and availability.
+
+5. **University of Nevada, Reno (NV) — HOLD OUT: current/future-only guest selector.** Official registrar page
+   `https://www.unr.edu/admissions/records/registration` links PeopleSoft Class Search at
+   `https://cs.nevada.unr.edu/psp/unrcsprd/EMPLOYEE/SA/c/SA_LEARNER_SERVICES.CLASS_SEARCH.GBL?`. The public form
+   exposes 2026 Summer and Fall only (no completed Spring), with subject/course, career, campus/location, mode, and
+   open-only controls. No exact row payload or completed replay was captured; hold pending a history-capable guest
+   surface.
+
+**Batch status:** one gated lead (NAU) and four explicit hold-outs. No `schools.py`, registry, deployment, or builder
+changes were made.
+
 ### UT Chattanooga + West Valley/Mission — ✅ SHIPPED July 13 (Build): 707->710 (from Codex/Grab gated leads)
 - **UT Chattanooga** (utc, Batch 65 Codex gated lead re-verified): plain Banner9 sis-reg.utc.edu 202640.
   ENGL 1010 = 41 sec 27 open/14 full, MATH 1130 37 sec 26/11, completed Spring 202620 = 7 sec 5 full.

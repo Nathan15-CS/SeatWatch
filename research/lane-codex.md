@@ -996,3 +996,33 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   checks found no matching identity in `schools.py`. I will probe only official public schedule/search surfaces,
   requiring current and completed terms, authoritative mixed status or numeric seats, exact section identity and
   campus scope, pagination, freshness, and sub-30-second response paths. No `schools.py` edits or builder contact.
+
+## July 13 Codex Batch 71 checkpoint — one gated candidate, four explicit hold-outs
+- Northern Arizona University cleared the public PeopleSoft gate for a bounded ART 161 replay. Fall 2026 exact
+  query returned four Flagstaff Mountain/In Person sections (native class keys 2710, 2712, 2771, 9493), all
+  `Available Seats: 0`; the row status icons expose `Wait List` plus the PeopleSoft `Open` helper/legend. Spring
+  2026 exact replay returned four sections (native class keys 2029, 2030, 2031, 2032): 2, 2, 0, and 0 available
+  seats, with `Open` icons on 001/002 and `Closed` + `Open` helper icons on 004/005. Rows include section code,
+  session, dates, campus, instruction mode, instructor, and meeting data. Official entry/query surface:
+  `https://www.peoplesoft.nau.edu/psc/ps92prcs/EMPLOYEE/SA/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL` (Fall recipe
+  uses `strm=1267&subj=ART&nbr=161`; Spring uses `strm=1261`). This is `GATED, AWAITING GO-AHEAD`, pending a
+  production adapter replay and explicit interpretation of the helper icon; do not add to `schools.py` yet.
+- Montana State's official APEX schedule (`https://apexprod.msu.montana.edu/apex/r/esg/s_class_schedule_gf/class-schedule`,
+  linked from `https://www.montana.edu/registrar/ScheduleofClasses.html`) is publicly reachable and exposes Fall,
+  Summer, and Spring 2026 plus older terms, subject/instructor comboboxes, course number, and an open-seats-only
+  checkbox. No repeatable exact subject/course row payload was captured in this pass; hold until a current and
+  completed row replay with section keys and numeric/status availability is recorded.
+- University of Alaska Fairbanks' official class search (`https://catalog.uaf.edu/class-search/`) is public and
+  states that section information updates overnight, but the guest term picker currently exposes only Fall 2026
+  and Summer 2026. No completed-term comparison or seat-bearing row was captured; catalog pages are not enough.
+- University of Alaska Anchorage's official registration page (`https://www.uaa.alaska.edu/students/registration/`)
+  routes class schedules through UAOnline. The official UAOnline UAA entry (`https://www.alaska.edu/uaonline/`)
+  redirects to the student self-service SAML sign-in (`https://idp.alaska.edu/...`) before any guest class-search
+  or seat rows are exposed. Hold; no login bypass or inference from the marketing page.
+- University of Nevada, Reno's official registrar page (`https://www.unr.edu/admissions/records/registration`)
+  links a public PeopleSoft Class Search (`https://cs.nevada.unr.edu/psp/unrcsprd/EMPLOYEE/SA/c/SA_LEARNER_SERVICES.CLASS_SEARCH.GBL?`).
+  The guest form currently exposes only 2026 Summer and Fall (no completed Spring term), with subject/course,
+  career, campus/location, mode, and open-only controls. No exact row payload or completed replay was captured;
+  hold pending a history-capable guest surface.
+- Batch result: one gated lead (NAU) and four explicit hold-outs. README records official URLs, exact evidence,
+  blockers, and resume conditions. No `schools.py`, registry, deployment, or builder changes were made.
