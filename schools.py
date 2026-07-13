@@ -3884,6 +3884,150 @@ class SouthMountainCC(Maricopa):
     example = "BIO201"; campus = "SMC07"
 
 
+class RCCD:
+    """Riverside Community College District — 3 colleges (Moreno Valley, Norco,
+    Riverside City), each its OWN SharePoint list on the shared msappproxy host, so
+    campus isolation is inherent (no cross-college query possible). PnPjs→SharePoint
+    REST, anonymous, real numeric seats. One small server-filtered GET per course.
+
+    ⚠️ THE HEADER: 'Accept: application/json;odata=nometadata' is mandatory — a plain
+    GET returns the SPA/atom XML shell (this is what made earlier probes look dead).
+    ⚠️ THE LIST ACCUMULATES TERMS: a relay called it 'current-term-only', but the list
+    actually holds Fall+Winter+Spring+Summer at once (MOV: 1004+255+939+284). We MUST
+    filter Term server-side, or a watched Fall course pulls in stale past-term rows.
+    Filtering to the current term also drops every college under the 5080 one-page cap
+    (RIV 5410-all-terms -> 2330 Fall) so the paging trap disappears; we still follow
+    odata.nextLink defensively and fail-closed if a page can't be read.
+
+    OPEN RULE (matches RCCD's own app): Total_Seats - Seats_Used > 0 AND the section's
+    Last_Day_to_Add is >= today. The date gate is also a stale-row backstop — any
+    lingering past-term section has a past add deadline, so it can never alert. Over-cap
+    rows (used>seats) go negative -> not open. Unparseable date -> not open (conservative;
+    worst case a safe miss, never a false open). Section key = Section_x0020_ID (unique).
+    Exact course scope = Primary_x0020_Subject 'SUBJ-NUM' (e.g. ENGL-C1000; ACC-1A must
+    not catch ACC-1B). Term auto-rolls from the ScheduleTermOptions list."""
+    list_name = ""                       # ScheduleData_MOV/NOR/RIV; subclass sets
+    term = "26FAL"                       # Fall 2026 (auto-rolls)
+    _active_term = None
+    _host = "https://apps-studentrcc.msappproxy.net/schedule/_api/web/lists"
+    _HDR = {"Accept": "application/json;odata=nometadata", "User-Agent": UA}
+    _SEL = ("Section_x0020_ID,Primary_x0020_Subject,Total_x0020_Seats,"
+            "Seats_x0020_Used,Last_x0020_Day_x0020_to_x0020_Ad")
+    _RE = re.compile(r"^([A-Za-z]+)[\s-]+([A-Za-z]?\d+[A-Za-z]?)$")
+    _SEASONS = {"fall": "FAL", "spring": "SPR", "summer": "SUM", "winter": "WIN"}
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return f"{m.group(1).upper()}-{m.group(2).upper()}" if m else None
+
+    def valid_course(self, course):
+        return self._norm(course) is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return "https://www.rccd.edu/"
+
+    def _get(self, url):
+        with urllib.request.urlopen(urllib.request.Request(url, headers=self._HDR), timeout=30) as r:
+            return json.loads(r.read())
+
+    @staticmethod
+    def _addable(s):
+        """True iff the MM/DD/YY add deadline is today or later. Unparseable -> False."""
+        try:
+            mo, dy, yr = s.split("/")
+            return datetime.date(2000 + int(yr), int(mo), int(dy)) >= datetime.date.today()
+        except Exception:
+            return False
+
+    def _fetch_term(self, term, course):
+        subj = self._norm(course)
+        if not subj:
+            return None
+        flt = urllib.parse.quote(f"Term eq '{term}' and Primary_x0020_Subject eq '{subj}'")
+        url = (f"{self._host}/getByTitle('{self.list_name}')/items"
+               f"?$select={self._SEL}&$filter={flt}&$top=5080")
+        rows = []
+        try:
+            while url:
+                j = self._get(url)
+                rows += j.get("value", [])
+                url = j.get("odata.nextLink")       # defensive; one term fits one page
+        except Exception:
+            return None                             # incl. an unreadable page -> fail closed
+        secs = {}
+        for r in rows:
+            if r.get("Primary_x0020_Subject") != subj:   # exact course only
+                continue
+            key = str(r.get("Section_x0020_ID") or "")
+            if not key:
+                continue
+            try:
+                avail = int(float(r["Total_x0020_Seats"])) - int(float(r["Seats_x0020_Used"]))
+            except (TypeError, ValueError, KeyError):
+                continue                            # no numbers -> skip, never guess
+            openb = avail > 0 and self._addable(r.get("Last_x0020_Day_x0020_to_x0020_Ad", ""))
+            secs[key] = {"open": openb, "seats": max(avail, 0)}
+        return secs
+
+    def resolve_term(self):
+        """Nearest upcoming term code from the district's ScheduleTermOptions list."""
+        try:
+            opts = self._get(f"{self._host}/getByTitle('ScheduleTermOptions')/items?$select=Title,Term")
+        except Exception:
+            return None
+        today = datetime.date.today()
+        best, best_delta = None, None
+        for t in opts.get("value", []):
+            m = re.search(r"(spring|summer|fall|winter)\s+(20\d\d)", (t.get("Title") or "").lower())
+            if not m:
+                continue
+            season, year = m.group(1), int(m.group(2))
+            delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+            if delta < 1:
+                continue
+            if best_delta is None or delta < best_delta:
+                best_delta, best = delta, t.get("Term")
+        return best
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self._fetch_term(new, self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            secs = self._fetch_term(self.cur_term(), course)
+            if secs:
+                out[course] = secs
+        return out
+
+class MorenoValley(RCCD):
+    id = "morenovalley"; name = "Moreno Valley College"
+    example = "ENGL C1000"; list_name = "ScheduleData_MOV"
+
+class NorcoCollege(RCCD):
+    id = "norco"; name = "Norco College"
+    example = "ENGL C1000"; list_name = "ScheduleData_NOR"
+
+class RiversideCity(RCCD):
+    id = "riversidecity"; name = "Riverside City College"
+    example = "ENGL C1000"; list_name = "ScheduleData_RIV"
+
+
 class GeorgeMason(Banner):
     # ~40k R1 public. Guest Banner9 (patriotweb links this SSB host). ENGH 101 = 72 sec
     # 8 open/64 full live; completed Fall 2025 (202570) mixed; numeric seatsAvailable.
@@ -7491,7 +7635,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     WrightState(), RPI(), Duquesne(), NMSU(), USC(), Rice(), Princeton(),
     PhoenixCollege(), GlendaleCC(), MesaCC(), ChandlerGilbert(), EstrellaMountain(),
     GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC(),
-    GeorgeMason(), NorthernMichigan(), Hartford()])
+    GeorgeMason(), NorthernMichigan(), Hartford(),
+    MorenoValley(), NorcoCollege(), RiversideCity()])
 
 
 def refresh_all_terms(log=None):
