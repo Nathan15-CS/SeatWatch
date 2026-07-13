@@ -2718,3 +2718,42 @@ WAITLIST: no live specimen found (ENGL 202620 sweep ×109 + partial COMP: zero p
 waitlist text) — implemented STRICTLY FAIL-CLOSED: any waitlist text without a parseable
 'Waitlisted: 0' = not-open. Grab's own waitlist-regex doubt stands; a live specimen would let us
 relax nothing (rule is already maximal-safe). Commit + deployed same session; live site 690.
+
+### Princeton (elite lead) — ACCURACY-VERIFIED, but DEPLOYMENT-BLOCKED (benched pending Nathan's architecture call, July 13, Build)
+Grab's elite #3. Re-gated the DATA fully; the school is accuracy-safe. But it uniquely cannot ship
+under SeatWatch's stdlib-only / single-scp architecture without a decision from Nathan.
+
+ACCURACY (all re-verified live through the plain API):
+- Two-call public API on api.princeton.edu (classes list + student-app/courses/seats), anonymous
+  Bearer token. api.princeton.edu is plain-stdlib reachable (401 on bad token, no challenge).
+- OPEN RULE sound: seat_status=="Open" AND (capacity-enrollment)>0. seat_status vs arithmetic agreed
+  on 100% of sections BOTH terms (Fall 1272: 146/146; completed Spring 1264: 128/128; 0 disagreements).
+- CANCELED TRAP confirmed + handled: bare `status`=="C" covers BOTH Closed AND Canceled in both terms
+  (Fall 24 Closed + 4 Canceled; Spring 18 Closed + 38 Canceled) — MUST read seat_status to drop Canceled.
+- LIVE-TERM DISPROOF (best of the elite four — no completed-term melt needed): current Fall COS has
+  genuinely Closed rows incl. exact-full class 21189 = 25/25 and over-cap class 22499 = 25enr/20cap.
+  Numeric enrolled>=capacity can't be faked open.
+- SCOPING TRAPS confirmed: param is `subjects` PLURAL + `subjects_count` (singular `subject=` silently
+  returns the whole term); `subjects=COS` also returns cross-listed primaries (ECE/ECO/MAE/ORF/PSY/QCB/
+  SML/SPI). Exact scope = (subject==SUBJ AND catnum.trim()==NUM) OR crosslistings contains "SUBJ NUM".
+  Verified: exact-scoped COS 126 = 1 course (class 21194). Section key = class_number (unique).
+- RELAY CORRECTION: Grab's headline "COS = 2,442 open / 385 Closed / 72 Canceled" is TERM-WIDE numbers,
+  not COS — exact-scoped COS is ~150 sections (122 open/24 closed/4 canceled). Traps + concrete rows
+  reproduced exactly; only the aggregate was mislabeled. Terms: 1272=Fall26-27, 1264=Spring25-26 (labels).
+
+DEPLOYMENT BLOCKER (the reason it's benched, not shipped):
+- The Bearer token lives ONLY in registrar.princeton.edu HTML (drupalSettings.ps_registrar.apiToken),
+  and that host is behind a Cloudflare "Just a moment…" anti-bot challenge → plain stdlib gets 403.
+  Verified NO stdlib-reachable alt source (API base 404, /token 405, /anonymous 202-empty, www 404,
+  mobile config 404). Defeating the challenge is off-limits (bot-detection). Token grabbed ONCE via the
+  real in-app browser for THIS gate only; decodes to a WSO2 gateway app cred (anonymous, same for every
+  logged-out user) — NOT committed to the repo.
+- So a production adapter needs either: (A) hardcode the anonymous token — pure stdlib, ships clean,
+  accuracy-safe (dead token = 401 = empty = never a false open), BUT silent whole-school outage if it
+  ever rotates (stability unknown; WSO2 app-cred pattern suggests it's fairly stable but unproven); or
+  (B) a headless browser on the Oracle box to bootstrap the token each cycle — BREAKS stdlib-only,
+  adds Chromium+driver deps, ongoing memory/CPU cost, vuln surface, fragility on a small VM.
+- RECOMMENDATION: bench behind the pure-stdlib wins (Maricopa +10, batch 40-42 Banner9 hosts). If Nathan
+  wants the Princeton name, least-bad path is (A) hardcode + a 401 health-alert (since dead=safe). Do
+  NOT adopt (B) — a browser dependency on the poller is the one change that most undermines the
+  stdlib-single-scp design that makes the accuracy discipline sustainable. NO schools.py edit made.
