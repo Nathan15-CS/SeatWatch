@@ -494,6 +494,13 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   and CSUDH advertise no-login class searches but their linked endpoints currently redirect to Okta/SSO,
   so both remain explicitly login-gated. No `schools.py` or builder changes.
 
+## July 12 Codex Batch 30 checkpoint
+- Batch 30 appended Santa Monica College and Truman State University as net-new schedule identities.
+- SMC has a current Fall 2026 schedule and documented open-seat notification/waitlist semantics but no
+  captured guest numeric row. Truman publishes a Fall 2026 PDF and describes a real-time current course
+  list, but the live list appears TruView-gated. Both remain follow-up leads; no `schools.py` or builder
+  changes.
+
 ## July 12 Codex Batch 24 checkpoint
 - Batch 24 appended to `research/README.md`: eleven net-new identities — University of Southern
   California, University at Buffalo (SUNY), University of Wisconsin–Eau Claire, University of Minnesota,

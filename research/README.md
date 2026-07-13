@@ -1960,3 +1960,23 @@ login-gated leads.
 **Batch status:** one net-new CSU public numeric schema and two net-new CSU login-gated leads were archived.
 No current seat values were inferred for the client-rendered or SSO surfaces. No `schools.py` edit, registry
 change, deployment, or builder handoff was made.
+
+### Codex Batch 30 — Additional public schedule paths (July 12 2026)
+
+1. **Santa Monica College (CA) — PUBLIC SCHEDULE/OPEN-SEAT WORKFLOW LEAD, FOLLOW-UP REQUIRED.** SMC’s
+   official Fall 2026 schedule is published at `https://www.smc.edu/academics/classes/2026-27/fall-2026/general-information.php`
+   (PDF: `https://www.smc.edu/academics/classes/2026-27/fall-2026/documents/263-SMCschedule.pdf`). The
+   registrar documents an Open Seat Notification and waitlist workflow, and directs students to the online
+   schedule at `smc.edu/schedules`; the schedule is current for Fall 2026. No guest numeric row was
+   captured in this pass, so do not infer seats. Follow up with a no-login section query if available and
+   preserve open-seat notifications, waitlist, campus, modality, and authorization-code semantics.
+2. **Truman State University (MO) — PUBLIC SCHEDULE + REAL-TIME COURSE-LIST LEAD, FOLLOW-UP REQUIRED.**
+   Truman publishes the Fall 2026 schedule of classes (`https://www.truman.edu/majors-programs/academic-resources/schedule-of-classes/`;
+   PDF: `https://www.truman.edu/wp-content/uploads/2026/03/ClassSchedule-Fall2026.pdf`). Its registrar
+   says the current course list is real-time and searchable by course, part of term, attribute, and time
+   (`https://www.truman.edu/registrar/registration/open-courses/`), while the public PDF documents Fall
+   2026 waitlist/add-drop behavior. The real-time list appears to require TruView access; no numeric guest
+   rows were captured. Treat as a login-gated lead until a sanctioned public search or export is found.
+
+**Batch status:** two net-new U.S. schedule identities were archived. Neither received inferred seat values
+or production approval. No `schools.py` edit, registry change, deployment, or builder handoff was made.
