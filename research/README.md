@@ -16,6 +16,33 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### ⭐ IU Bloomington — Grab BROWSER-TRACED + gate-passed July 13 (Build handed back; ~48k flagship)
+iGPS public course search XHR chain fully traced (Build couldn't extract it from the minified SPA).
+Public, no-auth, JSON. 9-CAMPUS SHARED HOST — IUBLA isolation mandatory + VERIFIED.
+- Base: `https://sisjee.iu.edu/sisigps-prd/web/igps/course/search`. Campus codes: IUBLA (Bloomington),
+  + IUINA/IUEAA/IUKOA/IUNWA/IUSBA/IUSEA/IUCOA/IUFTW. Terms: Fall 2026 = strm `4268`, Spring 2026 = `4262`.
+- 3-call flow: (1) `GET /terms.json?inst=IUBLA`; (2) `POST /courses.json` body
+  `{inst:"IUBLA",strm:"4268",filters:{attributes:null,level:null,locations:null,meetingTimes:null,mois:null,sessions:null,subject:null,units:null},from:N}` → catalog, PAGINATES 50/page (count=6143;
+  loop `from` to completion). Each course has courseId, courseOfferNumber, courseTopicId, effdt, car,
+  subject, catalogNumber, classNumbers[]. (3) `GET /classes.json?courseId=&courseOfferNumber=&courseTopicId=&effdt=&strm=4268&inst=IUBLA&car=UGRD` → the SECTIONS with seats.
+- classes.json section fields: `classNbr` (key, UNIQUE), `openSeats`, `totalSeats`, `closed` (bool),
+  `waitlistTotal`, `campus` (BL), `inst`, `combinedSections[]` (cross-list: combinedEnrollCapacity/Total),
+  `departmentConsentRequired`/`instructorConsentRequired`.
+- OPEN RULE: `closed === false AND openSeats > 0` (agreed 64/64 in gate; belt+suspenders). Cross-list
+  guard: if `combinedSections` present and `combinedEnrollTotal >= combinedEnrollCapacity`, treat as full
+  even if openSeats>0 (none tripped in sample but guard it). Consent flags = preserve as note, not fake-open.
+- ISOLATION: the `inst=IUBLA` param scopes courses.json + classes.json to Bloomington; rows carry
+  campus=BL. Gate found 0 non-IUBLA rows across 64 sections. Mandatory + verified.
+- ADDRESSABILITY: courses.json is the COMPLETE campus catalog (paginated) → filter subject+catalogNumber
+  → the course's stable ids → classes.json = its exact sections. Deterministic. ⚡ EFFICIENCY: course ids
+  (courseId/effdt) are STABLE per term, so build the subject+catnum→ids map ONCE per term from courses.json
+  (page all 123 pages once), cache it, then per-poll call ONLY classes.json (the live-seats call).
+  (Couldn't crack the subject filter format — 500s; paging works. Build may capture the UI's exact filter
+  POST body to skip full paging.)
+- GATE (live Fall 4268, 18 big courses/64 sec across ENGL/HIST/ECON/EDUC/MSCH): **44 open / 20 CLOSED** —
+  decisive live mix; closed-vs-openSeats agreed 64/64; 0 non-IUBLA; classNbr unique. Completed Spring 4262
+  available (Codex Batch 67: class 23672 closed 0/30, 29885 open 1/24). Dedup: net-new.
+
 ### ⭐ West Valley + Mission (WVMCCD) ×2 — Grab CRACKED + gate-passed July 13 (browser-traced, static JSON)
 Nathan-requested trace done. schedule.wvm.edu serves raw Banner SSBSECT dumps as static per-term JSON,
 public/no-auth. 2 net-new colleges on one feed, both gate clean both terms.
