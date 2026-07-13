@@ -2143,3 +2143,39 @@ seat claims were made for any entry. No
 public search/workflow routes; Pomona, HMC, and Pitzer are portal/5C leads with no inferred numeric seats.
 All five were deduped against `schools.py` and prior research. No production approval, `schools.py` edit,
 registry change, deployment, or builder handoff was made.
+
+### Codex Batch 37 — Southwest public class-search pathways (July 12 2026)
+
+1. **University of Nevada, Las Vegas (NV) — PUBLIC PEOPLESOFT CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.**
+   UNLV exposes a guest Class Search at `https://my.unlv.nevada.edu/psc/lvporprd/EMPLOYEE/SA/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL`
+   with institution/term selectors, subject/course-number filters, and “Show Open Classes Only.” The official
+   search surface includes Fall 2026 as a selectable term, but no populated row was captured here. Replay a
+   current and completed term, confirm numeric seats/status, and preserve UNLV campus, career, reserve,
+   waitlist, and restriction semantics.
+2. **University of Nevada, Reno (NV) — PUBLIC PEOPLESOFT CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.** UNR’s
+   official guest Class Search is `https://cs.nevada.unr.edu/psc/unrcsprd/EMPLOYEE/SA/c/SA_LEARNER_SERVICES.CLASS_SEARCH.GBL`.
+   The public page exposes term/subject/course filters; current Fall 2026 row and seat-field capture were not
+   completed. Verify whether the guest response includes capacity, enrollment, available seats, and waitlist,
+   then replay a completed term and keep Reno separate from Nevada Online/non-degree surfaces.
+3. **New Mexico State University (NM) — PUBLIC BANNER COURSE-LOOKUP LEAD, FOLLOW-UP REQUIRED.** NMSU’s
+   official Course Schedules page links a public “Look Up Classes” service (`https://www.nmsu.edu/course/`),
+   and the Banner public term-selection endpoint is `https://banner-public.nmsu.edu/StudentRegistrationSsb/ssb/term/termSelection?mode=courseSearch`.
+   NMSU documents Fall 2026 dates and warns that Global Campus sections are reserved for that program. Capture
+   Fall 2026 and a completed term, isolating Las Cruces from Alamogordo/Carlsbad/Doña Ana/Grants and Global,
+   and preserve reserved seats, waitlists, and campus codes.
+4. **University of Colorado Denver (CO) — CLASS-SEARCH/AVAILABILITY LEAD, FOLLOW-UP REQUIRED.** CU Denver’s
+   registrar directs users to its Class Search tool to find available classes (`https://www.ucdenver.edu/student/registration/register-for-classes/register/class-search`).
+   The page also distinguishes non-degree registration and student-portal registration; no public numeric row
+   was captured. Confirm whether a guest route exists, then capture current/completed terms with Downtown,
+   Anschutz, online, career, reserve, and waitlist distinctions intact.
+5. **Boise State University (ID) — MYBOISESTATE CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.** Boise State’s
+   official Fall 2026 service-learning course page lists current sections and directs users to the Class Search
+   in my.boisestate.edu for authoritative details (`https://www.boisestate.edu/servicelearning/sl-courses/`).
+   The linked search appears portal-gated in this pass, so no seats are inferred. Confirm a sanctioned guest
+   endpoint, then replay Fall 2026 and a completed term while preserving Boise/main-campus, regional, online,
+   permission, reserve, and waitlist semantics.
+
+**Batch status:** five net-new U.S. college identities were archived. UNLV, UNR, and NMSU expose public
+class-search/lookup routes; CU Denver and Boise State require guest-route confirmation. No seats were inferred.
+All five were deduped against `schools.py` and prior research. No production approval, `schools.py` edit,
+registry change, deployment, or builder handoff was made.

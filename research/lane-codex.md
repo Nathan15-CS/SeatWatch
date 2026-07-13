@@ -562,3 +562,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   UMaine’s PeopleSoft Class Search redirected to sign-in. No seats were inferred. All five require campus,
   eligibility, reserve/waitlist, freshness, and current/completed-term checks before adapter work. No
   `schools.py` or builder changes.
+
+## July 12 Codex Batch 37 checkpoint
+- Batch 37 appended five net-new identities: University of Nevada, Las Vegas; University of Nevada, Reno;
+  New Mexico State University; University of Colorado Denver; and Boise State University.
+- UNLV, UNR, and NMSU expose public class-search/lookup routes; CU Denver and Boise State require guest-route
+  confirmation. No seats were inferred. All five require campus, career, reserve/waitlist, freshness, and
+  current/completed-term checks before adapter work. No `schools.py` or builder changes.
