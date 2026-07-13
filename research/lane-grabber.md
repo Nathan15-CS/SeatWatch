@@ -13,10 +13,23 @@ School adds relay DIRECT per deploy policy; money/UI/legal stay gated behind Nat
   terms too — policy block, FINAL). **RPI resurrected** via completed-term production disproof
   (ListcrseBanner8 drop-in; live all-open is real pre-registration emptiness). CT-log B8 leftovers
   network-dead on a 20-path battery. UCSD still no FA26 (weekly recheck). UH avail.classes still 502.
-- **USC CRACKED + SENT to Build (July 13)** — first elite bespoke lead source-gated: public REST API
-  behind classes.usc.edu, real registeredSeats/totalSeats/isFull per sisSectionId, live 151-FULL WRIT-150
-  disproof, completed-term mixed. Full recipe in README block "USC (elite lead)". Remaining elite
-  reachable: Rice, Michigan, Harvard (my.harvard), CMU, Princeton.
+- **ELITE PASS July 13 (Grab): 3 of 6 cracked + SENT, 1 corrected to BLOCKED.**
+  - **USC** ✅ SHIPPED same-day (Build, live at 689): public REST API behind classes.usc.edu, real
+    registeredSeats/totalSeats/isFull per sisSectionId, live 151-FULL WRIT-150 disproof.
+  - **Rice** ✅ SHIPPED (Build, 690): custom SWKSCAT Banner CGI, Section/Xlist/Waitlist enrollment.
+  - **Princeton** SOURCE-GATED + SENT — api.princeton.edu two-call (classes + seats), anonymous Bearer.
+    STRONGEST disproof of the four (live-term 385 real Closed COS, 25/25 + over-cap; 0 status/arith
+    disagree across ~5,900 sec). BUT bespoke + BROWSER-ASSISTED: registrar page 403s plain clients
+    (Akamai challenge, even browser UA) so token needs a headless bootstrap; api host is plain-reachable.
+    README block "Princeton (elite lead)".
+  - **Harvard** ❌ CORRECTED TO BLOCKED (prior handoff wrongly said "my.harvard exposes enrollment").
+    my.harvard public search IS open (no login) and returns course cards + section times, but exposes
+    NO live enrolled/capacity to anonymous users — only "Enrollment: No Limit" (a cap POLICY) + section
+    times; the "Enrolled/Waitlist" strings are calendar/cart UI labels, not seat counts. No seat field =
+    can't gate. Same catalog-only class as the other BLOCKED elites.
+  - Remaining elite reachable: **Michigan** (Wolverine Access / LSA CG both Okta-gated — needs a public
+    surface; not yet found), **CMU**. Princeton's browser-bootstrap pattern may unlock other
+    Drupal-registrar + api-gateway schools.
 - **RICE CRACKED + SENT to Build (July 13)** — custom Banner package (SWKSCAT CGI), labeled
   Section/Xlist/Waitlist enrollment + live freshness stamp; waitlist-priority + xlist-pool rules
   MANDATORY; completed-term full row through same parse. README block "Rice (elite lead)".
