@@ -513,6 +513,13 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   direct Fall 2026 export/replay plus campus, reserved-seat, waitlist, and completed-term checks remain
   open. No `schools.py` or builder changes.
 
+## July 12 Codex Batch 33 checkpoint
+- Batch 33 appended University of Vermont as a net-new current public course-page lead.
+- UVM PACE pages expose refreshed Fall 2026 CRNs, explicit open/full status banners, and eligibility notes;
+  the public index mixes “Only N seats available” with “This section is full - join waitlist.” Exact numeric
+  field capture, completed-term replay, and separation of PACE/non-degree eligibility from the main catalog
+  remain required. No `schools.py` or builder changes.
+
 ## July 12 Codex Batch 24 checkpoint
 - Batch 24 appended to `research/README.md`: eleven net-new identities — University of Southern
   California, University at Buffalo (SUNY), University of Wisconsin–Eau Claire, University of Minnesota,

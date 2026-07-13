@@ -2010,3 +2010,22 @@ registry change, deployment, or builder handoff was made.
 **Batch status:** one net-new public schedule identity was archived. Numeric current-term replay and
 eligibility checks remain outstanding. No `schools.py` edit, registry change, deployment, or builder handoff
 was made.
+
+### Codex Batch 33 — UVM public course pages (July 12 2026)
+
+1. **University of Vermont (VT) — PUBLIC CURRENT COURSE/SEAT-STATUS LEAD, FOLLOW-UP REQUIRED.** UVM
+   Professional and Continuing Education publishes no-login Fall 2026 section pages with CRNs, dates,
+   instructors, modality, prerequisites/permission notes, and an explicit live status banner. The official
+   course index (`https://learn.uvm.edu/courses/fall/`) currently mixes sections labeled “Only N seats
+   available, register soon!” with sections labeled “This section is full - join waitlist”; individual
+   pages are refreshed within hours (for example PEAC 1188 B, CRN 90253:
+   `https://learn.uvm.edu/course/202609/90253/fall-2026/physical-education/scuba/`). A separate UVM
+   registrar waitlist guide documents that apparent open seats may be reserved for waitlisted students
+   (`https://www.uvm.edu/registrar/waitlisting-pilot-information-students`). This is a public PACE/non-degree
+   surface rather than proof of the entire undergraduate catalog: capture the underlying course-list request,
+   exact numeric seat fields, a full/waitlist row, and a completed term before adapter work, and preserve
+   PACE eligibility, prerequisites, permission, waitlist, and cross-list semantics.
+
+**Batch status:** one net-new U.S. college identity was archived as a current public status lead. No
+numeric value was inferred from the status banner, and no `schools.py` edit, registry change, deployment,
+or builder handoff was made.
