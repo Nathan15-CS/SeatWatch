@@ -15,6 +15,14 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Parser lever — ✅ BUILT + DEPLOYED July 12: CCRI + NC A&T + HGTC, 677->680 (~33k)
+Re-diagnosed (seat parser was fine; gap = CRN discovery from non-standard LISTINGS). Refactored to a
+_crns() hook + TWO reusable fixes: TabularBanner8 (column-table listings, strict exact Subj+Crse
+match -> CCRI 136 sec 53 full); widened classic CRN pattern \d{5}->\d{4,5} (4-digit CRN hosts ->
+HGTC 18 sec). NC A&T was plain ListcrseBanner8 all along (wrong term originally; Fall=202710). All 3
+gated live, zero false-open, 5-digit regression clean. Both fixes REUSABLE to re-sweep hosts wrongly
+cut as dead (tabular-listing or 4-digit-CRN Banner-8).
+
 ### Chabot + Las Positas — ✅ BUILT + DEPLOYED July 12: 675->677 (2 schools, 1 CampusBanner8 variant)
 Chabot-Las Positas district shares ONE Banner-8 host; plain adapter mixes campuses. New
 CampusBanner8(Purdue): sel_camp=<code> pre-filter (verified disjoint) + per-CRN structured
