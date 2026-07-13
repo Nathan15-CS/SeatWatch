@@ -3649,3 +3649,17 @@ full gate: no production change is safe from this batch.
 
 **Batch status:** zero new full-gate candidates; five explicit hold-outs documented above. No `schools.py`, registry,
 deployment, or builder changes were made.
+
+### UT Chattanooga + West Valley/Mission — ✅ SHIPPED July 13 (Build): 707->710 (from Codex/Grab gated leads)
+- **UT Chattanooga** (utc, Batch 65 Codex gated lead re-verified): plain Banner9 sis-reg.utc.edu 202640.
+  ENGL 1010 = 41 sec 27 open/14 full, MATH 1130 37 sec 26/11, completed Spring 202620 = 7 sec 5 full.
+  Single institution ('UT Chattanooga' + 'UTC Hybrid/Online' are modalities, NOT a shared UT host — UTK
+  is separate). seq unique 41/41. resolve_term->202640. ~12k public 4-year.
+- **West Valley + Mission** (westvalley WVC / missioncollege MC, ⭐ Grab browser-traced): static Banner
+  JSON dump schedule.wvm.edu/data/{term}/crns.json, shared class-level cache (Mission served 0.0s off
+  West Valley's fetch). Re-gated: WVC ENGL 10W 38 sec 22/16, MC ENGL 10M 23 sec 8/15, completed 202630
+  WVC 130 full. CAMP_CODE isolation WVC/MC (cross-campus CRN overlap EMPTY). open = SEATS_AVAIL>0 AND
+  SSTS_CODE=='A'. Key=CRN unique. ⚠️ ADDRESSABILITY: course numbers zero-padded+irregular ('005A','010',
+  '10W'/'10M' campus-suffixed) — canonical leading-zero-strip both sides so 'ENGL 5A'=='005A'. Term
+  auto-rolls from sobterm.json. Both net-new. IU Bloomington (Batch 67 gated) NOT built — 9-campus iGPS
+  SPA needs a browser XHR trace (handed to Grab).
