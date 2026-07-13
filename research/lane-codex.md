@@ -422,3 +422,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Houston is limited to an embedded short-session search; neither has claimed numeric seats.
 - Dedup checks were clean against `schools.py` and prior notes. No registry or builder changes; continue
   research-only until an explicit go-ahead.
+
+## July 12 Batch 20 checkpoint
+- Batch 20 appended to `research/README.md`: University of New Mexico and Dickinson College.
+- UNM has public Banner current/completed detail examples with Capacity/Actual/Remaining, waitlist,
+  cross-list, and restriction fields; it remains gated until all-subject guest fetch and a completed-term
+  full-row test pass. Dickinson's public Banner term selector and registrar documentation confirm the
+  seat-bearing detail surface, but no row values were claimed because the guest form was not reproduced.
+- Dedup checks were clean. No `schools.py` or builder changes; research-only boundary remains in force.

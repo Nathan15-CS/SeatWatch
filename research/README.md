@@ -1499,3 +1499,35 @@ did not expose a complete guest row feed in this pass. No seat values are inferr
 numeric evidence bar but remain source-gated; York College of Pennsylvania and University of Houston are
 clearly marked non-seat/limited-scope leads. No `schools.py` edit, production adapter, or builder handoff
 was made.
+
+### Batch 20 — New Mexico Banner source and Dickinson public-schedule lead (Codex, July 12 2026)
+
+This pass found one new direct numeric source and one carefully bounded public-schedule lead. Both are
+net-new against `schools.py` and prior notes; neither has been handed to the builder.
+
+1. **University of New Mexico (NM) — SOURCE-GATED, AWAITING FOLLOW-UP.** UNM's public Banner dynamic
+   schedule is `https://lobowebapp.unm.edu/ban_ssb/bwckschd.p_disp_dyn_sched`; it exposes Fall 2026,
+   Spring 2026 (view-only), and older terms, with separate continuing/community-ed and MD/PharmD term
+   families. Official detail pages publish `Capacity Actual Remaining`, waitlist counts, cross-listings,
+   restrictions, prerequisites, campus, modality, and timestamps. Fall 2026 (`term_in=202680`) example
+   MATH 401-002 CRN 81893 is 35/11/24 with waitlist 18/0/18 and a MATH 501 cross-list; completed Spring
+   2026 (`term_in=202610`) MATH 536-002 CRN 57430 is 20/6/14. Example detail URLs are
+   `https://lobowebapp.unm.edu/ban_ssb/bwckschd.p_disp_detail_sched?crn_in=81893&term_in=202680` and
+   `https://lobowebapp.unm.edu/ban_ssb/bwckschd.p_disp_detail_sched?crn_in=57430&term_in=202610`. Gate
+   exact term+CRN+subject/course/section and primary `Remaining > 0`; keep waitlist and cross-list seats
+   separate, and preserve program/level restrictions. A production adapter still needs an all-subject
+   guest fetch plus a completed-term full/closed-row sanity check before handoff.
+2. **Dickinson College (PA) — PUBLIC BANNER LEAD, FOLLOW-UP REQUIRED.** Dickinson's official registrar
+   FAQ confirms that its Class Schedule Search and Detailed Class Information screen are public and expose
+   capacity, first-year reserved seats, actual enrollment, and remaining seats; it explicitly warns that
+   remaining seats can be reserved for incoming students and that cross-listed classes require special
+   handling (`https://www.dickinson.edu/info/20088/registrars_office/388/faculty_faqs/2`). The public
+   Banner term selector is `https://bannerdprod.dickinson.edu/prod_ssb/bwckschd.p_disp_dyn_sched` and
+   lists Fall 2026 plus Spring 2026 view-only. This pass did not reproduce a detail row or CRN through the
+   guest form, so no numeric seat value is claimed. Follow up only after capturing current and completed
+   detail pages, including FY-reserved, cross-list, and full-section examples; do not equate aggregate
+   Remaining with universally open seats.
+
+**Batch status:** University of New Mexico is a direct numeric source with current/completed examples but
+remains source-gated pending all-subject and full-row tests. Dickinson is explicitly a public Banner lead
+without captured row values. No `schools.py` edit, production adapter, or builder handoff was made.
