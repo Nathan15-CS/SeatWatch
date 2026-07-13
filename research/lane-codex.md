@@ -644,3 +644,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - Rochester and Syracuse have the clearest documented schedule-search pathways; Pitt, NC State, and Case Western
   require public/guest endpoint confirmation. All five require scope, campus/career, eligibility, waitlist,
   freshness, and current/completed-term checks before adapter work. No `schools.py` or builder changes.
+
+## July 13 Codex Batch 48 checkpoint
+- Batch 48 appended five net-new identities: Brandeis University, Massachusetts College of Art and Design,
+  Roxbury Community College, Boston College, and Antioch College.
+- Brandeis has direct numeric Fall 2026 `Enrl / Lim / Wait` rows; RCC has searchable open-status rows with term,
+  modality, dates, and room-capacity text. MassArt, Boston College, and Antioch require endpoint/scope validation.
+  All five require scope, campus/career, eligibility, waitlist, freshness, and current/completed-term checks before
+  adapter work. No `schools.py` or builder changes.
