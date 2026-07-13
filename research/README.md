@@ -15,6 +15,29 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### ⭐ RCCD ×3 — Grab CRACKED + gate-passed July 13 (was HELD "bespoke SharePoint"; now a ready spec)
+The RCCD hold is RESOLVED — I reverse-engineered the msappproxy feed (it's PnPjs→SharePoint REST, not a
+custom API). Anonymous, no auth, real numeric seats. 3 net-new colleges (Moreno Valley, Norco, Riverside
+City), one adapter.
+- Endpoint: `GET https://apps-studentrcc.msappproxy.net/schedule/_api/web/lists/getByTitle('{LIST}')/items`
+  with header **`Accept: application/json;odata=nometadata`** (this is the key — a plain GET without it
+  returns the SPA HTML shell, which is why the earlier probe looked dead). Lists: `ScheduleData_MOV`
+  (Moreno Valley), `ScheduleData_NOR` (Norco), `ScheduleData_RIV` (Riverside City).
+- Fields: `$select=Section_x0020_ID,Primary_x0020_Subject,Section_x0020_Number,Total_x0020_Seats,`
+  `Seats_x0020_Used,Last_x0020_Day_x0020_to_x0020_Ad` (SharePoint x0020 = space encoding). Key =
+  `Section_x0020_ID` (verified UNIQUE per college). Course scope = `Primary_x0020_Subject` (e.g. "ALR-4"
+  = subject+number) + college. Feed is CURRENT-term only (Fall 2026; Last Day to Add = 09/01/26).
+- OPEN RULE: `Total_x0020_Seats - Seats_x0020_Used > 0` AND `Last_x0020_Day_x0020_to_x0020_Ad >= today`.
+  Over-cap rows exist (e.g. 30 seats / 31 used → NOT open) — the subtraction handles them; never infer
+  open from presence.
+- GATE (live July 13, all 3 through this exact parse): Moreno Valley 2482 sec **826 open/1655 full**;
+  Norco 2508 sec **921/1587**; Riverside City 5410 sec **1454/3625**. Decisive real full mix = disproof.
+- ⚠️⚠️ **PAGING MANDATORY (silent-miss trap):** Riverside City `ItemCount=5410` but one page caps at
+  **5080** and returns an `odata.nextLink` (skiptoken). WITHOUT following nextLink, 330 sections are
+  INVISIBLE = a watched full section that never appears. Adapter MUST page to completion (fail-closed if
+  a page can't be read). Moreno Valley (2482) and Norco fit one page. ~64k students across the district.
+- Dedup: all 3 net-new. Supersedes the "RCCD HOLD — feed dropped Fall 2026" note. READY for Build.
+
 ### ⭐ MARICOPA ×10 — Grab LIVE-VERIFIED July 13 (Codex Batch 25 confirmed) → GREEN-LIGHT to Build
 Codex's 10-campus Maricopa lead is REAL, LIVE, and gate-able — I production-verified it and confirmed
 the accuracy trap. Biggest single lever in the Codex pile (10 net-new colleges, one adapter).
@@ -2945,6 +2968,58 @@ without Nathan's approval.
 
 **Batch status:** one candidate (PCC) is `GATED, AWAITING GO-AHEAD`; four are held out with documented blockers.
 No `schools.py`, registry, deployment, or builder changes were made. PCC remains a bespoke research handoff only.
+
+### Codex Batch 61 — gate-resolution supplements (July 13 2026)
+
+This pass tested five Mountain West public class-search leads. **Great Falls College MSU and the University of New
+Mexico are `GATED, AWAITING GO-AHEAD`;** Wyoming, Idaho, and UNLV remain explicit hold-outs. No production change is
+proposed and no school should be sent to the builder without Nathan's approval.
+
+1. **Great Falls College MSU (MT) — GATED, AWAITING GO-AHEAD: official APEX numeric scheduler.** Official route:
+   `https://apexprod.msu.montana.edu/apex/r/esg/s_class_schedule_gf/class-schedule`. The page exposes Fall 2026
+   (`202670`) through Spring 2023, CRN/course/section identity, course status, Available, Enrolled, Capacity,
+   waitlist capacity, waitlisted, waitlist available, meeting details, modality, and part-of-term. The current
+   no-filter Fall replay returned 311 rows and a mixed-status sample: CRN `67109` (`ACTG 101-200`) has `21` available,
+   `4/25` enrolled/capacity; CRN `67021` (`COMX 115-180`) is explicitly `CLOSED` with `0/25`; rows also include
+   consent/restriction labels and online, face-to-face, blended, and hyflex modalities. The same page's open-seat
+   filter returned 280 rows, proving the filter is not silently converting all rows to one status. Spring 2026
+   (`202630`) replay is populated and preserves the same numeric schema (for example CRN `63136` = `10/25` open and
+   CRN `63373` = `CLOSED`, `0/1`). Use CRN as the native key and keep the official Great Falls route/campus scope;
+   preserve meeting-location codes such as GFCMSU/SHC and all restrictions rather than treating them as separate
+   colleges. APEX requests completed in a few seconds in this pass, well below the 30-second gate. This is a
+   bespoke adapter candidate; no `schools.py` edit was made.
+
+2. **University of New Mexico (NM) — GATED, AWAITING GO-AHEAD: public schedule-of-classes table.** Official index:
+   `https://lobowebapp.unm.edu/apex_ods/f?p=SCHEDULE_OF_CLASSES:SEMESTERS:::`; Albuquerque/Main full schedule
+   (`202680`) and completed Spring 2026 (`202610`) are directly selectable. The Fall table is explicitly labeled
+   “Albuquerque Main,” says it is refreshed every 24 hours, and exposes native CRNs, subject/course/section, status,
+   section capacity, enrolled, modality, restrictions/comments, and meeting details. Current mixed evidence includes
+   CRN `64191` (`ACCT 2110-001`) `OPEN`, capacity 60/enrolled 41; CRN `64197` (`ACCT 2110-002`) `WAIT LIST AVAILABLE`,
+   60/60; and CRN `83571` (`AFST 397-005`) `CLOSED`, 5/5. Spring replay is populated with the same fields (for
+   example CRN `51543` `OPEN`, 60/56, and CRN `59084` `WAIT LIST AVAILABLE`, 60/60). Gate open only when status is
+   `OPEN` and `enrolled < capacity`; preserve `WAIT LIST AVAILABLE` separately and never infer a waitlist from a
+   full numeric row alone. The direct term/campus URL prevents branch-campus leakage; branch campuses are separate
+   public selections. Requests rendered in a few seconds here; enforce a 30-second timeout and fail closed on stale,
+   missing, or malformed tables. Bespoke adapter work is required; no `schools.py` edit was made.
+
+3. **University of Wyoming (WY) — HOLD OUT: registration search requires login.** Official WyoRecords:
+   `https://wyossb.uwyo.edu/StudentRegistrationSsb/ssb/registration`. The public page states that students must be
+   logged in to “Search and Register” or “Search and Plan.” No unauthenticated current/completed section rows,
+   seat integers, or waitlist payload were obtained; do not infer from the academic calendar or catalog.
+
+4. **University of Idaho (ID) — HOLD OUT: public term shell did not yield rows.** Official registrar class-search
+   link: `https://banner.uidaho.edu/StudentRegistrationSsb/ssb/term/termSelection?mode=search`. The Registrar confirms
+   this is the official class-search tool, but the public term-selection response in this pass exposed only the
+   generic Start Date/End Date/Continue shell; no current or completed section rows, seat integers, status mix, or
+   replay could be reproduced. Hold until a documented no-login term/result route is available.
+
+5. **University of Nevada, Las Vegas (NV) — HOLD OUT: MyUNLV login gate.** Official class search:
+   `https://my.unlv.nevada.edu/psc/lvporprd/EMPLOYEE/SA/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL`. The route redirects to
+   the MyUNLV login/cookie page before current or completed results, so no unauthenticated seats, waitlists, or
+   section identity could be validated. Do not use catalog/calendar pages as a substitute.
+
+**Batch status:** two candidates (Great Falls College MSU and UNM) are `GATED, AWAITING GO-AHEAD`; three are held out
+with exact blockers. No `schools.py`, registry, deployment, or builder changes were made.
 
 ### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
 Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.

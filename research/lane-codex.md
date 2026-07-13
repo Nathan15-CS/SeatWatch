@@ -783,8 +783,22 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   gate-resolution supplements.” No `schools.py` or production changes were made.
 
 ## July 13 Codex Batch 61 claim — Mountain West public class-search vein
-- Claiming five bounded leads: University of Wyoming, Montana State University, University of Idaho, University of
-  Nevada Las Vegas, and University of New Mexico.
+- Claiming five bounded leads: University of Wyoming, Great Falls College MSU (the official `s_class_schedule_gf`
+  route originally identified as the Montana State lead), University of Idaho, University of Nevada Las Vegas, and
+  University of New Mexico.
 - I will test only official no-login class-search/current-term and completed-term surfaces, checking numeric seats,
   mixed availability, waitlists, native section identity, campus scope, freshness, and latency. Only gate-cleared
   evidence will be appended to `research/README.md`; no `schools.py` edits or builder contact.
+
+## July 13 Codex Batch 61 checkpoint — two gated candidates, three hold-outs
+- Great Falls College MSU cleared the gate through the official `s_class_schedule_gf` APEX route: current Fall 2026
+  and completed Spring 2026 rows, native CRNs, numeric Available/Enrolled/Capacity, explicit CLOSED rows, waitlist
+  columns, restrictions, modality, and sub-30-second requests. The route is Great Falls College scope, not generic
+  Montana State University; that identity correction is recorded in README.
+- University of New Mexico cleared the gate through its public Albuquerque/Main schedule table: current Fall 2026
+  plus Spring 2026 replay, native CRNs, mixed OPEN/WAIT LIST AVAILABLE/CLOSED statuses, numeric capacity/enrolled,
+  branch-campus isolation, freshness guidance, and a bounded direct term/campus URL.
+- University of Wyoming is login-gated; University of Idaho's public term shell produced no rows; UNLV redirects the
+  public class-search route to MyUNLV login. All three are held out rather than inferred.
+- Full recipes, evidence, and blockers are recorded in `research/README.md` under “Codex Batch 61 — gate-resolution
+  supplements.” No `schools.py` or production changes were made.
