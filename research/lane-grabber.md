@@ -5,6 +5,22 @@ Single relay point to Build is unchanged: gated finds → README under `AWAITING
 Nathan's go, relay to Build (session local_f4c9ee6c-cfaa-41e0-bf31-348d87326105) as "Batch N" → mark SENT.
 School adds relay DIRECT per deploy policy; money/UI/legal stay gated behind Nathan.
 
+## MassArt FIXED (July 13) — base Colleague, not NewColleague → 4-line drop-in, relayed to Build
+Build's NewColleague.fetch got no-data because MassArt (mca-ss.colleague.elluciancloud.com) uses the
+OLDER Colleague API: /Student/Courses/SearchAsync = 404; the working route is
+/Student/Courses/PostSearchCriteria (textual "Open"/"Closed"/"Waitlisted"), i.e. base `Colleague` not
+NewColleague. Gated live through production Colleague.fetch: CDAN 300 1 open/1 full, CDAN 302 2/2, CDAN
+303 full — real mix, keys unique. 4-line Colleague subclass, example CDAN 300. Relayed. LESSON: when a
+Colleague host 404s on SearchAsync, try PostSearchCriteria (base Colleague) before calling it dead —
+Ellucian-cloud hosts run BOTH API generations.
+
+## IU Bloomington SHIPPED (711) + elite tier maxed (July 13)
+Build shipped IU Bloomington off my trace (710→711, ~48k). Elite reachable-six DONE: USC/Rice/Princeton/
+IU-Bloomington live; Harvard/CMU/Michigan blocked. Build added 2 addressability refinements to my spec:
+(1) 478 IU combos are MULTI-ROW (variable-topic, one code → many catalog rows → aggregate or silent-miss;
+now in [[seatwatch-gate-addressability]]); (2) combinedSections.separateEnrollmentControl flag gates the
+cross-list cap precisely.
+
 ## Codex batches 69-72 audit (July 13) — NOTHING shippable; NAU = fake-status trap (held)
 Checked Codex's newest (69-72). All hold-outs except NAU (Batch 71, "GATED"), which I re-assessed and
 HELD: it's classic PeopleSoft COMMUNITY_ACCESS.CLASS_SEARCH.GBL — our documented FAKE-ALL-OPEN dead-end
