@@ -590,3 +590,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - JMU and UW–Madison have public-search evidence; Richmond, GMU, and UMBC remain schedule/portal leads. No
   seats were inferred. All five require campus/career, waitlist, eligibility, freshness, and current/completed-
   term checks before adapter work. No `schools.py` or builder changes.
+
+## July 12 Codex Batch 41 checkpoint
+- Batch 41 appended five net-new identities: The University of Alabama, University of Colorado Colorado Springs,
+  East Carolina University, Stetson University, and The George Washington University.
+- GW has a public Fall 2026 schedule with campus/online partitions; ECU is a departmental public-search lead,
+  while Alabama, UCCS, and Stetson require guest-route confirmation. No seats were inferred. All five require
+  campus/career, waitlist, eligibility, freshness, and current/completed-term checks before adapter work. No
+  `schools.py` or builder changes.
