@@ -1496,21 +1496,21 @@ def pricing_section():
   </div>
   <div class="pw-card">
    {tag_soon}
-   <div class="pw-amt">$19.95 <small>one-time · per term</small></div>
+   <div class="pw-amt">$19.95</div>
    <div class="pw-name">One class</div>
-   <div class="pw-list">{feat("<b>Every section</b> — not just 2")}{feat("Land your exact professor")}</div>
+   <div class="pw-list">{feat("<b>Every section</b> — not just 2")}</div>
    {cta(1, "Choose", False)}
   </div>
   <div class="pw-card">
    {tag_soon}
-   <div class="pw-amt">$24.95 <small>one-time · per term</small></div>
+   <div class="pw-amt">$24.95</div>
    <div class="pw-name">Two classes</div>
-   <div class="pw-list">{feat("Two classes, all sections")}{feat("Upgrade later — pay only the $5")}</div>
+   <div class="pw-list">{feat("Two classes, all sections")}</div>
    {cta(2, "Choose", False)}
   </div>
   <div class="pw-card hero">
    <span class="pw-tag pw-best">Best value{"" if not soon else " · soon"}</span>
-   <div class="pw-amt">$29.95 <small>one-time · per term</small></div>
+   <div class="pw-amt">$29.95</div>
    <div class="pw-name">Whole semester</div>
    <div class="pw-each">up to 5 classes · about $6 each</div>
    <div class="pw-list">{feat("Every section of every class")}{feat("Your whole schedule, covered")}</div>
