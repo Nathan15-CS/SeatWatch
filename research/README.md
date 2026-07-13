@@ -15,6 +15,14 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### University of New Mexico — ✅ BUILT + DEPLOYED July 12 (batch 30): 674->675 (commit 06d957d)
+UNM Albuquerque flagship (~25k), drops into ListcrseBanner8. NM 4-digit course numbers.
+Re-gated live: ENGL 1110 122 sec 25 open/97 FULL (123 real-full disproof across sample), zero
+open-with-no-seat, completed 202610 reproduced. Latency: worst-case ENGL 1110 74s cold / 0ms warm
+(cache-backed Purdue/TAMU pattern, confirmed NOT Drake per-poll-slow — warm 0ms). LIVE on prod.
+Codex batches 13-20 rest: CVC/Quottly + stale-PDF holds (correct); bespoke leads (Monroe CC/Clark/
+Wabash/Wesleyan/Dickinson-reserved) on Builder bench, lower priority.
+
 ### University of Oregon — ✅ BUILT July 12 (batch 12): 673->674
 Bespoke UOregon DuckWeb adapter. Grabber's silent-miss concern RESOLVED: the per-CRN detail route
 parses inconsistently, so seats are read from the LISTING's header-confirmed 'Avail' column (one POST
