@@ -3780,3 +3780,21 @@ builder changes were made.
   '10W'/'10M' campus-suffixed) — canonical leading-zero-strip both sides so 'ENGL 5A'=='005A'. Term
   auto-rolls from sobterm.json. Both net-new. IU Bloomington (Batch 67 gated) NOT built — 9-campus iGPS
   SPA needs a browser XHR trace (handed to Grab).
+
+### ⭐ Indiana University Bloomington — ✅ SHIPPED July 13 (Build): 710->711 (~48k flagship)
+Grab browser-traced the iGPS SPA (Batch 67 Codex gated lead); re-gated + built here. Bespoke `IUBloomington`,
+public 3-call JSON API on sisjee.iu.edu, all scoped inst=IUBLA. terms.json (Fall 2026=4268, auto-rolls) →
+POST courses.json (paginated catalog, ~6,100 courses) → GET classes.json (sections+seats per catalog row).
+- CATALOG CACHE: course→ids map is stable per term, scanned ONCE per 6h into a shared class-level cache
+  (40s cold local / 27s on prod server, then warm 0.4s — Purdue/TAMU envelope). Partial scans NEVER cached
+  (a missing page = silent-missed courses); any error discards + retries.
+- ADDRESSABILITY: 478 subject+catalog combos are MULTI-ROW (variable-topic, e.g. AAAD-X 490 = 11 catalog
+  rows). A watched course maps to the LIST of its rows and AGGREGATES classes.json across all (complete-
+  scope-then-filter). AAAD-X 490 gated = 10 sec aggregated. If any row's fetch fails, whole course skipped
+  (no partial). Dedup: 'Indiana University of Pennsylvania'(iup)+'University of Indianapolis'(uindy) are
+  DIFFERENT — IUB net-new.
+- ISOLATION: inst=IUBLA scopes both catalog + classes to Bloomington; every row campus=BL (0 non-IUBLA).
+- OPEN RULE: closed is False AND openSeats>0 (agreed 100% live). CROSS-LIST GUARD: combinedSections with
+  separateEnrollmentControl==False and combinedEnrollTotal>=combinedEnrollCapacity -> full even if
+  openSeats>0 (when control is separate, openSeats authoritative). Gate: ENG-W 131 = 88 sec 7 open/81 FULL
+  (decisive), ENG-L 111 = 1 sec closed 0/30 (reproduces Codex class 23672). Server-reachable, prod-verified.
