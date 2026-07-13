@@ -501,6 +501,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   list, but the live list appears TruView-gated. Both remain follow-up leads; no `schools.py` or builder
   changes.
 
+## July 12 Codex Batch 31 checkpoint
+- Batch 31 appended Montana State University–Bozeman as a net-new public schedule/open-seat lead.
+- The official registrar surface documents term/subject search and separate Bozeman, Gallatin, CORE, and
+  online pathways with an open-sections filter. Current Fall 2026 numeric replay and a completed-term
+  comparison remain outstanding. No `schools.py` or builder changes.
+
 ## July 12 Codex Batch 24 checkpoint
 - Batch 24 appended to `research/README.md`: eleven net-new identities — University of Southern
   California, University at Buffalo (SUNY), University of Wisconsin–Eau Claire, University of Minnesota,

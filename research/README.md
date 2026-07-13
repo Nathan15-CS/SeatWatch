@@ -1980,3 +1980,16 @@ change, deployment, or builder handoff was made.
 
 **Batch status:** two net-new U.S. schedule identities were archived. Neither received inferred seat values
 or production approval. No `schools.py` edit, registry change, deployment, or builder handoff was made.
+
+### Codex Batch 31 — Montana public schedule pathway (July 12 2026)
+
+1. **Montana State University–Bozeman (MT) — PUBLIC SCHEDULE/OPEN-SEAT LEAD, FOLLOW-UP REQUIRED.** The
+   official registrar schedule page (`https://www.montana.edu/registrar/ScheduleofClasses.html`) directs
+   users to select term and subject and recommends an “Only Sections with Open Seats” filter. It separately
+   documents Bozeman, Gallatin College, CORE, and online searches, with CRNs used for registration. The
+   page does not expose a captured numeric row in this pass, so no seats are inferred. Follow up through
+   the linked schedule for Fall 2026 and a completed term, isolating Bozeman from Gallatin/online sections
+   and preserving open-seat, waitlist, campus, and part-of-term semantics.
+
+**Batch status:** one net-new public schedule identity was archived as a gated lead. No `schools.py` edit,
+registry change, deployment, or builder handoff was made.
