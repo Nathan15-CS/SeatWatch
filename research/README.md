@@ -2069,3 +2069,41 @@ or builder handoff was made.
 **Batch status:** five net-new U.S. college identities were archived with bounded scope. No production
 seat claims were made for any entry. No
 `schools.py` edit, registry change, deployment, or builder handoff was made.
+
+### Codex Batch 35 — Claremont consortium and adjacent public schedule leads (July 12 2026)
+
+1. **Claremont McKenna College (CA) — PUBLIC NUMERIC COURSE-SEARCH LEAD, FOLLOW-UP REQUIRED.** CMC
+   operates an official no-login course-search form at `https://webapps.cmc.edu/course-search/form.php`.
+   The live form exposes term, course-area, faculty, and section-status filters and reports a data-refresh
+   timestamp; CMC’s registrar says section details include seats available and that closed/restricted
+   sections can require a PERM (`https://www.cmc.edu/registrar/adding-courses-on-portal`). Capture Fall
+   2026 rows and a completed term from the public form, preserving CMC identity versus other 5C campuses,
+   restrictions, cross-registration, and waitlist/closed semantics before adapter work.
+2. **Pomona College (CA) — PORTAL SCHEDULE LEAD, FOLLOW-UP REQUIRED.** Pomona’s registrar says the Fall
+   2026 schedule published to the portal April 6 and uses Coursedog for section scheduling
+   (`https://www.pomona.edu/administration/registrar/course-scheduling-information-academic-departments`).
+   The registration page states that My.Pomona is the authoritative schedule and that closed courses may
+   require a PERM (`https://www.pomona.edu/administration/registrar/registration`). No guest numeric rows
+   were captured; determine whether a sanctioned public/5C search is available, then replay Fall 2026 and
+   a completed term with Pomona campus and enrollment-limit restrictions intact.
+3. **Harvey Mudd College (CA) — 5C SCHEDULE LEAD, FOLLOW-UP REQUIRED.** HMC’s official registrar calendar
+   confirms Fall 2026 dates and explicitly identifies the shared HMC/CMC/Pitzer course end date while
+   distinguishing Pomona/Scripps (`https://www.hmc.edu/registrar/academic-calendar/`). No public numeric
+   HMC row was captured; follow up through the sanctioned CMC/5C search, isolate HMC sections, and verify
+   capacity, enrollment, waitlist, cross-registration, and a completed term before adapter work.
+4. **Pitzer College (CA) — PORTAL SCHEDULE LEAD, FOLLOW-UP REQUIRED.** Pitzer’s registrar event states
+   that the Fall 2026 course schedule became available on the MyCampus2 portal April 6
+   (`https://www.pitzer.edu/events/fall-2026-course-schedule-available-portal`). No guest numeric rows
+   were captured; test the sanctioned 5C/public search if available, isolating Pitzer from consortium
+   sections and preserving restrictions, cross-registration, waitlist, and term semantics.
+5. **Occidental College (CA) — PUBLIC COURSE-COUNTS/OPEN-SEAT WORKFLOW LEAD, FOLLOW-UP REQUIRED.** Oxy’s
+   official first-year registration guide directs users to the public Course Counts surface, choose Fall
+   2026 and First Year Seminars, and record four-digit CRNs; it says students should keep checking when a
+   course is full and switch if needed (`https://www.oxy.edu/new-students/new-student-guide/advising-course-registration/fys-registration`,
+   public link `https://counts.oxy.edu`). Confirm whether Course Counts exposes numeric seats/status without
+   login, capture mixed open/full rows and a completed term, and preserve the FYS-only scope and Oxy CRNs.
+
+**Batch status:** five net-new U.S. college identities were archived. CMC and Occidental have explicit
+public search/workflow routes; Pomona, HMC, and Pitzer are portal/5C leads with no inferred numeric seats.
+All five were deduped against `schools.py` and prior research. No production approval, `schools.py` edit,
+registry change, deployment, or builder handoff was made.

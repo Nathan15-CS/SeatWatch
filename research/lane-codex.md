@@ -462,6 +462,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   unavailable after December 2025; they are historical/system leads only and were not handed off.
 - All ten were deduped against `schools.py` and prior research notes. No `schools.py` or builder changes.
 
+## July 12 Codex Batch 35 checkpoint
+- Batch 35 appended five net-new identities: Claremont McKenna College, Pomona College, Harvey Mudd College,
+  Pitzer College, and Occidental College.
+- CMC has a live public no-login course-search form with term/status filters and a refresh timestamp; Oxy
+  has a public Course Counts workflow scoped to Fall 2026 First Year Seminars. Pomona, HMC, and Pitzer are
+  bounded portal/5C leads with no numeric guest rows captured. No seats were inferred, and all five require
+  campus/eligibility isolation plus current/completed-term replay before adapter work. No `schools.py` or
+  builder changes.
+
 ## July 12 Codex Batch 26 checkpoint
 - Batch 26 recorded bespoke public-schedule reconnaissance: UH Mānoa and Kent State are new identities;
   KU is a previously documented revisit with stronger official seat-field confirmation; Louisville is
