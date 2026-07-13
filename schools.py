@@ -3609,6 +3609,119 @@ class Rice:
         return out
 
 
+class Princeton:
+    """Princeton University — public two-call course API on api.princeton.edu (the same
+    open, anonymous, read-only surface the registrar's public course-search uses).
+    Plain stdlib HTTP, no browser in the poll loop; 2 fast GETs per course.
+
+    (1) classes list: {BASE}/classes/{term}?subjects_count=1&subjects={SUBJ}&fmt=json
+        -> classes.class[] (class_number, course_id, subject, catnum, crosslistings)
+    (2) seats:        {SEATS}?term={term}&course_ids={csv}&fmt=json
+        -> course[].classes[] (numeric capacity/enrollment, status, seat_status)
+
+    TOKEN: an ANONYMOUS gateway credential Princeton server-renders into the public
+    course-offerings page for EVERY logged-out visitor (drupalSettings.ps_registrar.
+    apiToken; decodes to a WSO2 consumer key:secret). It is not a user secret and not
+    an access control we bypass — it is the public read key. The page that carries it
+    sits behind a Cloudflare anti-bot challenge, so it can't be re-fetched with stdlib;
+    we DON'T defeat that challenge — the token is captured once from a real browser and
+    pinned here. If Princeton ever rotates it, every call returns 401 -> we return {}
+    -> the engine skips -> NEVER a false open. It is not even silent: a watched course
+    that returns no data FAIL_THRESHOLD times trips run_cycle's existing block/format
+    guard -> operator_alert, same protection every school gets. Refresh by re-reading
+    the public course-offerings page in a browser and updating _TOKEN.
+
+    OPEN RULE (re-gated live 2026-07-13, 0 disagreements across ~300 sections both
+    terms): open = seat_status=="Open" AND capacity-enrollment > 0.
+    - CANCELED TRAP: the bare `status` field's "C" means BOTH Closed AND Canceled — we
+      key on seat_status and DROP "Canceled" rows (they carry status "C").
+    - SCOPING: the param is `subjects` PLURAL (+ subjects_count); a course also surfaces
+      via cross-listing. Exact scope = (subject==SUBJ AND catnum==NUM) OR crosslistings
+      contains "SUBJ NUM". Section key = class_number (unique per term).
+    Term is PINNED (the terms list lives only on the challenged page; no stdlib source),
+    bumped manually at rollover like any auto_term=False school."""
+    id = "princeton"; name = "Princeton University"
+    example = "COS 126"
+    term = "1272"                        # 2026-27 Fall (Spring 25-26 = 1264); pinned
+    _BASE = "https://api.princeton.edu/registrar/course-offerings/1.0.7"
+    _SEATS = "https://api.princeton.edu/student-app/courses/seats"
+    # Anonymous public gateway token (see class docstring). Refresh from the public
+    # course-offerings page if calls start returning 401.
+    _TOKEN = "MDUzZjdkNjEtMzIyMy0zZDAwLWIzMmMtMTk2NmRkN2E3MDE5OnJlZ2lzdHJhcmFwaUBjYXJib24uc3VwZXI="
+    _RE = re.compile(r"^([A-Za-z]{2,4})\s+(\d{3}[A-Za-z]?)$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self.term
+
+    def reg_url(self, course):
+        return "https://registrar.princeton.edu/course-offerings"
+
+    def _get(self, url):
+        req = urllib.request.Request(url, headers={
+            "Authorization": "Bearer " + self._TOKEN, "Accept": "application/json",
+            "User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read())
+
+    def _fetch_term(self, term, course):
+        subj, num = self._norm(course)
+        if not subj:
+            return None
+        try:
+            j = self._get(f"{self._BASE}/classes/{term}?subjects_count=1&subjects={subj}&fmt=json")
+        except Exception:
+            return None                            # incl. 401 if token ever rotates -> safe empty
+        rows = ((j.get("classes") or {}).get("class")) or []
+        want = f"{subj} {num}"
+        cids = []
+        for r in rows:
+            xl = r.get("crosslistings") or ""
+            if ((r.get("subject") == subj and str(r.get("catnum", "")).strip() == num)
+                    or want in xl):
+                cid = r.get("course_id")
+                if cid and cid not in cids:
+                    cids.append(cid)
+        if not cids:
+            return {}                              # not offered this term -> safe empty
+        try:
+            s = self._get(f"{self._SEATS}?term={term}&course_ids={','.join(cids)}&fmt=json")
+        except Exception:
+            return None
+        secs = {}
+        for c in s.get("course") or []:
+            for cl in c.get("classes") or []:
+                if cl.get("seat_status") == "Canceled":
+                    continue                       # status "C" hides Canceled — drop them
+                key = str(cl.get("class_number") or "")
+                if not key:
+                    continue
+                try:
+                    cap = int(cl.get("capacity")); enr = int(cl.get("enrollment"))
+                except (TypeError, ValueError):
+                    continue                       # no numbers -> skip, never guess
+                if key in secs:
+                    return None                    # class_number collision -> skip, never merge
+                avail = cap - enr
+                secs[key] = {"open": cl.get("seat_status") == "Open" and avail > 0,
+                             "seats": max(avail, 0)}
+        return secs
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            secs = self._fetch_term(self.cur_term(), course)
+            if secs:
+                out[course] = secs
+        return out
+
+
 class GeorgiaTech(Banner):
     id = "gatech"; name = "Georgia Tech"
     example = "CS 1301"; host = "registration.banner.gatech.edu"; term = "202608"
@@ -7192,7 +7305,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
     MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(), SanDiegoCity(), SanDiegoMesa(), SanDiegoMiramar(), Fairfield(),
     IvyTech(), UTArlington(), UAlaska(), UOregon(),
-    WrightState(), RPI(), Duquesne(), NMSU(), USC(), Rice()])
+    WrightState(), RPI(), Duquesne(), NMSU(), USC(), Rice(), Princeton()])
 
 
 def refresh_all_terms(log=None):
