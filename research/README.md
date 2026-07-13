@@ -3725,6 +3725,48 @@ not meet the full gate. Nothing from this batch is safe to add to production wit
 **Batch status:** one gated lead (NAU) and four explicit hold-outs. No `schools.py`, registry, deployment, or builder
 changes were made.
 
+### Codex Batch 72 — flagship alternate-public-search vein (July 13 2026)
+
+This pass checked five exact-name-new flagship universities against registrar-linked public class-search surfaces.
+None met the full SeatWatch gate: each lacked a trustworthy seat-bearing current/completed replay or was login/gate
+blocked. No production change is safe from this batch.
+
+1. **University of Florida (FL) — HOLD OUT: public schedule has no seat/status fields.** Official ONE.UF Schedule of
+   Courses: `https://one.uf.edu/soc/` (linked by the registrar). The public UI exposes Fall 2026 through Spring 2018,
+   course/class number, title, instructor, department, and program-level filters. A Fall 2026 `ENC1101` search
+   returned many native class numbers and instructor/meeting-mode summaries, but each result says to log in for
+   locations, dates, times, and final-exam details. No `seats`, capacity, open/closed, or waitlist field exists in
+   the public payload; this is schedule metadata, not a SeatWatch source. Hold pending a permitted seat-bearing API.
+
+2. **University of Houston (TX) — HOLD OUT: term history exists, but exact row search was empty.** Official registrar-
+   linked Fluid PeopleSoft search:
+   `https://saprd.my.uh.edu/psc/saprd/UHM_SITE/HRMS/c/SSR_STUDENT_FL.SSR_CLSRCH_MAIN_FL.GBL?Page=SSR_TERM_STA2_FL`.
+   The picker exposes Summer/Fall 2026 and expands to Spring 2026 under “Terms prior to Summer 2026.” Structured
+   Fall 2026 searches for English 1303 and Mathematics 1310 returned “No results were returned”; no section key,
+   seats, status, pagination, or exact-course row was captured. Hold until a row-producing recipe can be replayed in
+   both a live and completed term.
+
+3. **Michigan State University (MI) — HOLD OUT: public tile did not yield a stable guest payload.** Official SIS
+   `https://student.msu.edu/` advertises “Class Schedules (No login required)” and routes to
+   `https://student.msu.edu/search`. The public PeopleSoft homepage exposes a Class Search tile, but selecting it
+   did not produce a stable guest form or result rows in this pass. No section key, numeric seats, status semantics,
+   completed replay, pagination, or latency evidence is available; do not infer a feed from the landing page.
+
+4. **Clemson University (SC) — HOLD OUT: current/future-only public schedule.** Official registrar-linked schedule:
+   `https://soc.app.clemson.edu/schedule/index.php`. The guest form exposes Fall 2026 and Summer 2026 only, with
+   instruction method, subject, instructor, course level, and location filters. No completed Spring 2026 term or
+   seat/status field was exposed; no current/completed row replay can meet the gate. Hold pending a history-capable,
+   seat-bearing guest surface.
+
+5. **University of Central Florida (FL) — HOLD OUT: myUCF login boundary.** Public dashboard
+   `https://my.ucf.edu/public/dashboard` links Class Search to
+   `https://csprod-ss.net.ucf.edu/psc/CSPROD/EMPLOYEE/SA/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL`; official registrar
+   instructions require logging into myUCF for Class Search. No permitted guest rows, completed replay, or seat/status
+   evidence were captured. No login bypass was attempted.
+
+**Batch status:** zero new full-gate candidates; five explicit hold-outs. No `schools.py`, registry, deployment, or
+builder changes were made.
+
 ### UT Chattanooga + West Valley/Mission — ✅ SHIPPED July 13 (Build): 707->710 (from Codex/Grab gated leads)
 - **UT Chattanooga** (utc, Batch 65 Codex gated lead re-verified): plain Banner9 sis-reg.utc.edu 202640.
   ENGL 1010 = 41 sec 27 open/14 full, MATH 1130 37 sec 26/11, completed Spring 202620 = 7 sec 5 full.

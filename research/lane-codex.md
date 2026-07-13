@@ -1034,3 +1034,32 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   looking for a permitted guest surface with current and completed terms, mixed real status or numeric seats, exact
   section keys and campus scope, pagination, freshness, and sub-30-second response paths. No `schools.py` edits or
   builder contact.
+
+## July 13 Codex Batch 72 checkpoint — zero gated candidates, five explicit hold-outs
+- University of Florida's official ONE.UF Schedule of Courses (`https://one.uf.edu/soc/`, linked by the registrar)
+  is public and exposes Fall 2026 through Spring 2018 term selectors, course number/class number/title/instructor,
+  department and program-level filters. A reproducible Fall 2026 `ENC1101` search returned many native class numbers
+  and instructor/meeting-mode summaries, but the public result explicitly says to log in for locations, dates, times,
+  and final-exam details and contains no seat, capacity, open, closed, or waitlist field. This is catalog/schedule
+  metadata, not a seat-bearing feed; hold pending a permitted endpoint with numeric availability.
+- University of Houston's official registrar page links a public Fluid PeopleSoft Class Search at
+  `https://saprd.my.uh.edu/psc/saprd/UHM_SITE/HRMS/c/SSR_STUDENT_FL.SSR_CLSRCH_MAIN_FL.GBL?Page=SSR_TERM_STA2_FL`.
+  The term picker exposes Summer/Fall 2026 and a collapsed “Terms prior to Summer 2026” group that expands to
+  Spring 2026. Fall 2026 structured searches for English 1303 and Mathematics 1310 returned “No results were
+  returned”; no section rows, native keys, seats, status, or pagination were captured. Hold until a row-producing
+  exact-course recipe is repeatable in both current and completed terms.
+- Michigan State's official SIS (`https://student.msu.edu/`) advertises “Class Schedules (No login required)” and
+  routes to `https://student.msu.edu/search`. The public PeopleSoft homepage exposes a Class Search tile, but the
+  tile did not produce a stable guest search form or row payload in this pass; no section key, seat count, status,
+  term replay, or latency evidence is available. Hold rather than infer data from the public landing page.
+- Clemson's official registrar page links a separate public schedule at
+  `https://soc.app.clemson.edu/schedule/index.php`. It exposes Fall 2026 and Summer 2026 only, instruction method,
+  subject, instructor, course level, and location filters, plus Search/Clear. No completed Spring 2026 selector or
+  seat/status field was exposed before a row replay could be attempted; hold pending a history-capable, seat-bearing
+  guest surface.
+- University of Central Florida's public dashboard (`https://my.ucf.edu/public/dashboard`) has a Class Search tile
+  linking `https://csprod-ss.net.ucf.edu/psc/CSPROD/EMPLOYEE/SA/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL`, but the official
+  registrar instructions require logging into myUCF to use Class Search. No permitted guest row payload, completed
+  replay, or seat/status evidence was captured; hold and do not bypass the login boundary.
+- Batch result: zero new full-gate candidates. README records official URLs, exact public evidence, and resume
+  conditions. No `schools.py`, registry, deployment, or builder changes were made.
