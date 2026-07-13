@@ -2546,6 +2546,45 @@ surfaces; Seminole has current course-page availability markers; Ithaca and Carl
 leads. None passed the full production gate in this research-only pass. No `schools.py` edit, registry change,
 deployment, or builder handoff was made.
 
+### Codex Batch 55 — Five additional official Fall 2026 schedule leads (July 13 2026)
+
+These five identities are net-new after exact-name checks against `schools.py` and the research archive.
+They are intentionally bounded leads: source evidence is recorded below, but no seat value is promoted
+without a sanctioned endpoint, scope checks, and a completed-term replay.
+
+1. **American University (DC) — STUDENT-PLANNING SCHEDULE LEAD, FOLLOW-UP REQUIRED.** American's official
+   registrar page (`https://www.american.edu/provost/registrar/registration/studentplanning.cfm`) documents
+   Fall/Summer 2026 Student Planning and the upcoming schedule-of-classes workflow. It is a planning/portal
+   surface in this pass; no guest row or numeric seat payload was captured. Verify any public search route,
+   preserve undergraduate/graduate career and waitlist scope, and replay a completed term.
+2. **Saint John's University (MN) — PUBLIC SHARED COURSE-SEARCH LEAD, SCOPE REQUIRED.** The official CSB+SJU
+   course-search page (`https://csbsju-public.courseleaf.com/registration/course-schedule/`) exposes a Fall
+   2026 course schedule, advanced filters including `open sections`, and a campus selector that distinguishes
+   SJU, CSB, web, and study-abroad offerings. Validate that SJU sections remain separable from CSB, preserve
+   campus/term/section keys, and test waitlist and completed-term semantics before adapter work.
+3. **Lawrence Technological University (MI) — BANNERWEB SCHEDULE/WAITLIST LEAD, FOLLOW-UP REQUIRED.** LTU's
+   official registrar page (`https://ltu.edu/academics/registrar/registration-and-scheduling/`) confirms Summer
+   and Fall 2026 registration, directs students to BannerWeb's Search for Classes flow, and documents CRNs,
+   section-level waitlist indicators, and the rule that waitlisted sections remain closed until the waitlist is
+   processed. This is not a guest numeric feed in this pass; verify any public schedule route, distinguish open
+   seats from waitlist/reserve states, and replay a completed term before adapter work.
+4. **University of Kentucky (KY) — OFFICIAL REGISTRATION-SEARCH LEAD, FOLLOW-UP REQUIRED.** Kentucky's Fall
+   2026 registration instructions (`https://registrar.uky.edu/sites/default/files/2026-03/registration-
+   instructions-2026.pdf`) document searching for courses with available seats, while the registrar's
+   academic calendar confirms the Fall 2026 term (`https://registrar.uky.edu/calendars/academic-calendar`).
+   No guest numeric row was captured; locate the sanctioned class-search response, preserve reserve/waitlist
+   semantics, and validate a completed term before any adapter proposal.
+5. **North Carolina Wesleyan University (NC) — STATIC FALL SCHEDULE LEAD, FOLLOW-UP REQUIRED.** NC Wesleyan's
+   official Fall 2026 traditional-program schedule PDF (`https://ncwu.edu/wp-content/uploads/2026/03/Fall-
+   2026-Traditional-Schedule-Update-2026.3.12.pdf`) lists current-term sections, meeting patterns, credits,
+   and instructors. It is a static schedule and contains no live seat field; find the sanctioned search,
+   verify section identity and status semantics, and replay a completed term before using it.
+
+**Batch status:** five net-new identities were archived. CSB+SJU has the clearest public searchable surface
+but needs SJU-vs-CSB isolation; American, Lawrence Tech, Kentucky, and NC Wesleyan require endpoint or static-
+schedule follow-up. None passed the full production gate in this research-only pass. No `schools.py` edit,
+registry change, deployment, or builder handoff was made.
+
 ### Batch 31 + USC — ✅ BUILT + DEPLOYED July 13 (Build): 684->689
 Five schools shipped in one gated batch, all re-gated live through the REGISTERED production
 adapters (commit bc1108c, deployed, live site verified 689):

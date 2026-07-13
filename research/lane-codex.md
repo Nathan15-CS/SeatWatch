@@ -700,3 +700,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   open-class markers. Ithaca is portal-oriented and Carleton is currently only a bounded date/identity lead.
   All five require sanctioned endpoint, scope, restrictions, waitlist, freshness, and current/completed-term
   checks before adapter work. No `schools.py` or builder changes.
+
+## July 13 Codex Batch 55 checkpoint
+- Batch 55 appended five net-new identities: American University, Saint John's University, Lawrence
+  Technological University, University of Kentucky, and North Carolina Wesleyan University.
+- CSB+SJU has the clearest public search surface but requires SJU-vs-CSB isolation. American, Lawrence Tech,
+  Kentucky, and NC Wesleyan are portal, BannerWeb, or static-schedule leads. All five require scope,
+  restrictions, waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or
+  builder changes.
