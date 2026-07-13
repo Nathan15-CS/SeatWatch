@@ -1,0 +1,483 @@
+[
+ {
+  "domain": "atlm.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "brightpoint.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "cmn.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 19
+ },
+ {
+  "domain": "cltcc.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 12
+ },
+ {
+  "domain": "calu.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "ssb.calu.edu",
+   "www.ssb.calu.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 43
+ },
+ {
+  "domain": "easternwv.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "selfservice.easternwv.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 18
+ },
+ {
+  "domain": "commonwealthu.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "dwadmin-prod.banner.commonwealthu.edu",
+   "ereg.commonwealthu.edu",
+   "netreg.commonwealthu.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 268
+ },
+ {
+  "domain": "gatewayct.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 8
+ },
+ {
+  "domain": "edmonds.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 44
+ },
+ {
+  "domain": "fitchburgstate.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "banner.fitchburgstate.edu",
+   "banssb2.fitchburgstate.edu",
+   "facultyssb.fitchburgstate.edu",
+   "fitchburgstate.pressbooks.pub",
+   "mybanner-test.fitchburgstate.edu",
+   "mybanner.fitchburgstate.edu",
+   "mybannerssb.fitchburgstate.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 149
+ },
+ {
+  "domain": "granite.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "iaia.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 93
+ },
+ {
+  "domain": "ictech.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "laurelridge.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 28
+ },
+ {
+  "domain": "lindseyhopkins.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 17
+ },
+ {
+  "domain": "jeffersonstate.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "lwtech.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 42
+ },
+ {
+  "domain": "lsuhs.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "lsuhsc.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "manateetech.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 11
+ },
+ {
+  "domain": "mayvillestate.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 52
+ },
+ {
+  "domain": "middlesexcollege.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 10
+ },
+ {
+  "domain": "murraystate.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "midland.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "msutexas.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 54
+ },
+ {
+  "domain": "nnmc.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "nnmc-ssb.nnmc.edu",
+   "prodssb1.nnmc.edu",
+   "prodssb11g.nnmc.edu",
+   "testssb1.nnmc.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 34
+ },
+ {
+  "domain": "northseattle.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 25
+ },
+ {
+  "domain": "nsc.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "enterpriseregistration.nsc.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 66
+ },
+ {
+  "domain": "nhsc.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "opsu.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "banner.opsu.edu",
+   "ssb.opsu.edu",
+   "www.banner.opsu.edu",
+   "www.ssb.opsu.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 290
+ },
+ {
+  "domain": "olc.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 12
+ },
+ {
+  "domain": "osucascades.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "osuokc.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 48
+ },
+ {
+  "domain": "pencol.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "paradisevalley.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "otero.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 18
+ },
+ {
+  "domain": "rstc.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 7
+ },
+ {
+  "domain": "pennwest.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 36
+ },
+ {
+  "domain": "salemstate.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "pine.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 20
+ },
+ {
+  "domain": "senmc.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 30
+ },
+ {
+  "domain": "southtexascollege.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "spscc.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "sunyopt.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "visitorregistration.sunyopt.edu",
+   "www.visitorregistration.sunyopt.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 47
+ },
+ {
+  "domain": "swtjc.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "selfservice.swtjc.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 91
+ },
+ {
+  "domain": "tcatmorristown.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 5
+ },
+ {
+  "domain": "tcatoneida.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 4
+ },
+ {
+  "domain": "tcatmckenzie.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 6
+ },
+ {
+  "domain": "tcatshelbyville.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 5
+ },
+ {
+  "domain": "tompkinscortland.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 8
+ },
+ {
+  "domain": "tsc.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "selfservice.tsc.edu",
+   "www.selfservice.tsc.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 45
+ },
+ {
+  "domain": "uhv.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 97
+ },
+ {
+  "domain": "umassglobal.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "registration.umassglobal.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 87
+ },
+ {
+  "domain": "tulsatech.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "uncsa.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 77
+ },
+ {
+  "domain": "umgc.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 605
+ },
+ {
+  "domain": "uth.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "enterpriseregistration.uth.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 838
+ },
+ {
+  "domain": "uprm.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "uthsc.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "uwb.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "wsutech.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 43
+ },
+ {
+  "domain": "wvsom.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "banner.wvsom.edu",
+   "mybanner.wvsom.edu",
+   "myssb.wvsom.edu",
+   "www.mybanner.wvsom.edu",
+   "www.myssb.wvsom.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 84
+ }
+]

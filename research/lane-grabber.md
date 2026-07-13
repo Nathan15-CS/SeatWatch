@@ -17,9 +17,16 @@ School adds relay DIRECT per deploy policy; money/UI/legal stay gated behind Nat
   behind classes.usc.edu, real registeredSeats/totalSeats/isFull per sisSectionId, live 151-FULL WRIT-150
   disproof, completed-term mixed. Full recipe in README block "USC (elite lead)". Remaining elite
   reachable: Rice, Michigan, Harvard (my.harvard), CMU, Princeton.
-- **crt.sh retry pass over the 62 ct_FAIL domains running** (ctlog_retry62.py →
-  ctlog_retry_results.json / needs_retry2.json; never clobbers main sweep files). Closes the July-12
-  sweep's completeness TODO. Early hits to 2nd-pass: opsu.edu (banner.opsu.edu/ssb.opsu.edu resolve).
+- **RICE CRACKED + SENT to Build (July 13)** — custom Banner package (SWKSCAT CGI), labeled
+  Section/Xlist/Waitlist enrollment + live freshness stamp; waitlist-priority + xlist-pool rules
+  MANDATORY; completed-term full row through same parse. README block "Rice (elite lead)".
+- **crt.sh retry pass DONE (July 13): 42/62 now checked clean, 0 SSB hits, 20 stubborn ct_FAILs →
+  needs_retry2.json** (crt.sh keeps choking on those; retry another day, NOT counted clean). Every
+  banner-ish host found was probed live: all dead/false-positive (enterpriseregistration.* = Windows
+  device-enrollment, not Banner; fitchburg/nnmc/opsu/commonwealthu/wvsom hosts dead on B9+B8 routes).
+  Unverified maybe-Colleague (NOT confirmed catalogs, low-pri CCs): selfservice.tsc.edu (5KB page),
+  selfservice.swtjc.edu (timeout), selfservice.easternwv.edu (404 on /Student/Courses). CT-log vein on
+  this pool = closed except the 20.
 - Build's bench (theirs, track only): Batch 31 NMSU+RPI, USC bespoke, Oregon browser-trace, UGA seat
   endpoint, RCCD hold.
 

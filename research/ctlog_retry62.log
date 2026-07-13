@@ -1,0 +1,64 @@
+[1/62] atlm.edu [ct FAIL again]
+[2/62] brightpoint.edu [ct FAIL again]
+[3/62] cmn.edu
+[4/62] cltcc.edu
+[5/62] calu.edu (banner hosts, no live SSB: ssb.calu.edu,www.ssb.calu.edu)
+[6/62] easternwv.edu (banner hosts, no live SSB: selfservice.easternwv.edu)
+[7/62] commonwealthu.edu (banner hosts, no live SSB: dwadmin-prod.banner.commonwealthu.edu,ereg.commonwealthu.edu,netreg.commonwealthu.edu)
+[8/62] gatewayct.edu
+[9/62] edmonds.edu
+[10/62] fitchburgstate.edu (banner hosts, no live SSB: banner.fitchburgstate.edu,banssb2.fitchburgstate.edu,facultyssb.fitchburgstate.edu)
+[11/62] granite.edu [ct FAIL again]
+[12/62] iaia.edu
+[13/62] ictech.edu [ct FAIL again]
+[14/62] laurelridge.edu
+[15/62] lindseyhopkins.edu
+[16/62] jeffersonstate.edu [ct FAIL again]
+[17/62] lwtech.edu
+[18/62] lsuhs.edu [ct FAIL again]
+[19/62] lsuhsc.edu [ct FAIL again]
+[20/62] manateetech.edu
+[21/62] mayvillestate.edu
+[22/62] middlesexcollege.edu
+[23/62] murraystate.edu [ct FAIL again]
+[24/62] midland.edu [ct FAIL again]
+[25/62] msutexas.edu
+[26/62] nnmc.edu (banner hosts, no live SSB: nnmc-ssb.nnmc.edu,prodssb1.nnmc.edu,prodssb11g.nnmc.edu)
+[27/62] northseattle.edu
+[28/62] nsc.edu (banner hosts, no live SSB: enterpriseregistration.nsc.edu)
+[29/62] nhsc.edu [ct FAIL again]
+[30/62] opsu.edu (banner hosts, no live SSB: banner.opsu.edu,ssb.opsu.edu,www.banner.opsu.edu)
+[31/62] olc.edu
+[32/62] osucascades.edu [ct FAIL again]
+[33/62] osuokc.edu
+[34/62] pencol.edu [ct FAIL again]
+[35/62] paradisevalley.edu [ct FAIL again]
+[36/62] otero.edu
+[37/62] rstc.edu
+[38/62] pennwest.edu
+[39/62] salemstate.edu [ct FAIL again]
+[40/62] pine.edu
+[41/62] senmc.edu
+[42/62] southtexascollege.edu [ct FAIL again]
+[43/62] spscc.edu [ct FAIL again]
+[44/62] sunyopt.edu (banner hosts, no live SSB: visitorregistration.sunyopt.edu,www.visitorregistration.sunyopt.edu)
+[45/62] swtjc.edu (banner hosts, no live SSB: selfservice.swtjc.edu)
+[46/62] tcatmorristown.edu
+[47/62] tcatoneida.edu
+[48/62] tcatmckenzie.edu
+[49/62] tcatshelbyville.edu
+[50/62] tompkinscortland.edu
+[51/62] tsc.edu (banner hosts, no live SSB: selfservice.tsc.edu,www.selfservice.tsc.edu)
+[52/62] uhv.edu
+[53/62] umassglobal.edu (banner hosts, no live SSB: registration.umassglobal.edu)
+[54/62] tulsatech.edu [ct FAIL again]
+[55/62] uncsa.edu
+[56/62] umgc.edu
+[57/62] uth.edu (banner hosts, no live SSB: enterpriseregistration.uth.edu)
+[58/62] uprm.edu [ct FAIL again]
+[59/62] uthsc.edu [ct FAIL again]
+[60/62] uwb.edu [ct FAIL again]
+[61/62] wsutech.edu
+[62/62] wvsom.edu (banner hosts, no live SSB: banner.wvsom.edu,mybanner.wvsom.edu,myssb.wvsom.edu)
+
+=== RETRY DONE. checked=42/62  still_FAIL=20  SSB_hits=0 ===
