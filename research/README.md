@@ -1531,3 +1531,34 @@ net-new against `schools.py` and prior notes; neither has been handed to the bui
 **Batch status:** University of New Mexico is a direct numeric source with current/completed examples but
 remains source-gated pending all-subject and full-row tests. Dickinson is explicitly a public Banner lead
 without captured row values. No `schools.py` edit, production adapter, or builder handoff was made.
+
+### Batch 21 — Chabot-Las Positas district Banner surfaces (Codex, July 12 2026)
+
+The Chabot-Las Positas Community College District exposes a public Banner host with campus-specific
+sections. These identities are net-new against `schools.py`; the shared host must never be treated as one
+college, and every adapter key must retain the campus identity.
+
+1. **Las Positas College (CA) — SOURCE-GATED, AWAITING FOLLOW-UP.** Official detail pages on
+   `https://banssprod.clpccd.cc.ca.us/ssbprod/bwckschd.p_disp_dyn_sched` expose `Capacity Actual Remaining`,
+   waitlist counts, campus, CRN, course/section, modality, prerequisites, and restrictions. Fall 2026
+   (`term_in=202602`) STAT L40-HC1 CRN 23124 is Las Positas campus, 31/22/9, with waitlist 20/0/20;
+   completed Spring 2026 (`term_in=202505`) MATH 2-HC1 CRN 50852 is 31/30/1, while PHYS 1B-HC1 CRN
+   53281 is full at 22/22/0. Example URLs:
+   `https://banssprod.clpccd.cc.ca.us/ssbprod/bwckschd.p_disp_detail_sched?crn_in=23124&term_in=202602`,
+   `https://banssprod.clpccd.cc.ca.us/ssbprod/bwckschd.p_disp_detail_sched?crn_in=50852&term_in=202505`,
+   and `https://banssprod.clpccd.cc.ca.us/ssbprod/bwckschd.p_disp_detail_sched?crn_in=53281&term_in=202505`. Gate
+   exact term+campus+CRN+subject/course/section and primary `Remaining > 0`; keep waitlist/cross-list seats
+   separate and preserve honors/field restrictions. The all-subject guest fetch and campus selector still
+   need a production test.
+2. **Chabot College (CA) — SOURCE-LEVEL PARTIAL, FOLLOW-UP REQUIRED.** The same official host exposes
+   Chabot campus rows and the district's public Fall 2026 schedule index
+   (`https://banssprod.clpccd.cc.ca.us/clpccd/2026/02/l/sched_ntrn.htm`). A completed Spring 2026 detail
+   for Chabot ENGL 1-O09 CRN 52280 shows 28/29/-1 (an over-capacity edge case) at
+   `https://banssprod.clpccd.cc.ca.us/ssbprod/bwckschd.p_disp_detail_sched?crn_in=52280&term_in=202505`.
+   This pass did not reproduce a Fall 2026 Chabot detail row, so no current seats are claimed. Follow up
+   only after capturing a current Chabot CRN plus a mixed current/completed set; do not collapse Chabot and
+   Las Positas rows under the district host.
+
+**Batch status:** Las Positas has direct current-plus-completed numeric evidence but remains source-gated
+pending all-subject/campus tests. Chabot is explicitly partial pending a current detailed row. No
+`schools.py` edit, production adapter, or builder handoff was made.

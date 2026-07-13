@@ -430,3 +430,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   full-row test pass. Dickinson's public Banner term selector and registrar documentation confirm the
   seat-bearing detail surface, but no row values were claimed because the guest form was not reproduced.
 - Dedup checks were clean. No `schools.py` or builder changes; research-only boundary remains in force.
+
+## July 12 Batch 21 checkpoint
+- Batch 21 appended to `research/README.md`: Las Positas College and Chabot College, both on the
+  Chabot-Las Positas district Banner host.
+- Las Positas has current Fall 2026 and completed Spring 2026 numeric detail rows, including open and full
+  examples. Chabot has a completed-term over-capacity edge case and a public current schedule index, but no
+  current detailed row was claimed. Campus identity must remain part of every key.
+- Dedup checks were clean. No `schools.py` or builder changes; research-only boundary remains in force.
