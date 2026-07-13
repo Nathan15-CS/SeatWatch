@@ -3022,6 +3022,57 @@ proposed and no school should be sent to the builder without Nathan's approval.
 **Batch status:** two candidates (Great Falls College MSU and UNM) are `GATED, AWAITING GO-AHEAD`; three are held out
 with exact blockers. No `schools.py`, registry, deployment, or builder changes were made.
 
+### Codex Batch 62 — Great Plains gate-resolution supplements (July 13 2026)
+
+This pass tested five Great Plains public-search leads. **South Dakota State University and the University of South
+Dakota are `GATED, AWAITING GO-AHEAD`;** North Dakota, North Dakota State, and Nebraska–Lincoln remain explicit
+hold-outs. No production change is proposed and no school should be sent to the builder without Nathan's approval.
+
+1. **South Dakota State University (SD) — GATED, AWAITING GO-AHEAD: official SDBOR guest class search.** SDSU's
+   official IT page links guests to the Board of Regents `Browse Classes` route and explicitly permits browsing
+   without registration/login: `https://www.sdstate.edu/information-technology/self-service`,
+   `https://registration.sdbor.edu/StudentRegistrationSsb/ssb/term/termSelection?mepCode=BOR&mode=search`. Fall
+   2026 (`2026 Fall`) returned 8,766 classes and Spring 2026 (`2026 Spring (View Only)`) returned 8,646. Results
+   are institution-labeled `SDSU South Dakota State Univ` and preserve native CRNs, subject/course/section,
+   instructor, meeting dates/location, modality/indicators, and linked sections. Current mixed evidence includes
+   CRN `70363` (`ACS 102 S01`, `11 of 32 seats remain`), `70373` (`FULL: 0 of 30`), `70376` (`1 of 32`), and
+   `77069` (`22 of 32`, plus `10 of 10 waitlist seats remain`). The completed Spring replay includes CRNs `10196`
+   (`9 of 30`), `10197` (`18 of 30`), `10199` (`1 of 25`), and an explicit `FULL: 0 of 25` row. Use CRN as the
+   section key; parse `X of Y seats remain` and the explicit `FULL:` marker, preserving waitlist counts separately.
+   The all-class result is paged (10/page) but responds in a few seconds, well under the 30-second gate. A bespoke
+   SDBOR adapter must carry the selected university and term; never treat the shared endpoint as SDSU-only.
+
+2. **University of South Dakota (SD) — GATED, AWAITING GO-AHEAD: same official SDBOR search with university scope.**
+   The official USD help page confirms the Browse Classes workflow (select term, select USD, search):
+   `https://td.usd.edu/TDClient/33/Portal/KB/Article/3109/Verifying-Class-or-Instructor-listed-in-Banner-Student`.
+   Fall 2026 filtered to `USD University of South Dakota` returned 2,536 classes; Spring 2026 (view-only) returned
+   2,677. Current rows are institution-labeled `University of South Dakota` and preserve native CRN, subject/course/
+   section, meeting details, modality/indicators, and waitlists. Fall samples: CRN `73367` (`ACCT 210 U15`, `25 of
+   45 seats remain`, `25 of 25 waitlist seats remain`), `76867` (`13 of 45`, `10 of 10`), `73438` (`15 of 45`),
+   and `75264` (`FULL: 0 of 45`, `4 of 10`). Spring samples include CRNs `19289` (`1 of 47`, `10 of 10`) and
+   `27087` (`11 of 40`, `10 of 10`) alongside explicit full rows. Use CRN as the key and retain the selected USD
+   filter in every request; the same SDBOR parser/timeout semantics as SDSU apply. The route is bespoke because the
+   shared endpoint must be scoped to USD rather than relying on a default institution.
+
+3. **University of North Dakota (ND) — HOLD OUT: Campus Connection login.** Official registration instructions
+   route class search through Campus Connection and describe an authenticated workflow; no unauthenticated current
+   or completed section rows, numeric seats, waitlists, or replay were reproducible:
+   `https://business.und.edu/student-experience/academic-advising/registration.html`.
+
+4. **North Dakota State University (ND) — HOLD OUT: Campus Connection login.** NDSU's official registration page
+   sends students to Schedule Planner/Campus Connection, and the registrar's help page identifies the class-search
+   view inside that portal. No public result rows or seat payload were available without login:
+   `https://www.ndsu.edu/onestop/academics/registration/registering`,
+   `https://www.ndsu.edu/registrar/facstaff/cchelp/navigations`.
+
+5. **University of Nebraska–Lincoln (NE) — HOLD OUT: MyRED/Enrollment Scheduler.** The official registrar
+   instructions place class registration and the `Only Open Classes` filter in MyRED; the public registrar pages
+   did not expose an unauthenticated numeric current/completed class table. Hold until a reproducible no-login route
+   with seat/status rows is found: `https://registrar.unl.edu/student-resources/registration/class-registration-tutorials/classic-registration-instructions/`.
+
+**Batch status:** two candidates (SDSU and USD) are `GATED, AWAITING GO-AHEAD`; three are held out with exact
+blockers. No `schools.py`, registry, deployment, or builder changes were made.
+
 ### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
 Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.
 Bespoke `Princeton` adapter, 2-call public api.princeton.edu (classes list + student-app/courses/seats),

@@ -809,3 +809,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - I will test only official no-login class-search/current-term and completed-term surfaces, checking numeric seats,
   mixed availability, waitlists, native section identity, campus scope, freshness, and latency. Only gate-cleared
   evidence will be appended to `research/README.md`; no `schools.py` edits or builder contact.
+
+## July 13 Codex Batch 62 checkpoint — two gated candidates, three hold-outs
+- South Dakota State University cleared the official SDBOR guest-search gate: Fall 2026 and Spring 2026 replay,
+  8,766/8,646 result counts, native CRNs, mixed positive/full numeric seats, explicit waitlist counts, institution
+  labels, section identity, scope, and sub-30-second responses.
+- University of South Dakota cleared the same gate when the `USD University of South Dakota` filter is explicitly
+  selected: Fall 2026 and Spring 2026 replay, 2,536/2,677 result counts, native CRNs, mixed positive/full numeric
+  seats, explicit waitlist counts, institution labels, and preserved scope.
+- University of North Dakota and North Dakota State University are Campus Connection login-gated. University of
+  Nebraska–Lincoln is MyRED/Enrollment Scheduler gated. None yielded public seat/status rows; all three are held.
+- Full recipes, evidence, and blockers are recorded in `research/README.md` under “Codex Batch 62 — gate-resolution
+  supplements.” No `schools.py`, registry, deployment, or builder changes were made.
