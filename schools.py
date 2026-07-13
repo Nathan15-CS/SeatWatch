@@ -3884,6 +3884,19 @@ class SouthMountainCC(Maricopa):
     example = "BIO201"; campus = "SMC07"
 
 
+class GeorgeMason(Banner):
+    # ~40k R1 public. Guest Banner9 (patriotweb links this SSB host). ENGH 101 = 72 sec
+    # 8 open/64 full live; completed Fall 2025 (202570) mixed; numeric seatsAvailable.
+    id = "gmu"; name = "George Mason University"
+    example = "ENGH 101"; host = "ssbstureg.gmu.edu"; term = "202670"   # Fall 2026
+
+class NorthernMichigan(Banner):
+    # 4-year public. Guest Banner9. EN 111 = 31 sec 1 open/30 full live; completed Fall
+    # 2025 (202580) mixed. NMU subject codes are 2-letter (EN/BI/MA), handled by _code.
+    id = "nmu"; name = "Northern Michigan University"
+    example = "EN 111"; host = "bssrprod.nmu.edu:8443"; term = "202680"   # Fall 2026
+
+
 class GeorgiaTech(Banner):
     id = "gatech"; name = "Georgia Tech"
     example = "CS 1301"; host = "registration.banner.gatech.edu"; term = "202608"
@@ -5046,6 +5059,14 @@ class SouthernOregon(CrnKeyedBanner):
     id = "sou"; name = "Southern Oregon University"
     example = "ARTH 205"; host = "reg-prod.ec.sou.edu"; term = "202504"  # Summer 2026 —
     # newest non-View-Only guest term; auto-rolls to Fall 2026 when SOU publishes it
+
+class Hartford(CrnKeyedBanner):
+    # University of Hartford. Guest Banner9, but EVERY section returns sequenceNumber='0'
+    # (BIO 122 = 23 sections all seq '0' — plain-Banner would collapse them into 1 and
+    # miss opens). CRN-keyed (23 unique CRNs). BIO 122 = 23 sec 16 full live disproof;
+    # completed Fall 2025 (202540) mixed.
+    id = "hartford"; name = "University of Hartford"
+    example = "BIO 122"; host = "uhart-pxesa-003.hartford.edu:8103"; term = "202640"  # Fall 2026
 
 class Massasoit(Banner):
     id = "massasoit"; name = "Massasoit Community College"
@@ -7469,7 +7490,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     IvyTech(), UTArlington(), UAlaska(), UOregon(),
     WrightState(), RPI(), Duquesne(), NMSU(), USC(), Rice(), Princeton(),
     PhoenixCollege(), GlendaleCC(), MesaCC(), ChandlerGilbert(), EstrellaMountain(),
-    GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC()])
+    GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC(),
+    GeorgeMason(), NorthernMichigan(), Hartford()])
 
 
 def refresh_all_terms(log=None):
