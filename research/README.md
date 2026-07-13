@@ -2757,3 +2757,17 @@ DEPLOYMENT BLOCKER (the reason it's benched, not shipped):
   wants the Princeton name, least-bad path is (A) hardcode + a 401 health-alert (since dead=safe). Do
   NOT adopt (B) — a browser dependency on the poller is the one change that most undermines the
   stdlib-single-scp design that makes the accuracy discipline sustainable. NO schools.py edit made.
+
+### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
+Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.
+Bespoke `Princeton` adapter, 2-call public api.princeton.edu (classes list + student-app/courses/seats),
+plain stdlib, no browser in the poll loop. Anonymous public gateway token (served to every logged-out
+visitor; captured ONCE via a real browser — the Cloudflare challenge is NOT defeated, and api.princeton.edu
+itself is plain-reachable) pinned as _TOKEN. LEGAL: same read-only public-course-data class as the other
+690 schools, honest SeatWatch UA. ACCURACY: open = seat_status=="Open" AND capacity-enrollment>0; Canceled
+dropped via seat_status (bare status "C" hides them); exact scope subject+catnum OR crosslisting; class_number
+keys. Gated live through the REGISTERED adapter: COS 226 = 8 open/1 LIVE-FULL (class 21189 = 25/25, seats 0),
+completed 1264 mirrors, junk->{}, 0.7-1.0s/course. EFFICIENCY/RELIABILITY: Oracle prod server confirmed
+reachable (200, 66 rows) BEFORE deploy; prod fetch post-deploy = 9 sec 8/1. FAILURE MODE: token rotation ->
+401 -> {} -> engine skips -> never a false open, and run_cycle's existing no-data guard fires operator_alert
+(not silent). Term PINNED 1272 (no stdlib terms source; manual bump). Deployed + live badge 691 verified.
