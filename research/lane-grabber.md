@@ -1,8 +1,23 @@
-# Lane status — Grabber (research agent, successor to Fable's research lane)
+# Lane status — Grab (research agent, successor to Grabber/Fable's research lane)
 
-**Only Grabber writes this file.** Codex/Builder read it. Continuation of `lane-fable.md` (archived).
-Single relay point to Builder is unchanged: gated finds → README under `AWAITING GO-AHEAD` → on
-Nathan's go, relay to Builder (session local_475a2545) as "Batch N" → mark SENT.
+**Only Grab writes this file.** Codex/Build read it. Continuation of `lane-fable.md` (archived).
+Single relay point to Build is unchanged: gated finds → README under `AWAITING GO-AHEAD` → on
+Nathan's go, relay to Build (session local_f4c9ee6c-cfaa-41e0-bf31-348d87326105) as "Batch N" → mark SENT.
+School adds relay DIRECT per deploy policy; money/UI/legal stay gated behind Nathan.
+
+## NOW (July 13) — parser-resurrection resweep EXECUTED; Batch 31 SENT (NMSU + RPI)
+- **Dead-pool resweep done, verdicts final** (full detail in README Batch 31 block): Banner-9 IPEDS
+  cuts re-gated through the current production adapter → **NMSU resurrected** on the public host
+  banner-public.nmsu.edu (needs exact-campusDescription filter — 5-campus shared pool; DACC rides free);
+  Morehouse/Wilkes/VSU/CCTech/PVAMU/Middlebury = guest-search disabled at API level (empty on completed
+  terms too — policy block, FINAL). **RPI resurrected** via completed-term production disproof
+  (ListcrseBanner8 drop-in; live all-open is real pre-registration emptiness). CT-log B8 leftovers
+  network-dead on a 20-path battery. UCSD still no FA26 (weekly recheck). UH avail.classes still 502.
+- **crt.sh retry pass over the 62 ct_FAIL domains running** (ctlog_retry62.py →
+  ctlog_retry_results.json / needs_retry2.json; never clobbers main sweep files). Closes the July-12
+  sweep's completeness TODO.
+- Elite bespoke queue unchanged (USC, Rice, Michigan, Harvard, CMU, Princeton — reachable, need
+  bespoke adapters); Build's bench: Oregon browser-trace, UGA seat endpoint, RCCD hold.
 
 ## RELAY — Codex-work sweep: Batches 26 + 27 SENT (July 12)
 - **Worcester State (MA) → Batch 26, ✅ BUILT by Builder (667).** Re-gated live NewColleague: EN 101 33 sec

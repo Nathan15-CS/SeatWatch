@@ -4,9 +4,8 @@ Cross-session research log for SeatWatch school expansion. **This file is kept l
 the full chronological batch-by-batch history lives in `research/ARCHIVE.md` (grep it for any past
 detail). Read THIS file + the lane files; only open ARCHIVE for a specific past finding.
 
-- **Live count: 649 schools** (goal 1,000; Onondaga committed, awaits Nathan's deploy). Session
-  start was 634; verified from `len(schools.SCHOOLS)` on July 11, 2026.
-- **Who's doing what right now:** `research/lane-fable.md` + `research/lane-codex.md` (short, always current).
+- **Live count: 684 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 13, 2026.
+- **Who's doing what right now:** `research/lane-grabber.md` (Grab) + `research/lane-codex.md` (short, always current).
 - **How we work / accuracy+efficiency gate:** `research/PARTNER-NOTE-codex.md` and repo-root
   `CONTRIBUTING_AGENT.md`. Handoffs to the builder go through Fable; gated-but-unapproved candidates
   get a heading containing the phrase **`AWAITING GO-AHEAD`** (grep for it to find every pending item).
@@ -14,6 +13,39 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 ---
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
+
+### Batch 31 (parser-resurrection resweep) — SENT July 13 2026 (Grab): NMSU + RPI, both production-gated
+The dead-Banner re-sweep's first real yield — 2 resurrections, ~39k students, both near-drop-ins.
+- **New Mexico State University (Las Cruces Main, ~21k)** — Banner-9 on the PUBLIC host
+  `banner-public.nmsu.edu` (the original cut probed `banner.nmsu.edu`; Codex found the public host, Grab
+  production-gated it). Standard `Banner`, `base_path="StudentRegistrationSsb"`, Fall 2026 = `202640`
+  (getTerms label "2026 Fall", not View Only), `example="ENGL 1110G"` (108 sec systemwide; G-suffix
+  gen-ed numbering). Live gate: ENGL 1110G Main = 38 sec **10 open/28 FULL**; MATH 1215 = 63 sec
+  49/14 across campuses; real varied integers, zero open-with-0-seats; 2-3s/course; seq keys distinct
+  (M01/D01/A20...). Completed terms serve no guest rows here — live full rows are the disproof
+  (Utica standard). **⚠️ SHARED-POOL HOST, 5 campuses on one instance**, split ONLY by
+  `campusDescription`: 'NMSU - Las Cruces (Main)', 'NMSU - Alamogordo', 'NMSU - Global', 'NMSU - Grants',
+  'DACC - Dona Ana'. The existing `campus` first-token filter CANNOT isolate Main (four descriptions all
+  start "NMSU") → needs an **exact-campusDescription match** variant (Banner-9 sibling of CampusBanner8).
+  No campus-code field on rows, description only. Excluding Global also honors NMSU's own "Global Campus
+  sections are reserved for that program" warning. **Optional volume bonus:** DACC - Doña Ana CC (~8k,
+  separately accredited) rides the same host — its 'DACC' first token DOES work with the existing filter
+  (ENGL 1110G: 49 sec 25/24). Dedup clean in Python (UNM/Highlands/Western NM/CNM are different schools).
+- **Rensselaer Polytechnic Institute (~18k, R1)** — plain `ListcrseBanner8` drop-in, zero new code:
+  `base="https://sis.rpi.edu/rss"`, Fall 2026 = `202609`, completed Spring 2026 = `202601`,
+  `example="CSCI 1100"` (12 sec live, 3.0s; MATH 1010 24 sec 5.2s). My July-12 HOLD is RESOLVED by the
+  NCCU/Shorter standard: the live term is still all-open TODAY (41/41 probed sections open — RPI's fall
+  enrollment cycle simply hasn't filled sections), but the PRODUCTION adapter reads the completed term's
+  real mixed enrollment (CSCI 2600 = 10 sec **4 open/6 FULL**; PSYC 4200 1/1 FULL; CSCI 1100 5/2) — the
+  host provably publishes true Cap/Act/Rem through the exact production parse path, so fake-open is
+  disproven at host level; empty=safe until sections fill (watches sit, then alert correctly).
+- **Rest of the dead-pool: verdicts now FINAL, sharper diagnoses recorded (don't re-probe):**
+  Morehouse/Wilkes/VSU/CCTech-SC/PVAMU/Middlebury (Banner-9) = guest search DISABLED at API level —
+  searchResults answers `success:true, totalCount:0, data:null` for every subject on live AND completed
+  terms (completed-term emptiness proves policy block, not term-loading). CT-log B8 hosts (mssu, neiu,
+  mcla, uvi×6, guamcc, delhi, stlcc×6) = network-dead (NXDOMAIN/firewall/conn-fail on a 20-path battery
+  incl. school-specific /pls/{SID} guesses). UCSD act.ucsd.edu: STILL no FA26 in dropdown (SA/SU/SP/WI26
+  only) — keep weekly recheck. UH avail.classes (multi-campus system surface): STILL 502.
 
 ### Parser lever — ✅ BUILT + DEPLOYED July 12: CCRI + NC A&T + HGTC, 677->680 (~33k)
 Re-diagnosed (seat parser was fine; gap = CRN discovery from non-standard LISTINGS). Refactored to a
