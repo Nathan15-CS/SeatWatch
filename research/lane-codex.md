@@ -1026,3 +1026,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   hold pending a history-capable guest surface.
 - Batch result: one gated lead (NAU) and four explicit hold-outs. README records official URLs, exact evidence,
   blockers, and resume conditions. No `schools.py`, registry, deployment, or builder changes were made.
+
+## July 13 Codex Batch 72 claim — flagship alternate-public-search vein
+- Claiming five exact-name-new leads from the untried flagship list: University of Central Florida; University of
+  Houston; Michigan State University; Clemson University; and University of Florida. Exact-name checks found no
+  matching identity in `schools.py`. I will inspect registrar/official class-search pathways one school at a time,
+  looking for a permitted guest surface with current and completed terms, mixed real status or numeric seats, exact
+  section keys and campus scope, pagination, freshness, and sub-30-second response paths. No `schools.py` edits or
+  builder contact.
