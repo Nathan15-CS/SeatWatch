@@ -3414,3 +3414,24 @@ TWO spec corrections vs Grab's relay (both accuracy-relevant):
   (ACC-1A ≠ ACC-1B, both live). Separate list per college = inherent campus isolation (Section_ID overlap
   EMPTY across all 3). Gate: MOV ENGL-C1000 92 sec 68/24, NOR 50 sec 39/11, RIV 142 sec 60/82. Server
   reaches msappproxy (prod fetch RIV 142 60/82 matches). Deployed, badge 707. RCCD CLOSED as a lead.
+
+### Brandeis — DEFERRED July 13 (Build): accuracy fine, ADDRESSING unsafe (NOT shipped)
+First handoff declined on technical grounds this session — and the re-gate discipline is exactly why.
+Grab's gate verified the DATA (English page Fall 1263: 44 Open/15 Waitlist, numeric Enrl/Lim, real
+disproof — all TRUE). But it did NOT test ADDRESSABILITY: "given an arbitrary student course code, can
+we reliably fetch exactly its sections?" That's where Brandeis breaks:
+- Abbreviation URL (/Fall/ENG/UGRD) returns an empty 2KB stub — must use a numeric code.
+- The "subject" dropdown is PROGRAMS/MAJORS, not course abbreviations: page 100 (AAAS) lists AAAS/ED/
+  ENG/HIST/SOC courses; page 700 (Biology) lists 13 abbreviations. No published course-abbrev→page map.
+- Built an abbrev→home-page map across all 94 program pages: 32 of 63 abbreviations are AMBIGUOUS (no
+  dominant home). BIOL courses scatter across 16 pages (700:42, 2700:36...), CHEM across 15, ENG spills
+  from 1800 onto 1425/9300/2000. A single-page mapping would STRUCTURALLY, SILENTLY miss sections that
+  live on a program page we don't fetch — a watched full section that never appears = broken product
+  promise (worse than a fetch blip; the app claims to watch but structurally can't see the seat).
+- keyword search returns 0 for exact course codes — not a clean route either.
+VERDICT: no reliable course→page addressing exists; a "safe" adapter would need per-course multi-page
+merging (which pages? up to 94) or a fragile map with residual silent-miss risk. Disproportionate
+complexity + accuracy risk for one ~5.8k school. DEFERRED (not a false-open risk — a silent-miss/
+coverage-integrity risk). Revisit only if Brandeis exposes a course-scoped endpoint. No schools.py edit.
+LESSON for relays: for schedule sites, gate ADDRESSABILITY (arbitrary course → its exact sections), not
+just one hand-picked page's numbers.
