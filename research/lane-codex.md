@@ -885,3 +885,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   row-level current or completed results in this pass. All four remain hold-outs.
 - README now contains the official URLs, exact UTC search recipe, evidence, scope/freshness/pagination/latency
   guards, and each blocker. No `schools.py` or production changes were made.
+
+## July 13 Codex Batch 66 claim — public schedule follow-up vein
+- Claiming five bounded leads from the archived public-schedule queue: Great Bay Community College; Wayne Community
+  College (NC); Hope College; Navarro College; and Wheaton College (IL). Exact-name checks found no matching
+  identity in `schools.py`. I will probe only official no-login schedule surfaces, requiring current and completed
+  terms, authoritative mixed statuses or numeric seats, exact section identity/scope, pagination, freshness, and
+  sub-30-second requests. No `schools.py` edits or builder contact.
