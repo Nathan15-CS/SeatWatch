@@ -471,3 +471,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   public-search, index, or login-gated leads with no inferred numeric seats. UCSD's TSS transition and NYU's
   ITP-only scope are called out to prevent overbroad adapters.
 - All eleven were deduped against `schools.py` and prior research notes. No `schools.py` or builder changes.
+
+## July 12 Codex Batch 25 checkpoint
+- Batch 25 appended to `research/README.md`: ten net-new Maricopa campuses — Paradise Valley, Glendale,
+  Phoenix, Rio Salado, Scottsdale, South Mountain, Mesa, Chandler-Gilbert, Estrella Mountain, and GateWay.
+- The official public SIS exposes Fall 2026 class numbers, campus filters, Open/Closed status, dates, and
+  numeric `x of y seats available` values. Every lead remains gated on campus isolation, restrictions,
+  completed-term comparison, and freshness/cache checks.
+- All ten were deduped against `schools.py` and prior research notes. No `schools.py` or builder changes.

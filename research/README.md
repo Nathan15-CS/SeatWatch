@@ -1771,3 +1771,53 @@ public-search or login-gated leads and must not be treated as live seat evidence
 surface; UB, UW–Eau Claire, UMN, Cal Poly SLO, and LAVC are the best public-search follow-ups. UCSD,
 UNH, NYU ITP, and Gettysburg are explicitly login- or scope-gated. No `schools.py` edit, registry change,
 deployment, or builder handoff was made.
+
+### Codex Batch 25 — Ten Maricopa public numeric campus leads (July 12 2026)
+
+Maricopa's official public class search (`https://classes.sis.maricopa.edu/`) was queried with the
+Fall 2026 term and institution filters. It exposes campus name, class number, delivery, dates, status,
+and numeric availability such as `7 of 24 seats available`; closed rows explicitly say `No seats
+available`. These are separate colleges on one district host: campus identity and the institution filter
+must remain part of every key, and a completed-term mixed full/open test is still required.
+
+1. **Paradise Valley Community College (AZ) — PUBLIC NUMERIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** Fall
+   2026 public rows include Paradise Valley sections with `Open` status and examples such as 7/24 seats
+   available. Reproduce with the institution filter and preserve class number, session dates, and campus.
+2. **Glendale Community College (AZ) — PUBLIC NUMERIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** The same public
+   search returns Fall 2026 Glendale sections, including open and closed statuses and examples such as
+   13/24 seats available. Do not merge Glendale rows with other Maricopa campuses.
+3. **Phoenix College (AZ) — PUBLIC NUMERIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** Phoenix College rows are
+   visible through institution code `PCC01` (`https://classes.sis.maricopa.edu/?institutions%5B%5D=PCC01`),
+   with Fall 2026 `Open`/`Closed` statuses and numeric availability (for example, 15/24). Preserve the
+   institution code and all session/late-start notes.
+4. **Rio Salado College (AZ) — PUBLIC NUMERIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** Fall 2026 Rio Salado
+   online and flex-start rows publish numeric availability (examples include 23/35 and 34/35) and explicit
+   status. Keep start/end dates and the online-session identity in the section key.
+5. **Scottsdale Community College (AZ) — PUBLIC NUMERIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** Scottsdale
+   rows are available under institution code `SCC05` (`https://classes.sis.maricopa.edu/?institutions%5B%5D=SCC05&terms%5B%5D=4266`),
+   including Fall 2026 open rows with examples such as 15/25 seats. Preserve program restrictions and
+   course-fee notes; an open row is not necessarily unrestricted.
+6. **South Mountain Community College (AZ) — PUBLIC NUMERIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** South
+   Mountain is available under `SMC07` (`https://classes.sis.maricopa.edu/?institutions%5B%5D=SMC07`),
+   with Fall 2026 open/closed rows and examples such as 20/32 seats. Preserve campus-specific class numbers
+   and any permission or cohort notes.
+7. **Mesa Community College (AZ) — PUBLIC NUMERIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** Fall 2026 Mesa
+   sections appear in the public search with numeric open-seat values (for example, 13/28 in a Chandler-
+   Gilbert/Mesa-filtered result). Confirm the selected Mesa institution code before any adapter and retain
+   every campus/session field.
+8. **Chandler-Gilbert Community College (AZ) — PUBLIC NUMERIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** The
+   public Fall 2026 search shows Chandler-Gilbert rows with Open/Closed status and numeric values such as
+   18/28 seats. Use the institution filter rather than inferring campus from course location text.
+9. **Estrella Mountain Community College (AZ) — PUBLIC NUMERIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** Fall
+   2026 rows are directly reproducible with institution code `EMC10` (`https://classes.sis.maricopa.edu/?institutions%5B%5D=EMC10`),
+   including open and closed rows and examples such as 18/24 seats. Keep the code, class number, and
+   flex-start date range together.
+10. **GateWay Community College (AZ) — PUBLIC NUMERIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** GateWay rows
+    are directly visible under `GWC03` (`https://classes.sis.maricopa.edu/?institutions%5B%5D=GWC03`),
+    including Fall 2026 open sections such as 24/24 and 13/20 seats. Preserve permission-required notes
+    and do not treat every open seat as generally enrollable.
+
+**Batch status:** ten net-new Maricopa campus identities were archived. All have current Fall 2026
+public numeric/status evidence, but none has passed the completed-term, campus-isolation, restriction, and
+cache/freshness tests required for production. No `schools.py` edit, registry change, deployment, or
+builder handoff was made.
