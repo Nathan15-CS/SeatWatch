@@ -4040,6 +4040,14 @@ class NorthernMichigan(Banner):
     id = "nmu"; name = "Northern Michigan University"
     example = "EN 111"; host = "bssrprod.nmu.edu:8443"; term = "202680"   # Fall 2026
 
+class UTChattanooga(Banner):
+    # ~12k public 4-year. Guest Banner9 (single institution — 'UT Chattanooga' +
+    # 'UTC Hybrid/Online' are modalities of the same school, NOT a shared UT-system host;
+    # UTK is a separate instance). ENGL 1010 = 41 sec 27 open/14 full live; completed
+    # Spring 2026 (202620) = 7 sec 5 full. seq unique 41/41.
+    id = "utc"; name = "University of Tennessee at Chattanooga"
+    example = "ENGL 1010"; host = "sis-reg.utc.edu"; term = "202640"   # Fall 2026
+
 
 class GeorgiaTech(Banner):
     id = "gatech"; name = "Georgia Tech"
@@ -7635,7 +7643,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     WrightState(), RPI(), Duquesne(), NMSU(), USC(), Rice(), Princeton(),
     PhoenixCollege(), GlendaleCC(), MesaCC(), ChandlerGilbert(), EstrellaMountain(),
     GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC(),
-    GeorgeMason(), NorthernMichigan(), Hartford(),
+    GeorgeMason(), NorthernMichigan(), Hartford(), UTChattanooga(),
     MorenoValley(), NorcoCollege(), RiversideCity()])
 
 
