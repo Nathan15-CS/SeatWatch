@@ -1813,6 +1813,14 @@ class Framingham(ListcrseBanner8):
     example = "PSYC 101"; term = "202690"      # Fall 2026 HERE (per-host codes differ)
     base = "https://selfservice.framingham.edu/PROD"
 
+class UNM(ListcrseBanner8):
+    # UNM Albuquerque flagship (≠ Central/Highlands/Western NM). NM 4-DIGIT common-course
+    # numbers (ENGL 1110, not 110). ENGL 1110 = 122 sections -> ~74s cold N+1 build then
+    # 10-min cache (warm 0ms); Purdue/TAMU cache-backed envelope, lock-guarded.
+    id = "unm"; name = "University of New Mexico"
+    example = "ENGL 1110"; term = "202680"     # Fall 2026 (completed Spring = 202610)
+    base = "https://lobowebapp.unm.edu/ban_ssb"
+
 # --- batch-23 cuts RESURRECTED on the listcrse route (their guest search form answers
 # 'No classes were found' for everything; the catalog route serves the same sections).
 class MissouriState(ListcrseBanner8):
@@ -6547,7 +6555,7 @@ def _guard_registry(all_schools):
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
-    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(),
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(),
     IvyTech(), UTArlington(), UAlaska(), UOregon()])
 
 
