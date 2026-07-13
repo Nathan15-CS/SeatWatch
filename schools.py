@@ -3722,6 +3722,168 @@ class Princeton:
         return out
 
 
+class Maricopa:
+    """Maricopa County Community College District (~200k students, 10 colleges on ONE
+    shared host classes.sis.maricopa.edu). Server-rendered search — the results HTML is
+    in a plain GET, no browser/XHR needed. One GET per course, ~1.2s.
+
+    URL: ?institutions[]={CODE}&terms[]={term}&keywords={SMASHED}&all_classes=true
+    - all_classes=true is MANDATORY: the default search hides FULL sections entirely
+      (BIO201 Phoenix: default 12 open/0 closed -> all_classes 12 open/5 closed). A
+      hidden full section = a silent miss; the param is non-negotiable.
+    - CAMPUS ISOLATION: institutions[]={CODE} hard-filters to one college — live-proven
+      DISJOINT (Phoenix BIO201 17 secs vs Mesa BIO201 14 secs, class-number overlap
+      EMPTY). Each subclass is one college; class_number is unique within it.
+    - EXACT SCOPING: parse only the <div class="course"> block whose <h3> code equals
+      the smashed target (keyword search can surface siblings; we never read them).
+    - REAL NUMERIC seats: 'N of M seats available' -> open iff N>0, seats=N;
+      'No seats available' -> full. status span 'open/closed' agreed with the numeric
+      on 100% of gated rows; the number is authoritative. Any unparseable row is skipped
+      (never guessed open). Section key = 5-digit class number.
+    Term is opaque (Fall 2026 = 4266); auto-rolls by reading the form's own term
+    checkbox labels (verify-before-adopt)."""
+    campus = ""                          # institution code, e.g. PCC01; subclass sets
+    term = "4266"                        # Fall 2026 (auto-rolls)
+    _active_term = None
+    base = "https://classes.sis.maricopa.edu/"
+    _RE = re.compile(r"^([A-Za-z]{2,4})\s*(\d{2,3}[A-Za-z]{0,2})$")
+    _BLOCK = re.compile(r'<div class="course">(.*?)</table>', re.S)
+    _H3 = re.compile(r'<h3>\s*([A-Z]+\d+[A-Z]*)\s*:')
+    _ROW = re.compile(r'<tr class="class-specs.*?</tr>', re.S)
+    _NUM = re.compile(r'class="class-number">\s*<div class="class-cell">\s*(\d+)')
+    _SEATS = re.compile(r'(\d+) of (\d+) seats available')
+    _NOSEAT = re.compile(r'No seats available')
+
+    def _smash(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1) + m.group(2)).upper() if m else None
+
+    def valid_course(self, course):
+        return self._smash(course) is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self.base
+
+    def _search(self, term, smashed):
+        q = urllib.parse.urlencode({"institutions[]": self.campus, "terms[]": term,
+                                    "keywords": smashed, "all_classes": "true"}, doseq=True)
+        return _http(self.base + "?" + q)
+
+    def _fetch_term(self, term, course):
+        smashed = self._smash(course)
+        if not smashed:
+            return None
+        try:
+            html = self._search(term, smashed)
+        except Exception:
+            return None
+        for blk in self._BLOCK.findall(html):
+            m = self._H3.search(blk)
+            if not m or m.group(1) != smashed:      # EXACT course only — no sibling leak
+                continue
+            secs = {}
+            for row in self._ROW.findall(blk):
+                n = self._NUM.search(row)
+                if not n:
+                    continue
+                sm = self._SEATS.search(row)
+                if sm:
+                    secs[n.group(1)] = {"open": int(sm.group(1)) > 0, "seats": int(sm.group(1))}
+                elif self._NOSEAT.search(row):
+                    secs[n.group(1)] = {"open": False, "seats": 0}
+                # else: unknown availability format -> skip row, never guess
+            return secs
+        return {}                                    # course not offered this term -> safe empty
+
+    def resolve_term(self):
+        """Nearest upcoming semester from the form's own term checkboxes (opaque codes,
+        human labels win). Skips in-progress terms via the shared _SEASON delta logic."""
+        try:
+            h = _http(self.base)
+        except Exception:
+            return None
+        today = datetime.date.today()
+        best, best_delta = None, None
+        for code, label in re.findall(
+                r'name="terms\[\]"[^>]*value="(\d+)"[^>]*>\s*<label[^>]*>([^<]+)</label>', h):
+            m = re.search(r"(spring|summer|fall|winter)\s+(20\d\d)", label, re.I)
+            if not m:
+                continue
+            season, year = m.group(1).lower(), int(m.group(2))
+            delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+            if delta < 1:
+                continue
+            if best_delta is None or delta < best_delta:
+                best_delta, best = delta, code
+        return best
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self._fetch_term(new, self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            secs = self._fetch_term(self.cur_term(), course)
+            if secs:
+                out[course] = secs
+        return out
+
+class PhoenixCollege(Maricopa):
+    id = "phoenixcollege"; name = "Phoenix College"
+    example = "BIO201"; campus = "PCC01"
+
+class GlendaleCC(Maricopa):
+    id = "glendalecc-az"; name = "Glendale Community College (AZ)"   # != Glendale CC (CA)
+    example = "BIO201"; campus = "GCC02"
+
+class MesaCC(Maricopa):
+    id = "mesacc"; name = "Mesa Community College"
+    example = "BIO201"; campus = "MCC04"
+
+class ChandlerGilbert(Maricopa):
+    id = "chandlergilbert"; name = "Chandler-Gilbert Community College"
+    example = "BIO201"; campus = "CGC08"
+
+class EstrellaMountain(Maricopa):
+    id = "estrellamountain"; name = "Estrella Mountain Community College"
+    example = "BIO201"; campus = "EMC10"
+
+class GateWayCC(Maricopa):
+    id = "gatewaycc"; name = "GateWay Community College"   # != Mountain Gateway CC
+    example = "BIO201"; campus = "GWC03"
+
+class ParadiseValleyCC(Maricopa):
+    id = "paradisevalleycc"; name = "Paradise Valley Community College"
+    example = "BIO201"; campus = "PVC09"
+
+class RioSalado(Maricopa):
+    id = "riosalado"; name = "Rio Salado College"
+    example = "BIO201"; campus = "RSC06"
+
+class ScottsdaleCC(Maricopa):
+    id = "scottsdalecc"; name = "Scottsdale Community College"
+    example = "BIO201"; campus = "SCC05"
+
+class SouthMountainCC(Maricopa):
+    id = "southmountaincc"; name = "South Mountain Community College"
+    example = "BIO201"; campus = "SMC07"
+
+
 class GeorgiaTech(Banner):
     id = "gatech"; name = "Georgia Tech"
     example = "CS 1301"; host = "registration.banner.gatech.edu"; term = "202608"
@@ -7305,7 +7467,9 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
     MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(), SanDiegoCity(), SanDiegoMesa(), SanDiegoMiramar(), Fairfield(),
     IvyTech(), UTArlington(), UAlaska(), UOregon(),
-    WrightState(), RPI(), Duquesne(), NMSU(), USC(), Rice(), Princeton()])
+    WrightState(), RPI(), Duquesne(), NMSU(), USC(), Rice(), Princeton(),
+    PhoenixCollege(), GlendaleCC(), MesaCC(), ChandlerGilbert(), EstrellaMountain(),
+    GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC()])
 
 
 def refresh_all_terms(log=None):
