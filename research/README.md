@@ -2619,6 +2619,54 @@ source-gated leads only; no seat value is promoted without a sanctioned endpoint
 signals; DuPage, Santiago Canyon, and Beaver County need endpoint or schedule follow-up. None passed the full
 production gate in this research-only pass. No `schools.py` edit, registry change, deployment, or builder handoff was made.
 
+### Codex Batch 57 — Five additional official Fall 2026 schedule leads (July 13 2026)
+
+These five identities are net-new after exact-name checks against `schools.py` and the research archive. They
+are research-only leads: the sources below are official and current, but only CCBC exposed a clearly labeled
+numeric open-seat field in this pass. No production adapter or seat value is implied for the other four; all
+five still require sanctioned endpoint, scope, restriction/waitlist, freshness, and completed-term validation.
+
+1. **Canada College (CA) — PUBLIC FALL OPEN-CLASS PDF, FOLLOW-UP REQUIRED.** San Mateo County Community
+   College District's official WebSchedule publishes a dedicated Canada College Fall 2026 open-class PDF
+   (`https://webschedule.smccd.edu/schedules/can_open_202608.pdf`, timestamped 7/12/2026). Rows include CRN,
+   subject/course/section, title, instructor, dates, modality, campus/building, and cohort fields (for example,
+   ACTG 100/121 and BIOL C1000 rows); the PDF does not expose a numeric seat field. Reproduce the district's
+   sanctioned live search, preserve Canada-vs-district identity and linked components, then verify seats,
+   waitlists, and a completed term before adapter work.
+2. **Community College of Baltimore County (MD) — PUBLIC NUMERIC QUICKREG LEAD, FOLLOW-UP REQUIRED.** CCBC's
+   official QuickReg catalog (`https://javawebapp.ccbcmd.edu/QuickReg/Register.jsp?frc=CRFALLLS`) labels its
+   result columns `CRN`, `Course Number`, and `Open Seats` and serves Fall 2026 late-start sections. Current
+   rows include ACDV 101 CRN 90909 (16 open), 90911 (11), and 90912 (19), with dates, campus, modality, and
+   meeting details; the Fall 2026 academic calendar confirms the term and Aug. 31 start
+   (`https://www.ccbcmd.edu/Programs-and-Courses/Catalog/pages/Academic-Calendars.html`). Validate the full-term
+   and late-start feeds, campus/session identity, restriction/waitlist semantics, and completed-term replay.
+3. **Missouri Southern State University (MO) — OFFICIAL FALL SCHEDULE + OPEN/CLOSED LIST, FOLLOW-UP REQUIRED.**
+   MSSU's registrar schedule book (`https://www.mssu.edu/academics/classes/files/Fall-2026-Schedule-Book-V1.pdf`)
+   is explicitly a Fall 2026 schedule with CRNs, course numbers/titles, credits, dates, meeting patterns,
+   modality, campus/room, and instructor. The PDF directs users to the official open/closed class list
+   (`https://lionet.mssu.edu/web/guest/course-list`) and says to select `2026 Fall (AY27)`; no numeric seat
+   value was inferred from the static book. Capture the live open/closed response, identify its seat/waitlist
+   fields, and replay a completed term before any adapter proposal.
+4. **Suffolk County Community College (NY) — OFFICIAL CURRENT CATALOG/SCHEDULE LEAD, FOLLOW-UP REQUIRED.**
+   Suffolk's official 2025–27 catalog (`https://www.scc.edu/explore-academics/college-catalog/documents/Catalog-2025-27.pdf`)
+   publishes a Fall 2026 academic calendar (Aug. 26 start) and states that the online class schedule is the
+   complete listing of courses for each term/campus. This pass did not capture a guest row or seat value;
+   locate the sanctioned schedule response, preserve Ammerman/Brentwood/East and other campus identity,
+   sections/parts-of-term, restrictions, waitlists, and completed-term behavior.
+5. **Vanderbilt University (TN) — YES SCHEDULE/RESERVED-SEAT LEAD, FOLLOW-UP REQUIRED.** Vanderbilt's official
+   registrar calendar (`https://registrar.vanderbilt.edu/calendars/2026-27-undergraduate.php`) records Fall
+   2026 schedule publication in YES (Mar. 9), open enrollment (Jul. 22), and Aug. 26 classes; its enrollment
+   bulletin (`https://www.vanderbilt.edu/enrollmentbulletin/registration-essentials/class-reserves/`) documents
+   section-level reserved seats, while the Engineering first-year guide lists Fall 2026 eligible courses and
+   warns that apparent openings can be reserved. This is a portal/reserve-semantics lead, not a guest numeric
+   feed; verify sanctioned YES access, undergraduate/graduate school scope, seat-vs-reserve/waitlist semantics,
+   and completed-term replay.
+
+**Batch status:** five net-new identities archived. CCBC has the strongest directly labeled numeric seat evidence;
+Canada and MSSU expose structured public current-term schedules, while Suffolk and Vanderbilt currently require
+portal or live-endpoint follow-up. No production approval, `schools.py` edit, registry change, deployment, or
+builder handoff was made.
+
 ### Batch 31 + USC — ✅ BUILT + DEPLOYED July 13 (Build): 684->689
 Five schools shipped in one gated batch, all re-gated live through the REGISTERED production
 adapters (commit bc1108c, deployed, live site verified 689):

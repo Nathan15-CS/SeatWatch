@@ -715,3 +715,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - Moraine Valley and FSCJ have the strongest public-search signals; DuPage, Santiago Canyon, and Beaver County
   are guest-search, PDF, or schedule-release leads. All five require sanctioned endpoint, scope, restrictions,
   waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or builder changes.
+
+## July 13 Codex Batch 57 checkpoint
+- Batch 57 appended five net-new identities: Canada College, Community College of Baltimore County, Missouri
+  Southern State University, Suffolk County Community College, and Vanderbilt University.
+- CCBC's official QuickReg late-start catalog is the strongest source and exposes labeled numeric `Open Seats`
+  rows (for example ACDV 101 CRNs 90909/90911/90912 with 16/11/19 open). Canada and MSSU expose structured
+  current Fall 2026 public schedule artifacts; Suffolk and Vanderbilt are official catalog/YES portal leads.
+  All five require campus/career/section scope, restriction and waitlist semantics, freshness, and completed-term
+  replay before adapter work. No `schools.py` or builder changes.
