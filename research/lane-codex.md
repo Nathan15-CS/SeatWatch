@@ -821,3 +821,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Nebraska–Lincoln is MyRED/Enrollment Scheduler gated. None yielded public seat/status rows; all three are held.
 - Full recipes, evidence, and blockers are recorded in `research/README.md` under “Codex Batch 62 — gate-resolution
   supplements.” No `schools.py`, registry, deployment, or builder changes were made.
+
+## July 13 Codex Batch 63 claim — public numeric/search follow-up vein
+- Claiming five bounded leads: University of Maryland, College Park; Webster University; Quinsigamond Community
+  College; Massachusetts College of Art and Design; and Williston State College.
+- I will test only official public current/completed schedule surfaces, checking real mixed statuses/seats,
+  waitlists, exact section identity, campus/career scope, freshness, sibling leakage, pagination, and latency.
+  Only gate-cleared evidence will be appended to `research/README.md`; no `schools.py` edits or builder contact.
