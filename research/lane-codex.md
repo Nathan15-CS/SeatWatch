@@ -479,6 +479,14 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   replay, freshness, campus, restriction, and waitlist tests are still required. No `schools.py` or
   builder changes.
 
+## July 12 Codex Batch 28 checkpoint
+- Batch 28 appended two net-new California Colleague identities: West Valley College and Victor Valley
+  College.
+- West Valley has an official no-login schedule, historical Capacity/Actual/Remaining proof, and a current
+  Fall 2026 schedule route; current row replay and West Valley-vs-Mission campus isolation remain open.
+  Victor Valley’s official public guest search is reachable but returned no populated rows, so current
+  numeric capture is still required. No `schools.py` or builder changes.
+
 ## July 12 Codex Batch 24 checkpoint
 - Batch 24 appended to `research/README.md`: eleven net-new identities — University of Southern
   California, University at Buffalo (SUNY), University of Wisconsin–Eau Claire, University of Minnesota,

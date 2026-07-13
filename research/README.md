@@ -1894,3 +1894,30 @@ Banner/WINGS surfaces. These are source-level leads only; no adapter or builder 
 **Batch status:** two net-new public numeric pathways were archived. NC A&T still needs current Fall 2026
 row capture; Wright State has both current and completed-term evidence but still needs replay/freshness and
 eligibility tests. No `schools.py` edit, registry change, deployment, or builder handoff was made.
+
+### Codex Batch 28 — Public Colleague pathways (July 12 2026)
+
+This pass moved to public California community-college Colleague surfaces. Both identities are dedup-clean
+and remain source-level until current-term replay, completed-term comparison, and eligibility semantics are
+verified.
+
+1. **West Valley College (CA) — PUBLIC COLLEAGUE NUMERIC LEAD, FOLLOW-UP REQUIRED.** The official
+   instructions explicitly link a no-login searchable class schedule
+   (`https://www.westvalley.edu/classes/search.html`), and the district’s public search surface is
+   `https://schedule.wvm.edu/`. The underlying public Banner/Colleague detail host exposes labeled
+   Capacity/Actual/Remaining fields; a historical West Valley row (Fall 2023 CRN 73036) shows 25/15/10
+   at `https://ssb-prod.wvm.elluciancloud.com/PROD/bwckschd.p_disp_detail_sched?crn_in=73036&term_in=202370`.
+   The official site publishes a Fall 2026 searchable schedule, but no current Fall 2026 numeric row was
+   captured here. Follow up by selecting West Valley (not Mission), replaying Fall 2026 and a completed
+   term, and preserving campus, restrictions, waitlist, cross-list, and over-cap semantics.
+2. **Victor Valley College (CA) — PUBLIC COLLEAGUE GUEST-SURFACE LEAD, FOLLOW-UP REQUIRED.** VVC’s
+   official registration page says Fall 2026 offerings can be viewed before applying through its public
+   Self-Service search (`https://www.vvc.edu/register`; guest surface:
+   `https://vvc-ss.colleague.elluciancloud.com/Student/Courses`). The guest page is reachable without
+   login and exposes course/section search, but this pass returned no populated subject rows. Do not infer
+   seats; capture Fall 2026 rows and a completed term, then confirm that Seats Available, waitlist, term,
+   campus, and restriction fields are stable before adapter work.
+
+**Batch status:** two net-new public Colleague identities were archived. West Valley has historical
+numeric proof plus a current public schedule route; Victor Valley is a reachable guest catalog/search lead
+without current numeric rows. No `schools.py` edit, registry change, deployment, or builder handoff was made.
