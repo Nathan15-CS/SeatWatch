@@ -763,3 +763,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   added.
 - README now records the exact official URLs, evidence, and blockers for all five. Zero candidates are gated or safe for
   builder handoff. No `schools.py` or production changes.
+
+## July 13 Codex Batch 60 claim — Northwest public-schedule vein
+- Claiming five bounded leads: Portland Community College, Pima Community College, North Seattle College, Seattle
+  Central College, and South Seattle College.
+- I will test only each institution's official public schedule/current-term and completed-term surfaces, preserving
+  district/campus identity, section keys, modality, restrictions, waitlists, and freshness. Only fully reproducible
+  gate-cleared evidence will be appended to `research/README.md`; no `schools.py` edits.
