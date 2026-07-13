@@ -959,3 +959,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   snapshot (one `MVK2121M` row, class 71262) with no closed/completed comparison. All four remain hold-outs.
 - README records official URLs, exact recipes, current/completed evidence, contradictions, and resume conditions.
   No `schools.py` or production changes were made.
+
+## July 13 Codex Batch 70 claim — western public-search vein
+- Claiming five bounded leads from the remaining queue: Adams State University; Regis University; Idaho State
+  University; Central Washington University; and Western Washington University. Exact-name checks found no
+  matching identity in `schools.py`. I will probe only official public class-search/catalog surfaces, requiring
+  current and completed terms, authoritative mixed status or numeric seats, exact section identity and campus
+  scope, pagination, freshness, and sub-30-second response paths. No `schools.py` edits or builder contact.
