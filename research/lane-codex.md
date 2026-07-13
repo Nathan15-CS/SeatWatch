@@ -660,3 +660,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   West Liberty require public endpoint and scope validation; no seats were inferred from portal-only or static pages.
   All five require scope, campus/career, eligibility, waitlist, freshness, and current/completed-term checks before
   adapter work. No `schools.py` or builder changes.
+
+## July 13 Codex Batch 50 checkpoint
+- Batch 50 appended five net-new identities: East Tennessee State University, Manchester Community College (NH),
+  Diné College, Duke University, and University of Wisconsin–Milwaukee.
+- MCCNH has the clearest public interactive schedule surface; ETSU has a current Fall 2026 PDF plus GoldLink
+  search. Diné, Duke, and UWM require live endpoint/scope validation. All five require scope, campus/career,
+  eligibility, waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or
+  builder changes.

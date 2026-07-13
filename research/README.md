@@ -2434,6 +2434,16 @@ only after it appears AND returns mixed open/full rows. No schools.py edit, no r
 
 **Batch status:** five net-new identities archived. SJSU has the strongest numeric public evidence and explicit reserve-seat documentation; UTC, Mitchell, UNT, and West Liberty require public endpoint and scope validation. No production approval was made.
 
+### Codex Batch 50 — Current public/portal schedule leads (July 13 2026)
+
+1. **East Tennessee State University (TN) — FALL 2026 PDF/PORTAL SEARCH LEAD, FOLLOW-UP REQUIRED.** ETSU’s official registration resources (`https://www.etsu.edu/reg/registration/resources.php`) identify an Interactive Course Search in GoldLink and link the Fall 2026 Schedule of Classes PDF posted July 10, 2026. No numeric guest row was captured; verify public/guest access, section/CRN identity, campus/career scope, restrictions, waitlists, and completed-term replay.
+2. **Manchester Community College (NH) — PUBLIC INTERACTIVE SCHEDULE LEAD, FOLLOW-UP REQUIRED.** MCC’s official schedule page (`https://mccnh.edu/academics/course-schedules/`) links a searchable Fall 2026 schedule, says it is updated weekly, and directs the general public to SIS for daily changes. The schedule documents course numbers, dates/times, modality/location, and session search fields. Verify live availability/waitlist fields, unique section IDs, campus/session scope, and completed-term replay.
+3. **Diné College (AZ) — STATIC FALL SCHEDULE LEAD, FOLLOW-UP REQUIRED.** Diné College’s official Fall 2026 schedule PDF (`https://www.dinecollege.edu/wp-content/uploads/2026/05/FALL-26-course-schedule-May-14-2026.pdf`) covers the 08/17/2026–12/11/2026 semester and lists school, course, section, credits, meeting patterns, prerequisites, and max-enrollment text. Treat it as static evidence until a sanctioned live status/capacity endpoint and completed-term replay are verified.
+4. **Duke University (NC) — PUBLIC DUKEHUB SCHEDULE LEAD, SCOPE REQUIRED.** Duke’s registrar timeline (`https://registrar.duke.edu/faculty-staff-resources/class-scheduling/`) states that the Fall 2026 Schedule of Classes is available to students and the public in DukeHub from March 23, with registration beginning April 1. No numeric guest row was captured; verify public access, preserve Duke school/career and reserve-capacity semantics, waitlists, and completed-term behavior.
+5. **University of Wisconsin–Milwaukee (WI) — STELLIC/CATALOG SCHEDULE LEAD, FOLLOW-UP REQUIRED.** UWM’s registrar (`https://uwm.edu/registrar/enrollment/stellic/create-your-schedule/`) documents a Fall 2026 Stellic schedule view and links the official Schedule of Classes catalog. The documented workflow requires Stellic login; no numeric guest row was captured. Verify the public catalog/search endpoint, section IDs, campus/career/session scope, availability/waitlist semantics, and completed-term replay.
+
+**Batch status:** five net-new identities archived. MCCNH has the clearest public interactive schedule surface; ETSU has a current official Fall 2026 PDF plus GoldLink search. Diné, Duke, and UWM require live endpoint/scope validation. No production approval was made.
+
 ### Batch 31 + USC — ✅ BUILT + DEPLOYED July 13 (Build): 684->689
 Five schools shipped in one gated batch, all re-gated live through the REGISTERED production
 adapters (commit bc1108c, deployed, live site verified 689):
