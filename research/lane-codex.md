@@ -702,9 +702,9 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   checks before adapter work. No `schools.py` or builder changes.
 
 ## July 13 Codex Batch 55 checkpoint
-- Batch 55 appended five net-new identities: American University, Saint John's University, Lawrence
+- Batch 55 appended five net-new identities: American University, University of Minnesota Crookston, Lawrence
   Technological University, University of Kentucky, and North Carolina Wesleyan University.
-- CSB+SJU has the clearest public search surface but requires SJU-vs-CSB isolation. American, Lawrence Tech,
-  Kentucky, and NC Wesleyan are portal, BannerWeb, or static-schedule leads. All five require scope,
+- Crookston has the clearest public class-search lead and requires campus isolation within the UMN system.
+  American, Lawrence Tech, Kentucky, and NC Wesleyan are portal, BannerWeb, or static-schedule leads. All five require scope,
   restrictions, waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or
   builder changes.

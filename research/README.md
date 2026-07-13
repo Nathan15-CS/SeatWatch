@@ -2557,11 +2557,12 @@ without a sanctioned endpoint, scope checks, and a completed-term replay.
    Fall/Summer 2026 Student Planning and the upcoming schedule-of-classes workflow. It is a planning/portal
    surface in this pass; no guest row or numeric seat payload was captured. Verify any public search route,
    preserve undergraduate/graduate career and waitlist scope, and replay a completed term.
-2. **Saint John's University (MN) — PUBLIC SHARED COURSE-SEARCH LEAD, SCOPE REQUIRED.** The official CSB+SJU
-   course-search page (`https://csbsju-public.courseleaf.com/registration/course-schedule/`) exposes a Fall
-   2026 course schedule, advanced filters including `open sections`, and a campus selector that distinguishes
-   SJU, CSB, web, and study-abroad offerings. Validate that SJU sections remain separable from CSB, preserve
-   campus/term/section keys, and test waitlist and completed-term semantics before adapter work.
+2. **University of Minnesota Crookston (MN) — PUBLIC CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.** Crookston's
+   official registrar page (`https://crk.umn.edu/registrar/class-schedules`) identifies the Fall 2026 schedule
+   and links students to One Stop's Schedule Builder/Search for Classes, plus class-section-status resources.
+   The page also exposes a faculty class-enrollment-status report described as always current, but no guest
+   numeric row was captured. Verify public access, Crookston-campus scope within the UMN system, section keys,
+   reserve/waitlist semantics, and a completed-term replay before adapter work.
 3. **Lawrence Technological University (MI) — BANNERWEB SCHEDULE/WAITLIST LEAD, FOLLOW-UP REQUIRED.** LTU's
    official registrar page (`https://ltu.edu/academics/registrar/registration-and-scheduling/`) confirms Summer
    and Fall 2026 registration, directs students to BannerWeb's Search for Classes flow, and documents CRNs,
@@ -2580,9 +2581,9 @@ without a sanctioned endpoint, scope checks, and a completed-term replay.
    and instructors. It is a static schedule and contains no live seat field; find the sanctioned search,
    verify section identity and status semantics, and replay a completed term before using it.
 
-**Batch status:** five net-new identities were archived. CSB+SJU has the clearest public searchable surface
-but needs SJU-vs-CSB isolation; American, Lawrence Tech, Kentucky, and NC Wesleyan require endpoint or static-
-schedule follow-up. None passed the full production gate in this research-only pass. No `schools.py` edit,
+**Batch status:** five net-new identities were archived. Crookston has the clearest public class-search lead;
+American, Lawrence Tech, Kentucky, and NC Wesleyan require endpoint or static-schedule follow-up. None passed
+the full production gate in this research-only pass. No `schools.py` edit,
 registry change, deployment, or builder handoff was made.
 
 ### Batch 31 + USC — ✅ BUILT + DEPLOYED July 13 (Build): 684->689
