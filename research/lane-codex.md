@@ -576,3 +576,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - UNLV, UNR, and NMSU expose public class-search/lookup routes; CU Denver and Boise State require guest-route
   confirmation. No seats were inferred. All five require campus, career, reserve/waitlist, freshness, and
   current/completed-term checks before adapter work. No `schools.py` or builder changes.
+
+## July 12 Codex Batch 39 checkpoint
+- Batch 39 appended five net-new identities: North Dakota State University, University of North Dakota,
+  University of Nebraska at Kearney, University of Nebraska–Lincoln, and University of Missouri.
+- Missouri has an explicit no-login current-class-offerings route; NDSU, UND, UNK, and UNL require guest-route
+  confirmation. No seats were inferred. All five require campus/career, waitlist, eligibility, freshness, and
+  current/completed-term checks before adapter work. No `schools.py` or builder changes.

@@ -2178,6 +2178,45 @@ public search/workflow routes; Pomona, HMC, and Pitzer are portal/5C leads with 
 All five were deduped against `schools.py` and prior research. No production approval, `schools.py` edit,
 registry change, deployment, or builder handoff was made.
 
+### Codex Batch 39 — Northern Plains and Missouri public schedule leads (July 12 2026)
+
+1. **North Dakota State University (ND) — CAMPUS-CONNECTION SCHEDULE LEAD, FOLLOW-UP REQUIRED.** NDSU’s
+   official registration guidance documents Fall 2026 term code `2710`, the Class Search path in Campus
+   Connection, and career/session definitions (`https://www.ndsu.edu/registrar/facstaff/cchelp/navigations`).
+   The search is portal-authenticated in the documented workflow, so no seats are inferred. Confirm whether a
+   sanctioned guest route exists, then replay Fall 2026 and a completed term with Fargo campus, career,
+   session, cross-registration, waitlist, and permission semantics preserved.
+2. **University of North Dakota (ND) — CAMPUS-CONNECTION CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.** UND’s
+   official registration guide directs users to Campus Connection Class Search and an “Open Classes Only”
+   option, with Fall 2026 dates published at `https://und.edu/academics/services/advising/course-registration.html`.
+   The workflow requires login; no numeric guest rows were captured. Verify any sanctioned public listing,
+   then preserve Grand Forks/online/law career, part-of-term, waitlist, and restriction fields.
+3. **University of Nebraska at Kearney (NE) — MYBLUE SCHEDULE/COURSE-SEARCH LEAD, FOLLOW-UP REQUIRED.**
+   UNK’s registrar says Fall 2026 schedules became available February 23 and directs students to MyBLUE/UNK
+   Class Search (`https://www.unk.edu/offices/registrar/academic_policies_handbook/Academic_Calendar.php`,
+   `https://www.unk.edu/offices/registrar/academic_policies_handbook/Class_Schedules.php`). The public-facing
+   course-search documentation exposes Fall 2026 filters, but the authoritative schedule appears account-based;
+   no seats were inferred. Confirm guest access and replay a completed term with Kearney, mini-session, online,
+   and permission semantics intact.
+4. **University of Nebraska–Lincoln (NE) — MYRED CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.** UNL publishes
+   Fall 2026 term `1268` and registration dates, while its official registration guide directs users to MyRED
+   “Search for Classes,” including Open Classes and mode-of-instruction filters
+   (`https://registrar.unl.edu/student-resources/registration/fall-registration-dates/`,
+   `https://admissions.unl.edu/information-for/nebraska-now/getting-started/`). No guest numeric row was
+   captured. Verify whether a public sanctioned search exists, then preserve Lincoln campus, career, attributes,
+   reserve/waitlist, and Nebraska Now/non-degree scope.
+5. **University of Missouri (MO) — PUBLIC CURRENT-CLASS-OFFERINGS LEAD, FOLLOW-UP REQUIRED.** Mizzou’s
+   registrar explicitly states that its Current Class Offerings link does not require login and directs users
+   to the myZou class search (`https://registrar.missouri.edu/registration-classes/current-class-offerings/`).
+   The page documents current term operation but this pass captured no populated Fall 2026 row. Replay Fall
+   2026 and a completed term, preserving Columbia campus, career, session, online, cross-enrollment, waitlist,
+   and permission semantics.
+
+**Batch status:** five net-new U.S. college identities were archived. Missouri has an explicit no-login class-
+offerings route; NDSU, UND, UNK, and UNL require guest-route confirmation. No seats were inferred. All five
+were deduped against `schools.py` and prior research. No production approval, `schools.py` edit, registry
+change, deployment, or builder handoff was made.
+
 ### Codex Batch 37 — Southwest public class-search pathways (July 12 2026)
 
 1. **University of Nevada, Las Vegas (NV) — PUBLIC PEOPLESOFT CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.**
