@@ -724,3 +724,9 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   current Fall 2026 public schedule artifacts; Suffolk and Vanderbilt are official catalog/YES portal leads.
   All five require campus/career/section scope, restriction and waitlist semantics, freshness, and completed-term
   replay before adapter work. No `schools.py` or builder changes.
+
+## July 13 Codex Batch 58 claim — numeric-lead promotion pass
+- Claiming the five-lead promotion vein: Brandeis University, University of Maryland (College Park), San Jose State University,
+  Roxbury Community College, and University of Massachusetts Lowell.
+- I will promote only leads with reproducible current Fall 2026 seat/status data, a completed-term mixed-status check,
+  unique section identity, and an adapter-ready request recipe; otherwise they remain explicitly gated. No `schools.py` edits.
