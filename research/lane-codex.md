@@ -872,3 +872,16 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Name checks found no exact identity in `schools.py` for these five. I will probe only the official public search or
   schedule endpoints, with current/completed-term replay, mixed authoritative statuses or numeric seats, section-key
   uniqueness, scope/freshness, pagination, and latency checks. No `schools.py` edits or builder contact.
+
+## July 13 Codex Batch 65 checkpoint — one gated candidate, four explicit hold-outs
+- University of Tennessee at Chattanooga cleared the public Banner gate: exact Fall 2026 `ENGL 1010` returned
+  41 rows over five pages with mixed numeric/full statuses, campus labels, waitlists, and unique CRNs; exact
+  Spring 2026 (View Only) replay returned 7 rows with two positive-seat and five full sections. The route is
+  `GATED, AWAITING GO-AHEAD`, pending builder production `Banner.fetch()` verification; no numeric term code was
+  invented.
+- Aims Community College has strong current OPEN/CLOSED numeric rows but an empty Spring 2026 replay. UVM's
+  current/completed pages are PACE-only and expose no reliable machine-readable CRN/seat payload. UH Mānoa's
+  Browse Classes port is blank/blocked. Rochester CDCS documents public status filters but produced no reproducible
+  row-level current or completed results in this pass. All four remain hold-outs.
+- README now contains the official URLs, exact UTC search recipe, evidence, scope/freshness/pagination/latency
+  guards, and each blocker. No `schools.py` or production changes were made.

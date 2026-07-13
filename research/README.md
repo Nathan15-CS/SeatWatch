@@ -3208,6 +3208,72 @@ instead. No production code or builder handoff was made.
 **Batch status:** Wabash is the only new full-gate candidate and is `GATED, AWAITING GO-AHEAD`. Lewis & Clark,
 Hawkeye, BC3, and UH remain explicit hold-outs. No `schools.py` or production changes were made.
 
+### Codex Batch 65 — public-search gate-resolution supplements (July 13 2026)
+
+This pass followed five existing public leads and used only official no-login schedule surfaces. One candidate
+cleared the current/completed replay gate; four are recorded as hold-outs rather than inferred. Exact-name checks
+found no existing `schools.py` identity for any of the five. No production code or builder handoff was made.
+
+1. **University of Tennessee at Chattanooga (TN, public four-year, approximately 12,060 students) — GATED,
+   AWAITING GO-AHEAD.** Official schedule instructions are at
+   `https://www.utc.edu/academic-affairs/registrar/registration-information/class-schedule`; the public Banner
+   host is `https://sis-reg.utc.edu/StudentRegistrationSsb/ssb` (the university's enrollment/about source is
+   `https://www.utc.edu/about`, with the 2025 enrollment release at
+   `https://blog.utc.edu/news/2025/09/utc-announces-record-fall-enrollment-surpassing-12000-for-first-time/`).
+   On the public term selector choose **Fall 2026**, then search with the exact fields `Subject/Keyword=ENGL` and
+   `Course Number=1010` (do not use the broad keyword-only search). The current result is 41 exact `ENGL 1010`
+   rows over five pages. Native rows preserve CRN, section, term, campus, status, and seats: examples include
+   CRN 40022 with 6/20 seats remaining, 40023 with 1/20, 40323 with 3/20, 40037 with 7/20, and explicit full
+   rows such as 42086 and 40035; waitlist rows expose numeric waitlist capacity. The completed replay is
+   **Spring 2026 (View Only)** with the same exact fields: seven rows on one page, two with 1/20 seats remaining
+   and five full, with unique CRNs (20914, 21376, 21802, 22429, 22430, 22757, 20610). This supplies mixed
+   current and completed statuses, exact-course scoping, pagination, and a real historical-term check. Preserve
+   the campus value (`UT Chattanooga` versus `UTC Hybrid/Online`) as scope; use CRN as the section key. Requests
+   took roughly 2–3 seconds. The route fits the existing Banner family: resolve the human labels through the
+   host's term selector, then issue the exact search equivalent to
+   `/searchResults/searchResults?txt_subject=ENGL&txt_courseNumber=1010&txt_term=<resolved>&pageOffset=0&pageMaxSize=100`.
+   Do not hard-code a numeric term code from this research note; the production subclass must run the existing
+   Banner `resolve_term()`/`fetch()` path and re-verify the live term before registration. This is source-gated,
+   not yet production-verified.
+
+2. **Aims Community College (CO, public two-year) — HOLD OUT: no completed-term rows.** Official schedule:
+   `https://schedule.aims.edu/`; institutional context: `https://www.aims.edu/about` and
+   `https://www.aims.edu/about-aims/faq`. Fall 2026 `ENG - English` results expose explicit `OPEN`/`CLOSED`,
+   numeric `Enrolled/capacity` values (for example 15/20, 8/20, 20/20), section labels, campus/location,
+   modality, and dates. Replaying the same subject on Spring 2026 returned `No Results Found`, so the surface
+   cannot prove historical status semantics. Hold until a populated completed term or an equivalent official
+   replay is available.
+
+3. **University of Vermont (VT) — HOLD OUT: limited PACE/non-degree scope and unstable machine identity.** The
+   official current and completed PACE pages are `https://learn.uvm.edu/courses/fall/` and
+   `https://learn.uvm.edu/courses/spring-v2026/`; registrar waitlist semantics are documented at
+   `https://www.uvm.edu/registrar/waitlisting-pilot-information-students`. Fall current content has mixed
+   `This section is full` and `Only N seat(s) available` labels, while Spring completed content has many
+   `This section is closed` labels. However, the pages cover PACE/non-degree offerings rather than the whole
+   UVM catalog and did not expose a reliable numeric seat/CRN payload in this pass (course labels such as
+   `(ALE 1150 A01)` were visible). Hold; do not present this as a university-wide adapter.
+
+4. **University of Hawaiʻi at Mānoa (HI) — HOLD OUT: public catalog endpoint blocked.** Official schedule guidance
+   is `https://manoa.hawaii.edu/undergrad/schedule/`, with the Fall 2026 calendar at
+   `https://manoa.hawaii.edu/registrar/academic-calendar/fall-2026/` and class-availability definitions at
+   `https://www.hawaii.edu/myuhinfo/class-availability-information/`. The university directs users to Browse
+   Classes at `https://www.sis.hawaii.edu:9234/`; the guest port returned a blank document in this environment,
+   so no rows, seats, section keys, or completed replay were captured. Registrar prose is not evidence of live
+   availability; hold until the public endpoint is reachable and replayable.
+
+5. **University of Rochester (NY, private four-year, 11,211 total students Fall 2025) — HOLD OUT: replay not
+   reproducible.** Official course-search instructions are at
+   `https://www.rochester.edu/college/ccas/advising/course-search.html`; the public CDCS surface is
+   `https://cdcs.ur.rochester.edu/` and enrollment context is the
+   `https://www.rochester.edu/provost/university-data/data-insights-reporting/university-of-rochester-fact-book/`.
+   The documentation confirms public Fall/Spring term selectors and `Open`, `Closed`, and `Canceled` filters.
+   The live form loaded, but the tested Fall 2026 school/subject query returned no rows and subsequent retries
+   timed out; no reliable current result set, exact recipe, or completed-term replay was obtained. Hold rather than
+   infer from the documented filters.
+
+**Batch status:** UTC is the only new full-gate candidate and is `GATED, AWAITING GO-AHEAD`; Aims, UVM, UH
+Mānoa, and Rochester are explicit hold-outs. No `schools.py`, registry, deployment, or builder changes were made.
+
 ### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
 Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.
 Bespoke `Princeton` adapter, 2-call public api.princeton.edu (classes list + student-app/courses/seats),
