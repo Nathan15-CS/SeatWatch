@@ -1708,6 +1708,11 @@ class Purdue:
             self.base + "/bwckschd.p_get_crse_unsec",
             data=urllib.parse.urlencode(form).encode()), timeout=45).read().decode("utf-8", "replace")
 
+    def _section_ok(self, detail_html):
+        """Hook: include this section's detail page? Default yes. CampusBanner8 overrides
+        to keep ONLY its own campus on a shared multi-college host."""
+        return True
+
     def _build(self, term, subj, num):
         """Listing -> CRNs, then one detail GET per CRN -> {crn: {open, seats}}. Caches on
         success; returns {} on failure (cache untouched)."""
@@ -1726,6 +1731,8 @@ class Purdue:
                             timeout=30).read().decode("utf-8", "replace")
             except Exception:
                 continue                        # a missing detail -> skip that section, never guess
+            if not self._section_ok(d):         # shared-host campus guard
+                continue
             m = re.search(r'>Seats</SPAN></th>\s*<td[^>]*>(\d+)</td>\s*<td[^>]*>(\d+)</td>\s*<td[^>]*>(-?\d+)</td>', d)
             if not m:
                 continue
@@ -1820,6 +1827,51 @@ class UNM(ListcrseBanner8):
     id = "unm"; name = "University of New Mexico"
     example = "ENGL 1110"; term = "202680"     # Fall 2026 (completed Spring = 202610)
     base = "https://lobowebapp.unm.edu/ban_ssb"
+
+
+class CampusBanner8(Purdue):
+    """Banner-8 host shared by SEVERAL colleges in one district (Chabot-Las Positas), where
+    the plain listing mixes campuses. TWO independent guards keep each school's sections
+    separate (a watched CRN must be unambiguously one campus, never cross-alerted):
+    (1) the search form's sel_camp=<code> returns only this campus's CRNs (live-verified
+    disjoint: ENGL 1 Chabot=76/LasPositas=0, MATH 1 =0/44, zero overlap); (2) belt-and-
+    suspenders, each CRN's detail page carries a structured '{Campus} College Campus' field
+    that must equal this school's campus_name (the shared-district chrome names both
+    colleges, so this is the ONE authoritative per-section signal). Subclass sets:
+    id, name, example, campus (sel_camp code), campus_name."""
+    campus = ""          # sel_camp code, e.g. 'C' / 'L'
+    campus_name = ""     # exact structured-field name, e.g. 'Chabot' / 'Las Positas'
+    _CAMPRE = re.compile(r'([A-Za-z][A-Za-z ]+?) College Campus')
+
+    def _listing(self, op, term, subj, num):
+        form = [("term_in", term), ("sel_subj", "dummy"), ("sel_day", "dummy"),
+                ("sel_schd", "dummy"), ("sel_insm", "dummy"), ("sel_camp", "dummy"),
+                ("sel_levl", "dummy"), ("sel_sess", "dummy"), ("sel_instr", "dummy"),
+                ("sel_ptrm", "dummy"), ("sel_attr", "dummy"), ("sel_subj", subj),
+                ("sel_crse", num), ("sel_title", ""), ("sel_schd", "%"),
+                ("sel_from_cred", ""), ("sel_to_cred", ""), ("sel_camp", self.campus),
+                ("sel_ptrm", "%"), ("sel_instr", "%"), ("sel_attr", "%"),
+                ("begin_hh", "0"), ("begin_mi", "0"), ("begin_ap", "a"),
+                ("end_hh", "0"), ("end_mi", "0"), ("end_ap", "a")]
+        return op.open(urllib.request.Request(
+            self.base + "/bwckschd.p_get_crse_unsec",
+            data=urllib.parse.urlencode(form).encode()), timeout=45).read().decode("utf-8", "replace")
+
+    def _section_ok(self, d):
+        m = self._CAMPRE.search(d)
+        return bool(m) and m.group(1).strip() == self.campus_name
+
+class Chabot(CampusBanner8):
+    id = "chabot"; name = "Chabot College"
+    example = "ENGL 1"; term = "202602"        # Fall 2026 (shared clpccd host)
+    base = "https://banssprod.clpccd.cc.ca.us/ssbprod"
+    campus = "C"; campus_name = "Chabot"
+
+class LasPositas(CampusBanner8):
+    id = "laspositas"; name = "Las Positas College"   # LP uses its own numbering (MATH 1, STAT L40)
+    example = "MATH 1"; term = "202602"
+    base = "https://banssprod.clpccd.cc.ca.us/ssbprod"
+    campus = "L"; campus_name = "Las Positas"
 
 # --- batch-23 cuts RESURRECTED on the listcrse route (their guest search form answers
 # 'No classes were found' for everything; the catalog route serves the same sections).
@@ -6555,7 +6607,7 @@ def _guard_registry(all_schools):
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
-    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(),
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(),
     IvyTech(), UTArlington(), UAlaska(), UOregon()])
 
 
