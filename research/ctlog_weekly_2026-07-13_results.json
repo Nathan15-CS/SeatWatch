@@ -1,0 +1,87 @@
+[
+ {
+  "domain": "fayettevillestate.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "bowiestate.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "ecsu.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "ssb.ecsu.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 122
+ },
+ {
+  "domain": "savannahstate.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "alcorn.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 24
+ },
+ {
+  "domain": "desu.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "bnrhvpprd-ssb.desu.edu",
+   "bnrhvprod-ssb.desu.edu",
+   "bnrhvtest-ssb.desu.edu",
+   "www.bnrhvpprd-ssb.desu.edu",
+   "www.bnrhvprod-ssb.desu.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 189
+ },
+ {
+  "domain": "langston.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 64
+ },
+ {
+  "domain": "jsums.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "centralstate.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 125
+ },
+ {
+  "domain": "nsu.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 247
+ },
+ {
+  "domain": "vsu.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 136
+ }
+]

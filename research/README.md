@@ -2446,3 +2446,17 @@ adapters (commit bc1108c, deployed, live site verified 689):
   firewalled plain-http URL (93.6s->{}); /term/termSelection bootstrap fixes it (1.2s). Term picker
   verified dodging parallel 'College of Medicine Fall 26'/Paralegal terms -> 202710.
 Regressions green: USD (campus pool), UTK (plain Banner9), WSSU (ListcrseBanner8).
+
+### Scheduled weekly hold+CT-log check — July 13 2026
+
+HOLD-list recheck (`hold_recheck.py`): Aurora University, Colorado Mountain, American Samoa CC,
+and Columbus State all still `FALL-LIVE=no` — no change, re-check next week.
+
+CT-log discovery batch (`ctlog_weekly_2026-07-13.py`, 11 fresh 4-year HBCU/regional-public
+domains not previously queued: Fayetteville State, Elizabeth City State, Bowie State, Savannah
+State, Alcorn State, Jackson State (MS), Delaware State, Langston, Central State (OH), Virginia
+State, Norfolk State): `checked=8/11 ct_FAIL=3 SSB_hits=0`. ECSU and DESU turned up live Banner
+SSB hosts (`ssb.ecsu.edu`; `bnrhvpprd/prod/test-ssb.desu.edu`) but neither returned a working guest
+`classSearch`/`getTerms` response — no numeric seat evidence, not addable. bowiestate.edu,
+savannahstate.edu, jsums.edu hit crt.sh failures (retry candidates for next pass). No actionable
+finds this run.
