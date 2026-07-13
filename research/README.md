@@ -1570,3 +1570,81 @@ college, and every adapter key must retain the campus identity.
 **Batch status:** Las Positas has direct current-plus-completed numeric evidence but remains source-gated
 pending all-subject/campus tests. Chabot is explicitly partial pending a current detailed row. No
 `schools.py` edit, production adapter, or builder handoff was made.
+
+### Batch 22 — Fifteen new public schedule surfaces (Codex, July 12 2026)
+
+This batch contains fifteen net-new college identities after exact-name checks against `schools.py` and
+the prior research notes. It deliberately mixes one strong numeric public schedule with bounded leads;
+no seat value below is treated as production evidence unless the source and term scope are explicit.
+
+1. **Cayuga Community College (NY) — SOURCE-GATED, AWAITING FOLLOW-UP.** Fall 2026 is a public row index,
+   updated July 11, 2026, with CRN, course/section, dates, instructor, campus/modality and numeric
+   `Availability`: `https://www.cayuga-cc.edu/academics/schedule-of-classes/fall/`. Mixed rows include
+   BUS 225-701 at 0 and BUS 225-702 at 16; the page says myCayuga is the real-time lookup. Capture
+   Spring 2026, exact CRN+subject/course+section keys, completed-term mixed status, and reserve/waitlist
+   semantics before any adapter; do not assume `Availability` is universally registerable.
+2. **Washington College (MD) — SOURCE-LEVEL PARTIAL, FOLLOW-UP REQUIRED.** The Fall 2026 PDF
+   (`https://www.washcoll.edu/people_departments/offices/registrar/course-schedule/26fa-course-schedule-updated.pdf`)
+   exposes `Section Cap`, `Currently Enrolled`, `Remaining Available Seats`, and `Seats Waitlisted`,
+   with cross-list names/restrictions. The registrar index is `https://www.washcoll.edu/people_departments/offices/registrar/registration-instructions.php`.
+   This is a timestamped snapshot; no completed Spring row or fresh live feed was captured.
+3. **California State University, Long Beach (CA) — SOURCE-LEVEL PARTIAL, FOLLOW-UP REQUIRED.** The
+   July 6, 2026 Fall schedule (`https://web.csulb.edu/depts/enrollment/registration/class_schedule/Fall_2026/By_College/EOP.html`)
+   exposes section/class number, reserve-capacity information, and an `OPEN SEATS` field. Only the
+   EOP slice was captured; follow up with all subjects, a completed term, and reserve-seat semantics.
+4. **Indiana University Bloomington (IN) — PUBLIC SCHEDULE LEAD, FOLLOW-UP REQUIRED.** IU's official
+   Fall 2026 page (`https://studentcentral.indiana.edu/register/schedule-classes/fall-2026.html`) says
+   the public schedule is updated daily and links no-login iGPS for real-time availability. No iGPS rows
+   or completed-term mix were captured; preserve component lecture/lab and exact class numbers.
+5. **Le Moyne College (NY) — PUBLIC SCHEDULE LEAD, FOLLOW-UP REQUIRED.** The registrar index
+   (`https://www.lemoyne.edu/academics/classes-calendars-catalogs/`) links a public Fall 2026 and prior-term
+   table (`https://echo.lemoyne.edu/courseavail/Q09VUlNFLTI2L0ZB.htm`, last updated May 29, 2026).
+   It exposes section/date/instructor/modality data but no authoritative seat/status field was reproduced;
+   do not infer openness from listing presence.
+6. **Kalamazoo Valley Community College (MI) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** The official
+   announcement (`https://www.kvcc.edu/news/stories/2026-04-07_FallRegistration.php`) links the Fall
+   2026 schedule and registration dates. No row feed was captured; require guest section IDs, availability,
+   and a completed-term test.
+7. **Great Bay Community College (NH) — PUBLIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** The schedule page
+   (`https://mygbcc.greatbay.edu/academics/academic-affairs/course-schedule-offerings/`) lists Summer/Fall
+   2026 and Spring 2027 and documents real-time Dynamic Schedule filtering. Endpoint:
+   `https://sis.ccsnh.edu/ssb8/bwckschd.p_disp_dyn_sched`. No result rows were captured; verify campus
+   identity, seat field, and completed-term mix.
+8. **Wayne Community College (NC) — PUBLIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** Wayne says Self-Service
+   provides up-to-date seating availability and links current Summer/Fall 2026 and completed Spring
+   2026 schedules (`https://www.waynecc.edu/admissions/course-schedules/`). The guest endpoint is
+   `https://ss-prod.cloud.waynecc.edu/Student/Courses`; no row payload was captured and linked PDFs are
+   not live seat data.
+9. **Hope College (MI) — PUBLIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** `https://schedule.hope.edu/` exposes
+   Fall 2026/Spring 2026 terms, filters, and `Open`, `Closed`, `Completed`, `In Progress`, `Permission`,
+   and `Waitlisted` statuses; the registrar confirms publication at `https://hope.edu/offices/registrar/registration-schedules/`.
+   No query rows or seat number were captured; preserve status/waitlist semantics.
+10. **Middlebury College (VT) — SOURCE-LEVEL PARTIAL, FOLLOW-UP REQUIRED.** Registrar guidance
+    (`https://www.middlebury.edu/registrar/registration/fall-reg-dates`) says to subtract `Reserved Incoming`
+    and `Reserved Cont.` from `Seats Avail`; `WL` denotes a waitlist. No current/completed row was
+    captured. Retain all reservation columns and never equate aggregate seats with unrestricted seats.
+11. **Shasta College (CA) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** The schedule index
+    (`https://www.shastacollege.edu/academics/course-catalogs-and-class-schedules/`) links Fall and Spring
+    2026 PDFs and says MyShasta is most current. The PDFs had no live seat field in this capture; follow
+    up through guest/current MyShasta with a completed-term mixed test.
+12. **Navarro College (TX) — PUBLIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** The registration calendar
+    (`https://www.navarrocollege.edu/registration-calendar.html`) exposes no-login public Self-Service and
+    printable Fall 2026 16-week/8-week schedules. No detail rows or completed comparison were captured;
+    keep each session in the term key and require an authoritative availability/status field.
+13. **Wheaton College (IL) — SOURCE-LEVEL PARTIAL, FOLLOW-UP REQUIRED.** Wheaton says Banner Self-Service
+    is real-time and links Spring/Fall 2026 (`https://www.wheaton.edu/about-wheaton/offices-and-services/office-of-the-registrar/schedules`).
+    The Fall packet (`https://www.wheaton.edu/__data/assets/file/0010/30403/Fall-2026-Registration-Packet.pdf`)
+    has CRNs/capacities but warns Banner is most accurate; no available-seat rows were reproduced.
+14. **Westmont College (CA) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** Westmont's registrar page
+    (`https://www.westmont.edu/office-registrar/registration`) confirms Fall 2026 and Spring 2026 dates,
+    but the current schedule is behind Waypoint/student access. No public seat rows or numeric availability
+    are claimed; follow up only if a guest endpoint is reproducible.
+15. **Arcadia University (PA) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** Arcadia's course-listings page
+    (`https://www.arcadia.edu/academics/resources-advising/registrar/course-listings/`) directs users to
+    current Self-Service data and its registrar documents Fall 2026 registration. No public row-level
+    seat/status payload was captured; require exact section identifiers and current/completed tests.
+
+**Batch status:** fifteen net-new identities were archived. Cayuga has the clearest current public
+numeric availability surface; Washington College and CSULB expose seat-bearing static/current fields;
+the rest are explicitly bounded schedule or dynamic-endpoint leads. None passed the full production gate
+in this research-only pass. No `schools.py` edit, registry change, deployment, or builder handoff was made.

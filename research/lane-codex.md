@@ -438,3 +438,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   examples. Chabot has a completed-term over-capacity edge case and a public current schedule index, but no
   current detailed row was claimed. Campus identity must remain part of every key.
 - Dedup checks were clean. No `schools.py` or builder changes; research-only boundary remains in force.
+
+## July 12 Batch 22 checkpoint
+- Batch 22 appended to `research/README.md`: fifteen net-new identities — Cayuga Community College,
+  Washington College, California State University Long Beach, Indiana University Bloomington, Le Moyne
+  College, Kalamazoo Valley Community College, Great Bay Community College, Wayne Community College,
+  Hope College, Middlebury College, Shasta College, Navarro College, Wheaton College (IL), Westmont
+  College, and Arcadia University.
+- Cayuga has the clearest current public numeric `Availability` rows (including mixed zero/positive
+  examples); Washington College and CSULB expose seat-bearing static/current fields. The other entries
+  are explicitly bounded public schedule or dynamic-endpoint leads with no inferred seat values.
+- All fifteen were deduped by exact name against `schools.py` and prior research notes. None passed the
+  full production gate in this research-only pass; no `schools.py` or builder changes were made.
