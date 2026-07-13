@@ -2004,6 +2004,88 @@ class SanDiegoMiramar(SDCCD):
     id = "sdmiramar"; name = "San Diego Miramar College"
     example = "BIOL 131"; campus = "MIRA"
 
+
+class Fairfield:
+    """Fairfield University — public course-search API (course-search-net.fairfield.edu)
+    returns the WHOLE catalog (~2,250 rows, ~1.7MB) with NO server-side term/course filter,
+    and it's slow (~85s), so the dump is cached ONCE per TTL (lock-guarded, stale-if-error)
+    and all filtering is client-side. Rows carry Course_Subject_Number ('ENGL 1101'),
+    Section_Number, Section_Academic_Period (the term label), and Remaining_Seats — which
+    the registrar treats as AUTHORITATIVE (over-cap sections read 'Enrolled_Capacity'
+    33/31 with Remaining_Seats 0, correctly full; Remaining is never falsely positive). No
+    reliable completed-term feed, so the disproof is the ~912 live full rows in the current
+    term. open = int(Remaining_Seats) > 0; section key = Section_Number. Term self-maintains
+    to the nearest 'Fall/Spring Semester 20YY' (the MAIN term — excludes Accelerated/Graduate
+    sub-terms by exact prefix)."""
+    _API = "https://course-search-net.fairfield.edu/api/course/courses"
+    _TTL = 900                    # 15 min — the upstream is slow (~85s), fetch sparingly
+    _lock = threading.Lock()
+    _dump = None                  # (ts, rows)
+    _RE = re.compile(r"^([A-Za-z]{2,5})\s*(\d{2,4}[A-Za-z]?)$")
+
+    id = "fairfield"; name = "Fairfield University"; example = "ACCT 1011"
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        return "https://course-search-net.fairfield.edu/"
+
+    def _term(self):
+        # nearest upcoming MAIN semester, matching the data's 'Season Semester YYYY' label
+        t = datetime.date.today()
+        if t.month <= 5:
+            return f"Spring Semester {t.year}"
+        return f"Fall Semester {t.year}"
+
+    def _rows(self):
+        with Fairfield._lock:
+            c = Fairfield._dump
+            if c and time.time() - c[0] < self._TTL:
+                return c[1]
+            try:
+                req = urllib.request.Request(self._API, headers={"User-Agent": UA})
+                data = json.loads(urllib.request.urlopen(req, timeout=120).read())
+            except Exception:
+                return c[1] if c else []
+            if isinstance(data, list) and data:
+                Fairfield._dump = (time.time(), data)
+                return data
+            return c[1] if c else []
+
+    def fetch(self, courses):
+        out = {}
+        rows = None
+        term = self._term()
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            if rows is None:
+                rows = self._rows()
+            want = f"{subj} {num}"
+            secs = {}
+            for r in rows:
+                if not (r.get("Section_Academic_Period") or "").startswith(term):
+                    continue
+                if (r.get("Course_Subject_Number") or "").upper() != want:   # exact SUBJ NUM
+                    continue
+                key = str(r.get("Section_Number") or "")
+                try:
+                    rem = int(r.get("Remaining_Seats"))
+                except (TypeError, ValueError):
+                    continue                     # no real count -> skip, never guess
+                if not key or key in secs:
+                    continue
+                secs[key] = {"open": rem > 0, "seats": max(rem, 0)}
+            if secs:
+                out[course] = secs
+        return out
+
 # --- batch-23 cuts RESURRECTED on the listcrse route (their guest search form answers
 # 'No classes were found' for everything; the catalog route serves the same sections).
 class MissouriState(ListcrseBanner8):
@@ -6738,7 +6820,7 @@ def _guard_registry(all_schools):
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
-    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(), SanDiegoCity(), SanDiegoMesa(), SanDiegoMiramar(),
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(), SanDiegoCity(), SanDiegoMesa(), SanDiegoMiramar(), Fairfield(),
     IvyTech(), UTArlington(), UAlaska(), UOregon()])
 
 
