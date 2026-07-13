@@ -4015,6 +4015,136 @@ class RCCD:
                 out[course] = secs
         return out
 
+class WVMCCD:
+    """West Valley-Mission CCD — ONE public static Banner dump (schedule.wvm.edu) serves
+    West Valley + Mission; rows separated by SSBSECT_CAMP_CODE. The whole per-term dump
+    (~2,000 rows) is fetched ONCE per TTL into a SHARED class-level cache (both colleges
+    read it), then filtered CAMP_CODE + SUBJ_CODE + exact course number. open =
+    SSBSECT_SEATS_AVAIL > 0 AND SSBSECT_SSTS_CODE == 'A' (drop cancelled/inactive).
+    Section key = CRN (unique per campus; cross-campus CRN overlap live-verified EMPTY).
+
+    ⚠️ CAMPUS code in the DATA is WVC / MC — NOT the dropdown's 'WV' label (that returns 0).
+    ⚠️ COURSE NUMBERS are zero-padded and irregular (ENGL '005A','010','099X' but also
+    '10W'), so match on a canonical form (strip leading zeros both sides): user 'ENGL 5A'
+    -> '5A' matches stored '005A'. Term auto-rolls from sobterm.json (Banner labels win)."""
+    term = "202670"                  # Fall 2026 (auto-rolls)
+    _active_term = None
+    campus = ""                      # WVC / MC; subclass sets
+    _FEED = "https://schedule.wvm.edu/data/%s/crns.json"
+    _TERMS = "https://schedule.wvm.edu/data/sobterm.json"
+    _TTL = 600
+    _lock = threading.Lock()
+    _dump = {}                       # term -> (ts, rows) — SHARED across both colleges
+    _RE = re.compile(r"^([A-Za-z]{2,5})\s*(\d{1,4}[A-Za-z]{0,2})$")
+
+    @staticmethod
+    def _canon(n):
+        return re.sub(r"^0+(\d)", r"\1", (n or "").strip().upper())   # 005A->5A, 010->10
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), self._canon(m.group(2))) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return "https://schedule.wvm.edu/"
+
+    def _rows(self):
+        term = self.cur_term()
+        with WVMCCD._lock:
+            c = WVMCCD._dump.get(term)
+            if c and time.time() - c[0] < self._TTL:
+                return c[1]
+            try:
+                req = urllib.request.Request(self._FEED % term, headers={"User-Agent": UA})
+                rows = json.loads(urllib.request.urlopen(req, timeout=45).read())
+            except Exception:
+                return c[1] if c else []             # stale-if-error; never guess
+            if isinstance(rows, list) and rows:
+                WVMCCD._dump[term] = (time.time(), rows)
+                return rows
+            return c[1] if c else []
+
+    def resolve_term(self):
+        try:
+            req = urllib.request.Request(self._TERMS, headers={"User-Agent": UA})
+            terms = json.loads(urllib.request.urlopen(req, timeout=20).read())
+        except Exception:
+            return None
+        today = datetime.date.today()
+        best, best_delta = None, None
+        for t in terms:
+            m = re.search(r"(spring|summer|fall|winter)\s+(20\d\d)", (t.get("STVTERM_DESC") or "").lower())
+            if not m:
+                continue
+            season, year = m.group(1), int(m.group(2))
+            delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+            if delta < 1:
+                continue
+            if best_delta is None or delta < best_delta:
+                best_delta, best = delta, t.get("SOBTERM_TERM_CODE")
+        return best
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example)) if getattr(self, "example", "") else False
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        out = {}
+        rows = None
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            if rows is None:
+                rows = self._rows()
+            secs = {}
+            for r in rows:
+                if r.get("SSBSECT_CAMP_CODE") != self.campus:
+                    continue
+                if (r.get("SUBJ_CODE") or "").upper() != subj:
+                    continue
+                if self._canon(r.get("CRSE_NUMB")) != num:          # exact course, zero-pad-safe
+                    continue
+                if r.get("SSBSECT_SSTS_CODE") != "A":               # active only
+                    continue
+                key = str(r.get("CRN") or "")
+                try:
+                    avail = int(r.get("SSBSECT_SEATS_AVAIL"))
+                except (TypeError, ValueError):
+                    continue                                        # no count -> skip, never guess
+                if not key or key in secs:
+                    continue
+                secs[key] = {"open": avail > 0, "seats": max(avail, 0)}
+            if secs:
+                out[course] = secs
+        return out
+
+class WestValley(WVMCCD):
+    id = "westvalley"; name = "West Valley College"
+    example = "ENGL 10W"; campus = "WVC"      # WVC numbers carry a 'W' suffix
+
+class MissionCollege(WVMCCD):
+    id = "missioncollege"; name = "Mission College (CA)"
+    example = "ENGL 10M"; campus = "MC"       # MC numbers carry an 'M' suffix
+
+
 class MorenoValley(RCCD):
     id = "morenovalley"; name = "Moreno Valley College"
     example = "ENGL C1000"; list_name = "ScheduleData_MOV"
@@ -7644,7 +7774,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     PhoenixCollege(), GlendaleCC(), MesaCC(), ChandlerGilbert(), EstrellaMountain(),
     GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC(),
     GeorgeMason(), NorthernMichigan(), Hartford(), UTChattanooga(),
-    MorenoValley(), NorcoCollege(), RiversideCity()])
+    MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege()])
 
 
 def refresh_all_terms(log=None):
