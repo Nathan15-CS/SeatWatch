@@ -3167,3 +3167,21 @@ GateWay GWC03(≠Mountain Gateway), Paradise Valley PVC09, Rio Salado RSC06, Sco
 Prod server fetch post-deploy verified (Estrella 15/15 full). Deployed, live badge 701. Maricopa is CLOSED
 as a lead. Remaining buildable bespoke queue (Grab's audit): RCCD×3 (SharePoint now needs exact list-query
 headers), SDCCD Mesa+Miramar (City already live), Williston/CCBC/Brandeis/Cayuga/Monroe/West Valley/Kent/UVM.
+
+### Batch 40-42 validation → 3 SHIPPED July 13 (Build): 701->704
+Nathan-assigned validation of Codex batches 40-42 (15 candidates). Outcome:
+- ✅ SHIPPED (3, all 4-year, gated live through registered adapters, live-term numeric-full disproofs):
+  - George Mason U (gmu, ~40k R1 public) — plain Banner9 ssbstureg.gmu.edu 202670; ENGH 101 = 72 sec
+    8 open/64 FULL; seq keys unique 72/72.
+  - Northern Michigan U (nmu) — plain Banner9 bssrprod.nmu.edu:8443 202680; EN 111 = 31 sec 1/30 FULL;
+    seq unique 31/31. (non-standard port :8443 — server reachability confirmed.)
+  - U Hartford (hartford) — CrnKeyedBanner uhart-pxesa-003.hartford.edu:8103 202640; BIO 122 = 23 sec
+    7 open/16 FULL. ⚠️ GATE CAUGHT A COLLAPSE TRAP: every Hartford section returns sequenceNumber='0'
+    (BIO 122 = 23 rows all seq '0') — plain Banner would have merged 23 sections into 1 and silently
+    missed opens. CRN-keyed instead (23 unique CRNs). Port :8103 server-reachable.
+- DUP (3, already live, skipped): U Wisconsin-Madison, U Alabama, PennWest (California U of PA).
+- PARKED (9, not gate-ready — quick-triaged, handed back for recon, NOT shipped): JMU (PeopleSoft guest
+  COMMUNITY_ACCESS — classic-PS fake-status risk), Richmond (BannerExtensibility custom page, no bwckschd),
+  UMBC (PeopleSoft H_BROWSE_CLASSES), UCCS/Alabama-myBama/Stetson (portal/dashboard-gated), ECU
+  (departmental page only), GW (my.gwu.edu antibot), Central Michigan (portal), Michigan-Ann Arbor
+  (Okta-gated — Grab confirmed blocked). These are Grab's to resolve if worth it.
