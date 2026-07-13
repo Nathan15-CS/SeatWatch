@@ -3073,6 +3073,67 @@ hold-outs. No production change is proposed and no school should be sent to the 
 **Batch status:** two candidates (SDSU and USD) are `GATED, AWAITING GO-AHEAD`; three are held out with exact
 blockers. No `schools.py`, registry, deployment, or builder changes were made.
 
+### Codex Batch 63 — public numeric/search gate-resolution supplements (July 13 2026)
+
+This pass rechecked five claimed identities against official, no-login schedule surfaces. Two cleared the
+research gate and are **GATED, AWAITING GO-AHEAD** for a bespoke builder adapter; three are held out with explicit
+blockers. No `schools.py`, registry, deployment, or builder changes were made.
+
+1. **Quinsigamond Community College (MA) — GATED, AWAITING GO-AHEAD.** Official public search:
+   `https://theq.qcc.edu/ICS/Course_Offerings_and_Schedule.jnz?portlet=AddDrop_Courses&screen=Advanced+Course+Search&screenType=next`.
+   Select `Fall 2026`, Department `English`, then Search. The guest page returns eight result pages with native
+   section labels, term dates, instructor, campus/building, method, and numeric seat strings plus explicit status.
+   Fall examples include `ENG 099-04` `1 / 20` `Reopened`, `ENG 099-05` `11 / 20` `Open`, `ENG 099-50` `0 / 20`
+   `Closed`, `ENG 101-01` `17 / 22` `Open`, and closed `ENG 101-07` `0 / 22`. The completed-term replay is
+   `Spring 2026` with the same Department filter; rows carry Jan 26–May 19, 2026 dates and numeric values (for
+   example `ENG 101-07` `6 / 21` `Reopened` and `ENG 101-17` `1 / 22` `Reopened`), proving the term selector is
+   real rather than a static Fall view. Use the visible `course + section` (for example `ENG 101-05`) as the native
+   term-scoped key, preserve the literal seat/status string (do not reinterpret `Reopened`), and retain campus,
+   method, dates, instructor, and page number. Restrict the Department/term controls on every request; the site is
+   Jenzabar 9.4 with JavaScript postback detail links, so a bespoke adapter must fail closed if the result table or
+   selected-term label is absent. Current and replay requests completed in under 30 seconds.
+
+2. **Massachusetts College of Art and Design (MA) — GATED, AWAITING GO-AHEAD.** Official guest catalog:
+   `https://mca-ss.colleague.elluciancloud.com/Student/Student/Courses` (linked from the Registrar’s Student
+   Planning page, `https://massart.edu/academics/office-of-the-registrar/student-planning/`). Select `Fall 2026`
+   and subject `Animation (CDAN)`. The section-listing view is unauthenticated, two pages, and term-labeled; it
+   exposes native IDs, title, dates, campus, meeting/location, faculty, academic level, and a literal four-number
+   seat field. Fall examples: `CDAN-300-02` `Open` `4 / 11 / 15 / 0`, `CDAN-302-01` `Waitlisted` `0 / 13 / 13 / 0`,
+   `CDAN-302-02` `Open` `5 / 8 / 13 / 0`, and `CDAN-303-01` `Waitlisted` `0 / 14 / 14 / 3`. Replay with
+   `Spring 2026` and the same subject returns true Jan 19/20–May 21 dates and mixed `Open`/`Closed` rows (for
+   example `CDAN-212-01` `Closed` `0 / 15 / 15 / 0`, `CDAN-222-01` `Open` `2 / 13 / 15 / 0`, and
+   `CDAN-301-02` `Open` `4 / 10 / 14 / 0`). Keep the native four-number text and status verbatim until the builder
+   confirms the Ellucian seat-field order; use `term + section ID` (for example `26/FA + CDAN-302-02`) as key,
+   preserve campus/career/modality/restrictions, and follow both result pages. Requests were under 30 seconds.
+
+3. **University of Maryland, College Park (MD) — RECHECK ONLY; EXISTING GATE RETAINED WITH FRESHNESS GUARD.**
+   `https://app.testudo.umd.edu/soc/` still exposes direct numeric Fall 2026 and Spring 2026 pages with exact
+   sections and mixed positive/zero `Open` values. However, the replayed Spring page displayed the same
+   `Open Seats as of 07/13/2026 03:30 PM` timestamp as the current page, so this pass does not create a new
+   completed-term claim. Keep the previously documented UMD gate only if the adapter requires a fresh timestamp,
+   explicit College Park scope, and fails closed when the timestamp is stale or unchanged across terms.
+
+4. **Webster University (MO) — HOLD OUT: false term freshness.** Official search:
+   `https://classes.webster.edu/`. Current Fall 2026 `ENGL` search is public, three pages, and exposes exact
+   section codes, schedule/location, and mixed `Seats open X/Y` plus `Open`/`Full` rows (for example `ENGL-1030-01`
+   `8/26 Open`, `ENGL-1030-1T` `0/25 Full`, and `ENGL-1044-02` `21/26 Open`). Selecting the native completed
+   option `2025-26 AY - Spring Semester` (`2025;SP`) and resubmitting left the results dated Fall 2026 with the
+   same rows; the selector value changed but the payload did not. Until a sanctioned request path produces a real
+   completed-term replay, do not promote or infer historical availability.
+
+5. **Williston State College (ND) — HOLD OUT: no completed-term option.** Official class search:
+   `https://willistonstate.edu/class-search.aspx`. The public page defaults to Summer/Fall 2026 and Spring/Summer
+   2027 checkboxes and returns native class numbers, dates, delivery, campus/location, department, and numeric
+   open-seat or `Waitlist Only` status. Examples include Fall 2026 `WELD-214` class `41436` `12 Open Seats`,
+   `WSC-100` class `41886` `19 Open Seats`, and class `41994` `Waitlist Only`; Summer 2026 `WSC-100` class `14918`
+   has `8 Open Seats`. The visible selector has no Spring 2026 or other completed term, and the all-term result set
+   mixes future offerings and high-school/off-campus sections. Hold until a public completed-term replay and an
+   explicit college/career scope filter are available; do not infer closed status from missing rows.
+
+**Batch status:** Quinsigamond and MassArt are fully documented bespoke candidates and await Nathan’s explicit
+go-ahead. UMD was a freshness recheck only; Webster and Williston are held out. No production approval or code
+change was made.
+
 ### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
 Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.
 Bespoke `Princeton` adapter, 2-call public api.princeton.edu (classes list + student-app/courses/seats),

@@ -828,3 +828,17 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - I will test only official public current/completed schedule surfaces, checking real mixed statuses/seats,
   waitlists, exact section identity, campus/career scope, freshness, sibling leakage, pagination, and latency.
   Only gate-cleared evidence will be appended to `research/README.md`; no `schools.py` edits or builder contact.
+
+## July 13 Codex Batch 63 checkpoint — two gated candidates, three explicit hold-outs
+- Quinsigamond Community College cleared current Fall 2026 and completed Spring 2026 replay on the public Jenzabar
+  search: native course-section labels, numeric seats, mixed Open/Closed/Reopened statuses, eight result pages,
+  campus/method/date fields, and sub-30-second requests. It is `GATED, AWAITING GO-AHEAD`; bespoke adapter only.
+- Massachusetts College of Art and Design cleared current Fall 2026 and completed Spring 2026 replay on the public
+  Ellucian guest catalog: native section IDs, literal four-number seat fields, mixed Open/Closed/Waitlisted rows,
+  two-page pagination, campus/meeting/faculty/career fields, and sub-30-second requests. It is `GATED, AWAITING
+  GO-AHEAD`; preserve the seat string until field order is confirmed.
+- UMD was a recheck of an existing gate; the completed-term page reused the current timestamp, so no new historical
+  claim was made. Webster’s completed-term selector changed state but returned Fall 2026 rows (false freshness).
+  Williston exposes numeric current/future rows but no completed-term selector and mixes future/high-school scope.
+- README now contains the exact official URLs, recipes, examples, scope/freshness guards, and blockers. No
+  `schools.py` or production changes were made; builder handoff remains blocked pending Nathan’s explicit go-ahead.
