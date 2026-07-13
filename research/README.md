@@ -1929,3 +1929,34 @@ verified.
 **Batch status:** two net-new public Colleague identities were archived. West Valley has historical
 numeric proof plus a current public schedule route; Victor Valley is a reachable guest catalog/search lead
 without current numeric rows. No `schools.py` edit, registry change, deployment, or builder handoff was made.
+
+### Codex Batch 29 — CSU public-search verification (July 12 2026)
+
+This pass checked CSU campuses advertising current public class searches. One surface exposes a clear
+public numeric schema; two advertised public routes currently redirect to SSO and are preserved only as
+login-gated leads.
+
+1. **California State University, San Bernardino (CA) — PUBLIC NUMERIC CLASS-SCHEDULE LEAD, FOLLOW-UP
+   REQUIRED.** The official schedule at `https://www.csusb.edu/class-schedule` exposes term and campus
+   filters, an Open Classes Only option, and explicit numeric formulas for Seats available (capacity minus
+   enrollment) and waitlist spots. It also exposes San Bernardino and Palm Desert campus fields and a
+   seats-available sort. The page is a live client-rendered source, so capture Fall 2026 rows and a
+   completed term through the underlying request before adapter work; preserve campus, session, waitlist,
+   restrictions, and zero/negative edge cases. No row values were inferred in this pass.
+2. **California State University, Monterey Bay (CA) — ADVERTISED PUBLIC SEARCH, CURRENTLY SSO-GATED.
+   FOLLOW-UP REQUIRED.** The official class-schedule page says its search supports term/subject filters and
+   finding open classes (`https://csumb.edu/departments/academic-planning/academic-centralized-scheduling/class-schedule/`),
+   while the official class-details guide defines Class Capacity, Enrollment Total, Available Seats,
+   Waitlist Capacity, and Waitlist Total (`https://csumb.edu/oasis/class-details/`). The linked search
+   currently redirects to OASIS/Okta sign-in, so no guest rows or seats were captured. Do not treat this as
+   a public adapter until a sanctioned no-login route is confirmed.
+3. **California State University, Dominguez Hills (CA) — ADVERTISED PUBLIC SEARCH, CURRENTLY SSO-GATED.
+   FOLLOW-UP REQUIRED.** CSUDH’s official class-schedule page states Fall 2026 is published and says My
+   Class Search requires no login (`https://www.csudh.edu/class-schedule/`); its Open University guide
+   likewise directs users to a no-login Fall 2026 search. The linked My Class Search currently redirects
+   to the CSUDH authentication service, so no numeric rows were captured. Preserve this discrepancy and
+   only proceed if a registrar-sanctioned guest endpoint can be replayed.
+
+**Batch status:** one net-new CSU public numeric schema and two net-new CSU login-gated leads were archived.
+No current seat values were inferred for the client-rendered or SSO surfaces. No `schools.py` edit, registry
+change, deployment, or builder handoff was made.

@@ -487,6 +487,13 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Victor Valley’s official public guest search is reachable but returned no populated rows, so current
   numeric capture is still required. No `schools.py` or builder changes.
 
+## July 12 Codex Batch 29 checkpoint
+- Batch 29 appended three net-new CSU identities: CSUSB, CSU Monterey Bay, and CSU Dominguez Hills.
+- CSUSB’s official client-rendered schedule documents public Seats available and waitlist formulas plus
+  both San Bernardino and Palm Desert campuses; current Fall 2026 request replay is still needed. CSUMB
+  and CSUDH advertise no-login class searches but their linked endpoints currently redirect to Okta/SSO,
+  so both remain explicitly login-gated. No `schools.py` or builder changes.
+
 ## July 12 Codex Batch 24 checkpoint
 - Batch 24 appended to `research/README.md`: eleven net-new identities — University of Southern
   California, University at Buffalo (SUNY), University of Wisconsin–Eau Claire, University of Minnesota,
