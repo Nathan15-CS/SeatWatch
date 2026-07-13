@@ -750,3 +750,16 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - I will probe only official no-login/current-term surfaces and their completed-term equivalents, preserving campus,
   career, modality, section identity, restrictions, waitlists, and freshness. Only sources clearing the full gate will
   be appended to `research/README.md`; no `schools.py` edits.
+
+## July 13 Codex Batch 59 checkpoint — five explicit hold-outs
+- Bowling Green State University is status-only: its official result disclaimer excludes open/closed/current enrollment,
+  and no completed-term status replay was found.
+- Marshall exposes only Fall/Summer 2026; the submitted Fall listing exceeded the 30-second timeout, so no rows were
+  promoted. CSUSB is an Angular client shell whose rows require a bearer-token API flow; no sanctioned no-login replay
+  was obtained.
+- Claremont McKenna has excellent Fall 2026 mixed numeric seats but only one selectable term, silently normalizes
+  unsupported historical terms, and visibly mixes 5C campus codes. CCBC's late-start catalog has numeric open seats but
+  no closed/waitlist rows; its Spring 2026 replay is empty. CCBC was already a Batch 57 identity, so no duplicate was
+  added.
+- README now records the exact official URLs, evidence, and blockers for all five. Zero candidates are gated or safe for
+  builder handoff. No `schools.py` or production changes.

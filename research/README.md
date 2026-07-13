@@ -2852,6 +2852,54 @@ List Available` but no numeric capacity or completed-term seat replay. Neither i
 All four require Nathan's explicit go-ahead before builder work. No production approval, `schools.py` edit, registry
 change, deployment, or builder handoff was made.
 
+### Codex Batch 59 — gate-resolution supplements (July 13 2026)
+
+This was a five-lead promotion pass. **No school cleared every gate, so none is `GATED, AWAITING GO-AHEAD` and
+no production change is proposed.** Each hold-out below is recorded with the exact blocker; do not infer seats or
+hand any of these to the builder until the blocker is resolved.
+
+1. **Bowling Green State University (OH) — HOLD OUT: status-only.** Official search:
+   `https://services.bgsu.edu/ClassSearch/search.htm`; shareable Fall 2026 query:
+   `https://services.bgsu.edu/ClassSearch/search.htm?searchType=advanced&semester=2268&undergraduate=&graduate=&campus=ALL`.
+   The official result page is term-labeled and fresh (Fall 2026, data current 07/13/2026 2:31 PM) and exposes
+   unique class numbers/sections, but its own disclaimer says results do **not** reflect whether a class is open,
+   closed, or its current enrollment level. No numeric seat/status field exists to validate mixed availability, and
+   the site exposes no completed-term status replay. Hold until a sanctioned endpoint supplies explicit seats or
+   open/closed/waitlist states plus a completed-term check; no adapter recipe is safe yet.
+
+2. **Marshall University (WV) — HOLD OUT: term/latency gate.** Official open-class listing:
+   `https://mubert.marshall.edu/scheduleofcourses.php?showschedule=openclasslist`. The public form currently
+   offers only Fall 2026 (`202701`) and Summer 2026 (`202603`), with no completed term. It documents red rows as
+   “at their enrollment limit,” but the submitted Fall 2026 listing exceeded the 30-second research timeout and
+   therefore produced no reproducible section rows. Without a completed-term replay and a sub-30-second request,
+   do not promote.
+
+3. **California State University, San Bernardino (CA) — HOLD OUT: unauthenticated client shell.** Official page:
+   `https://www.csusb.edu/class-schedule`. The rendered template documents native `enrl_TOT`, `enrl_CAP`,
+   `enrl_STAT`, waitlist fields, section/class numbers, campus, and the seat formula, but the page itself is only
+   an Angular shell. Rows are fetched from `webdx-sso.csusb.edu` through a bearer-token flow; no sanctioned
+   no-login current/completed response was obtained in this pass. Do not extract from the template or guess API
+   parameters; hold until the public UI yields reproducible current and completed rows.
+
+4. **Claremont McKenna College (CA) — HOLD OUT: no historical term and consortium scope.** Official form/results:
+   `https://webapps.cmc.edu/course-search/form.php` and `https://webapps.cmc.edu/course-search/search.php`.
+   Fall 2026 results are strong current evidence with native `Course - Section`, meetings, notes, and explicit
+   mixed seats (for example `AFRI010A AF - 01` `16/25 (Open)` alongside `AFRI116 AF - 01` `-3/15 (Closed - Full)`).
+   However, the form exposes only `FA 2026`; posting `SP 2026` or `FA 2025` is silently normalized back to FA 2026,
+   so no completed-term replay exists. Rows also visibly span SC/PO/HM campus codes (the 5C consortium), so CMC-only
+   scope is not proven. Hold until historical terms and campus scope are independently selectable.
+
+5. **Community College of Baltimore County (MD) — HOLD OUT: open-only late-start catalog/no replay.** Official
+   QuickReg: `https://javawebapp.ccbcmd.edu/QuickReg/Register.jsp?frc=CRFALLLS`. The Fall 2026 “Credit Classes -
+   Late Starts” table exposes native CRNs and numeric `Open Seats` (ACDV101 CRNs 90909/90911/90912 are visible),
+   with campus, dates, modality, and term `202691`. The catalog is an available/open inventory and provides no
+   closed or waitlist rows for a mixed-status check. The official Spring 2026 URL (`frc=CRSPRING`) currently
+   returns an empty catalog, so there is no reproducible completed-term replay. CCBC was already listed as a Batch 57
+   lead; this pass adds no duplicate identity and does not authorize production work.
+
+**Batch status:** five claimed leads explicitly held out; zero gated candidates. No `schools.py`, builder, registry,
+or deployment changes were made. Re-probe only when the documented blocker is resolved.
+
 ### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
 Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.
 Bespoke `Princeton` adapter, 2-call public api.princeton.edu (classes list + student-app/courses/seats),
