@@ -989,3 +989,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   replay.
 - Batch result: zero new full-gate candidates. README records the official URLs, exact public evidence, and resume
   conditions. No `schools.py`, registry, deployment, or builder changes were made.
+
+## July 13 Codex Batch 71 claim — northern public class-search vein
+- Claiming five bounded leads from the remaining queue: Montana State University; Northern Arizona University;
+  University of Alaska Fairbanks; University of Alaska Anchorage; and University of Nevada, Reno. Exact-name
+  checks found no matching identity in `schools.py`. I will probe only official public schedule/search surfaces,
+  requiring current and completed terms, authoritative mixed status or numeric seats, exact section identity and
+  campus scope, pagination, freshness, and sub-30-second response paths. No `schools.py` edits or builder contact.
