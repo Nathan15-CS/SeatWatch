@@ -2913,3 +2913,23 @@ completed 1264 mirrors, junk->{}, 0.7-1.0s/course. EFFICIENCY/RELIABILITY: Oracl
 reachable (200, 66 rows) BEFORE deploy; prod fetch post-deploy = 9 sec 8/1. FAILURE MODE: token rotation ->
 401 -> {} -> engine skips -> never a false open, and run_cycle's existing no-data guard fires operator_alert
 (not silent). Term PINNED 1272 (no stdlib terms source; manual bump). Deployed + live badge 691 verified.
+
+### Maricopa CCCD ×10 — ✅ SHIPPED July 13 (Build): 691->701
+The 10-for-1. All 10 colleges on shared classes.sis.maricopa.edu, one `Maricopa` base + 10 campus
+subclasses. Server-rendered (plain urllib GET, no browser/XHR), ~1.0s/course. Green-lit by Grab
+(independent live-verify of Codex Batch 25) AND re-gated here through the REGISTERED adapters:
+- all_classes=true MANDATORY trap CONFIRMED live: BIO201 Phoenix default=12 open/0 closed vs
+  all_classes=true=12 open/5 closed. Full sections are INVISIBLE without it (silent-miss); param baked in.
+- CAMPUS ISOLATION proven: BIO201 across all 10, ALL 45 college pairs class-number-DISJOINT (institutions[]
+  code hard-filters). No cross-campus false alerts possible.
+- REAL NUMERIC seats ('N of M seats available'); status span agreed with the number 100%; live disproof
+  is decisive — Estrella Mountain BIO201 = 0 open/15 FULL, Chandler-Gilbert 1/14 (only current/upcoming
+  terms exposed, so live full rows ARE the disproof, Utica standard). No open-with-0-seats anywhere.
+- EXACT scoping: parse only the <div class="course"> block whose <h3> code == smashed target; BIO202 is a
+  separate 9-section course, zero key overlap with BIO201. Section key = 5-digit class number.
+- Term opaque (Fall 2026=4266) auto-rolls from the form's own term-checkbox labels; resolve_term()->4266.
+Codes: Phoenix PCC01, Glendale GCC02(≠Glendale CA), Mesa MCC04, Chandler-Gilbert CGC08, Estrella EMC10,
+GateWay GWC03(≠Mountain Gateway), Paradise Valley PVC09, Rio Salado RSC06, Scottsdale SCC05, South Mtn SMC07.
+Prod server fetch post-deploy verified (Estrella 15/15 full). Deployed, live badge 701. Maricopa is CLOSED
+as a lead. Remaining buildable bespoke queue (Grab's audit): RCCD×3 (SharePoint now needs exact list-query
+headers), SDCCD Mesa+Miramar (City already live), Williston/CCBC/Brandeis/Cayuga/Monroe/West Valley/Kent/UVM.
