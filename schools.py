@@ -3445,6 +3445,170 @@ class USC:
                 out[course] = secs
         return out
 
+
+class Rice:
+    """Rice University — custom public Banner catalog package (courses.rice.edu
+    !SWKSCAT.cat), no auth. Listing per SUBJECT (?p_action=QUERY&p_term&p_subj) gives
+    rows (cls-crn CRN link + cls-crs 'SUBJ NUM SEC'); seats need one detail GET per
+    CRN (p_action=COURSE) with labeled '<b>Section Max Enrollment: </b>N' fields.
+    N+1 with per-instance TTL cache + lock — Purdue/TAMU envelope (MATH 101 ≈ 11s
+    cold / 0ms warm; FWIS-sized 63-section courses ~90s cold, MTSU/UNM precedent).
+
+    TERM SEMANTICS (live-read from the picker; labels win): codes are ACADEMIC-YEAR
+    based — 'Fall Semester 2026' = 202710 but 'Spring Semester 2026' = 202620. The
+    picker parses the form's own <option> labels and REQUIRES the word 'Semester':
+    Rice interleaves Quadmester sub-terms (202611/202615/202625/202705) that a bare
+    season regex would collide with, and 'quadmester' is NOT in _SUBTERM. (A relayed
+    spec had completed Spring 2026 as 202520 — that's actually Spring 2025.)
+
+    OPEN RULE — all conditions mandatory, each live-verified:
+    1. SectionMax - SectionEnrolled > 0. Completed Spring 202620 shows 16/109 ENGL
+       rows genuinely full through THIS parse (host-level fake-open disproof; live
+       Fall is an unfilled cycle — RPI-class rationale, empty/skip stays safe).
+    2. If cross-list totals present: XlistMax - XlistEnrolled > 0 too (verified full
+       example: section 10/10 with xlist 15/16 — the xlist pool binds).
+    3. WAITLIST FAIL-CLOSED: Rice gives waitlist members priority for open seats.
+       100+ fetched detail pages (fulls included) carry NO waitlist text when no
+       queue exists — the field renders only when relevant. Rule: any 'waitlist'
+       text WITHOUT a parseable 'Waitlisted: </b>0' -> NOT open (nonzero queue and
+       unparseable format drift both fail closed).
+    Belt: the detail page must echo 'SUBJ NUM' or the section is skipped. Sections
+    keyed by CRN (verified unique per term; 5-digit, what students register with)."""
+    id = "rice"; name = "Rice University"
+    example = "MATH 101"
+    term = "202710"                     # Fall Semester 2026 (auto-rolls; labels win)
+    _TTL = 600
+    base = "https://courses.rice.edu/courses/!SWKSCAT.cat"
+    _RE = re.compile(r"^([A-Za-z&]{2,4})\s+(\d{2,3}[A-Za-z]?)$")
+    _ROW = re.compile(
+        r'class="cls-crn"><a href="[^"]*p_crn=(\d+)"[^>]*>\d+</a></td>'
+        r'<td[^>]*class="cls-crs"><a[^>]*>([A-Z&]+)</a>\s*(\d+[A-Za-z]*)\s+(\S+)</td>', re.S)
+
+    def __init__(self):
+        self._active_term = None
+        self._lock = threading.Lock()
+        self._cache = {}                # (term, subj, num) -> (ts, {crn: {open, seats}})
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self.base
+
+    def _detail(self, term, crn, subj, num):
+        """One section's {open, seats} from its detail page, or None to skip.
+        Every parse failure lands on the not-open/skip side — never a guess."""
+        try:
+            d = _http(f"{self.base}?p_action=COURSE&p_term={term}&p_crn={crn}")
+        except Exception:
+            return None
+        if not re.search(rf"{re.escape(subj)}\s*{re.escape(num)}", d):
+            return None                             # belt: page must echo the course
+        mx = re.search(r"Section Max Enrollment:\s*</b>\s*(\d+)", d)
+        en = re.search(r"Section Enrolled:\s*</b>\s*(\d+)", d)
+        if not mx or not en:
+            return None                             # no numbers -> skip, never guess
+        avail = int(mx.group(1)) - int(en.group(1))
+        xm = re.search(r"Total Cross-list Max Enrollment:\s*</b>\s*(\d+)", d)
+        xe = re.search(r"Total Cross-list Enrolled:\s*</b>\s*(\d+)", d)
+        if xm and xe:
+            avail = min(avail, int(xm.group(1)) - int(xe.group(1)))
+        wl_block = False
+        if "aitlist" in d:                          # field renders only when relevant
+            w = re.search(r"Waitlisted\s*:\s*</b>\s*(\d+)", d)
+            wl_block = (not w) or int(w.group(1)) != 0
+        return {"open": avail > 0 and not wl_block, "seats": max(avail, 0)}
+
+    def _build(self, term, subj, num):
+        try:
+            listing = _http(f"{self.base}?p_action=QUERY&p_term={term}&p_name=&p_subj={subj}")
+        except Exception:
+            return {}
+        crns = [r[0] for r in self._ROW.findall(listing) if r[1] == subj and r[2] == num]
+        if not crns or len(crns) != len(set(crns)):
+            return {}                               # nothing, or CRN collapse -> skip
+        secs = {}
+        for crn in crns:
+            s = self._detail(term, crn, subj, num)
+            if s is not None:
+                secs[crn] = s
+        if secs:
+            self._cache[(term, subj, num)] = (time.time(), secs)
+        return secs
+
+    def resolve_term(self):
+        """Nearest upcoming 'Semester' term from the form's own option labels
+        (Quadmester sub-terms and View Only screened out)."""
+        try:
+            h = _http(self.base)
+        except Exception:
+            return None
+        today = datetime.date.today()
+        best, best_delta = None, None
+        for code, desc in re.findall(r'<option value="(\d{6})"[^>]*>([^<]+)', h):
+            dl = desc.lower()
+            if "semester" not in dl or "view only" in dl:
+                continue
+            m = re.search(r"(spring|summer|fall)\s*semester\s*(20\d\d)", dl)
+            if not m:
+                continue
+            season, year = m.group(1), int(m.group(2))
+            delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+            if delta < 1:
+                continue
+            if best_delta is None or delta < best_delta:
+                best_delta, best = delta, code
+        return best
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self._build(new, *self._norm(self.example)))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            key = (self.cur_term(), subj, num)
+            cached = self._cache.get(key)
+            if cached and time.time() - cached[0] < self._TTL:
+                out[course] = cached[1]
+                continue
+            blocking = cached is None
+            if not self._lock.acquire(blocking=blocking):
+                out[course] = cached[1] if cached else {"none": {"open": False, "seats": None}}
+                continue
+            try:
+                again = self._cache.get(key)
+                if again and time.time() - again[0] < self._TTL:
+                    secs = again[1]
+                else:
+                    secs = self._build(*key) or (again[1] if again else {})
+            finally:
+                self._lock.release()
+            out[course] = secs if secs else {"none": {"open": False, "seats": None}}
+        return out
+
+
 class GeorgiaTech(Banner):
     id = "gatech"; name = "Georgia Tech"
     example = "CS 1301"; host = "registration.banner.gatech.edu"; term = "202608"
@@ -7028,7 +7192,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
     MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(), SanDiegoCity(), SanDiegoMesa(), SanDiegoMiramar(), Fairfield(),
     IvyTech(), UTArlington(), UAlaska(), UOregon(),
-    WrightState(), RPI(), Duquesne(), NMSU(), USC()])
+    WrightState(), RPI(), Duquesne(), NMSU(), USC(), Rice()])
 
 
 def refresh_all_terms(log=None):
