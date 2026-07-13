@@ -554,3 +554,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   numeric `x of y seats available` values. Every lead remains gated on campus isolation, restrictions,
   completed-term comparison, and freshness/cache checks.
 - All ten were deduped against `schools.py` and prior research notes. No `schools.py` or builder changes.
+
+## July 12 Codex Batch 36 checkpoint
+- Batch 36 appended five net-new identities: Rutgers University, University of Delaware, San José State
+  University, University of Maine, and University of Washington–Seattle.
+- Delaware and SJSU expose public seat-oriented fields; Rutgers and UW expose public schedule/status paths;
+  UMaine’s PeopleSoft Class Search redirected to sign-in. No seats were inferred. All five require campus,
+  eligibility, reserve/waitlist, freshness, and current/completed-term checks before adapter work. No
+  `schools.py` or builder changes.

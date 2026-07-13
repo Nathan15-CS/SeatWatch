@@ -1722,6 +1722,42 @@ current public schedule/seat-field leads; Purchase and MCLA are registration-sur
 entries are explicitly legacy/retiring and are held out of any builder handoff. No `schools.py` edit,
 registry change, deployment, or builder handoff was made.
 
+### Codex Batch 36 — Five new public schedule pathways (July 12 2026)
+
+1. **Rutgers University (NJ) — PUBLIC MULTI-CAMPUS SCHEDULE LEAD, FOLLOW-UP REQUIRED.** Rutgers’ official
+   Schedule of Classes at `https://classes.rutgers.edu/` exposes term, campus, level, school/subject/keyword,
+   and Open/Closed section filters; the live page includes Fall 2026 campus/unit metadata. Capture section
+   detail rows and a completed term, isolating New Brunswick, Newark, and Camden (and graduate versus
+   undergraduate units) while preserving reserved seats, waitlists, cross-campus offerings, and restrictions.
+2. **University of Delaware (DE) — PUBLIC NUMERIC COURSE-SEARCH LEAD, FOLLOW-UP REQUIRED.** UD’s official
+   Courses Search at `https://www.udel.edu/courses` (redirecting to `https://udapps.nss.udel.edu/CoursesSearch/`)
+   explicitly provides seat availability, Fall 2026 term 2268, “Courses with open seats,” campus/location,
+   delivery-mode, session, and cross-list filters. Location/instructor details require login, so capture
+   public Fall 2026 rows and a completed term without assuming those fields; preserve Newark/Dover/Georgetown/
+   Wilmington/online campus identity and reserve-capacity semantics.
+3. **San José State University (CA) — PUBLIC NUMERIC CLASS-SCHEDULE LEAD, FOLLOW-UP REQUIRED.** SJSU’s
+   official Fall 2026 table at `https://www2.sjsu.edu/classes/schedules/fall-2026.php` is refreshed nightly and
+   exposes class number, instruction mode, dates, and an explicit Open Seats column (including zero values).
+   SJSU documents reserve capacities that can make seats appear unavailable to some students and directs users
+   to MySJSU for real-time listings. Replay the public table and a completed term, preserving reserve groups,
+   waitlist, campus/program, modality, and nightly-freshness semantics.
+4. **University of Maine (ME) — CLASS-SEARCH/WAITLIST LEAD, FOLLOW-UP REQUIRED.** UMaine’s Office of Student
+   Records links a Fall 2026 Class Search and current course-offerings snapshot at `https://studentrecords.umaine.edu/students/enrollment/`;
+   the linked PeopleSoft search redirected to sign-in here. The same official page documents section waitlists,
+   position numbers, automatic enrollment conditions, and permission courses. Treat this as login-gated until a
+   sanctioned guest route is found; do not infer seats, and verify a completed term if access becomes public.
+5. **University of Washington–Seattle (WA) — PUBLIC COURSE-OFFERINGS/STATUS LEAD, FOLLOW-UP REQUIRED.** UW
+   states that its official schedule is updated daily and that Autumn 2026 has a limited public Course Offerings
+   view plus a five-digit Schedule Line Number status inquiry at `https://www.washington.edu/students/timeschd/`.
+   The complete Time Schedule requires NetID, so capture the public offering/status surface only if it exposes
+   numeric availability; isolate Seattle from Bothell/Tacoma/PCE, and preserve quarter, SLN, waitlist, and
+   completed-quarter semantics.
+
+**Batch status:** five net-new U.S. college identities were archived. Delaware and SJSU expose explicit public
+seat-oriented fields; Rutgers and UW expose public schedule/status pathways; UMaine is currently login-gated.
+No seats were inferred for any entry. All five were deduped against `schools.py` and prior research. No
+production approval, `schools.py` edit, registry change, deployment, or builder handoff was made.
+
 ### Codex Batch 24 — Eleven current public-search leads (July 12 2026)
 
 These eleven identities are net-new after exact-name checks against `schools.py` and prior research
