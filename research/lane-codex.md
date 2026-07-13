@@ -692,3 +692,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   and WLAC require sanctioned endpoint validation after headless 403 responses; no bypass or seat inference was
   attempted. All five require scope, campus/career, eligibility, waitlist, freshness, and current/completed-term
   checks before adapter work. No `schools.py` or builder changes.
+
+## July 13 Codex Batch 54 checkpoint
+- Batch 54 appended five net-new identities: College of Lake County, Taylor University, Ithaca College,
+  Seminole State College of Florida, and Carleton College.
+- CLC and Taylor expose public search/browse surfaces; Seminole's official course pages show current Fall 2026
+  open-class markers. Ithaca is portal-oriented and Carleton is currently only a bounded date/identity lead.
+  All five require sanctioned endpoint, scope, restrictions, waitlist, freshness, and current/completed-term
+  checks before adapter work. No `schools.py` or builder changes.

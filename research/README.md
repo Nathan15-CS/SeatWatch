@@ -4,7 +4,8 @@ Cross-session research log for SeatWatch school expansion. **This file is kept l
 the full chronological batch-by-batch history lives in `research/ARCHIVE.md` (grep it for any past
 detail). Read THIS file + the lane files; only open ARCHIVE for a specific past finding.
 
-- **Live count: 684 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 13, 2026.
+- **Live count: 690 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 13, 2026
+  (Batch 31 NMSU+RPI + USC + Wright State + Duquesne shipped 684→689; Rice shipped →690).
 - **Who's doing what right now:** `research/lane-grabber.md` (Grab) + `research/lane-codex.md` (short, always current).
 - **How we work / accuracy+efficiency gate:** `research/PARTNER-NOTE-codex.md` and repo-root
   `CONTRIBUTING_AGENT.md`. Handoffs to the builder go through Fable; gated-but-unapproved candidates
@@ -2503,6 +2504,47 @@ only after it appears AND returns mixed open/full rows. No schools.py edit, no r
 5. **West Los Angeles College (CA) — SEARCHABLE FALL SCHEDULE LEAD, HEADLESS VALIDATION REQUIRED.** WLAC’s official schedule page (`https://www.wlac.edu/academics/class-schedules`) documents a searchable Fall 2026 schedule (Aug 31–Dec 20), a PDF class list, and late-start session filtering. The page returned HTTP 403 to the headless fetch; no bypass was attempted and no seats were inferred. Validate the sanctioned public endpoint, section/campus scope, waitlists, and completed-term replay.
 
 **Batch status:** five net-new identities archived. Cañada, CSM, and Skyline have a common district schedule/search surface with dedicated open-class listings; LACC and WLAC require sanctioned endpoint validation after headless 403 responses. No production approval was made.
+
+### Codex Batch 54 — Five additional official Fall 2026 schedule leads (July 13 2026)
+
+These five identities are net-new after exact-name checks against `schools.py` and the research archive.
+They are archived as bounded research leads only; no production adapter or seat count is implied unless
+the source explicitly exposes one. Each still needs campus/career scope, restrictions, waitlist, freshness,
+and current/completed-term validation before any build work.
+
+1. **College of Lake County (IL) — PUBLIC CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.** CLC's official class-search
+   page (`https://www.clcillinois.edu/class-search`) presents a Fall 2026 term selector, subject/location/
+   instructional-mode filters, and an `Open and Wait List Classes Only` option. The page is a public search
+   surface, but this pass did not capture a row-level response; reproduce the sanctioned endpoint, preserve
+   CLC campus/modality/session identity, and test a completed term before interpreting status or seats.
+2. **Taylor University (IN) — PUBLIC BROWSE-CLASSES LEAD, FOLLOW-UP REQUIRED.** Taylor's registrar class-
+   schedules page (`https://www.taylor.edu/about/offices/registrar/class-schedules`) links a current Fall
+   2026 schedule and a public `browse classes` route. The page says offerings can change and no numeric guest
+   row was captured; validate the live response, section identifiers, term/career scope, waitlists, and a
+   completed-term replay before adapter work.
+3. **Ithaca College (NY) — PORTAL SCHEDULE/WAITLIST LEAD, FOLLOW-UP REQUIRED.** Ithaca's registrar course-
+   registration page (`https://www.ithaca.edu/academics/registrar/course-registration`) states that the
+   Summer/Fall 2026 schedule is viewable in HomerConnect/DegreeWorks, and explains that current waitlist
+   seats are reserved while incoming students register for open seats. This is a documented official route,
+   but it is portal-oriented and yielded no guest numeric row here; verify public access or stop at a source-
+   level lead, preserving waitlist/reserve semantics and exact CRNs.
+4. **Seminole State College of Florida (FL) — PUBLIC NUMERIC COURSE-PAGE LEAD, FOLLOW-UP REQUIRED.** The
+   official catalog's Fall 2026 course pages (for example `https://www.seminolestate.edu/catalog/courses/
+   mvk2121m` and `https://www.seminolestate.edu/catalog/courses/ent2172`) show current-term open classes,
+   class numbers, dates, modality/location, and `1 class available` for selected courses. These are
+   course-specific catalog pages rather than a proven whole-college feed; discover the sanctioned search
+   endpoint, verify capacity/seat semantics and campus scope, and replay a completed term before using them.
+5. **Carleton College (MN) — CURRENT-TERM IDENTITY LEAD, FOLLOW-UP REQUIRED.** Carleton's official 2026–27
+   academic calendar (`https://carleton-wp-production.s3.amazonaws.com/uploads/sites/740/2024/11/Academic-
+   Calendar-26-27.pdf`) confirms Fall 2026 dates (classes begin September 14), while the public-facing
+   course-schedule surface was not reproduced in this pass. Treat this as identity/date reconnaissance only:
+   locate the registrar's sanctioned schedule, do not infer seats, and require exact section keys plus a
+   completed-term comparison before any adapter proposal.
+
+**Batch status:** five net-new identities were archived. CLC and Taylor expose the clearest public search
+surfaces; Seminole has current course-page availability markers; Ithaca and Carleton remain portal/date
+leads. None passed the full production gate in this research-only pass. No `schools.py` edit, registry change,
+deployment, or builder handoff was made.
 
 ### Batch 31 + USC — ✅ BUILT + DEPLOYED July 13 (Build): 684->689
 Five schools shipped in one gated batch, all re-gated live through the REGISTERED production
