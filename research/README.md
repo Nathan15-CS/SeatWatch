@@ -3612,3 +3612,40 @@ this batch is safe to add to production.
 **Batch status:** zero new full-gate candidates; HCHC is a documented numeric source with a decisive stale-status
 contradiction, while FSCJ, CLC, Webster, and Seminole remain explicit hold-outs. No `schools.py`, registry,
 deployment, or builder changes were made.
+
+### Codex Batch 70 — western public-search vein (July 13 2026)
+
+This pass checked five exact-name-new colleges against official public schedule/search surfaces. None cleared the
+full gate: no production change is safe from this batch.
+
+1. **Adams State University (CO) — HOLD OUT: official Banner URL redirect loop.** The official schedule entry
+   `https://ssb.adams.edu/bannerweb/schedule/schedule_options/` repeatedly returned a redirect loop before a term
+   selector or class row could be read. A URL alone is not evidence of a public seat feed; hold until Adams publishes
+   a stable guest schedule entry point with current and completed replay.
+
+2. **Regis University (CO) — HOLD OUT: catalog-only search.** Official `https://catalog.regis.edu/course-search/`
+   exposes keyword and subject controls (including EN - English) but no term selector, section rows, seats, status,
+   or completed-term replay. Hold pending an authoritative registration/search surface with row-level availability.
+
+3. **Idaho State University (ID) — HOLD OUT: login-gated registration.** Official
+   `https://www.isu.edu/registrar/registration-information/` says Find Classes is reached after logging into MyISU;
+   the public catalog is not a live seat feed. No login was attempted. Hold until ISU documents a guest search or
+   permitted public endpoint with exact section and availability fields.
+
+4. **Central Washington University (WA) — HOLD OUT: public form, no row replay captured.** Official registrar
+   page `https://www.cwu.edu/about/offices/registrar/academic-information/` links the public PeopleSoft Class Search:
+   `https://cwucsprd.peoplesoft.cwu.edu/psp/cwucsprd/EMPLOYEE/SA/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL?Page=SSR_CLSRCH_ENTRY&Action=U&TargetFrameName=None`.
+   The guest form exposes Fall 2026, Spring 2026, Spring 2027, Summer 2026, and Winter 2027, subject/course-number,
+   career, campus, session, and a Show Open Classes Only checkbox; it requires at least two criteria. The exact
+   ENG/101 test lost the active course-number target during interaction, so no section key, seats, status, scope,
+   pagination, or completed replay was captured. Hold pending a repeatable current/completed row-producing recipe.
+
+5. **Western Washington University (WA) — HOLD OUT: dynamic Banner picker did not yield rows.** Official registrar
+   page `https://registrar.wwu.edu/browse-classes` embeds Banner Browse Classes at
+   `https://registration.banner.wwu.edu/StudentRegistrationSsb/ssb/term/termSelection?mode=search`. Its public term
+   list returned Fall 2026 and Summer 2026 plus Spring 2026, Winter 2026, Fall 2025, and older terms marked View
+   Only. The dynamic term option could not be selected reliably after loading, so no section rows, numeric seats,
+   status semantics, or completed replay were captured. Hold pending a repeatable row-producing search.
+
+**Batch status:** zero new full-gate candidates; five explicit hold-outs documented above. No `schools.py`, registry,
+deployment, or builder changes were made.

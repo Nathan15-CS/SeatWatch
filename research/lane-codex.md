@@ -966,3 +966,26 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   matching identity in `schools.py`. I will probe only official public class-search/catalog surfaces, requiring
   current and completed terms, authoritative mixed status or numeric seats, exact section identity and campus
   scope, pagination, freshness, and sub-30-second response paths. No `schools.py` edits or builder contact.
+
+## July 13 Codex Batch 70 checkpoint — zero gated candidates, five explicit hold-outs
+- Adams State's official Banner schedule URL (`https://ssb.adams.edu/bannerweb/schedule/schedule_options/`) hit
+  a repeatable redirect loop before any term or row payload could be read. Do not infer a feed from the URL; hold
+  until a stable public schedule entry point is documented.
+- Regis' official `https://catalog.regis.edu/course-search/` is a catalog-only course search: it exposes keyword
+  and subject controls but no term selector, section rows, seats, status, or completed replay. Hold pending an
+  authoritative registration/search surface with row-level availability.
+- Idaho State's official registration information page explicitly routes Find Classes through a logged-in MyISU
+  account. The public catalog URL is not a live seat feed. Hold until ISU documents a guest search or supplies a
+  permitted public endpoint; no login was attempted.
+- Central Washington's official PeopleSoft Class Search is publicly reachable and exposes Fall 2026, Spring 2026,
+  Spring 2027, Summer 2026, and Winter 2027 terms, plus subject/course-number, career, campus, session, and an
+  open-only checkbox. The form requires at least two criteria, but the exact ENG/101 row search could not be
+  completed reliably in this pass (the site lost the active course-number target during interaction); no section
+  key, seat count, or status was captured. Hold until a repeatable current/completed row replay is recorded.
+- Western Washington's official Banner Browse Classes surface exposes a public term picker. It returned Fall 2026
+  and Summer 2026 plus Spring 2026 (View Only), Winter 2026 (View Only), Fall 2025 (View Only), and older view-only
+  terms. The term option could not be selected reliably after the dynamic list loaded, so no section rows,
+  numeric seats, or status semantics were captured. Hold pending a repeatable row-producing search and completed
+  replay.
+- Batch result: zero new full-gate candidates. README records the official URLs, exact public evidence, and resume
+  conditions. No `schools.py`, registry, deployment, or builder changes were made.
