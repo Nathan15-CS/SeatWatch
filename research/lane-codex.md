@@ -598,3 +598,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   while Alabama, UCCS, and Stetson require guest-route confirmation. No seats were inferred. All five require
   campus/career, waitlist, eligibility, freshness, and current/completed-term checks before adapter work. No
   `schools.py` or builder changes.
+
+## July 12 Codex Batch 42 checkpoint
+- Batch 42 appended five net-new identities: Central Michigan University, Northern Michigan University,
+  PennWest University, University of Hartford, and University of Michigan–Ann Arbor.
+- UMich has public schedule/class-search publication evidence; NMU is limited to Global Campus online search,
+  while CMU, PennWest, and Hartford require guest-route confirmation. No seats were inferred. All five require
+  campus/career, waitlist, eligibility, freshness, and current/completed-term checks before adapter work. No
+  `schools.py` or builder changes.
