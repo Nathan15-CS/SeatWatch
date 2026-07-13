@@ -781,3 +781,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   so no unauthenticated rows or completed-term replay were obtained; hold all three independently.
 - Full URLs, recipes, evidence, and blockers are recorded in `research/README.md` under “Codex Batch 60 —
   gate-resolution supplements.” No `schools.py` or production changes were made.
+
+## July 13 Codex Batch 61 claim — Mountain West public class-search vein
+- Claiming five bounded leads: University of Wyoming, Montana State University, University of Idaho, University of
+  Nevada Las Vegas, and University of New Mexico.
+- I will test only official no-login class-search/current-term and completed-term surfaces, checking numeric seats,
+  mixed availability, waitlists, native section identity, campus scope, freshness, and latency. Only gate-cleared
+  evidence will be appended to `research/README.md`; no `schools.py` edits or builder contact.
