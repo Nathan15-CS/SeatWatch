@@ -2393,3 +2393,26 @@ only after it appears AND returns mixed open/full rows. No schools.py edit, no r
 5. **Williston State College (ND) — PUBLIC NUMERIC CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.** WSC’s official class search (`https://willistonstate.edu/class-search.aspx`) exposes Fall 2026 rows with open-seat counts and status fields (e.g., PTLO-135 14 open, RNG-225 20 open, RNG-236 15 open), plus course number, dates, modality, campus/location, and wait fields. Verify endpoint freshness, unique section keys, completed-term replay, and main/online/career semantics before adapter work.
 
 **Batch status:** five net-new identities archived. Williston State has the strongest numeric evidence; Smith, William & Mary, and Frederick require guest/search validation, while UMass Boston is explicitly limited to a non-degree graduate subset. No production approval was made.
+
+### Batch 31 + USC — ✅ BUILT + DEPLOYED July 13 (Build): 684->689
+Five schools shipped in one gated batch, all re-gated live through the REGISTERED production
+adapters (commit bc1108c, deployed, live site verified 689):
+- **USC** (bespoke `USC` class, classes.usc.edu same-origin REST API): re-gate reproduced Grab's
+  evidence exactly — WRIT 150 Fall 162 sec 11 open/151 FULL, completed Spring 38/112, 533-section
+  isFull-vs-arithmetic audit 533/533, sisSectionId unique, cross-list server-side (CLAS202≡ANTH202).
+  Two NEW traps found on top of Grab's recipe and coded in: junk course codes = HTTP 500 (not 204)
+  -> any error {} ; THREE terms 'Active' at once -> season-delta picker, never first-Active.
+  resolve_term()->20263 verified.
+- **NMSU Las Cruces** (Banner9 + new additive `Banner._campus_ok` hook; default preserves the SD
+  first-word behavior — USD regression-fetched clean): exact campusDescription match isolates Main
+  (ENGL 1110G = 38 of 108 systemwide, 10 open/28 FULL cap=enr). Supersedes the July 8 exclusion
+  (different host). DACC rider NOT taken (4-year priority; decision open to Nathan).
+- **RPI** (ListcrseBanner8): live Fall all-open (unfilled cycle — safe by design); completed Spring
+  202601 через production _build: CSCI 2600 = 4 open/6 FULL -> host-level fake-open disproof per
+  NCCU/Shorter standard. July-12 hold RESOLVED.
+- **Wright State** (ListcrseBanner8): guest search form dead ('No classes were found'), catalog
+  route live — ENG 1100 = 48 CRNs 27 open/21 FULL, 15.4s cold/0.00s warm (TAMU envelope).
+- **Duquesne** (Banner9, subclass-contained bootstrap fix): default /classSearch entry 302s to a
+  firewalled plain-http URL (93.6s->{}); /term/termSelection bootstrap fixes it (1.2s). Term picker
+  verified dodging parallel 'College of Medicine Fall 26'/Paralegal terms -> 202710.
+Regressions green: USD (campus pool), UTK (plain Banner9), WSSU (ListcrseBanner8).
