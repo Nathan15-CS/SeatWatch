@@ -2252,3 +2252,24 @@ change, deployment, or builder handoff was made.
 class-search/lookup routes; CU Denver and Boise State require guest-route confirmation. No seats were inferred.
 All five were deduped against `schools.py` and prior research. No production approval, `schools.py` edit,
 registry change, deployment, or builder handoff was made.
+
+### RCCD×3 hold RE-VERIFIED LIVE — still NO Fall term (July 13 2026, Build)
+
+Live check through the real SharePoint REST API (`apps-studentrcc.msappproxy.net/schedule`, which
+fronts `apps.rccd.edu` — visible in pagination nextLinks): `ScheduleTermOptions` currently offers ONLY
+Winter 2026 (`26WIN`) and Summer 2026 (`26SUM`). `Term eq '26FAL'` returns ZERO rows on all three lists
+(ScheduleData_MOV/NOR/RIV); `26SUM` has data on all three. Codex's July 11 claim of 1,004/1,054/2,330
+Fall sections does NOT reproduce today — either the district purged/reloaded Fall or the claim was wrong.
+Grabber's parting "Fall data rolled out" meant rolled OUT OF the feed, not arrived. **HOLD STANDS** — do
+not build on 26SUM (in-progress term, Last-Day-to-Add date rule will mark nearly everything not-open;
+useless for Fall-registration alerts). Adapter mechanics fully captured for when Fall lands, from the
+official app's own `main.js`: PnPjs → REST `GET /schedule/_api/web/lists/getByTitle('ScheduleData_{MOV|NOR|RIV}')/items?$filter=Term eq '<term>' [and College eq '<name>']&$select=...&$top=5080`
+(Accept: `application/json;odata=nometadata`). Fields: `Title` (course), `Section_x0020_ID` (unique key),
+`Section_x0020_Number`, `Primary_x0020_Subject`, `College`, `Total_x0020_Seats`, `Seats_x0020_Used`,
+`Last_x0020_Day_x0020_to_x0020_Ad` (sic, truncated internal name), `Start_x0020_Date_x0020_1`. Official
+open rule (extracted verbatim from main.js): `isOpen = Total_Seats>0 && !(Seats_Used>=Total_Seats) &&
+(LastDayToAdd!==undefined ? now<=LastDayToAdd : now<=StartDate1)`; separately `openSeatStatusUnknown =
+!(Total_Seats>0)` — UNKNOWN MUST MAP TO NOT-OPEN in any adapter. Correction for the ledger: prior handoff
+line "adapter ready" was wrong — NO RCCD adapter exists in schools.py or any branch/stash; it must be
+built fresh when Fall data lands. Re-check cadence: query ScheduleTermOptions for a `26FAL` row; build
+only after it appears AND returns mixed open/full rows. No schools.py edit, no registry change, no deploy.
