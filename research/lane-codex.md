@@ -676,3 +676,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - UMD has direct numeric public seat rows; FSU, Webster, HCHC, and QCC require live endpoint/response validation.
   All five require scope, campus/career, eligibility, waitlist, freshness, and current/completed-term checks before
   adapter work. No `schools.py` or builder changes.
+
+## July 13 Codex Batch 52 checkpoint
+- Batch 52 appended five net-new identities: Aims Community College, San Bernardino Valley College, Crafton Hills
+  College, Santa Ana College, and SUNY Old Westbury.
+- All five have official schedule/search surfaces; none received production approval. SBVC and Santa Ana have the
+  clearest public open-class pathways, while Crafton’s PDFs and Old Westbury’s Browse Classes link require endpoint
+  validation. All five require scope, campus/career, eligibility, waitlist, freshness, and current/completed-term
+  checks before adapter work. No `schools.py` or builder changes.
