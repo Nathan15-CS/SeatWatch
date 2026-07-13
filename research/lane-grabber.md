@@ -27,9 +27,15 @@ School adds relay DIRECT per deploy policy; money/UI/legal stay gated behind Nat
     NO live enrolled/capacity to anonymous users — only "Enrollment: No Limit" (a cap POLICY) + section
     times; the "Enrolled/Waitlist" strings are calendar/cart UI labels, not seat counts. No seat field =
     can't gate. Same catalog-only class as the other BLOCKED elites.
-  - Remaining elite reachable: **Michigan** (Wolverine Access / LSA CG both Okta-gated — needs a public
-    surface; not yet found), **CMU**. Princeton's browser-bootstrap pattern may unlock other
-    Drupal-registrar + api-gateway schools.
+  - **CMU** ❌ BLOCKED (probed July 13): SOC (enr-apps.as.cmu.edu/open/SOC) is public + no-auth, but the
+    COMPLETE public schedule dump (sched_layout_fall.htm, 1.6MB) has ZERO seat/enrollment/capacity/avail
+    columns — times + catalog only; live seats are behind CMU's authed SIS. Same no-anon-seats class as Harvard.
+  - **Michigan** ❌ no public seat surface found (Wolverine Access + LSA Course Guide both Okta-gated).
+  - **ELITE PASS CLOSED:** of the original reachable-six — USC ✅ + Rice ✅ shipped, Princeton ✅ sent
+    (browser-assisted), Harvard/CMU/Michigan all BLOCKED (no anonymous seat counts). Next elite growth
+    needs either a Princeton-style browser-bootstrap build or a NEW angle on the auth-blocked tier
+    (JHU/Columbia/MIT/Duke/Stanford/Northwestern/etc). Princeton's Drupal-registrar + api-gateway +
+    embedded-token pattern is worth pattern-matching against other schools as a fresh vein.
 - **RICE CRACKED + SENT to Build (July 13)** — custom Banner package (SWKSCAT CGI), labeled
   Section/Xlist/Waitlist enrollment + live freshness stamp; waitlist-priority + xlist-pool rules
   MANDATORY; completed-term full row through same parse. README block "Rice (elite lead)".
