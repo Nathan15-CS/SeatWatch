@@ -1914,6 +1914,96 @@ class HGTC(ListcrseBanner8):
     example = "PSY 201"; term = "202610"         # Fall 2026
     base = "https://ssb.hgtc.edu/PROD9"
 
+
+class SDCCD:
+    """San Diego CCD — ONE public district JSON dump (mws-api.sdccd.edu) serves City/Mesa/
+    Miramar; rows separated by CAMPUS. The whole dump (~4,200 rows, ~5.7MB, ~3s) is fetched
+    ONCE per TTL into a SHARED class-level cache — all 3 campus subclasses read the same
+    dump, so watching any SDCCD course costs at most one district fetch per 10 min, not
+    three. Each school filters CAMPUS + SUBJECT + exact CATALOG_NBR. open = ENRL_STAT=='O'
+    AND ENRL_CAP-ENRL_TOT>0 — TWO signals: the status enum AND a real unreserved seat, so a
+    reserved-but-'closed' section (status C with positive raw capacity) is correctly
+    withheld (Codex's reserved-seat flag). Waitlist (WAIT_*) ignored. Section key =
+    CLASS_NBR. Subclass sets id, name, example, campus."""
+    term = "2267"                 # Fall 2026 (PeopleSoft strm); pinned, bump per term
+    campus = ""
+    _API = "https://mws-api.sdccd.edu/?term=%s&career=ugrd"
+    _TTL = 600
+    _lock = threading.Lock()
+    _dump = {}                    # term -> (ts, rows) — SHARED across the 3 campuses
+    _RE = re.compile(r"^([A-Za-z]{2,5})\s*(\d{1,4}[A-Za-z]?)$")
+
+    def cur_term(self):
+        return self.term
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        return "https://www.sdccd.edu/students/class-search/"
+
+    def _rows(self):
+        term = self.cur_term()
+        with SDCCD._lock:
+            c = SDCCD._dump.get(term)
+            if c and time.time() - c[0] < self._TTL:
+                return c[1]
+            try:
+                req = urllib.request.Request(self._API % term, headers={"User-Agent": UA})
+                rows = json.loads(urllib.request.urlopen(req, timeout=40).read())["data"]["query"]["rows"]
+            except Exception:
+                return c[1] if c else []        # stale-if-error; never guess
+            if isinstance(rows, list) and rows:
+                SDCCD._dump[term] = (time.time(), rows)
+                return rows
+            return c[1] if c else []
+
+    def fetch(self, courses):
+        out = {}
+        rows = None
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            if rows is None:
+                rows = self._rows()
+            secs = {}
+            for r in rows:
+                if r.get("CAMPUS") != self.campus:
+                    continue
+                if (r.get("SUBJECT") or "").upper() != subj:
+                    continue
+                if (r.get("CATALOG_NBR") or "").strip().upper() != num:   # ' 124' -> '124'
+                    continue
+                key = str(r.get("CLASS_NBR") or "")
+                try:
+                    remain = int(r.get("ENRL_CAP")) - int(r.get("ENRL_TOT"))
+                except (TypeError, ValueError):
+                    continue                     # no real counts -> skip, never guess
+                if not key or key in secs:
+                    continue
+                secs[key] = {"open": r.get("ENRL_STAT") == "O" and remain > 0,
+                             "seats": max(remain, 0)}
+            if secs:
+                out[course] = secs
+        return out
+
+class SanDiegoCity(SDCCD):
+    id = "sdcity"; name = "San Diego City College"
+    example = "MATH 121"; campus = "CITY"
+
+class SanDiegoMesa(SDCCD):
+    id = "sdmesa"; name = "San Diego Mesa College"
+    example = "MATH 121"; campus = "MESA"
+
+class SanDiegoMiramar(SDCCD):
+    id = "sdmiramar"; name = "San Diego Miramar College"
+    example = "BIOL 131"; campus = "MIRA"
+
 # --- batch-23 cuts RESURRECTED on the listcrse route (their guest search form answers
 # 'No classes were found' for everything; the catalog route serves the same sections).
 class MissouriState(ListcrseBanner8):
@@ -6648,7 +6738,7 @@ def _guard_registry(all_schools):
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
-    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(),
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(), SanDiegoCity(), SanDiegoMesa(), SanDiegoMiramar(),
     IvyTech(), UTArlington(), UAlaska(), UOregon()])
 
 
