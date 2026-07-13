@@ -507,6 +507,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   online pathways with an open-sections filter. Current Fall 2026 numeric replay and a completed-term
   comparison remain outstanding. No `schools.py` or builder changes.
 
+## July 12 Codex Batch 32 checkpoint
+- Batch 32 appended San Diego State University as a net-new public schedule/Open University lead.
+- SDSU documents no-login schedule browsing, campus and class-status filters, and section seat counts;
+  direct Fall 2026 export/replay plus campus, reserved-seat, waitlist, and completed-term checks remain
+  open. No `schools.py` or builder changes.
+
 ## July 12 Codex Batch 24 checkpoint
 - Batch 24 appended to `research/README.md`: eleven net-new identities — University of Southern
   California, University at Buffalo (SUNY), University of Wisconsin–Eau Claire, University of Minnesota,

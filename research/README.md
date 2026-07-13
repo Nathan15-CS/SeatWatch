@@ -1993,3 +1993,20 @@ or production approval. No `schools.py` edit, registry change, deployment, or bu
 
 **Batch status:** one net-new public schedule identity was archived as a gated lead. No `schools.py` edit,
 registry change, deployment, or builder handoff was made.
+
+### Codex Batch 32 — SDSU public schedule pathway (July 12 2026)
+
+1. **San Diego State University (CA) — PUBLIC CLASS-SCHEDULE/OPEN-UNIVERSITY LEAD, FOLLOW-UP REQUIRED.**
+   SDSU Global Campus instructs non-degree/Open University users to browse the Fall 2026 public schedule,
+   filter by San Diego Campus and class status (open, waitlist, or closed), and inspect each section’s
+   number of seats (`https://globalcampus.sdsu.edu/open-university-registration/`). SDSU’s my.SDSU guide
+   confirms the public schedule is viewable without login and that the Class Availability tab exposes
+   seat counts (`https://my.sdsu.edu/guides/search-class-schedule`; public schedule instructions:
+   `https://my.sdsu.edu/guides/public-schedule`). No current guest row was captured in this pass. Follow
+   up with a direct Fall 2026 public export and completed-term replay, isolating San Diego Campus from
+   Global Campus/Imperial Valley and preserving reserved seats, waitlist, prerequisites, and permission
+   semantics.
+
+**Batch status:** one net-new public schedule identity was archived. Numeric current-term replay and
+eligibility checks remain outstanding. No `schools.py` edit, registry change, deployment, or builder handoff
+was made.
