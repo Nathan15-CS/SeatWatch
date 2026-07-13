@@ -940,3 +940,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   advertised no-login Section Search redirected to login. All five remain hold-outs.
 - README now records exact Shasta evidence, official URLs, the contradiction, and resume conditions. No `schools.py`
   or production changes were made.
+
+## July 13 Codex Batch 69 claim — public interactive-search vein
+- Claiming five bounded leads from the remaining queue: Florida State College at Jacksonville; College of Lake
+  County; Webster University; Hellenic College Holy Cross Greek Orthodox School of Theology; and Seminole State
+  College of Florida. Exact-name checks found no matching identity in `schools.py`. I will probe only official
+  public search/course pages, requiring current/completed terms, authoritative mixed status or numeric seats, exact
+  section identity/scope, pagination, freshness, and sub-30-second response paths. No `schools.py` edits or builder
+  contact.
