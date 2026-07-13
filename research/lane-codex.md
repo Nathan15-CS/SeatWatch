@@ -470,6 +470,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   current replacement for the retiring UH legacy pages, and Kent State's ePROD search is a public numeric
   seat lead. No adapter or builder handoff was made.
 
+## July 12 Codex Batch 27 checkpoint
+- Batch 27 appended two net-new public pathways: North Carolina A&T’s UNC-ECS Banner schedule and Wright
+  State’s WINGS Express/Banner schedule.
+- NC A&T’s public term selector exposes Fall 2026 and completed Spring 2026; historical detail pages
+  expose Capacity/Actual/Remaining but current Fall 2026 row capture remains outstanding. Wright State
+  exposes current Fall 2026 plus completed Spring 2026 numeric rows, including an over-cap negative value;
+  replay, freshness, campus, restriction, and waitlist tests are still required. No `schools.py` or
+  builder changes.
+
 ## July 12 Codex Batch 24 checkpoint
 - Batch 24 appended to `research/README.md`: eleven net-new identities — University of Southern
   California, University at Buffalo (SUNY), University of Wisconsin–Eau Claire, University of Minnesota,

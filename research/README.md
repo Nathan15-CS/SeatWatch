@@ -1864,3 +1864,33 @@ freshness check before anyone builds it.
 **Batch status:** two new bespoke identities (UH Mānoa and Kent State) plus one documented KU revisit and
 one Louisville login-gated lead were archived. No numeric values were inferred for the non-KU entries, and
 no `schools.py` edit, registry change, deployment, or builder handoff was made.
+
+### Codex Batch 27 — Other public pathways (July 12 2026)
+
+This pass moved beyond the previously exhausted shared-host sweep and checked institution-specific public
+Banner/WINGS surfaces. These are source-level leads only; no adapter or builder handoff is implied.
+
+1. **North Carolina A&T State University (NC) — PUBLIC BANNER NUMERIC LEAD, FOLLOW-UP REQUIRED.** The
+   official visiting/non-degree guide links a public Class Schedule and says class detail pages show
+   capacity and available seats (`https://ncat.edu/academics/summer-sessions/visiting-students.php`).
+   The linked Dynamic Schedule is live at
+   `https://ssbprod-ncat.uncecs.edu/pls/NCATPROD/bwckschd.p_disp_dyn_sched`; its selector includes Fall
+   2026 and completed Spring 2026. Official detail pages expose labeled Capacity, Actual, and Remaining
+   fields (for example, `https://ssbprod-ncat.uncecs.edu/pls/NCATPROD/bwckschd.p_disp_detail_sched?crn_in=10884&term_in=202210`
+   shows 100/97/3; historical rows also include full and over-cap values). No current Fall 2026 course
+   row was captured in this pass, so do not infer live seats. Follow up with exact Fall 2026 Biology or
+   English CRNs plus a completed-term mixed test, preserving CRN, term, campus, restrictions, waitlist,
+   and over-cap rows. Name dedup is clean.
+2. **Wright State University (OH) — PUBLIC WINGS/BANNER NUMERIC LEAD, FOLLOW-UP REQUIRED.** Wright’s
+   public Class Schedule is at `https://wingsexpress.wright.edu/pls/PROD/bwckschd.p_disp_dyn_sched` and
+   explicitly supports searching current course offerings. Current Fall 2026 detail rows expose labeled
+   Capacity/Actual/Remaining fields, e.g. Social Work Field Education II (CRN 80757) at
+   `https://wingsexpress.wright.edu/pls/PROD/bwckschd.p_disp_detail_sched?crn_in=80757&term_in=202680`
+   shows 15/15/0, while the same public surface exposes historical Spring 2026 rows with positive seats
+   (CRN 14291 shows 60/53/7) and an over-cap example (CRN 27689 shows 27/32/-5). Preserve campus,
+   part-of-term, restrictions, waitlist, cross-list, and negative-Remaining semantics; verify a current
+   Fall 2026 mixed set through a direct schedule replay before production work. Name dedup is clean.
+
+**Batch status:** two net-new public numeric pathways were archived. NC A&T still needs current Fall 2026
+row capture; Wright State has both current and completed-term evidence but still needs replay/freshness and
+eligibility tests. No `schools.py` edit, registry change, deployment, or builder handoff was made.
