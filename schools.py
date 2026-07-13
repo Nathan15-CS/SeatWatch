@@ -4179,6 +4179,191 @@ class UTChattanooga(Banner):
     example = "ENGL 1010"; host = "sis-reg.utc.edu"; term = "202640"   # Fall 2026
 
 
+class IUBloomington:
+    """Indiana University Bloomington (~48k flagship) — public iGPS course API (no auth,
+    plain JSON). Three calls, all scoped to inst=IUBLA (the shared host also serves 8
+    other IU campuses; rows carry campus=BL — isolation live-verified, 0 non-IUBLA rows):
+      1. terms.json?inst=IUBLA -> term codes (auto-roll; Fall 2026 = 4268).
+      2. POST search/courses.json {inst,strm,filters:all-null,from} -> the CATALOG,
+         paginated 50/page (~6,100 courses/123 pages). One catalog row = one
+         courseId/courseOfferNumber/courseTopicId/effdt tuple; NO seats here.
+      3. GET search/classes.json?courseId&courseOfferNumber&courseTopicId&effdt&strm&
+         inst&car -> the SECTIONS WITH SEATS for that one catalog row.
+
+    EFFICIENCY: the catalog (course->ids map) is STABLE per term, so it is scanned ONCE
+    per term into a shared class-level cache (Purdue/TAMU envelope: ~36s cold, then warm);
+    per poll we call ONLY classes.json for the watched courses. Partial scans are NEVER
+    cached (a missing page = missing courses = silent miss), so a scan that hits any error
+    is discarded and retried.
+
+    ADDRESSABILITY: 478 subject+catalog combos are MULTI-ROW (variable-topic courses, e.g.
+    AAAD-X 490 = 11 rows). A watched course maps to the LIST of its catalog rows and we
+    AGGREGATE classes.json across all of them — complete-scope-then-filter, no split miss.
+    If any row's classes fetch fails, the whole course is skipped that cycle (never a
+    partial section set).
+
+    OPEN RULE: closed is False AND openSeats > 0 (the boolean and arithmetic agreed 100%
+    live). CROSS-LIST GUARD: for each combinedSections entry with separateEnrollmentControl
+    FALSE (a shared pool), if combinedEnrollTotal >= combinedEnrollCapacity the section is
+    full even if openSeats > 0 (when the control is separate, openSeats is authoritative).
+    Consent flags are notes, not fake-open. Section key = classNbr (unique per term)."""
+    id = "iub"; name = "Indiana University Bloomington"
+    example = "ENG-W 131"                 # freshman comp; single catalog row
+    inst = "IUBLA"; car = "UGRD"
+    term = "4268"                         # Fall 2026 (auto-rolls via terms.json)
+    _active_term = None
+    _base = "https://sisjee.iu.edu/sisigps-prd/web/igps/course"
+    _CAT_TTL = 21600                      # 6h; catalog is stable within a term
+    _lock = threading.Lock()
+    _catalog = {}                         # term -> (ts, {(subject,catalog): [rows]})
+    _NULL_FILTERS = {"attributes": None, "level": None, "locations": None,
+                     "meetingTimes": None, "mois": None, "sessions": None,
+                     "subject": None, "units": None}
+    _RE = re.compile(r"^(\S+)\s+(\S+)$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return "https://sisjee.iu.edu/sisigps-prd/web/igps/course/search/"
+
+    def _get(self, url):
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read())
+
+    def _post(self, url, body):
+        req = urllib.request.Request(url, data=json.dumps(body).encode(),
+                                     headers={"User-Agent": UA, "Content-Type": "application/json"})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return json.loads(r.read())
+
+    def _scan_catalog(self, term):
+        """Full catalog -> {(subject,catalog): [rows]}, or None on ANY failure (never
+        cache a partial catalog — a missing page would silently drop watched courses)."""
+        cat = {}
+        offset = 0
+        while offset < 12000:                        # defensive page cap (~240 pages)
+            try:
+                body = {"inst": self.inst, "strm": term,
+                        "filters": dict(self._NULL_FILTERS), "from": offset}
+                rows = (self._post(f"{self._base}/search/courses.json", body) or {}).get("courses") or []
+            except Exception:
+                return None
+            if not rows:
+                break
+            for r in rows:
+                key = (r.get("subject"), str(r.get("catalogNumber")))
+                cat[key].append(r) if key in cat else cat.setdefault(key, [r])
+            offset += 50
+        return cat or None
+
+    def _get_catalog(self, term):
+        c = IUBloomington._catalog.get(term)
+        if c and time.time() - c[0] < self._CAT_TTL:
+            return c[1]
+        if not IUBloomington._lock.acquire(blocking=(c is None)):
+            return c[1] if c else {}                  # another thread building -> stale/empty
+        try:
+            again = IUBloomington._catalog.get(term)
+            if again and time.time() - again[0] < self._CAT_TTL:
+                return again[1]
+            m = self._scan_catalog(term)
+            if m:
+                IUBloomington._catalog[term] = (time.time(), m)
+                return m
+            return again[1] if again else {}
+        finally:
+            IUBloomington._lock.release()
+
+    def _classes(self, term, row):
+        """Sections (with seats) for one catalog row, or None on failure."""
+        try:
+            url = (f"{self._base}/search/classes.json?courseId={row['courseId']}"
+                   f"&courseOfferNumber={row['courseOfferNumber']}"
+                   f"&courseTopicId={row['courseTopicId']}&effdt={row['effdt']}"
+                   f"&strm={term}&inst={self.inst}&car={row.get('car', self.car)}")
+            return (self._get(url) or {}).get("classes") or []
+        except Exception:
+            return None
+
+    def fetch(self, courses):
+        term = self.cur_term()
+        cat = self._get_catalog(term)
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            rows = cat.get((subj, num))
+            if not rows:
+                continue
+            secs, ok = {}, True
+            for row in rows:                         # aggregate every catalog row (multi-topic)
+                data = self._classes(term, row)
+                if data is None:                     # a fetch failed -> skip whole course, no partial
+                    ok = False
+                    break
+                for s in data:
+                    key = str(s.get("classNbr") or "")
+                    op = s.get("openSeats")
+                    if not key or not isinstance(op, int) or key in secs:
+                        continue
+                    openb = (s.get("closed") is False) and op > 0
+                    for cs in s.get("combinedSections") or []:
+                        if not cs.get("separateEnrollmentControl"):   # shared pool binds
+                            try:
+                                if int(cs["combinedEnrollTotal"]) >= int(cs["combinedEnrollCapacity"]):
+                                    openb = False
+                            except (TypeError, ValueError, KeyError):
+                                pass
+                    secs[key] = {"open": openb, "seats": max(op, 0)}
+            if ok and secs:
+                out[course] = secs
+        return out
+
+    def resolve_term(self):
+        try:
+            terms = self._get(f"{self._base}/search/terms.json?inst={self.inst}")
+        except Exception:
+            return None
+        today = datetime.date.today()
+        best, best_delta = None, None
+        for t in terms if isinstance(terms, list) else []:
+            m = re.search(r"(spring|summer|fall|winter)\s+(20\d\d)", (t.get("descr") or "").lower())
+            if not m:
+                continue
+            season, year = m.group(1), int(m.group(2))
+            delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+            if delta < 1:
+                continue
+            if best_delta is None or delta < best_delta:
+                best_delta, best = delta, t.get("strm")
+        return best
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+
 class GeorgiaTech(Banner):
     id = "gatech"; name = "Georgia Tech"
     example = "CS 1301"; host = "registration.banner.gatech.edu"; term = "202608"
@@ -7773,7 +7958,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     WrightState(), RPI(), Duquesne(), NMSU(), USC(), Rice(), Princeton(),
     PhoenixCollege(), GlendaleCC(), MesaCC(), ChandlerGilbert(), EstrellaMountain(),
     GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC(),
-    GeorgeMason(), NorthernMichigan(), Hartford(), UTChattanooga(),
+    GeorgeMason(), NorthernMichigan(), Hartford(), UTChattanooga(), IUBloomington(),
     MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege()])
 
 
