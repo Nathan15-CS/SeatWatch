@@ -2900,6 +2900,52 @@ hand any of these to the builder until the blocker is resolved.
 **Batch status:** five claimed leads explicitly held out; zero gated candidates. No `schools.py`, builder, registry,
 or deployment changes were made. Re-probe only when the documented blocker is resolved.
 
+### Codex Batch 60 — gate-resolution supplements (July 13 2026)
+
+This pass tested five Northwest public-schedule leads. **Portland Community College is `GATED, AWAITING GO-AHEAD`;**
+the other four are explicit hold-outs. No production change is proposed and no school should be sent to the builder
+without Nathan's approval.
+
+1. **Portland Community College (OR) — GATED, AWAITING GO-AHEAD: bespoke numeric schedule/capacity endpoint.**
+   Official schedule index: `https://www.pcc.edu/schedule/`; exact current course page:
+   `https://www.pcc.edu/schedule/fall/bi/bi101/`; official capacity script:
+   `https://www.pcc.edu/schedule/wp-content/themes/pcc-schedule/scripts/capacity.js?ver=1721237068`.
+   The Fall 2026 page is term-labeled (`data-term="202604"`) and exposes native CRNs. The script's documented
+   POST is `https://www.pcc.edu/schedule/capacity/` with `term=202604` and a comma-separated `crn` list; it returns
+   JSON seat and waitlist counts without authentication. A reproduced response included mixed numeric states:
+   CRN `40145` = `1/24` seats open; `40680` = `0/24`, wait `4/5`; `40452` = `0/24`, wait `3/5`; `40665` =
+   `0/24`, wait `0/5`; and additional closed/waitlisted rows. Open is `seat[0] > 0`; preserve capacity and
+   `wait[0]/wait[1]` rather than inferring from styling. CRN is the native section key, the exact BI 101 page
+   prevents sibling-course leakage, and the POST has no hidden filter beyond the requested term/CRNs. The page
+   reports a cache timestamp of `2026-07-13 12:05:59`; the official JavaScript uses a 10-second request timeout,
+   under the 30-second gate. The public selector currently exposes only Summer/Fall 2026; the Spring URL returns
+   “Invalid search,” so there is no completed-term archive. This is explicitly noted as a limitation, but the source
+   is numeric (not status-only), with current mixed open/closed/waitlist evidence and a fail-closed missing/invalid
+   response path. Bespoke adapter work is still required; do not edit `schools.py` in research.
+
+2. **Pima Community College (AZ) — HOLD OUT: no public seat/status rows.** Official schedule form:
+   `https://bannerweb.pima.edu/pls/pccp/az_tw_zipsched.p_search`; current public choices are only Fall 2026
+   (`202710`) and Summer 2026 (`202630`). The unauthenticated form exposes search filters but no seat or
+   open/closed/waitlist fields in the returned page, and no completed-term replay is available. Do not infer
+   availability from the catalog or hand off an adapter.
+
+3. **North Seattle College (WA) — HOLD OUT: ctcLink login gate.** District schedule page:
+   `https://www.seattlecolleges.edu/academics/class-schedules`; the current Fall 2026 and Spring 2026 links point
+   to ctcLink guest class-search URLs, but both redirect to the ctcLink login/cookie page before any rows are
+   returned. The district page proves institution identity and schedule ownership only; it does not provide seats.
+
+4. **Seattle Central College (WA) — HOLD OUT: ctcLink login gate.** It shares the district schedule surface above;
+   the public current and completed-term links redirect to login, so no reproducible unauthenticated section rows,
+   seat integers, waitlists, or historical replay were obtained. Keep separate from North/South if the gate is later
+   resolved; no district-wide seat assumption is safe.
+
+5. **South Seattle College (WA) — HOLD OUT: ctcLink login gate.** Same official district links and same blocker:
+   current Fall 2026 and Spring 2026 ctcLink searches are login-gated before results. No public seat/status payload
+   or completed-term replay is available in this pass.
+
+**Batch status:** one candidate (PCC) is `GATED, AWAITING GO-AHEAD`; four are held out with documented blockers.
+No `schools.py`, registry, deployment, or builder changes were made. PCC remains a bespoke research handoff only.
+
 ### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
 Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.
 Bespoke `Princeton` adapter, 2-call public api.princeton.edu (classes list + student-app/courses/seats),

@@ -770,3 +770,14 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - I will test only each institution's official public schedule/current-term and completed-term surfaces, preserving
   district/campus identity, section keys, modality, restrictions, waitlists, and freshness. Only fully reproducible
   gate-cleared evidence will be appended to `research/README.md`; no `schools.py` edits.
+
+## July 13 Codex Batch 60 checkpoint — one gated candidate, four hold-outs
+- Portland Community College cleared the current numeric gate through its official Fall 2026 BI 101 page plus the
+  public capacity POST: native CRNs, mixed positive/zero seats, numeric waitlists, exact term, freshness, and a
+  sub-30-second request path. It is `GATED, AWAITING GO-AHEAD` as a bespoke adapter candidate. The public selector
+  has no completed-term archive; this limitation is explicit because PCC is numeric rather than status-only.
+- Pima Community College's public form currently exposes only Fall/Summer 2026 and no seat/status payload; hold.
+- North Seattle, Seattle Central, and South Seattle all route current and Spring schedule links to ctcLink login,
+  so no unauthenticated rows or completed-term replay were obtained; hold all three independently.
+- Full URLs, recipes, evidence, and blockers are recorded in `research/README.md` under “Codex Batch 60 —
+  gate-resolution supplements.” No `schools.py` or production changes were made.
