@@ -1828,3 +1828,39 @@ must remain part of every key, and a completed-term mixed full/open test is stil
 public numeric/status evidence, but none has passed the completed-term, campus-isolation, restriction, and
 cache/freshness tests required for production. No `schools.py` edit, registry change, deployment, or
 builder handoff was made.
+
+### Codex Batch 26 — Bespoke public-schedule reconnaissance (July 12 2026)
+
+This pass targets institution-specific public searches rather than shared vendor endpoints. The entries
+below are intentionally gated: a bespoke surface must still pass a real current/completed-term test and
+freshness check before anyone builds it.
+
+1. **University of Kansas (KS) — BESPOKE REVISIT LEAD, FOLLOW-UP REQUIRED (not a new identity).** KU's
+   official Schedule of Classes help confirms that public search results carry class number, seats
+   available, enrollment/capacity, meeting data, and a `Don't show full and unopened sections` filter
+   (`https://classes.ku.edu/Classes/help.jsp`). The existing reconnaissance found the Struts search form
+   at `https://classes.ku.edu/Classes/` but POST probes timed out; capture one successful browser/network
+   trace with the Fall 2026 term before calling this production-ready.
+2. **University of Hawaiʻi at Mānoa (HI) — BESPOKE PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** Mānoa's current
+   registrar says schedules are now in Browse Classes and Fall 2026 was published April 13
+   (`https://manoa.hawaii.edu/undergrad/schedule/`; calendar: `https://manoa.hawaii.edu/registrar/academic-calendar/fall-2026/`).
+   UH's current class-availability guidance defines `Seats Avail` as the number of open seats
+   (`https://www.hawaii.edu/myuhinfo/class-availability-information/`). This is a current replacement
+   route, not the retiring UH legacy pages; capture guest rows, exact campus/term keys, and a completed
+   term before adapter work.
+3. **Kent State University (OH) — BESPOKE PUBLIC NUMERIC LEAD, FOLLOW-UP REQUIRED.** Kent's official
+   department guide points to the no-login ePROD search
+   (`https://keys.kent.edu:44220/ePROD/bwlkffcs.p_adv_unsecure_sel_crse_search`) and explicitly says it
+   shows course details and the number of seats remaining, with subject/campus/course-level filters
+   (`https://www.kent.edu/spcs/course-schedules-and-schedule-planning`). Capture Fall 2026 and a finished
+   term, preserve CRN/campus/part-of-term fields, and verify that the seat value is current rather than a
+   static department snapshot.
+4. **University of Louisville (KY) — LOGIN-GATED BESPOKE LEAD, FOLLOW-UP REQUIRED.** Louisville's current
+   registration guidance documents a Class Search and Enroll `Availability` column with waitlist states for
+   Fall 2026 (`https://student.louisville.edu/registrar/courses-advising/find-classes-plan-your-coursework/waitlist-closed-classes`).
+   No guest row was captured; only pursue if the registrar exposes a sanctioned public search separate from
+   ULink login.
+
+**Batch status:** two new bespoke identities (UH Mānoa and Kent State) plus one documented KU revisit and
+one Louisville login-gated lead were archived. No numeric values were inferred for the non-KU entries, and
+no `schools.py` edit, registry change, deployment, or builder handoff was made.

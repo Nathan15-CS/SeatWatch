@@ -462,6 +462,14 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   unavailable after December 2025; they are historical/system leads only and were not handed off.
 - All ten were deduped against `schools.py` and prior research notes. No `schools.py` or builder changes.
 
+## July 12 Codex Batch 26 checkpoint
+- Batch 26 recorded bespoke public-schedule reconnaissance: UH Mānoa and Kent State are new identities;
+  KU is a previously documented revisit with stronger official seat-field confirmation; Louisville is
+  explicitly login-gated.
+- KU still needs a browser/network trace after public POST timeouts. UH Mānoa's Browse Classes is the
+  current replacement for the retiring UH legacy pages, and Kent State's ePROD search is a public numeric
+  seat lead. No adapter or builder handoff was made.
+
 ## July 12 Codex Batch 24 checkpoint
 - Batch 24 appended to `research/README.md`: eleven net-new identities — University of Southern
   California, University at Buffalo (SUNY), University of Wisconsin–Eau Claire, University of Minnesota,
