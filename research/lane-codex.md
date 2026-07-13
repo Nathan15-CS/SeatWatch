@@ -606,3 +606,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   while CMU, PennWest, and Hartford require guest-route confirmation. No seats were inferred. All five require
   campus/career, waitlist, eligibility, freshness, and current/completed-term checks before adapter work. No
   `schools.py` or builder changes.
+
+## July 12 Codex Batch 43 checkpoint
+- Batch 43 appended five net-new identities: University of Massachusetts Lowell, Harvard University, University
+  of San Diego, Cedar Crest College, and Pennsylvania State University.
+- UMass Lowell has public Fall 2026 status rows; Cedar Crest advertises an unauthenticated search, while Harvard,
+  USD, and Penn State require school/campus/guest-route validation. No numeric seats were inferred. All five
+  require campus/career, waitlist, eligibility, freshness, and current/completed-term checks before adapter work.
+  No `schools.py` or builder changes.
