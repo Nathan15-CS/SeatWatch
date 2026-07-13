@@ -13,11 +13,15 @@ School adds relay DIRECT per deploy policy; money/UI/legal stay gated behind Nat
   terms too — policy block, FINAL). **RPI resurrected** via completed-term production disproof
   (ListcrseBanner8 drop-in; live all-open is real pre-registration emptiness). CT-log B8 leftovers
   network-dead on a 20-path battery. UCSD still no FA26 (weekly recheck). UH avail.classes still 502.
+- **USC CRACKED + SENT to Build (July 13)** — first elite bespoke lead source-gated: public REST API
+  behind classes.usc.edu, real registeredSeats/totalSeats/isFull per sisSectionId, live 151-FULL WRIT-150
+  disproof, completed-term mixed. Full recipe in README block "USC (elite lead)". Remaining elite
+  reachable: Rice, Michigan, Harvard (my.harvard), CMU, Princeton.
 - **crt.sh retry pass over the 62 ct_FAIL domains running** (ctlog_retry62.py →
   ctlog_retry_results.json / needs_retry2.json; never clobbers main sweep files). Closes the July-12
-  sweep's completeness TODO.
-- Elite bespoke queue unchanged (USC, Rice, Michigan, Harvard, CMU, Princeton — reachable, need
-  bespoke adapters); Build's bench: Oregon browser-trace, UGA seat endpoint, RCCD hold.
+  sweep's completeness TODO. Early hits to 2nd-pass: opsu.edu (banner.opsu.edu/ssb.opsu.edu resolve).
+- Build's bench (theirs, track only): Batch 31 NMSU+RPI, USC bespoke, Oregon browser-trace, UGA seat
+  endpoint, RCCD hold.
 
 ## RELAY — Codex-work sweep: Batches 26 + 27 SENT (July 12)
 - **Worcester State (MA) → Batch 26, ✅ BUILT by Builder (667).** Re-gated live NewColleague: EN 101 33 sec

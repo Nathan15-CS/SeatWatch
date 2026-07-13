@@ -14,6 +14,19 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### USC (elite lead) — SOURCE-GATED + SENT to Build July 13 2026 (Grab): bespoke adapter needed
+First of the elite reachable-six cracked. Public same-origin REST API behind classes.usc.edu (Angular
+SPA): `GET /api/Terms/All` (status=="Active"; code = YYYY+season digit, Fall 2026 = 20263, Spring =
+20261) + `GET /api/Courses/Course?termCode={t}&courseCode={SMASHED}` (CSCI104/WRIT150 style). No auth,
+0.4-0.9s. **Dual response shape** (bare course object OR `{courses:[...]}` wrapper — parse BOTH; my
+wrapper-only parse mid-gate looked like an outage and wasn't). 204 = not offered = safe empty. Sections:
+key `sisSectionId` (unique, the real 5-digit reg number), exclude `isCancelled`, open = NOT `isFull`
+AND `totalSeats-registeredSeats > 0` (flag & arithmetic agreed 430/430 sampled, incl. over-cap full
+rows). Cross-listing resolved server-side (CLAS202→ANTH sections). `hasDClearance` = real seat needing
+dept clearance (preserve as note, not a fake-open). `waitlistedSeats` null everywhere — ignore. Gate:
+WRIT 150 live = 162 sec 11 open/151 FULL; WRIT 340 = 120 sec 2/118; completed Spring mixed (38/112) —
+real history. example="WRIT 150". Dedup clean. ~49k students. Full recipe relayed to Build.
+
 ### Batch 31 (parser-resurrection resweep) — SENT July 13 2026 (Grab): NMSU + RPI, both production-gated
 The dead-Banner re-sweep's first real yield — 2 resurrections, ~39k students, both near-drop-ins.
 - **New Mexico State University (Las Cruces Main, ~21k)** — Banner-9 on the PUBLIC host
