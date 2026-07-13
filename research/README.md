@@ -47,6 +47,16 @@ Net-new private R1 (~5.8k). Public registrar schedule, no auth, server-rendered 
 - GATE (live Fall 1263, English/1800): 59 sections, **44 Open / 15 Waitlist(full)** — decisive LIVE mix
   (not an all-open lead). Completed terms 1261/1253 available for extra disproof. Dedup clean.
 
+### ⭐ RCCD ×3 — ✅ SHIPPED by Build July 13 (704→707). ⚠️ SPEC CORRECTION (accuracy lesson)
+Build shipped all 3. My crack (nometadata header + msappproxy feed) held, but re-gate caught TWO errors
+I'm recording so it doesn't recur: (1) **the SharePoint list ACCUMULATES 4 terms** (Fall+Winter+Spring+
+Summer) — my "2482 sec 826/1655" counted ALL FOUR, so a watched Fall course would pull stale past-term
+rows. FIX: server-side `$filter=Term eq '26FAL'` (Build) + a `Last_Day_to_Add >= today` date backstop.
+(2) That makes my "5410 rows, paging mandatory" wrong — 5410 was the 4-term total; Fall-only RIV = 2330,
+under the 5080 cap, so single-term never pages. Correct term-filtered gate: MOV ENGL-C1000 92 sec 68/24,
+NOR 50/39-11, RIV 142/60-82. LESSON (saved to memory): before gating any BULK feed, check the term-field
+distribution and filter to target term FIRST — never assume current-term-only. Original spec below.
+
 ### ⭐ RCCD ×3 — Grab CRACKED + gate-passed July 13 (was HELD "bespoke SharePoint"; now a ready spec)
 The RCCD hold is RESOLVED — I reverse-engineered the msappproxy feed (it's PnPjs→SharePoint REST, not a
 custom API). Anonymous, no auth, real numeric seats. 3 net-new colleges (Moreno Valley, Norco, Riverside
