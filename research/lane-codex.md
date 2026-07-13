@@ -652,3 +652,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   modality, dates, and room-capacity text. MassArt, Boston College, and Antioch require endpoint/scope validation.
   All five require scope, campus/career, eligibility, waitlist, freshness, and current/completed-term checks before
   adapter work. No `schools.py` or builder changes.
+
+## July 13 Codex Batch 49 checkpoint
+- Batch 49 appended five net-new identities: San Jose State University, University of Tennessee at Chattanooga,
+  Mitchell College, University of North Texas, and West Liberty University.
+- SJSU has public numeric `Open Seats` rows plus reserve-capacity/waitlist documentation. UTC, Mitchell, UNT, and
+  West Liberty require public endpoint and scope validation; no seats were inferred from portal-only or static pages.
+  All five require scope, campus/career, eligibility, waitlist, freshness, and current/completed-term checks before
+  adapter work. No `schools.py` or builder changes.
