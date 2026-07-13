@@ -684,3 +684,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   clearest public open-class pathways, while Crafton’s PDFs and Old Westbury’s Browse Classes link require endpoint
   validation. All five require scope, campus/career, eligibility, waitlist, freshness, and current/completed-term
   checks before adapter work. No `schools.py` or builder changes.
+
+## July 13 Codex Batch 53 checkpoint
+- Batch 53 appended five net-new identities: Cañada College, College of San Mateo, Skyline College, Los Angeles
+  City College, and West Los Angeles College.
+- Cañada, CSM, and Skyline share the SMCCCD public schedule/search surface with dedicated open-class listings. LACC
+  and WLAC require sanctioned endpoint validation after headless 403 responses; no bypass or seat inference was
+  attempted. All five require scope, campus/career, eligibility, waitlist, freshness, and current/completed-term
+  checks before adapter work. No `schools.py` or builder changes.

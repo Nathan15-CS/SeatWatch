@@ -27,6 +27,36 @@ dept clearance (preserve as note, not a fake-open). `waitlistedSeats` null every
 WRIT 150 live = 162 sec 11 open/151 FULL; WRIT 340 = 120 sec 2/118; completed Spring mixed (38/112) —
 real history. example="WRIT 150". Dedup clean. ~49k students. Full recipe relayed to Build.
 
+### Princeton (elite lead) — SOURCE-GATED + SENT to Build July 13 2026 (Grab): bespoke + BROWSER-ASSISTED
+Third elite crack — and the STRONGEST disproof of the four (live-term real full rows, not completed-term
+melt). Public course search backed by `api.princeton.edu`. Two-call flow, anonymous Bearer token:
+- Token: embedded in `registrar.princeton.edu/course-offerings` page HTML as
+  `drupalSettings.ps_registrar.apiToken` (84-char base64 gateway cred, SAME for all logged-out users,
+  server-rendered so it's in raw HTML). apiBaseUrl = `https://api.princeton.edu/registrar/course-offerings/1.0.7`.
+- Classes list: `GET {apiBaseUrl}/classes/{term}?subjects_count=1&subjects=COS&fmt=json`
+  (Bearer + Accept:application/json) → `classes.class[]` with class_number, course_id, subject, catnum,
+  section, crosslistings. ⚠️ TWO SCOPING TRAPS: (1) the real param is `subjects` (PLURAL) + a
+  `subjects_count` — `?subject=COS` is SILENTLY IGNORED and returns the whole term (I hit this: first
+  "COS" row was an AAS class); (2) `subjects=COS` also returns classes where COS is only a CROSS-LISTING
+  (distinct primary subjects ECE/ECO/MAE/ORF/PSY... came back) — exact scope requires
+  subject==SUBJ AND catnum.trim()==NUM, or crosslistings contains "SUBJ NUM".
+- Seats (data was moved OUT of the classes list): `GET https://api.princeton.edu/student-app/courses/seats?term={term}&course_ids={id,id,...}&fmt=json` (chunk ~50 ids) → `course[].classes[]` with
+  numeric `capacity`, `enrollment`, `status` (O/C), `seat_status` (Open/Closed/**Canceled**), `pu_calc_status`.
+- OPEN RULE: `seat_status == "Open"` AND `capacity-enrollment > 0`. ⚠️ TRAP: the bare `status` field's
+  "C" covers BOTH Closed and Canceled — MUST use `seat_status` to exclude Canceled (found live: cap 0/
+  enr 0 Canceled rows carry status "C"). Section key = class_number (unique).
+- GATE (July 13, decisive): LIVE Fall (term 1272) COS = 2,442 open / 385 CLOSED / 72 Canceled; concrete
+  full rows COS cn21189 25/25 Closed, cn22499 25/20 over-cap Closed. Completed Spring (1264) = 544 Closed.
+  **seat_status vs (capacity-enrollment>0) agreed on ALL ~5,900 sections across both terms, 0 disagree.**
+  Terms: read `drupalSettings.ps_registrar.terms` (Fall 2026-27 = 1272, Spring 25-26 = 1264, labels win).
+- ⚠️ DEPLOYMENT WRINKLE (bespoke + browser-assisted, CVC/Quottly complexity class): `registrar.princeton.edu`
+  hard-blocks plain clients (403 with Akamai JS/TLS challenge — EVEN with a full browser UA), so the token
+  can't be bootstrapped by urllib. BUT `api.princeton.edu` IS plain-client reachable (returns 401 w/ bad
+  token, no challenge). So the adapter needs a headless-browser (or scheduled in-app browser) step to
+  scrape the token, then plain HTTP for all data calls. Token stability unknown — if it rotates, a
+  hardcoded token dies silently (whole-school miss), so bootstrap fresh, don't pin. example="COS 126".
+  ~5.7k undergrad, elite. Dedup clean. HIGHEST-VALUE of the elite four; also the heaviest to ship.
+
 ### Rice (elite lead) — SOURCE-GATED + SENT to Build July 13 2026 (Grab): bespoke adapter needed
 Second elite crack. Rice runs a CUSTOM Banner package: `courses.rice.edu/courses/!SWKSCAT.cat`.
 Listing: `?p_action=QUERY&p_term={term}&p_name=&p_subj=ENGL` → rows `CRN | 'ENGL 109 001' | ...`
@@ -2463,6 +2493,16 @@ only after it appears AND returns mixed open/full rows. No schools.py edit, no r
 5. **SUNY Old Westbury (NY) — REGISTRAR BROWSE-CLASSES LEAD, FOLLOW-UP REQUIRED.** Old Westbury’s registrar page (`https://www.oldwestbury.edu/division/office-academic-affairs/office-registrar/class-schedule`) links the official Browse Classes endpoint, documents Fall 2026 registration windows and the August 24 term start, and defines on-campus, online, remote, and hybrid modalities. No numeric guest row was captured; verify public endpoint access, section/career scope, seat and waitlist semantics, and completed-term behavior.
 
 **Batch status:** five net-new identities archived. All five have official schedule/search surfaces; none received production approval. SBVC and Santa Ana have the clearest public open-class pathways, while Crafton’s PDFs and Old Westbury’s Browse Classes link require endpoint validation.
+
+### Codex Batch 53 — Bay Area and Los Angeles public schedule leads (July 13 2026)
+
+1. **Cañada College (CA) — PUBLIC FALL OPEN-CLASS LIST LEAD, FOLLOW-UP REQUIRED.** The San Mateo County Community College District’s official WebSchedule (`https://webschedule.smccd.edu/`) publishes Fall 2026 downloads with a dedicated Cañada `Open Classes` listing and links to the public schedule search. No numeric guest row was captured here; verify the linked response, CRN/section identity, campus scope, waitlists, and completed-term replay.
+2. **College of San Mateo (CA) — PUBLIC FALL OPEN-CLASS LIST LEAD, FOLLOW-UP REQUIRED.** SMCCCD’s official WebSchedule lists a dedicated Fall 2026 College of San Mateo `Open Classes` download and the district’s WebSchedule search. No numeric guest row was captured in this pass; verify section-level fields, CSM-vs-district identity, modality/session, waitlists, and completed-term replay.
+3. **Skyline College (CA) — PUBLIC FALL OPEN-CLASS LIST LEAD, FOLLOW-UP REQUIRED.** The same official SMCCCD WebSchedule provides a dedicated Fall 2026 Skyline `Open Classes` listing and public schedule-search entry. No numeric guest row was captured; verify CRNs, campus identity, course components, waitlists, and completed-term replay before adapter work.
+4. **Los Angeles City College (CA) — REAL-TIME FALL SEARCH LEAD, HEADLESS VALIDATION REQUIRED.** LACC’s official schedule page (`https://www.lacc.edu/academics/class-schedules`) advertises real-time Fall 2026 open-class searching and a weekly-updated Fall schedule PDF. The page returned HTTP 403 to the headless fetch in this pass; no bypass was attempted and no seats were inferred. Validate the sanctioned guest endpoint, campus/session scope, CRNs, restrictions, waitlists, and completed-term behavior.
+5. **West Los Angeles College (CA) — SEARCHABLE FALL SCHEDULE LEAD, HEADLESS VALIDATION REQUIRED.** WLAC’s official schedule page (`https://www.wlac.edu/academics/class-schedules`) documents a searchable Fall 2026 schedule (Aug 31–Dec 20), a PDF class list, and late-start session filtering. The page returned HTTP 403 to the headless fetch; no bypass was attempted and no seats were inferred. Validate the sanctioned public endpoint, section/campus scope, waitlists, and completed-term replay.
+
+**Batch status:** five net-new identities archived. Cañada, CSM, and Skyline have a common district schedule/search surface with dedicated open-class listings; LACC and WLAC require sanctioned endpoint validation after headless 403 responses. No production approval was made.
 
 ### Batch 31 + USC — ✅ BUILT + DEPLOYED July 13 (Build): 684->689
 Five schools shipped in one gated batch, all re-gated live through the REGISTERED production
