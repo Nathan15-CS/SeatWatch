@@ -4,8 +4,8 @@ Cross-session research log for SeatWatch school expansion. **This file is kept l
 the full chronological batch-by-batch history lives in `research/ARCHIVE.md` (grep it for any past
 detail). Read THIS file + the lane files; only open ARCHIVE for a specific past finding.
 
-- **Live count: 690 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 13, 2026
-  (Batch 31 NMSU+RPI + USC + Wright State + Duquesne shipped 684→689; Rice shipped →690).
+- **Live count: 691 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 13, 2026
+  (684→689 Batch31 NMSU+RPI+USC+Wright State+Duquesne; →690 Rice; →691 Princeton, all shipped by Build).
 - **Who's doing what right now:** `research/lane-grabber.md` (Grab) + `research/lane-codex.md` (short, always current).
 - **How we work / accuracy+efficiency gate:** `research/PARTNER-NOTE-codex.md` and repo-root
   `CONTRIBUTING_AGENT.md`. Handoffs to the builder go through Fable; gated-but-unapproved candidates
@@ -14,6 +14,38 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 ---
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
+
+### ⭐ MARICOPA ×10 — Grab LIVE-VERIFIED July 13 (Codex Batch 25 confirmed) → GREEN-LIGHT to Build
+Codex's 10-campus Maricopa lead is REAL, LIVE, and gate-able — I production-verified it and confirmed
+the accuracy trap. Biggest single lever in the Codex pile (10 net-new colleges, one adapter).
+- Host `classes.sis.maricopa.edu`, SERVER-RENDERED (results HTML is in the page GET — no XHR/browser
+  needed for the adapter, plain urllib works). Fall 2026 term = `4266`. Per-campus institution codes:
+  Phoenix `PCC01`, Glendale `GCC02`, Mesa `MCC04`, Chandler-Gilbert `CGC08`, Estrella Mtn `EMC10`,
+  GateWay `GWC03`, Paradise Valley `PVC09`, Rio Salado `RSC06`, Scottsdale `SCC05`, South Mtn `SMC07`.
+- URL: `?institutions[]={CODE}&terms[]=4266&keywords={COURSESMASHED}&all_classes=true`.
+- ⚠️⚠️ **THE all_classes=true TRAP (accuracy-critical, Build already flagged it — CONFIRMED):** the
+  default search shows ONLY open sections. Without `&all_classes=true` a FULL section is INVISIBLE →
+  a watched full section would never appear = SILENT MISS (the quiet twin of a false-open). MUST pass
+  `all_classes=true`. Proof: Phoenix BIO201 default = 12 open/0 closed; with `all_classes=true` =
+  12 open/**5 CLOSED** ("No seats available"). That 5-closed is also the live disproof.
+- Seats: parse `N of M seats available` (open, N>0) vs `No seats available` (closed). Section key =
+  the 5-digit class number (e.g. 20901). Campus identity (institution code) MUST stay in the key —
+  separate colleges share the host. Only current/upcoming terms are exposed (no completed term), so
+  the disproof is live closed rows, which are present with all_classes=true.
+- Dedup: all 10 net-new in Python (GateWay CC ≠ Mountain Gateway CC). Build said Maricopa is next on
+  its bench — this green-lights it. ~200k students across the district.
+
+### BUILDABLE bespoke queue from Codex's pile (Grab-deduped July 13, concrete numeric evidence, need adapters)
+Honest read: Codex's 48 batches are LEADS (none production-gated); most big publics are PeopleSoft
+(fake-status dead-end) or hosts unresolvable without per-school browser recon; CVC batches self-rejected
+(contradictory seat/status). The genuinely-buildable, net-new, concrete-evidence subset for Build to
+prioritize (all deduped vs schools.py — San Diego City College already LIVE, don't rebuild):
+**Maricopa×10 (confirmed above, top priority)**, then RCCD×3 (Moreno Valley/Norco/Riverside City,
+SharePoint API — note msappproxy feed now returns an HTML proxy shell to plain GET, needs the exact
+list-query headers), SDCCD Mesa+Miramar (City shipped), Williston State (class-search.aspx numeric),
+CCBC (QuickReg labeled Open Seats), Brandeis (Enrl/Lim/Wait rows), Cayuga CC / Monroe CC (Banner —
+real hosts need browser recon, my pattern-guesses missed), West Valley (Colleague), Kent State (ePROD),
+UVM (PACE open/full banners). Each is a bespoke build; none is an existing-adapter drop-in.
 
 ### USC (elite lead) — SOURCE-GATED + SENT to Build July 13 2026 (Grab): bespoke adapter needed
 First of the elite reachable-six cracked. Public same-origin REST API behind classes.usc.edu (Angular

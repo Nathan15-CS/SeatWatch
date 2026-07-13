@@ -1,0 +1,161 @@
+[
+ {
+  "domain": "atlm.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 39
+ },
+ {
+  "domain": "granite.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 107
+ },
+ {
+  "domain": "brightpoint.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 18
+ },
+ {
+  "domain": "ictech.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 9
+ },
+ {
+  "domain": "lsuhs.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "selfservice.lsuhs.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 288
+ },
+ {
+  "domain": "lsuhsc.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "academicselfservice.lsuhsc.edu",
+   "academicselfservicetest.lsuhsc.edu",
+   "academicselfservicetest1.lsuhsc.edu",
+   "academicselfservicetest2.lsuhsc.edu",
+   "employeeselfservice.lsuhsc.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 721
+ },
+ {
+  "domain": "jeffersonstate.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "murraystate.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "midland.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 33
+ },
+ {
+  "domain": "osucascades.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "selfreg.osucascades.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 19
+ },
+ {
+  "domain": "nhsc.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 14
+ },
+ {
+  "domain": "pencol.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 41
+ },
+ {
+  "domain": "paradisevalley.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 83
+ },
+ {
+  "domain": "southtexascollege.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "spscc.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 84
+ },
+ {
+  "domain": "tulsatech.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 60
+ },
+ {
+  "domain": "uprm.edu",
+  "ct_ok": true,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 286
+ },
+ {
+  "domain": "salemstate.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ },
+ {
+  "domain": "uthsc.edu",
+  "ct_ok": true,
+  "banner_hosts": [
+   "inb.banner.uthsc.edu",
+   "ipreg.uthsc.edu",
+   "ssb.bandev.uthsc.edu",
+   "ssb.banner.uthsc.edu",
+   "ssb.bantst.uthsc.edu",
+   "wkf.banner.uthsc.edu",
+   "www.ipreg.uthsc.edu",
+   "xml.banner.uthsc.edu"
+  ],
+  "ssb_hits": [],
+  "total_names": 593
+ },
+ {
+  "domain": "uwb.edu",
+  "ct_ok": false,
+  "banner_hosts": [],
+  "ssb_hits": [],
+  "total_names": 0
+ }
+]

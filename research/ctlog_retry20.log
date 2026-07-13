@@ -1,0 +1,22 @@
+[1/20] atlm.edu
+[2/20] granite.edu
+[3/20] brightpoint.edu
+[4/20] ictech.edu
+[5/20] lsuhs.edu (banner hosts, no live SSB: selfservice.lsuhs.edu)
+[6/20] lsuhsc.edu (banner hosts, no live SSB: academicselfservice.lsuhsc.edu,academicselfservicetest.lsuhsc.edu,academicselfservicetest1.lsuhsc.edu)
+[7/20] jeffersonstate.edu [ct FAIL again]
+[8/20] murraystate.edu [ct FAIL again]
+[9/20] midland.edu
+[10/20] osucascades.edu (banner hosts, no live SSB: selfreg.osucascades.edu)
+[11/20] nhsc.edu
+[12/20] pencol.edu
+[13/20] paradisevalley.edu
+[14/20] southtexascollege.edu [ct FAIL again]
+[15/20] spscc.edu
+[16/20] tulsatech.edu
+[17/20] uprm.edu
+[18/20] salemstate.edu [ct FAIL again]
+[19/20] uthsc.edu (banner hosts, no live SSB: inb.banner.uthsc.edu,ipreg.uthsc.edu,ssb.bandev.uthsc.edu)
+[20/20] uwb.edu [ct FAIL again]
+
+=== DONE. checked=15/20  still_FAIL=5  SSB_hits=0 ===

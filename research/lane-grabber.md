@@ -5,7 +5,25 @@ Single relay point to Build is unchanged: gated finds → README under `AWAITING
 Nathan's go, relay to Build (session local_f4c9ee6c-cfaa-41e0-bf31-348d87326105) as "Batch N" → mark SENT.
 School adds relay DIRECT per deploy policy; money/UI/legal stay gated behind Nathan.
 
-## NOW (July 13) — parser-resurrection resweep EXECUTED; Batch 31 SENT (NMSU + RPI)
+## NOW (July 13 later) — Codex-pile audit + Maricopa verified; ctlog vein CLOSED; live at 691
+- **Elite: USC+Rice+Princeton ALL SHIPPED by Build (691).** Princeton's token-rotation risk solved by
+  Build via existing safe-failure guard. Elite reachable-six done (Harvard/CMU/Michigan blocked, no anon seats).
+- **⭐ MARICOPA ×10 LIVE-VERIFIED (Codex Batch 25) → green-lit to Build** (Build's next bench item).
+  classes.sis.maricopa.edu server-rendered, term 4266, 10 institution codes, `all_classes=true` MANDATORY
+  (default hides closed = silent miss; confirmed BIO201 12open/5closed only with the param). Biggest lever
+  in Codex's pile. README block "MARICOPA ×10".
+- **Codex-pile honest audit:** 48 batches = LEADS, none production-gated. Big publics mostly PeopleSoft
+  (fake-status) or hosts unresolvable w/o per-school browser recon (blind-guess confirmed dead: MSSU/
+  Cayuga/Monroe host guesses all missed). CVC batches self-rejected. Buildable net-new bespoke queue
+  (deduped, README block "BUILDABLE bespoke queue"): Maricopa×10, RCCD×3, SDCCD Mesa+Miramar (City already
+  LIVE), Williston, CCBC, Brandeis, Cayuga, Monroe, West Valley, Kent State, UVM. NOT drop-ins — each needs
+  a Build adapter. Realistic: this pile is a bespoke-build backlog, not 20 quick adds.
+- **ctlog vein CLOSED:** retry20 done → 15/20 checked, 0 SSB hits, 5 crt.sh-stubborn (needs_retry3.json).
+  Net Banner yield across the ENTIRE 229-domain CT-log batch + all 3 retry passes = 0 net-new. Vein tapped.
+- **RCCD hold:** msappproxy feed reachable but returns HTML proxy shell to plain GET — needs exact
+  SharePoint list-query headers + bespoke adapter (unchanged; still bench, not drop-in).
+
+## (earlier July 13) — parser-resurrection resweep EXECUTED; Batch 31 SENT (NMSU + RPI)
 - **Dead-pool resweep done, verdicts final** (full detail in README Batch 31 block): Banner-9 IPEDS
   cuts re-gated through the current production adapter → **NMSU resurrected** on the public host
   banner-public.nmsu.edu (needs exact-campusDescription filter — 5-campus shared pool; DACC rides free);
