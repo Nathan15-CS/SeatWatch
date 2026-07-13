@@ -583,3 +583,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - Missouri has an explicit no-login current-class-offerings route; NDSU, UND, UNK, and UNL require guest-route
   confirmation. No seats were inferred. All five require campus/career, waitlist, eligibility, freshness, and
   current/completed-term checks before adapter work. No `schools.py` or builder changes.
+
+## July 12 Codex Batch 40 checkpoint
+- Batch 40 appended five net-new identities: James Madison University, University of Richmond, George Mason
+  University, University of Wisconsin–Madison, and University of Maryland, Baltimore County.
+- JMU and UW–Madison have public-search evidence; Richmond, GMU, and UMBC remain schedule/portal leads. No
+  seats were inferred. All five require campus/career, waitlist, eligibility, freshness, and current/completed-
+  term checks before adapter work. No `schools.py` or builder changes.
