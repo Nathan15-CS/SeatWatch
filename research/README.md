@@ -16,6 +16,26 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### ⭐ West Valley + Mission (WVMCCD) ×2 — Grab CRACKED + gate-passed July 13 (browser-traced, static JSON)
+Nathan-requested trace done. schedule.wvm.edu serves raw Banner SSBSECT dumps as static per-term JSON,
+public/no-auth. 2 net-new colleges on one feed, both gate clean both terms.
+- Feed: `GET https://schedule.wvm.edu/data/{term}/crns.json` (~3.8MB, all sections BOTH colleges).
+  Banner term codes: Fall 2026 = **202670**, completed Spring 2026 = **202630** (term list at
+  `/data/sobterm.json`; Banner-style, labels win).
+- Fields: `SUBJ_CODE`, `CRSE_NUMB`, `CRN` (section key — verified UNIQUE), `SSBSECT_CAMP_CODE`,
+  `SSBSECT_MAX_ENRL`, `SSBSECT_ENRL`, `SSBSECT_SEATS_AVAIL`, `SSBSECT_SSTS_CODE` (A=active),
+  `SSBSECT_WAIT_*`, `SSBSECT_RESERVED_IND`.
+- OPEN RULE: `SSBSECT_SEATS_AVAIL > 0` (raw Banner seats; standard). Recommend also requiring
+  `SSBSECT_SSTS_CODE == 'A'` (drop cancelled/inactive). Reserved-seat rows negligible (1 in Fall).
+- ⚠️ TRAP: the CAMPUS code in the DATA is `WVC` (West Valley) / `MC` (Mission) — NOT the dropdown's
+  "WV" label. Filter on `SSBSECT_CAMP_CODE`; using "WV" returns 0 rows (I hit this). Isolation = the
+  complete feed filtered by CAMP_CODE (colleges share the file).
+- ADDRESSABILITY: complete-feed-filter by CAMP_CODE + SUBJ_CODE + CRSE_NUMB → exact sections (WVC ENGL
+  = 69 sec across distinct course numbers). Passes.
+- GATE: West Valley (WVC) Fall 1182 sec **837 open/345 full**, Spring 1035 **905/130**; Mission (MC)
+  Fall 881 sec **584/297**, Spring 782 **705/77**. Decisive real mixes both terms both colleges. Dedup:
+  both net-new. Same static-JSON family as NOCCCD (Codex) but WVM has real Banner seats — shippable.
+
 ### SDCCD Mesa + Miramar — Grab gate-passed July 13 (SAME feed as already-live City College — cheap add)
 2 net-new; City College (CITY) already shipped on this exact feed, so this is likely just 2 more campus
 codes on that adapter. One public JSON feed serves all 3 SDCCD colleges, no auth:
