@@ -842,3 +842,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Williston exposes numeric current/future rows but no completed-term selector and mixes future/high-school scope.
 - README now contains the exact official URLs, recipes, examples, scope/freshness guards, and blockers. No
   `schools.py` or production changes were made; builder handoff remains blocked pending Nathan’s explicit go-ahead.
+
+## July 13 Codex Batch 64 claim — public source-lead gate-resolution vein
+- Claiming five bounded follow-ups: Clark College; Wabash College; Hawkeye Community College; Butler County
+  Community College (BC3); and University of Houston.
+- These are existing public schedule leads, not blind hostname guesses. I will test only official current and
+  completed-term surfaces, seeking real mixed seat/status rows, exact section identity, scope/career controls,
+  pagination, freshness, and sub-30-second request paths. Only full-gate results will be promoted in README; no
+  `schools.py` edits or builder contact.
