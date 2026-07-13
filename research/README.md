@@ -2470,3 +2470,18 @@ SSB hosts (`ssb.ecsu.edu`; `bnrhvpprd/prod/test-ssb.desu.edu`) but neither retur
 `classSearch`/`getTerms` response — no numeric seat evidence, not addable. bowiestate.edu,
 savannahstate.edu, jsums.edu hit crt.sh failures (retry candidates for next pass). No actionable
 finds this run.
+
+### Rice University — ✅ BUILT + DEPLOYED July 13 (Build): 689->690
+Bespoke `Rice` adapter (courses.rice.edu !SWKSCAT.cat custom Banner catalog, guest, no auth).
+Re-gate CORRECTED two spec items from the relay: (1) completed Spring 2026 is **202620**, not
+202520 (Rice codes are academic-year based — 202520 is Spring 2025; read from the picker, labels
+win); (2) NEW TRAP: **Quadmester sub-terms** (202611/202615/202625/202705) interleave with
+semesters and 'quadmester' is NOT in _SUBTERM — Rice's picker requires the literal word
+'Semester'. Gate evidence through the REGISTERED adapter: MATH 101 = 6 sec **5 open/1 LIVE-FULL**
+(cap=enr in the current term — the strongest disproof), ENGL completed 202620 = 16/109 genuinely
+full via the same parse, xlist-bound example verified (sec 10/10, xlist 15/16 -> not-open),
+9.4s cold/0.00s warm (Purdue envelope), resolve_term()->202710, junk->fail-closed sentinel.
+WAITLIST: no live specimen found (ENGL 202620 sweep ×109 + partial COMP: zero pages carry
+waitlist text) — implemented STRICTLY FAIL-CLOSED: any waitlist text without a parseable
+'Waitlisted: 0' = not-open. Grab's own waitlist-regex doubt stands; a live specimen would let us
+relax nothing (rule is already maximal-safe). Commit + deployed same session; live site 690.
