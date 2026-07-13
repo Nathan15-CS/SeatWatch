@@ -708,3 +708,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   American, Lawrence Tech, Kentucky, and NC Wesleyan are portal, BannerWeb, or static-schedule leads. All five require scope,
   restrictions, waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or
   builder changes.
+
+## July 13 Codex Batch 56 checkpoint
+- Batch 56 appended five net-new identities: Moraine Valley Community College, College of DuPage, Florida State
+  College at Jacksonville, Santiago Canyon College, and Community College of Beaver County.
+- Moraine Valley and FSCJ have the strongest public-search signals; DuPage, Santiago Canyon, and Beaver County
+  are guest-search, PDF, or schedule-release leads. All five require sanctioned endpoint, scope, restrictions,
+  waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or builder changes.

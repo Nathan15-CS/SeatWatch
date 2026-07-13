@@ -2586,6 +2586,39 @@ American, Lawrence Tech, Kentucky, and NC Wesleyan require endpoint or static-sc
 the full production gate in this research-only pass. No `schools.py` edit,
 registry change, deployment, or builder handoff was made.
 
+### Codex Batch 56 — Five additional official Fall 2026 schedule leads (July 13 2026)
+
+These five identities are net-new after exact-name checks against `schools.py` and the research archive. They are
+source-gated leads only; no seat value is promoted without a sanctioned endpoint, scope checks, and a completed-term replay.
+
+1. **Moraine Valley Community College (IL) — REAL-TIME PORTAL SEARCH LEAD, FOLLOW-UP REQUIRED.** Moraine Valley's
+   official registration page (`https://www.morainevalley.edu/admissions/register/`) confirms Summer/Fall 2026
+   course options and explicitly directs users to `Search for Sections` for up-to-the-moment class and seat
+   availability. This pass did not capture a guest numeric row; verify public access, section identifiers,
+   campus/modality/session scope, waitlists, and completed-term behavior.
+2. **College of DuPage (IL) — GUEST SCHEDULE/WAITLIST LEAD, FOLLOW-UP REQUIRED.** The official registration guidance
+   (`https://www.cod.edu/registration/myaccess-student-planning.html`) says guests may search the current class
+   schedule, while the registration page (`https://cod.edu/registration/`) documents Fall-term waitlist behavior.
+   No numeric guest row was captured; locate the sanctioned schedule response, preserve term/section/career scope,
+   and validate reserved-seat and waitlist semantics.
+3. **Florida State College at Jacksonville (FL) — PUBLIC PEOPLESOFT CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.** FSCJ's
+   public class-search page (`https://csprd.fscj.edu/psc/csprd_1/EMPLOYEE/HRMS/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL`)
+   exposes institution/term, subject, campus, session, and `Show Open Classes Only` controls; the official payment
+   page confirms Fall 2026 sessions (`https://www.fscj.edu/registration/how-to-pay-and-payment-due-dates`). No guest
+   numeric row was captured; verify response fields, unique class/section keys, and waitlist/restriction scope.
+4. **Santiago Canyon College (CA) — FALL 2026 OPEN-CLASS SCHEDULE LEAD, FOLLOW-UP REQUIRED.** The college's official
+   Fall 2026 schedule PDF (`https://www.sccollege.edu/academics/classschedule/Shared%20Documents/SCC%20Fall%202026Class%20Schedule_FINAL_ONLINE.pdf`)
+   documents the schedule and identifies online open-class/course-availability information. Treat it as a static
+   source until the live class-search endpoint is captured; verify CRNs, seats, linked sections, modality, and replay.
+5. **Community College of Beaver County (PA) — FALL 2026 REGISTRATION/SCHEDULE LEAD, FOLLOW-UP REQUIRED.** CCBC's
+   official Fall 2026 enrollment page (`https://ccbc.edu/fall26/`) confirms the term and August 24 start date, while
+   its academic calendar (`https://ccbc.edu/academic-calendar/`) records Fall 2026 schedule-release and add/drop
+   dates. No guest numeric row was captured; locate the public class-search/catalog route and validate seat and waitlist semantics.
+
+**Batch status:** five net-new identities were archived. Moraine Valley and FSCJ have the strongest public-search
+signals; DuPage, Santiago Canyon, and Beaver County need endpoint or schedule follow-up. None passed the full
+production gate in this research-only pass. No `schools.py` edit, registry change, deployment, or builder handoff was made.
+
 ### Batch 31 + USC — ✅ BUILT + DEPLOYED July 13 (Build): 684->689
 Five schools shipped in one gated batch, all re-gated live through the REGISTERED production
 adapters (commit bc1108c, deployed, live site verified 689):
