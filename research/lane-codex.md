@@ -637,3 +637,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   schedule/search surfaces, while Cuyamaca requires live endpoint validation. All five require scope, campus/career,
   eligibility, waitlist, freshness, and current/completed-term checks before adapter work. No `schools.py` or builder
   changes.
+
+## July 13 Codex Batch 47 checkpoint
+- Batch 47 appended five net-new identities: Syracuse University, University of Pittsburgh, North Carolina State
+  University, University of Rochester, and Case Western Reserve University.
+- Rochester and Syracuse have the clearest documented schedule-search pathways; Pitt, NC State, and Case Western
+  require public/guest endpoint confirmation. All five require scope, campus/career, eligibility, waitlist,
+  freshness, and current/completed-term checks before adapter work. No `schools.py` or builder changes.

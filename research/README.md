@@ -2404,6 +2404,16 @@ only after it appears AND returns mixed open/full rows. No schools.py edit, no r
 
 **Batch status:** five net-new identities archived. UChicago has the strongest published seat-field evidence; Harper, Mt. San Jacinto, and Bradley expose public schedule/search surfaces, while Cuyamaca requires live endpoint validation. No production approval was made.
 
+### Codex Batch 47 — Northeast and Mid-Atlantic registrar/search leads (July 13 2026)
+
+1. **Syracuse University (NY) — PORTAL SCHEDULE/SEARCH LEAD, FOLLOW-UP REQUIRED.** Syracuse’s registrar (`https://registrar.syr.edu/general/schedule-of-classes/`) documents that the Fall schedule is published in March and that the real-time Search for Classes workflow lives in MySlice. No public numeric row was captured; verify sanctioned guest access, preserve Syracuse/ESF campus and career distinctions, restrictions, waitlists, and completed-term replay.
+2. **University of Pittsburgh (PA) — ENROLLMENT/CLASS-SEARCH LEAD, FOLLOW-UP REQUIRED.** Pitt’s official enrollment page (`https://www.registrar.pitt.edu/enrollment`) directs users to term/campus search criteria and class-scheduling tools. No numeric guest row was captured; verify public availability, preserve Pittsburgh/regional campuses, career, session, reserve capacities, waitlists, and completed-term semantics.
+3. **North Carolina State University (NC) — REGISTRATION/SCHEDULE LEAD, SCOPE REQUIRED.** NC State’s Poole College registration guidance (`https://poole.ncsu.edu/undergraduate/academic-resources/registration-and-enrollment/`) directs students to the university course schedule and Fall 2026 enrollment updates. This is a college-level guidance surface, not proof of a public whole-university feed; verify the registrar endpoint, campus/career scope, capacity/status fields, and term replay.
+4. **University of Rochester (NY) — PUBLIC COURSE-CATALOG SEARCH LEAD, FOLLOW-UP REQUIRED.** Rochester’s advising documentation (`https://www.rochester.edu/college/ccas/advising/course-search.html`) identifies the public Course Description Course Schedule (CDCS) and separates it from the authenticated UR Student enrollment system. Verify Fall 2026 section availability, numeric capacity/status, school/career filters, and completed-term behavior before adapter work.
+5. **Case Western Reserve University (OH) — SIS SCHEDULE LEAD, FOLLOW-UP REQUIRED.** Case Western’s registrar (`https://bulletin.case.edu/about-university/university-registrar/`) states that the schedule of classes is available electronically through SIS, while the Fall 2026 registrar calendar (`https://case.edu/registrar/dates-deadlines/academic-calendar`) confirms term dates and registration timing. No public numeric row was captured; verify guest access, career/session scope, reserve seats, waitlists, and completed-term replay.
+
+**Batch status:** five net-new identities archived. Rochester and Syracuse have the clearest documented schedule-search pathways; Pitt, NC State, and Case Western require public/guest endpoint confirmation. No seats were inferred, and no production approval was made.
+
 ### Batch 31 + USC — ✅ BUILT + DEPLOYED July 13 (Build): 684->689
 Five schools shipped in one gated batch, all re-gated live through the REGISTERED production
 adapters (commit bc1108c, deployed, live site verified 689):
