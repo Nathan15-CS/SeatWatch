@@ -16,6 +16,18 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### SDCCD Mesa + Miramar — Grab gate-passed July 13 (SAME feed as already-live City College — cheap add)
+2 net-new; City College (CITY) already shipped on this exact feed, so this is likely just 2 more campus
+codes on that adapter. One public JSON feed serves all 3 SDCCD colleges, no auth:
+- `GET https://mws-api.sdccd.edu/?term={strm}&career=ugrd` → `data.query.rows[]` (one ~5.7MB fetch, all
+  4,164 rows; filter client-side by campus). Fall 2026 term = `2267`.
+- Fields: `CAMPUS` (CITY / **MESA** / **MIRA**), `SUBJECT`+`CATALOG_NBR` (exact course scope), `CLASS_NBR`
+  (section key, verified UNIQUE per campus), `ENRL_STAT` (O/C), `ENRL_CAP`, `ENRL_TOT`, `WAIT_CAP`.
+- OPEN RULE (status authoritative — closed rows can keep positive capacity via reserved seats):
+  `ENRL_STAT == "O" AND ENRL_CAP - ENRL_TOT > 0`. Never infer open from seats alone.
+- GATE (live Fall 2267): Mesa 1971 sec **1079 open/892 not-open**; Miramar 1093 sec **576/517** — real
+  mixes, disproof passes, CLASS_NBR unique both. Dedup: both net-new (City already live).
+
 ### Brandeis — Grab CRACKED + gate-passed July 13 (single-college, PeopleSoft-backed server-rendered HTML)
 Net-new private R1 (~5.8k). Public registrar schedule, no auth, server-rendered HTML per subject.
 - Terms: `GET /registrar/schedule/search?strm={strm}` → the page's `<option value="1263">Fall 2026</option>`
