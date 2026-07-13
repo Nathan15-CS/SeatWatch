@@ -1713,6 +1713,13 @@ class Purdue:
         to keep ONLY its own campus on a shared multi-college host."""
         return True
 
+    def _crns(self, listing, subj, num):
+        """Extract this course's CRNs from the listing. Default = classic Banner-8
+        title-line format ('- 12345 - SUBJ NUM - Title'). CRN is 4-5 digits (most hosts
+        5, some like HGTC 4) — the surrounding '- ... - SUBJ NUM -' scoping keeps it exact.
+        TabularBanner8 overrides for column-table listings with a bare CRN."""
+        return re.findall(rf"- (\d{{4,5}}) - {re.escape(subj)}\s+{re.escape(num)} - ", listing)
+
     def _build(self, term, subj, num):
         """Listing -> CRNs, then one detail GET per CRN -> {crn: {open, seats}}. Caches on
         success; returns {} on failure (cache untouched)."""
@@ -1721,7 +1728,7 @@ class Purdue:
             listing = self._listing(op, term, subj, num)
         except Exception:
             return {}
-        crns = re.findall(rf"- (\d{{5}}) - {re.escape(subj)}\s+{re.escape(num)} - ", listing)
+        crns = self._crns(listing, subj, num)
         if not crns:
             return {}
         secs = {}
@@ -1872,6 +1879,40 @@ class LasPositas(CampusBanner8):
     example = "MATH 1"; term = "202602"
     base = "https://banssprod.clpccd.cc.ca.us/ssbprod"
     campus = "L"; campus_name = "Las Positas"
+
+
+class TabularBanner8(ListcrseBanner8):
+    """Banner-8 hosts whose catalog listing is a COLUMN TABLE (CRN | Subj | Crse | Sec,
+    bare CRN as link text) instead of the classic '- CRN - SUBJ NUM - Title' line — so
+    the base title-line CRN regex matched ZERO and these schools looked dead (seats=None)
+    despite standard, parseable detail pages. Only CRN DISCOVERY differs; seats come from
+    the same per-CRN detail parse. Scoping is STRICT — a CRN is kept only when its Subj AND
+    Crse cells equal the request exactly (num '1010' never catches '1010L'/'10100'); a
+    wrong-course CRN would false-alert, so exact-match is the guard, not a nicety."""
+    _ROW = re.compile(r'crn_in=(\d{4,5})[^<]*</a></td>\s*'
+                      r'<td[^>]*>(?:<abbr[^>]*>)?\s*([A-Za-z]{2,5})\s*(?:</abbr>)?\s*</td>\s*'
+                      r'<td[^>]*>\s*([0-9A-Za-z]+)\s*</td>', re.I)
+
+    def _crns(self, listing, subj, num):
+        return [crn for crn, s, c in self._ROW.findall(listing)
+                if s.upper() == subj and c.upper() == num]
+
+class CCRI(TabularBanner8):
+    id = "ccri"; name = "Community College of Rhode Island"
+    example = "ENGL 1010"; term = "202630"      # Fall 2026
+    base = "https://bannerweb.ccri.edu/pls/DORA"
+
+class NCAT(ListcrseBanner8):
+    # UNC-ECS host family (like NCCU/WSSU) — classic listing, plain ListcrseBanner8.
+    id = "ncat"; name = "North Carolina A&T State University"
+    example = "ENGL 100"; term = "202710"        # Fall 2026
+    base = "https://ssbprod-ncat.uncecs.edu/pls/NCATPROD"
+
+class HGTC(ListcrseBanner8):
+    # classic listing BUT 4-digit CRNs (handled by the widened _crns pattern).
+    id = "hgtc"; name = "Horry-Georgetown Technical College"
+    example = "PSY 201"; term = "202610"         # Fall 2026
+    base = "https://ssb.hgtc.edu/PROD9"
 
 # --- batch-23 cuts RESURRECTED on the listcrse route (their guest search form answers
 # 'No classes were found' for everything; the catalog route serves the same sections).
@@ -6607,7 +6648,7 @@ def _guard_registry(all_schools):
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
-    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(),
+    MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(),
     IvyTech(), UTArlington(), UAlaska(), UOregon()])
 
 
