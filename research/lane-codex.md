@@ -730,3 +730,8 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Roxbury Community College, and University of Massachusetts Lowell.
 - I will promote only leads with reproducible current Fall 2026 seat/status data, a completed-term mixed-status check,
   unique section identity, and an adapter-ready request recipe; otherwise they remain explicitly gated. No `schools.py` edits.
+
+## July 13 Codex Batch 58 supplement claim — Delaware numeric lead
+- Adding University of Delaware to the same promotion pass after the original five-lead sweep yielded two
+  status-only/seatless blockers. I will probe only the official public Courses Search, with a completed-term
+  replay and campus/session/cross-list scope checks; no `schools.py` edits.
