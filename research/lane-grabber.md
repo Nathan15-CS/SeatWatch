@@ -5,6 +5,18 @@ Single relay point to Build is unchanged: gated finds → README under `AWAITING
 Nathan's go, relay to Build (session local_f4c9ee6c-cfaa-41e0-bf31-348d87326105) as "Batch N" → mark SENT.
 School adds relay DIRECT per deploy policy; money/UI/legal stay gated behind Nathan.
 
+## Codex batches 69-72 audit (July 13) — NOTHING shippable; NAU = fake-status trap (held)
+Checked Codex's newest (69-72). All hold-outs except NAU (Batch 71, "GATED"), which I re-assessed and
+HELD: it's classic PeopleSoft COMMUNITY_ACCESS.CLASS_SEARCH.GBL — our documented FAKE-ALL-OPEN dead-end
+(we already cut NAU: 121/121 English "Open" in a completed term). Codex found a numeric "Available Seats"
+field + Closed icons + a small completed-term mix (Spring ART 161 = 2,2,0,0), which COULD mean the numeric
+field is real — but a bare GET returns a 2940-byte stateful shell (no results), so verifying it needs the
+full stateful PeopleSoft flow (ICSID/InFlight — archive says historically not worth it), and the family
+fails the completed-term status test by design. Not worth the browser-stateful gate for one already-cut
+fake-status school. Rest of 69-72: UF (ONE.UF catalog-only, no seats), UH/MSU (PeopleSoft, no rows
+captured), Clemson (current-only), + WA/MT/AK/ID publics all login/redirect-gated. Codex is now scraping
+uniformly auth-gated/catalog-only flagships — low yield. Honest read for Nathan: no new clean lead here.
+
 ## NOW (July 13 later) — Codex-pile audit + Maricopa verified; ctlog vein CLOSED; live at 691
 - **Elite: USC+Rice+Princeton ALL SHIPPED by Build (691).** Princeton's token-rotation risk solved by
   Build via existing safe-failure guard. Elite reachable-six done (Harvard/CMU/Michigan blocked, no anon seats).
