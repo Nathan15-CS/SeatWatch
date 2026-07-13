@@ -735,3 +735,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - Adding University of Delaware to the same promotion pass after the original five-lead sweep yielded two
   status-only/seatless blockers. I will probe only the official public Courses Search, with a completed-term
   replay and campus/session/cross-list scope checks; no `schools.py` edits.
+
+## July 13 Codex Batch 58 checkpoint — four gate-resolved candidates
+- Brandeis University, University of Maryland (College Park), San José State University, and University of Delaware
+  each cleared current/completed mixed-status evidence, native section identity, scope, and adapter recipe checks.
+- Roxbury Community College remains status-only without a public completed-term replay; UMass Lowell has status-only
+  full/waitlist labels without numeric capacity or completed-term seat replay. Both are held out.
+- Detailed gate resolutions are appended to `research/README.md` under `Codex Batch 58 — gate-resolution supplements`.
+  All four are `GATED, AWAITING GO-AHEAD`; no `schools.py`, builder, registry, or deployment changes were made.

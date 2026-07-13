@@ -2758,6 +2758,68 @@ DEPLOYMENT BLOCKER (the reason it's benched, not shipped):
   NOT adopt (B) — a browser dependency on the poller is the one change that most undermines the
   stdlib-single-scp design that makes the accuracy discipline sustainable. NO schools.py edit made.
 
+### Codex Batch 58 — gate-resolution supplements (July 13 2026)
+
+This is a gate-resolution supplement for existing leads, not a new identity list. Four sources cleared the
+research bar and are **GATED, AWAITING GO-AHEAD** for builder review. Roxbury and UMass Lowell remain held out
+because they failed the completed-term/numeric-seat requirements. No `schools.py` or builder changes were made.
+
+1. **Brandeis University (MA) — GATED, AWAITING GO-AHEAD.** Current Fall 2026:
+   `https://registrar-prod.unet.brandeis.edu/registrar/schedule/classes/2026/fall/1800/UGRD`; completed Spring 2026:
+   `https://registrar-prod.unet.brandeis.edu/registrar/schedule/classes/2026/spring/1800/UGRD`. The official page is
+   undergraduate, term-labeled, and subject-scoped (English `1800`) with `Course #`, `Time`, and `Enrl / Lim / Wait`.
+   Fall reproduces `ENG 12A 1` Open `12 / 22 / 0` and `ENG 19A 1` Waitlist `11 / 11 / 4`; Spring reproduces
+   `ENG 22A 1` Open `17 / 20 / 0` and `ENG 10B 1` Waitlist `20 / 20 / 0`. Open requires explicit `Open` plus a
+   sane positive `Lim-Enrl`; explicit `Waitlist` is closed even when arithmetic is ambiguous. Native key is the
+   complete course label plus section (for example `ENG 12A 1`). The subject page repeats cross-listings under
+   requirement headings, so dedupe identical `(course label, section, title, meeting, instructor)` rows. Keep the
+   selected subject and undergraduate career; exclude consent/independent-instruction rows unless supported.
+   This is a bespoke HTML adapter candidate; enforce a 30-second timeout and fail closed on term/HTML mismatch.
+
+2. **University of Maryland, College Park (MD) — GATED, AWAITING GO-AHEAD.** Current Fall 2026:
+   `https://app.testudo.umd.edu/soc/202608/ENGL/ENGL101`; completed Spring 2026:
+   `https://app.testudo.umd.edu/soc/202601/ENGL/ENGL101`. Each page gives an `Open Seats as of` timestamp and
+   `Seats (Total, Open, Waitlist[, Holdfile])` per section. Fall examples: ENGL101 `0504` has `Open 1`, `0602`
+   has `Open 5`, and `0102` has `Open 0, Waitlist 1`; Spring examples: `0001` `Open 1`, `0102` `Open 0`, and
+   `0103` `Open 7`. Open is numeric `Open > 0`; zero-open rows are closed regardless of waitlist/holdfile. Native
+   key is `term + subject/course + section` (for example `202608/ENGL/ENGL101/0504`). Preserve location/program,
+   delivery, and restriction text; the form offers College Park, Shady Grove, UMAB, online, and other programs, so
+   explicitly select College Park to prevent campus leakage. Bespoke HTML candidate; enforce a 30-second timeout and
+   fail closed on stale/missing timestamp or non-College-Park rows.
+
+3. **San José State University (CA) — GATED, AWAITING GO-AHEAD.** Current:
+   `https://www2.sjsu.edu/classes/schedules/fall-2026.php`; completed archive:
+   `https://www2.sjsu.edu/classes/schedules/archive/spring-2026.php`. Both official tables expose `Section`, `Class
+   Number`, mode, dates, and explicit `Open Seats`; Fall is stated to refresh nightly. Fall examples: `MATH 30`
+   section 01 class `42239` has `1` open and section 03 class `43377` has `19`; zero-open rows coexist. Spring
+   examples: `AAS 1` section 01 class `27518` has `0`, section 05 class `27509` has `4`. Open is only
+   `Open Seats > 0`; never infer availability from reserve capacity. SJSU documents reserve seats and waitlist
+   movement, so preserve notes and treat reserve/permission rows conservatively. Native key is `term + class number`
+   (class numbers are unique), with section label as fallback. The public table excludes some no-print classes that
+   require MySJSU, so do not call it exhaustive. Enforce a 30-second timeout and fail closed if the table/column is
+   absent.
+
+4. **University of Delaware (DE) — GATED, AWAITING GO-AHEAD.** Official form:
+   `https://udapps.nss.udel.edu/CoursesSearch/`; form action is `search-results`. Validated recipe: `GET
+   /CoursesSearch/search-results?term=2268&search_type=A&course_sec=ACCT` (Fall 2026), replayed with `term=2263`
+   (Spring 2026). The response table labels `Course`, `Campus`, `Open seats`, `Session`, and `Instruction Mode`.
+   Fall examples include `ACCT200010` `12 OF 50` and `ACCT207011` `0 OF 55` with `CURRENTLY FULL`; Spring includes
+   `ACCT207010` `0 OF 49`/`CURRENTLY FULL` and positive-open rows. `CURRENTLY FULL` means the meeting-group capacity
+   is reached; `WL` means wait list. Open is numeric first value in `X OF Y > 0` and no `CURRENTLY FULL`; a WL badge
+   alone does not close a positive-open row. Native key is linked course code plus term (for example `ACCT207010`),
+   retaining `courseid`, `offernum`, `session`, and `section` from the link. Preserve campus (`NEWRK`, `DOVER`,
+   `GTOWN`, `WILM`, `DIST`, etc.), session, mode, and cross-list indicators. The official page exposes `Last updated`
+   (Fall probe: `7/13/26 02:22 PM`) and the Registrar warns that Courses Search is not real-time, so surface the
+   timestamp and fail closed on stale/missing tables. Enforce a 30-second timeout.
+
+**Held out after this pass:** Roxbury Community College has public Fall 2026 `Open`/`Full` status rows but no
+numeric capacity and no public completed-term replay. UMass Lowell exposes `Course Full` and `Course Full - Wait
+List Available` but no numeric capacity or completed-term seat replay. Neither is safe for builder handoff yet.
+
+**Batch status:** four gate-resolved candidates are documented above; two claimed leads are explicitly held out.
+All four require Nathan's explicit go-ahead before builder work. No production approval, `schools.py` edit, registry
+change, deployment, or builder handoff was made.
+
 ### Princeton — ✅ SHIPPED July 13 (Build), Nathan-approved: 690->691
 Reversed the earlier "bench" after Nathan said try it if it clears legal+accuracy+efficiency — it does.
 Bespoke `Princeton` adapter, 2-call public api.princeton.edu (classes list + student-app/courses/seats),
