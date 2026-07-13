@@ -1706,3 +1706,68 @@ stale or restricted row is presented as live production evidence.
 current public schedule/seat-field leads; Purchase and MCLA are registration-surface leads. The five UH
 entries are explicitly legacy/retiring and are held out of any builder handoff. No `schools.py` edit,
 registry change, deployment, or builder handoff was made.
+
+### Codex Batch 24 — Eleven current public-search leads (July 12 2026)
+
+These eleven identities are net-new after exact-name checks against `schools.py` and prior research
+notes. Only USC has a captured current numeric row in this pass; the remaining entries are bounded
+public-search or login-gated leads and must not be treated as live seat evidence until replayed.
+
+1. **University of Southern California (CA) — PUBLIC NUMERIC LEAD, FOLLOW-UP REQUIRED.** USC's official
+   Fall 2026 schedule (`https://classes.usc.edu/term/20263/catalogue/school/DRNS/program/CLAS`) publishes
+   course-level `Available Seats` values and explicit `ALL SECTIONS FULL` markers (for example, CLAS 151
+   shows 10 available seats). Verify section-level identifiers, reserved/D-clearance semantics, and a
+   completed-term comparison before adapter work.
+2. **University at Buffalo (SUNY) (NY) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** UB's registrar documents
+   a guest Public Class Schedule that non-UB users can use to view available classes
+   (`https://www.buffalo.edu/registrar/instructions-for-using-HUB/class-search.html`); the non-degree
+   page explicitly points to Fall 2026 and the public schedule
+   (`https://www.buffalo.edu/registrar/registration/non-degree-seeking-students/register-as-a-non-degree-seeking-student.html`).
+   No result row or seat value was captured here; reproduce the Fall 2026 guest flow and preserve class,
+   section, waitlist, and reserve fields.
+3. **University of Wisconsin–Eau Claire (WI) — PUBLIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** UW–Eau Claire's
+   official CampS guest-search guide (`https://kb.uwec.edu/articles/public-search-in-the-class-schedule`)
+   identifies a no-login Class Search, an automatic `Show Open Classes Only` filter, and green-open/blue-
+   closed status icons. Capture a current term and completed term, and confirm whether the guest payload
+   exposes numeric seats or only status.
+4. **University of Minnesota (MN) — PUBLIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** The University of
+   Minnesota's official registration guide links a Public Class Search and says guests can filter to open
+   classes and click a class number to view seats (`https://onestop.crk.umn.edu/registration/register-classes/search-classes`).
+   The search spans multiple campuses; keep the selected institution/campus in every key and verify
+   current/completed rows before any campus-specific adapter.
+5. **Cal Poly, San Luis Obispo (CA) — PUBLIC DYNAMIC LEAD, FOLLOW-UP REQUIRED.** Cal Poly's registrar
+   documents a public class schedule for the Fall 2026 cycle and a `Show Open Course` checkbox that limits
+   results to sections with seats (`https://registrar.calpoly.edu/class-search`). Capture the public rows,
+   exact class numbers, campus/location, and a completed-term full/closed sanity set.
+6. **Los Angeles Mission College (CA) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** The official Fall 2026
+   calendar (`https://www.lamission.edu/sites/lamc.edu/files/2026-04/2026%20Fall%20Calendar.pdf`) points
+   students to the public schedule index/SIS and states that open classes may be enrolled during the first
+   days. No live row-level seat payload was captured; follow the schedule link and require explicit status
+   or available-seat fields.
+7. **University of California, San Diego (CA) — LOGIN-GATED PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** UCSD's
+   current registrar guidance covers Fall 2026, directs users to Schedule of Classes/WebReg, and says
+   results include the number of available seats (`https://students.ucsd.edu/my-tritonlink/tools/tool-help/schedule-of-classes.html`).
+   The TSS transition is scheduled for July 2026, so do not assume the old endpoint remains valid; capture
+   the new guest surface and preserve quarter/session keys.
+8. **University of New Hampshire (NH) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** UNH's official guidance
+   explains that WebCat exposes open/available seats and distinguishes `Closed`/`Reserve Closed`, with
+   Fall 2026 registration dates (`https://chhs.unh.edu/advising/course-registration`). The WebCat search
+   redirected to login in this pass; no numeric rows are claimed.
+9. **New York University — ITP program only (NY) — LIMITED-SCOPE PROGRAM LEAD, FOLLOW-UP REQUIRED.** NYU
+   ITP's Fall 2026 registration guide says Albert Course Search exposes `Open`, `Wait list available`, and
+   `Closed` statuses (`https://itp.nyu.edu/help/fa26-itp-registration/`). This is not evidence for NYU's
+   general schedule: keep the adapter scope limited to ITP unless a separate guest feed is reproduced.
+10. **Los Angeles Valley College (CA) — PUBLIC-INDEX LEAD, FOLLOW-UP REQUIRED.** LAVC's registrar page
+    lists Fall 2026 dates, a searchable SIS schedule, and a Daily Course Listing that can be sorted by open/
+    closed status (`https://www.lavc.edu/academics/class-schedule`). Capture section IDs and numeric seats
+    from the linked public listing; do not infer seats from the calendar alone.
+11. **Gettysburg College (PA) — LOGIN-GATED LEAD, FOLLOW-UP REQUIRED.** Gettysburg's current Fall 2026
+    advising guide says its Class Search can show all classes with seats available and a number of open
+    seats (`https://www.gettysburg.edu/offices/center-student-success/academic-support/first-year-advising-registration-guide`).
+    The workflow requires Campus Experience credentials, so treat this as a discovery lead only until a
+    guest schedule or sanctioned public endpoint is found.
+
+**Batch status:** eleven net-new identities were archived. USC is the only captured current numeric
+surface; UB, UW–Eau Claire, UMN, Cal Poly SLO, and LAVC are the best public-search follow-ups. UCSD,
+UNH, NYU ITP, and Gettysburg are explicitly login- or scope-gated. No `schools.py` edit, registry change,
+deployment, or builder handoff was made.

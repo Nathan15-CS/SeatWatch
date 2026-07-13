@@ -461,3 +461,13 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - The five UH identities are explicitly marked legacy/retiring because the official service warns it was
   unavailable after December 2025; they are historical/system leads only and were not handed off.
 - All ten were deduped against `schools.py` and prior research notes. No `schools.py` or builder changes.
+
+## July 12 Codex Batch 24 checkpoint
+- Batch 24 appended to `research/README.md`: eleven net-new identities — University of Southern
+  California, University at Buffalo (SUNY), University of Wisconsin–Eau Claire, University of Minnesota,
+  Cal Poly San Luis Obispo, Los Angeles Mission College, UC San Diego, University of New Hampshire, NYU
+  ITP (limited scope), Los Angeles Valley College, and Gettysburg College.
+- USC has a captured Fall 2026 course-level `Available Seats` surface; the other entries are explicitly
+  public-search, index, or login-gated leads with no inferred numeric seats. UCSD's TSS transition and NYU's
+  ITP-only scope are called out to prevent overbroad adapters.
+- All eleven were deduped against `schools.py` and prior research notes. No `schools.py` or builder changes.
