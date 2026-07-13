@@ -15,6 +15,13 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### Chabot + Las Positas — ✅ BUILT + DEPLOYED July 12: 675->677 (2 schools, 1 CampusBanner8 variant)
+Chabot-Las Positas district shares ONE Banner-8 host; plain adapter mixes campuses. New
+CampusBanner8(Purdue): sel_camp=<code> pre-filter (verified disjoint) + per-CRN structured
+'{Campus} College Campus' verification (the shared-district chrome names both colleges — a bare
+name regex false-matches; that trap cost real gate time, now guarded). Chabot ENGL 1 = 68 sec 40 full;
+LP MATH 1 = 23 sec 6 full; cross-campus CRN overlap = EMPTY. LP uses own numbering. LIVE.
+
 ### University of New Mexico — ✅ BUILT + DEPLOYED July 12 (batch 30): 674->675 (commit 06d957d)
 UNM Albuquerque flagship (~25k), drops into ListcrseBanner8. NM 4-digit course numbers.
 Re-gated live: ENGL 1110 122 sec 25 open/97 FULL (123 real-full disproof across sample), zero
