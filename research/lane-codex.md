@@ -923,3 +923,10 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   field. All four remain hold-outs.
 - README now records official URLs, exact IU recipes/evidence, scope and key guards, and every blocker. No
   `schools.py` or production changes were made.
+
+## July 13 Codex Batch 68 claim — remaining public-index follow-up vein
+- Claiming five bounded leads from the untested queue: Kalamazoo Valley Community College; Middlebury College;
+  Shasta College; Westmont College; and Arcadia University. Exact-name checks found no matching identity in
+  `schools.py`. I will probe only official public schedule/search surfaces, requiring current/completed terms,
+  authoritative mixed status or numeric seats, exact section identity/scope, freshness, pagination, and sub-30-second
+  response paths. No `schools.py` edits or builder contact.
