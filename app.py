@@ -1528,7 +1528,7 @@ def pricing_section():
    <div class="pw-amt">$29.95</div>
    <div class="pw-name">5 courses</div>
    <div class="pw-each">up to 5 classes · about $6 each</div>
-   <div class="pw-list">{feat("Unlimited sections, every class")}{feat("Your whole schedule, covered")}</div>
+   <div class="pw-list">{feat("Unlimited sections, every class")}</div>
    <div class="pw-anchor">Just $5 more than two classes.</div>
    {cta(3, "Cover my whole schedule", True)}
   </div>
