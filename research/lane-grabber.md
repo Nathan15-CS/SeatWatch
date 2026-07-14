@@ -5,6 +5,10 @@ Single relay point to Build is unchanged: gated finds → README under `AWAITING
 Nathan's go, relay to Build (session local_f4c9ee6c-cfaa-41e0-bf31-348d87326105) as "Batch N" → mark SENT.
 School adds relay DIRECT per deploy policy; money/UI/legal stay gated behind Nathan.
 
+## Delaware + SJSU gated (July 13) — Delaware CLEAN/ready; SJSU buildable but NIGHTLY-refresh (Nathan call)
+- **University of Delaware** ✅ READY: GET udapps.nss.udel.edu/CoursesSearch/search-results?term=2268&search_type=A&course_sec={SUBJ} (Fall 2268/Spring 2263). Open = "X OF Y" X>0 AND no "CURRENTLY FULL". Key=concatenated code (ENGL110010). Gate: Fall ENGL 25/24, MATH 34/14 mixes; addressable; updates through the day. Relayed.
+- **SJSU** ⚠️ HELD FOR NATHAN: static numeric table www2.sjsu.edu/classes/schedules/fall-2026.php (Open Seats col, class-number key). Platform SAFE (NOT fake-status PeopleSoft — Build's worry resolved). Gate: 5007/2006 live, 4133/2296 completed — real. BUT refreshes NIGHTLY (undercuts "alerts in seconds") + excludes no-print classes. Data real+safe but nightly lag = quality trade-off; Nathan decides.
+
 ## MassArt FIXED (July 13) — base Colleague, not NewColleague → 4-line drop-in, relayed to Build
 Build's NewColleague.fetch got no-data because MassArt (mca-ss.colleague.elluciancloud.com) uses the
 OLDER Colleague API: /Student/Courses/SearchAsync = 404; the working route is
