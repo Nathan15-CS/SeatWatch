@@ -16,6 +16,42 @@ detail). Read THIS file + the lane files; only open ARCHIVE for a specific past 
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
 
+### ⭐ VCCCD ×3 (Ventura County CCD) — Grab BROWSER-TRACED + gate-passed July 14 (was bespoke-bench; now ready)
+Moorpark College + Oxnard College + Ventura College, ~37k combined. Traced the Django SPA
+(schedule.vcccd.edu) that stumped the earlier plain-GET probe (that hit the wrong host,
+`banpublic.vcccd.edu` — a dead stub; the real app is `schedule.vcccd.edu`).
+- **Session (plain-client reproducible, NO live browser needed — confirmed):** `GET https://schedule.vcccd.edu/`
+  sets a Django `csrftoken` cookie. `POST https://schedule.vcccd.edu/filter/` with header `X-CSRFToken: {token}`
+  (cookie sent automatically) + form-encoded body carrying `csrfmiddlewaretoken={token}` and all form fields
+  (subjCombobox, locCombobox, crse, crn, ctitle, start_hh/mm/ap, end_hh/mm/ap, newc, noncrc, offc, mdCombobox,
+  pace, ztc, geCombobox, ge=`%`, csupport, **term**) — send the full field set with empty-string defaults,
+  confirmed working; untested whether a minimal subset also works.
+- ⚠️ **`subjCombobox` does NOT filter server-side** — every request (regardless of subject value) returns the
+  **COMPLETE district-wide term catalog** in one ~7.3MB response (confirmed: `subjCombobox=ENGL` returned rows
+  starting AB/AC/ACCT/ACE... i.e. everything). This is actually the SAFE shape: fetch once per term, filter
+  client-side by course code + campus. Do not rely on the subject param to scope the response.
+- Fields per section (HTML table, rendered client-side from the POST response): `Status` (**OPEN/FULL/
+  WAITLISTED**, textual, authoritative), `CRN` (key, verified UNIQUE — 0 dup across 1,574 parsed rows),
+  `Cap`/`Act`/`Rem` (numeric, `Rem == Cap - Act` held on every row checked), `Location` (campus identity).
+  Term codes: Fall 2026 = `202607`, Spring 2026 = `202603` (dropdown-confirmed).
+- **OPEN RULE:** `Status == "OPEN"` (equivalently `Rem > 0`; the two agreed on 100% of parsed rows, 0
+  disagreements). WAITLISTED and FULL are both not-open.
+- **CAMPUS ISOLATION:** `Location` field is prefixed with the campus name — `Oxnard *`, `Ventura *`,
+  `Moorpark *` cover the vast majority of rows (Moorpark 769, Ventura 477, Oxnard 249 in a 1,574-row sample);
+  a residual "OTHER" bucket (TBA/online-generic/proctored-exam-room strings ~5%) needs a fallback rule
+  (e.g. default to unscoped or hold those sections) — flag this to whoever builds it.
+- **GATE (live Fall 202607, decisive):** full-catalog fetch = **3,911 OPEN / 404 FULL / 614 WAITLISTED**
+  sections district-wide (real mix, can't be faked); structured sub-parse of 1,574 rows had 0 duplicate CRNs
+  and 0 status-vs-arithmetic disagreements. Response reproduced byte-for-byte identical length (7,372,414)
+  via a plain `urllib` + cookiejar client with no browser — confirmed NOT a Princeton-style hard requirement.
+- **ADDRESSABILITY:** the response IS the complete term catalog → filter by course code + campus-prefixed
+  Location = deterministic, no scatter. Passes.
+- Completed-term (202603) request returned a suspiciously small result (6 OPEN, 0 FULL) at the same payload
+  size — inconclusive, not yet explained (possibly a term-scoping quirk); do NOT treat as a shipped
+  completed-term disproof. The LIVE-term disproof above (404 real FULL rows) already meets the bar on its own.
+- Dedup: all 3 (Moorpark/Oxnard/Ventura College) net-new. Supersedes the "VCCCD bespoke Django lead, needs
+  browser-trace" note — trace is done, this is ready for an adapter.
+
 ### ⭐ IU Bloomington — Grab BROWSER-TRACED + gate-passed July 13 (Build handed back; ~48k flagship)
 iGPS public course search XHR chain fully traced (Build couldn't extract it from the minified SPA).
 Public, no-auth, JSON. 9-CAMPUS SHARED HOST — IUBLA isolation mandatory + VERIFIED.
@@ -199,6 +235,125 @@ exists. Keep the source-specific restrictions below; do not collapse them into o
    replay the completed term; verify no sibling/cross-list/campus leakage; enforce a 30-second timeout;
    and surface daily/static freshness for Humboldt. No production code or registry edits were made by this
    research pass.
+
+### ⭐ Batch 3 — five additional direct seat sources — GATED, AWAITING GO-AHEAD (Codex, July 14 2026)
+Five more net-new identities with direct current-plus-historical evidence. These are promoted from the
+research archive into a single builder queue; the source-specific freshness/completeness caveats are part
+of the implementation contract.
+
+1. **Sandhills Community College (NC)** — official nightly seat tables:
+   `https://olympus.sandhills.edu/seatsAvailable/2026FASeatsAvailable.htm` and
+   `https://olympus.sandhills.edu/seatsAvailable/2026SPSeatsAvailable.htm`. Columns are
+   `Dept Num Sec ... Max Seats Remaining Seats Comments`. Fall 2026 BIO 111 includes 25/2 and 25/14
+   alongside zero/negative rows; Spring 2026 has mixed 25/8, 25/7, and full rows. Match exact
+   `(term, department, number, section)` and set open only when `Remaining Seats > 0`; blank continuation
+   lines belong to the preceding section. Preserve comments and label this as a nightly snapshot, not
+   real-time polling. Fail closed if the table header or section continuation pattern changes.
+
+2. **The College of the Florida Keys (FL)** — public Banner detail pages, Fall 2026 term `202710` and
+   Spring 2026 term `202620`. Current example:
+   `https://secure.cfk.edu/prod/bwckschd.p_disp_detail_sched?crn_in=11488&term_in=202710` (MAT 1033,
+   30/15/15); completed example:
+   `https://secure.cfk.edu/prod/bwckschd.p_disp_detail_sched?crn_in=20654&term_in=202620` (MAT 1033,
+   30/19/11). Detail pages expose capacity/actual/remaining plus waitlist capacity. Use exact
+   `(term, subject, course, CRN)`; **open = primary `Remaining > 0`**, never waitlist remaining. Preserve
+   credit-level restrictions and confirm the detail page's college/campus identity. This is a small
+   Banner bespoke instance; verify subject/CRN discovery before reusing a generic Banner adapter.
+
+3. **Kenyon College (OH)** — official static seat tables at `https://registrar.kenyon.edu/schedgrid.htm`,
+   linking Fall 2026 `sep26_seats.htm` and Spring 2026 `jan26_seats.htm`. Spring is timestamped July 11,
+   2026 and exposes CRN, subject/number, title, instructor, meeting data, and `SEATS`; captured rows range
+   from 1 through 35 available. Match exact term + CRN/section and use `SEATS > 0`. This is an open-only
+   view: **omission means unknown, not closed**. A production adapter must either explicitly support
+   open-only semantics (fail closed on missing rows and disclose snapshot freshness) or stop at the research
+   gate; do not fabricate a full catalog from the open list.
+
+4. **Schoolcraft College (MI)** — public schedule viewer:
+   `https://my.schoolcraft.edu/course-schedules/2026/Fall/All` and
+   `https://my.schoolcraft.edu/course-schedules/2026/Spring/All`. Browser verification on July 14 found
+   the same table schema in both terms: `Course`, native numeric `Section`, title,
+   `Seat Available/Capacity/Waitlist`, explicit `Status`, instructor, location, credits, fees, and
+   meeting rows. Fall `ENG` currently reports a timestamp of **07/14/2026 03:17:29 PM** with mixed rows,
+   including `101 / 149100 / 0/28/0 / Closed`, `101 / 141308 / 1/28/0 / Open`, and `101 / 149103 /
+   0/28/4 / Closed`; Spring `ENG` shows the same fields and positive Open rows such as `101 / 127101 /
+   1/28/0`. **Open = `Status == "Open" AND available > 0`**; `Closed` wins over any ambiguous numeric
+   value. Key by `(term, course, section)`; preserve repeated meeting rows under one section and the
+   timestamp/part-of-term heading. This is the strongest new batch member and should be the first adapter
+   built.
+
+5. **Grayson College (TX)** — official public planner pages:
+   `https://planner.grayson.edu/Planner/CourseSearch/607` (Fall 2026) and
+   `https://planner.grayson.edu/Planner/CourseSearch/596` (Spring 2026). Rows expose stable course-section
+   IDs, dates, campus, `Seats: open/maximum`, and `Status`; Fall has mixed open/closed rows, while Spring
+   has mixed examples including 23/30 Open and 0/1 Open. Match exact planner term + course-section ID and
+   require **explicit `Status == "Open"` plus open seats > 0**. Preserve campus, modality, part-of-term,
+   and any late-start/session fields. Verify the planner response is complete for the selected course and
+   does not silently apply an open-only filter before production.
+
+**Batch builder checklist:** add only these five net-new names after production fetch tests; use native
+   CRN/section keys; replay current and completed terms; test open/full/waitlist behavior; preserve campus,
+   modality, restrictions, and repeated meeting rows; enforce a 30-second timeout; and surface nightly/static
+   freshness for Sandhills, Kenyon, and any timestamped Schoolcraft/Grayson response. No production code or
+   registry edits were made by this research pass.
+
+### ⭐ Batch 4 — five additional direct seat sources — GATED, AWAITING GO-AHEAD (Codex, July 14 2026)
+Five more net-new identities, now checked against the current `schools.py` registry and promoted only where
+the public source exposed concrete section-level evidence. The live sources below were browser-checked on
+July 14; Nicholls is an official dated PDF snapshot and must not be treated as real-time.
+
+1. **Quinsigamond Community College (MA)** — public Jenzabar 9.4 advanced search:
+   `https://theq.qcc.edu/ICS/Course_Offerings_and_Schedule.jnz?portlet=AddDrop_Courses&screen=Advanced+Course+Search&screenType=next`.
+   Fall 2026 English search returned eight pages with native course/section labels, status, and `x/y` seats:
+   ENG 099-04 `1/20 Reopened`, ENG 099-05 `11/20 Open`, ENG 099-50 `0/20 Closed`, and ENG 101-01
+   `17/22 Open`; Spring replay returned ENG 101-07 `6/21 Reopened` and ENG 101-17 `1/22 Reopened`.
+   Key by the visible course + section label, preserve literal `Reopened` status, and retain page number,
+   campus, method, dates, and instructor. Open when the numeric available count is positive, but do not
+   collapse `Reopened` into `Open`; pagination is mandatory and the no-login search completed in under 30s.
+
+2. **Great Falls College Montana State University (MT)** — official public APEX scheduler:
+   `https://apexprod.msu.montana.edu/apex/r/esg/s_class_schedule_gf/class-schedule`.
+   Fall 2026 term `202670` returned 311 rows, including CRN `67109` ACTG 101-200 with `4/25` available and
+   CRN `67021` COMX 115-180 `0/25 CLOSED`; Spring 2026 term `202630` included CRN `63136` `10/25` and
+   CRN `63373` `0/1 CLOSED`. Use native CRN plus term as the identity, read explicit status and numeric
+   available/capacity/waitlist fields, and preserve modality and part-of-term. This is a short public
+   fetch, but the adapter must prove that the unfiltered result set is complete before trusting counts.
+
+3. **University at Albany (NY)** — official schedule search:
+   `https://www.albany.edu/registrar/schedule-classes`. The public selector exposes Fall 2026 and Spring
+   2026, and Fall 2026 browser verification returned a result set after selecting `Only classes with
+   available seats`; each result includes level, college/department, class number, course code/title,
+   meeting data, and `Seats remaining as of last update` (examples included class 5347 AAFS 101 with 6
+   and class 1003 AAFS 213 with 13). The page explicitly says freshness is every 30-60 minutes depending
+   on activity. Key by `(term, class number)` plus course identity, use displayed seats remaining > 0 as
+   the primary open signal, preserve special restrictions (some seats are reserved and the unrestricted
+   count can be zero), and replay Spring 2026 before production. This is a bespoke form/query adapter.
+
+4. **Bentley University (MA)** — official public course listing:
+   `https://bentleyapps.azurewebsites.net/course-listing/`. The public UI exposes Fall 2026 and Spring 2026,
+   course-level and open/closed filters, and states that enrollment status/seats are updated in real time
+   when submitted. Fall 2026 + Open browser verification returned section-level rows such as AC 115-1 with
+   `Status: Open`, `Seats Available: 21`, and AC 115-11 with `Seats Available: 1`, along with instructor,
+   meeting dates, delivery mode, and tags. Key by term + native section label (for example `AC 115-1`),
+   require explicit `Status == Open` and `Seats Available > 0`, and preserve reserved-seat/eligibility notes.
+   Replay Spring 2026 and fail closed if the public query starts returning a truncated or filter-dependent
+   result set; bespoke adapter, no login observed.
+
+5. **Nicholls State University (LA)** — official registration page and schedule PDF:
+   `https://www.nicholls.edu/register/2026-fall-semester/` and
+   `https://www.nicholls.edu/register/wp-content/uploads/sites/81/2026/07/07-10-Fall-2026.pdf`.
+   The July 10 Fall 2026 PDF has a stable table headed `Subject Num Sec ... Crn ... Max Enr Avail Wl. Max
+   Wl. Actual`. Visual/text verification found ACCT 205 CRN `88030` `45/44/1`, ACCT 205 CRN `88029`
+   `45/42/3`, and ACCT 306 CRN `89370` `40/46/0` with one waitlisted, plus many positive rows. Spring
+   2026 official PDFs expose the same columns and previously captured mixed examples. Key by term + CRN,
+   preserve repeated meeting rows and waitlist columns, and set open only when `Avail > 0`; the PDF is a
+   dated snapshot, so display its publication date and never claim live polling. PDF parser should fail
+   closed if the header/order changes.
+
+**Batch builder checklist:** add only these five net-new names after production fetch tests; use native
+   CRN/class/section keys; replay Fall and Spring where available; test positive, full, waitlisted, reopened,
+   reserved-seat, and repeated-meeting cases; enforce a 30-second timeout; and expose Albany's 30-60 minute,
+   QCC's query-time, Bentley's real-time, and Nicholls' dated-PDF freshness explicitly. No production code
+   or registry edits were made by this research pass.
 
 ### ⭐ RCCD ×3 — ✅ SHIPPED by Build July 13 (704→707). ⚠️ SPEC CORRECTION (accuracy lesson)
 Build shipped all 3. My crack (nometadata header + msappproxy feed) held, but re-gate caught TWO errors
