@@ -4,9 +4,9 @@ Cross-session research log for SeatWatch school expansion. **This file is kept l
 the full chronological batch-by-batch history lives in `research/ARCHIVE.md` (grep it for any past
 detail). Read THIS file + the lane files; only open ARCHIVE for a specific past finding.
 
-- **Live count: 703 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 13, 2026
-  (684→691 Batch31+USC+Rice+Princeton+WrightState+Duquesne; →703 Maricopa ×10 + more, all Build). RCCD ×3
-  cracked below = next.
+- **Live count: 715 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 14, 2026.
+  The older 703-school milestone remains in the chronological history; Batch 6 below is the current
+  registry-wide dedup audit. RCCD ×3 cracked below = next.
 - **Who's doing what right now:** `research/lane-grabber.md` (Grab) + `research/lane-codex.md` (short, always current).
 - **How we work / accuracy+efficiency gate:** `research/PARTNER-NOTE-codex.md` and repo-root
   `CONTRIBUTING_AGENT.md`. Handoffs to the builder go through Fable; gated-but-unapproved candidates
@@ -354,6 +354,185 @@ July 14; Nicholls is an official dated PDF snapshot and must not be treated as r
    reserved-seat, and repeated-meeting cases; enforce a 30-second timeout; and expose Albany's 30-60 minute,
    QCC's query-time, Bentley's real-time, and Nicholls' dated-PDF freshness explicitly. No production code
    or registry edits were made by this research pass.
+
+### ⭐ Batch 5 — three additional direct seat sources — GATED, AWAITING GO-AHEAD (Codex, July 14 2026)
+Three more net-new identities with public section-level rows, a current-term replay, and a completed-term
+replay. These are intentionally smaller than the requested 5-15 range because two additional leads were
+held out: CMC exposed only a current Fall 2026 consortium search, while Trinity exposed only one Rome-campus
+internship row rather than a college-wide schedule.
+
+1. **Wilkes University (PA)** — official undergraduate roster:
+   `https://rosters.wilkes.edu/schedule/2026/fa/ug` and completed-term replay
+   `https://rosters.wilkes.edu/schedule/2026/sp/ug`. The Fall page was browser-checked July 14, 2026 at
+   `3:45PM` and exposes a full roster with `Course`, `Sec.`, `CRN`, title, credits, meetings, instructor,
+   and literal availability values. Examples include ACC 162 A CRN `30149` with `11 open seats`, ACC 162 B
+   CRN `30150` with `14 open seats`, and ART 113 A CRN `30677` with `4 open seats`; other rows explicitly say
+   `N waitlisted` or `Waitlist full`. Spring uses the same schema and returned, for example, COM 101 IHE CRN
+   `10146` with `6 open seats`, MUS 200 R CRN `11363` with `1 open seat`, and ART 398 A CRN `11347` with
+   `9 open seats`. Key by `(term, native CRN)`; accept only the literal `N open seat(s)` form with `N > 0`;
+   treat waitlisted/full rows as closed and never infer seats from missing text. Preserve term, course/section,
+   modality, cross-listing/permission notes, repeated meeting details, and the page's last-updated timestamp.
+   This is a full-term roster rather than an open-only feed, but the adapter must still detect a changed term
+   path or availability vocabulary and fail closed.
+
+2. **Kent State University (OH)** — official public ePROD detailed search:
+   `https://keys.kent.edu:44220/ePROD/bwlkffcs.p_adv_unsecure_sel_crse_search`. Resolve the term by its visible
+   label (`Fall 2026` and `Spring 2026 (View only)` were available), then select `Subject = English`,
+   `Course Number = 21011`, `Course Level = Undergraduate`, and submit `Class Search`. The results table has
+   explicit columns `Status`, `CRN`, `Course`, `Title`, `Enrolled`, and `Remain Open`, plus schedule type,
+   dates, days, method, campus, restrictions, approvals, and deadlines. Fall 2026 returned mixed rows including
+   CRN `12728` section 801 `Open` with `Remain Open 8`, CRN `12729` section 802 `Closed` with `Remain Open 0`,
+   and CRN `12731` section 804 `Open` with `Remain Open 9`; the page header was dated July 14, 2026. Spring
+   replay returned the same labeled schema and mixed open/closed rows, including CRN `12495` section 001
+   `Closed` with `Enrolled 22 / Remain Open 0` and CRN `12496` section 002 `Open` with `Enrolled 20 / Remain
+   Open 2`. Key by `(term, campus, native CRN)`; use `Status == Open` and `Remain Open > 0` as the open rule,
+   retain the labeled `Enrolled` and `Remain Open` fields, and never reconstruct availability arithmetically.
+   Preserve campus, modality, part-of-term, prerequisites, registration restrictions, special approval, and
+   deadline text. Do not hard-code Banner term IDs; resolve them from the public term selector and fail closed
+   if the result headers or search filters change.
+
+3. **Catawba Valley Community College (NC)** — official public schedule viewer:
+   `https://cvcc.edu/schedules/`. The Fall 2026 all-campus curriculum view was checked July 14, 2026 at
+   `2:58 PM` and reported `Showing: 817`, `Open: 679`, `Closed: 138`; each row exposes native ID, section,
+   title, credits, delivery, meetings, dates, location, `Seats Available`, instructor, `Status`, and notes.
+   Examples include ID `140273` ACA-111-800 with `24 (of 30)` `OPEN`, ID `140782` ACA-122-700 with `0 (of 24)`
+   `CLOSED`, and ID `140883` ACA-122-703 with `1 (of 24)` `OPEN`. Spring 2026 all-campus replay was checked
+   at `3:48 PM` and reported `Showing: 773`, `Open: 693`, `Closed: 80`; examples include ID `137332` ACA-111-800
+   with `22 (of 30)` `OPEN`, ID `137355` ACC-120-800 with `-1 (of 30)` `CLOSED`, and ID `137356` ACC-120-801
+   with `2 (of 30)` `OPEN`. Key by `(term, native ID)` plus the visible section/campus context; accept only
+   `Status == OPEN` with available seats `> 0`, and keep negative availability closed even if a future status
+   label is inconsistent. Select terms by their visible labels rather than DOM position or guessed IDs, preserve
+   campus/delivery/part-of-term, dates, notes, and repeated meeting rows, and retain the viewer's summary counts
+   as a completeness check. This supersedes the earlier source-level “pending direct JSON capture” note.
+
+**Batch builder checklist:** add only these three net-new identities after production fetch tests; use native
+   CRN/ID/section keys; replay current and completed terms; test positive, zero, negative, waitlisted/full, and
+   mixed-delivery cases; preserve restrictions, campus, modality, dates, notes, and timestamps; enforce a
+   30-second timeout; and fail closed if a source becomes open-only, login-gated, truncated, or changes its
+   labeled seat/status fields. No production code or registry edits were made by this research pass.
+
+### ⭐ Batch 6 — twelve-school deduped execution queue — GATED, AWAITING GO-AHEAD (Codex, July 14 2026)
+**Registry preflight completed before selecting this queue:** `len(schools.SCHOOLS) == 715`. Each candidate was
+checked against every registered `id` and display name, using exact matching plus case/diacritic/punctuation-
+normalized matching. The queue below has **12 clear results**; the shared VCCCD feed still represents three
+different institutions and must register three distinct identities. Do not add any of these again if another
+builder branch lands them first—rerun the same registry check immediately before editing `_ALL_SCHOOLS`.
+
+The detailed evidence for these sources is already recorded in the earlier research blocks cited below; this
+section is the authoritative next-batch selection, so the builder should implement only this list from this
+pass.
+
+1. **Moorpark College (CA)** — VCCCD shared schedule `https://schedule.vcccd.edu/list/`, campus/site-scoped;
+   exact `(college/site, term, CRN)`;
+   accept only `Status == OPEN` and `Rem > 0`; FULL, CLOSED, and WAITLISTED override positive arithmetic.
+2. **Oxnard College (CA)** — same VCCCD feed `https://schedule.vcccd.edu/list/`, but a distinct college identity;
+   isolate `Oxnard` locations and
+   use the same conservative status-first rule. Never merge Oxnard rows into Moorpark or Ventura.
+3. **Ventura College (CA)** — VCCCD shared schedule `https://schedule.vcccd.edu/list/`, distinct site-scoped identity;
+   exact `(college/site, term,
+   CRN)` and the same `OPEN` plus positive remaining-seat rule. Preserve the residual `OTHER` location bucket
+   for review instead of silently assigning it to a college.
+4. **Foothill College (CA)** — official quarter viewer `https://foothill.edu/schedule/index.html`; exact
+   `(quarter, subject/course-section, CRN)`;
+   require textual `Open` and a positive numeric open-seat count. Preserve quarter, modality, footnotes, and
+   closed/waitlisted rows; this is not a semester source.
+5. **Lakeland Community College (OH)** — official schedule viewer
+   `https://lkn.lakelandcc.edu/internet/academics/schedule/`; exact `(term, subject/course, CRN)`;
+   use labeled `N Remaining / Cap`, with FULL and zero remaining closed. Preserve permission/restriction notes
+   and distinguish this Ohio community college from the separate Lakeland University (WI) already in research.
+6. **Lipscomb University (TN)** — official Fall/Spring static tables
+   `https://courseschedule.lipscomb.edu/ScheduleP2026FALL.html` and `ScheduleP2026SPRING.html`; exact
+   `(term, course, section code)`;
+   accept `Seats Available > 0`, retain total/filled/available values, delivery, location, and course notes,
+   and surface static-table freshness rather than claiming real-time polling.
+7. **University of Georgia (GA)** — public registrar schedule app
+   `https://reg.uga.edu/enrollment-and-registration/schedule-of-classes/`; exact `(term, Course ID, CRN)`;
+   accept `Avail Seats > 0`, preserve campus, part-of-term, and restrictions, and use the public registrar app
+   rather than the older Athena/SSO catalog path.
+8. **SUNY Potsdam (NY)** — official hourly schedule PDFs
+   `https://www.potsdam.edu/about/offices/registrar/class-schedules/class-schedule-department`; exact
+   `(term, subject, course, section/CRN)`;
+   accept `AVL > 0`, reject Closed/negative values, and expose the publication timestamp because the PDFs are
+   snapshots rather than live polling.
+9. **Sandhills Community College (NC)** — official nightly seat tables
+   `https://olympus.sandhills.edu/seatsAvailable/2026FASeatsAvailable.htm` and the Spring sibling; exact
+   `(term, subject, course,
+   section)`; accept `Remaining Seats > 0`, attach blank continuation lines to the preceding row, and label
+   the source nightly rather than real-time.
+10. **The College of the Florida Keys (FL)** — official Banner detail pages
+    `https://secure.cfk.edu/prod/bwckschd.p_disp_detail_sched`; exact `(term, subject/course,
+    CRN)`; use primary `Remaining > 0`, ignore separate waitlist capacity, and preserve credit-level and other
+    registration restrictions.
+11. **Schoolcraft College (MI)** — public Fall/Spring viewer
+    `https://my.schoolcraft.edu/course-schedules/2026/Fall/All`; exact `(term, course, native section)`;
+    require `Status == Open` and positive `Seat Available`, while retaining capacity, waitlist, location,
+    modality, fees, start date, and part-of-term headings.
+12. **Grayson College (TX)** — official Fall/Spring planner
+    `https://planner.grayson.edu/Planner/CourseSearch/607`; exact native course-section ID plus term;
+    require explicit `Status == Open` and positive open seats, preserving campus, dates, modality, and session
+    notes.
+
+**Explicit exclusions from this audit:** CCRI is already registered; University of Oregon, UVI, New Paltz,
+Catawba College, and the prior Batch 5 schools are already covered or registered as applicable; SJSU is marked
+SCRAPPED for nightly staleness; and Kenyon/Mt. SAC are open-only views where omitted sections cannot safely be
+treated as closed. No production code or registry edits were made by this research pass.
+
+### ⭐ Batch 7 — seven additional deduped sources — GATED, AWAITING GO-AHEAD (Codex, July 14 2026)
+Second registry-wide preflight: `len(schools.SCHOOLS) == 715`. These seven canonical identities are absent
+from the registry and from Batch 6 after exact, normalized, and alias-aware comparison. The source details
+below already appear in the earlier research log; this is the next implementation queue, not a request to
+re-add anything from an older batch.
+
+1. **Cal Poly Humboldt / California State Polytechnic University, Humboldt (CA)** — official daily registrar
+   reports: `https://www.humboldt.edu/registrar/register/class-schedule`, with Fall and Spring report links.
+   Key by `(term, subject, CN#, section)` and accept only `Avail > 0`; preserve reserved seats, cross-list
+   reductions, notes, and the daily publication timestamp. This is one institution under its current/canonical
+   Humboldt identity, not two schools, and must be surfaced as a daily snapshot rather than real-time data.
+
+2. **Lawrence University (WI)** — official public schedule and Banner summary/detail routes:
+   `https://www.lawrence.edu/offices/registrar/class-schedule-and-course-catalog`. Key by
+   `(term, subject, course, CRN, sequence)`; use primary seats remaining (`limit - registered` or the labeled
+   detail value), ignore waitlist capacity, and preserve cross-list/restriction notes. Production must verify
+   that the summary is complete for an arbitrary watched course before relying on it.
+
+3. **Clark University (MA)** — public Fall/Spring course grids:
+   `https://apps.clarku.edu/course-listings/course-grid-fall-2026-ug-gs/ugopen` and the official Spring
+   undergraduate grid. Key by `(term, CRN, course, section)`; use `CAP - Enr > 0` only after preserving
+   reserve/permission-only semantics. Fetch the all-courses grid, not an open-only view, so full sections are
+   not silently omitted; verify row completeness and cross-listed rows in production.
+
+4. **Wesleyan University (CT)** — public WesMaps registration pages:
+   `https://owaprod-pub.wesleyan.edu/reg/%21wesmaps_page.html?crse_list=XAMS&facid=NONE&offered=Y&stuid=`.
+   Key by `(term, course ID, section)` and retain eligibility bins, class-year/major limits, prerequisites,
+   permission/POI flags, and update timestamps. A positive aggregate is not universally open: alert only when
+   the watched user's supported eligibility scope has seats, and treat excluded (`X`) bins as unavailable.
+   This is accurate but more conditional than a simple seat counter; the adapter must fail closed if the bin
+   schema changes.
+
+5. **Concordia University Chicago (IL)** — official timestamped undergraduate schedule PDFs:
+   `https://webserv.cuchicago.edu/files/forms-repository/registrar/academic-schedules/Fall_UG_Schedule.pdf`
+   and the Spring sibling. Key by `(term, course, section, CRN)`; parse the labeled `Seats` field as
+   available/capacity, accept positive available seats, reject zero/negative values, and preserve `F`/`R`/`P`
+   fee/reserve/prerequisite flags, modality, and part-of-term. Expose PDF publication timestamps; this is a
+   dated snapshot, not real-time polling.
+
+6. **University of Southern Maine (ME)** — official public Course Search:
+   `https://usm.maine.edu/registration-scheduling-services/course-search/`. Key by exact
+   `(term, subject, course, class number)`; require `Status == Open` plus positive `capacity - enrolled`, and
+   preserve restrictions/prerequisites. Completed Spring replay contains genuine closed rows, so status must
+   remain authoritative; do not infer open from arithmetic alone.
+
+7. **University of Nebraska Omaha (NE)** — official public UNO Class Search:
+   `https://www.unomaha.edu/registrar/students/before-you-enroll/class-search/`. Key by exact
+   `(term, subject, catalog number, section/class number)`; require explicit `Open` plus positive `Seats
+   Available`, preserving enrolled/max values, prerequisites, notes, cross-listings, and modality. Fall and
+   Spring both produced mixed open/closed rows, making this suitable for a bespoke adapter after guest-query
+   replay and completeness checks.
+
+**Batch 7 exclusions:** Brandeis remains deferred for unsafe arbitrary-course addressability; RPI, MTSU,
+Framingham, UNCG, NCAT, WSSU, Worcester State, Monroe, and other apparent leads are already registered;
+login-gated or no-row candidates remain out. No production code or registry edits were made by this research
+pass.
 
 ### ⭐ RCCD ×3 — ✅ SHIPPED by Build July 13 (704→707). ⚠️ SPEC CORRECTION (accuracy lesson)
 Build shipped all 3. My crack (nometadata header + msappproxy feed) held, but re-gate caught TWO errors
@@ -4116,3 +4295,16 @@ no cap/pagination). Paired CRN↔seats by CRN-BLOCK split (not a fragile paralle
 Remaining > 0 (full shows 0). Key = CRN unique. Gate: ENG-101 129 sec 99 open/30 full (Grab 100/29, live
 drift), MTH-211 4 sec 3/1. Self-current term (no term in URL). ⚠️ LATENCY: ENG-101 page is 638KB → ~14s
 consistent (server serve-time for the big page); under the 30s cut line, most courses ~1s. Prod-verified.
+
+### VCCCD ×3 — ✅ SHIPPED July 14 (Build): 715->718
+Ventura County CCD (Moorpark/Oxnard/Ventura College, ~37k). Grab browser-traced the endpoint (real host
+schedule.vcccd.edu, NOT the dead banpublic stub) + confirmed plain-stdlib session. Django CSRF: GET / sets
+csrftoken cookie → POST /filter/ (X-CSRFToken header + csrfmiddlewaretoken field). subjCombobox is IGNORED
+server-side → full ~7.3MB district catalog every call → shared class-level cache (10-min TTL; 40s cold /
+0ms warm across all 3 colleges — Purdue/TAMU cache-backed envelope). Re-gate IMPROVED on the relay's spec:
+the JSON has a structured CAMPUS_DESC field = 100% clean campus isolation (0 cross-campus CRN collision),
+vs Grab's Location-prefix which left ~5% residual-to-hold — no residual needed. Also caught multi-MEETING
+CRN dups (1073/4968) the 1574-sample missed → dedup by CRN. OPEN RULE STATUS=='OPEN' AND CRSE_SEATS_AVAIL>0
+(agreed 100%/3672 rows). Campus-specific numbering (Moorpark ENGL M01A / Oxnard R101 / Ventura V01A). Gate:
+Moorpark M01A 73 sec 53/20, Oxnard R101 32 sec 20/12, Ventura V01A 66 sec 47/19; cross-campus overlap EMPTY.
+Term pinned 202607. Server-reachable, prod-verified. Closes Grab's browser-trace bench item.
