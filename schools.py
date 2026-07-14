@@ -4364,6 +4364,64 @@ class IUBloomington:
             log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
 
 
+class MonroeCC:
+    """Monroe Community College (NY, ~13k). Public static per-course HTML pages, no auth:
+    GET /classes/{subj}-{num}-sections/ (lowercase-hyphenated, e.g. eng-101, mth-211) —
+    each page IS the COMPLETE section list for exactly ONE course (headings confirm a
+    single course code per page; no filtering, no pagination, NO cap — ENG-101 = the huge
+    first-year course = 129 sections uncapped). So addressability is inherent.
+
+    Each section block: '<span ...>CRN #{5-digit}</span>' then '<h4>Seats Remaining</h4>
+    <p>{N}</p>'. Pair by CRN-BLOCK (split on CRN, take the Seats Remaining before the next
+    CRN) — never a parallel-list zip, which would misalign if a section dropped a field.
+    OPEN RULE: Seats Remaining > 0 (a full section shows 0, not a word). Waitlist counted
+    separately, ignored. Section key = CRN (verified unique). The page is self-current
+    (no term in the URL), so no term handling."""
+    id = "monroecc-ny"; name = "Monroe Community College"
+    example = "ENG 101"
+    _base = "https://www.monroecc.edu/classes"
+    _RE = re.compile(r"^([A-Za-z]{2,4})\s*(\d{2,3}[A-Za-z]?)$")
+    _CRN = re.compile(r"CRN\s*#?\s*(\d{4,6})")
+    _SEATS = re.compile(r"<h4[^>]*>\s*Seats Remaining\s*</h4>\s*<p[^>]*>\s*(\d+)", re.I)
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).lower(), m.group(2).lower()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        subj, num = self._norm(course)
+        return f"{self._base}/{subj}-{num}-sections/" if subj else f"{self._base}/"
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            try:
+                req = urllib.request.Request(f"{self._base}/{subj}-{num}-sections/",
+                                             headers={"User-Agent": UA})
+                html = urllib.request.urlopen(req, timeout=30).read().decode("utf-8", "replace")
+            except Exception:
+                continue
+            parts = self._CRN.split(html)               # [pre, crn1, block1, crn2, block2, ...]
+            secs = {}
+            for i in range(1, len(parts), 2):
+                crn = parts[i]
+                block = parts[i + 1] if i + 1 < len(parts) else ""
+                sm = self._SEATS.search(block)
+                if not sm or crn in secs:               # no seat field -> skip; dedup by CRN
+                    continue
+                n = int(sm.group(1))
+                secs[crn] = {"open": n > 0, "seats": n}
+            if secs:
+                out[course] = secs
+        return out
+
+
 class Wabash:
     """Wabash College (IN, ~900, private 4-yr men's college). Public GET HTML table, no
     auth: /apps/registrar/course-sections/?sortby=SectionName&term={term} (Fall 2026 =
@@ -8189,7 +8247,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC(),
     GeorgeMason(), NorthernMichigan(), Hartford(), UTChattanooga(), IUBloomington(),
     MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege(),
-    MassArt(), PortlandCC(), Wabash()])
+    MassArt(), PortlandCC(), Wabash(), MonroeCC()])
 
 
 def refresh_all_terms(log=None):
