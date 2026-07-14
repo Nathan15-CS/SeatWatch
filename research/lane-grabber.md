@@ -36,6 +36,14 @@ IU-Bloomington live; Harvard/CMU/Michigan blocked. Build added 2 addressability 
 now in [[seatwatch-gate-addressability]]); (2) combinedSections.separateEnrollmentControl flag gates the
 cross-list cap precisely.
 
+## VCCCD SHIPPED (718) + Great Falls / Quinsigamond next (July 14)
+Build shipped VCCCD x3 off my trace (715->718). Re-gate found a cleaner structured CAMPUS_DESC field
+(beats my Location-prefix, 0 residual) + 1073 dup CRNs at full scale my 1574-row sample missed (lesson
+saved: sample uniqueness checks can miss dupes that only appear at full scale). Gate: Moorpark 53/20,
+Oxnard 20/12, Ventura 47/19, status==seats>0 agreed on all 3672 rows post-dedup. Last 2 traced-needed
+leads: Great Falls College MSU (Oracle APEX, Codex has a concrete 311-row gate already) + Quinsigamond
+(Jenzabar portal). Moving to trace these next per Nathan standing request for more colleges.
+
 ## Codex batches 69-72 audit (July 13) — NOTHING shippable; NAU = fake-status trap (held)
 Checked Codex's newest (69-72). All hold-outs except NAU (Batch 71, "GATED"), which I re-assessed and
 HELD: it's classic PeopleSoft COMMUNITY_ACCESS.CLASS_SEARCH.GBL — our documented FAKE-ALL-OPEN dead-end
