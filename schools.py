@@ -7347,6 +7347,13 @@ class WesternTexas(Colleague):
     id = "westerntexas"; name = "Western Texas College"
     example = "ENGL 1302"; host = "wtc-ss.colleague.elluciancloud.com"
 
+class MassArt(Colleague):
+    # base Colleague (older /PostSearchCriteria + textual AvailabilityStatus), NOT the
+    # numeric NewColleague/SearchAsync variant (that route 404s here). CDAN 300 = 2 sec
+    # 1 open/1 full, CDAN 303 = full — real mix, textual 'Open' only.
+    id = "massart"; name = "Massachusetts College of Art and Design"
+    example = "CDAN 300"; host = "mca-ss.colleague.elluciancloud.com"
+
 class IndianHills(ShortYearTermColleague):
     id = "indianhills"; name = "Indian Hills Community College"
     example = "HCM 261"; host = "ss.indianhills.edu"
@@ -7959,7 +7966,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     PhoenixCollege(), GlendaleCC(), MesaCC(), ChandlerGilbert(), EstrellaMountain(),
     GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC(),
     GeorgeMason(), NorthernMichigan(), Hartford(), UTChattanooga(), IUBloomington(),
-    MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege()])
+    MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege(),
+    MassArt()])
 
 
 def refresh_all_terms(log=None):
