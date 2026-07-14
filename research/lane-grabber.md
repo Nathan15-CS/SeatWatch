@@ -5,6 +5,12 @@ Single relay point to Build is unchanged: gated finds → README under `AWAITING
 Nathan's go, relay to Build (session local_f4c9ee6c-cfaa-41e0-bf31-348d87326105) as "Batch N" → mark SENT.
 School adds relay DIRECT per deploy policy; money/UI/legal stay gated behind Nathan.
 
+## VOLUME PUSH (July 13, Nathan "need more colleges") — Portland CC ⭐ + strategy
+- **Portland CC** ✅ READY (~70k, one of largest US CCs). Live capacity POST: course page pcc.edu/schedule/{term}/{subj}/{subj}{num}/ (data-term=202604, data-crn list) → POST pcc.edu/schedule/capacity/ {term,crn=csv} → {CRN:{seat:[avail,cap],wait:[..]}}. Open=seat[0]>0, key=CRN. Gate: WR121 39/21, MTH111 16/16, BI101 all-full — real mix, real-time. Relayed to Build.
+- **SJSU SKIPPED** — page says "refreshed nightly" (date-only Updated stamp) = false-open risk (stale). Fails accuracy bar per Nathan's "no sacrifice" condition. Dropped.
+- **VCCCD (Ventura ×3)** = bespoke Django lead for Build: banpublic.vcccd.edu POST /filter/ (needs CSRF from window.CSRF_TOKEN + cookie) → JSON CRSE_SEATS_AVAIL/COURSE_CRN/TERM_CODE; `site` filter splits Ventura/Moorpark/Oxnard. Plain-client 403 (CSRF); needs browser-trace. Documented, not gated.
+- **STRATEGY finding:** CA CC district feeds are HETEROGENEOUS — no single-vendor unlock (WVM /data/ JSON ≠ VCCCD banpublic Django ≠ SDCCD mws-api ≠ RCCD SharePoint). schedule.{district}.edu sweep found only wvm/nocccd/vcccd. So volume = grind each district/school individually. The pipeline (Codex finds public feed → Grab gates → Build ships) IS the scaling mechanism; no shortcut.
+
 ## Delaware + SJSU gated (July 13) — Delaware CLEAN/ready; SJSU buildable but NIGHTLY-refresh (Nathan call)
 - **University of Delaware** ✅ READY: GET udapps.nss.udel.edu/CoursesSearch/search-results?term=2268&search_type=A&course_sec={SUBJ} (Fall 2268/Spring 2263). Open = "X OF Y" X>0 AND no "CURRENTLY FULL". Key=concatenated code (ENGL110010). Gate: Fall ENGL 25/24, MATH 34/14 mixes; addressable; updates through the day. Relayed.
 - **SJSU** ⚠️ HELD FOR NATHAN: static numeric table www2.sjsu.edu/classes/schedules/fall-2026.php (Open Seats col, class-number key). Platform SAFE (NOT fake-status PeopleSoft — Build's worry resolved). Gate: 5007/2006 live, 4133/2296 completed — real. BUT refreshes NIGHTLY (undercuts "alerts in seconds") + excludes no-print classes. Data real+safe but nightly lag = quality trade-off; Nathan decides.
