@@ -5,6 +5,10 @@ Single relay point to Build is unchanged: gated finds → README under `AWAITING
 Nathan's go, relay to Build (session local_f4c9ee6c-cfaa-41e0-bf31-348d87326105) as "Batch N" → mark SENT.
 School adds relay DIRECT per deploy policy; money/UI/legal stay gated behind Nathan.
 
+## Monroe CC gated + Delaware confirmed-skip (July 14)
+- **Monroe CC** (NY, ~13k) ✅ READY: GET monroecc.edu/classes/{subj}-{num}-sections/ (one course/page, complete+UNCAPPED). Seats in <p> after <h4>Seats Remaining</h4>; open=N>0; key=CRN. Gate ENG-101 129 sec 100/29 (flagship uncapped — cap-lesson applied), MTH-211 3/1. Relayed.
+- **Delaware SKIP CONFIRMED**: hard 49-result cap, no pagination, params ignored, app.js 1KB shell no API, no public Banner/mobile host (real SIS = PeopleSoft). ENGL110 (most-watched) pinned at 49 both terms = truncation. Not revivable w/o a cap-free endpoint. LESSON (memory): gate a KNOWN-huge course, watch for round-cap across 2 terms.
+
 ## VOLUME PUSH (July 13, Nathan "need more colleges") — Portland CC ⭐ + strategy
 - **Portland CC** ✅ READY (~70k, one of largest US CCs). Live capacity POST: course page pcc.edu/schedule/{term}/{subj}/{subj}{num}/ (data-term=202604, data-crn list) → POST pcc.edu/schedule/capacity/ {term,crn=csv} → {CRN:{seat:[avail,cap],wait:[..]}}. Open=seat[0]>0, key=CRN. Gate: WR121 39/21, MTH111 16/16, BI101 all-full — real mix, real-time. Relayed to Build.
 - **SJSU SKIPPED** — page says "refreshed nightly" (date-only Updated stamp) = false-open risk (stale). Fails accuracy bar per Nathan's "no sacrifice" condition. Dropped.
