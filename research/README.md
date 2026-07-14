@@ -3807,3 +3807,26 @@ mca-ss.colleague.elluciancloud.com. Re-gated: CDAN 300 = 2 sec 1 open/1 full, CD
 303 = full — real mix disproof, section keys unique. Textual-Open safety confirmed: CDAN 302 sec 03 has
 seats=1 but reads NOT-open (AvailabilityStatus Waitlisted, reserved seat) — base Colleague correctly
 withholds it (no false open). Deployed, prod-verified, badge 712.
+
+### Delaware — SKIPPED July 13 (Build): hard 49-result cap, can't guarantee flagship-course completeness
+UD public search (udapps.nss.udel.edu/CoursesSearch) is accuracy-SAFE (real "X OF Y" seats + CURRENTLY
+FULL badge; never false-opens) and per-course queries (course_sec=SUBJ+NUM) are exact + complete for the
+~99% of courses under 49 sections (MATH241=8, BISC207=29, CHEM103=27 all verified real+complete).
+BUT there's a HARD 49-RESULT CAP with NO working pagination (page/start/offset params all ignored, every
+capped query returns exactly 49): Grab's per-SUBJECT query is broken (course_sec=ENGL returns 49 all-
+ENGL110, HIDING ENGL301 which exists). Per-course fixes most of it, EXCEPT courses with 49+ sections —
+notably ENGL 110 (first-year writing, the most-watched course): Fall AND Spring both return exactly 49
+(two terms at the identical number = cap clamping, not coincidence), so its overflow sections are likely
+invisible. Uncircumventable via this endpoint (no pagination, campus-split doesn't help — mostly NEWRK).
+Nathan's bar = flawless accuracy+efficiency or skip; can't guarantee ENGL 110 completeness -> SKIP.
+Revisit ONLY if a cap-free UD endpoint (JSON/mobile API) is found. Accuracy-safe, so also fine to revisit
+as a documented-partial later if Nathan wants. No schools.py change.
+
+### SJSU — SCRAPPED July 13 (Build): nightly-refresh staleness compromises accuracy
+www2.sjsu.edu/classes/schedules static table is real numeric Open Seats + platform-SAFE (NOT fake-status
+PeopleSoft — Grab confirmed). BUT it REFRESHES NIGHTLY, not real-time. For a full watched class a seat
+opens+refills same-day before the next snapshot, so a nightly-based alert is usually STALE ('open' when
+already gone) = a false-feeling alert on exactly the high-demand courses people watch. That compromises
+accuracy AND the fast-alert value prop. Nathan's criterion: harmful-if-it-compromises-accuracy -> SCRAP
+(distinct from reserved/consent seats which are real-but-unbookable = fine). Not the same as a completeness
+gap; this is a temporal-staleness accuracy risk. No schools.py change.
