@@ -94,6 +94,112 @@ Net-new private R1 (~5.8k). Public registrar schedule, no auth, server-rendered 
 - GATE (live Fall 1263, English/1800): 59 sections, **44 Open / 15 Waitlist(full)** — decisive LIVE mix
   (not an all-open lead). Completed terms 1261/1253 available for extra disproof. Dedup clean.
 
+### ⭐ Foothill College (CA, ~14k) — GATED, AWAITING GO-AHEAD (Codex, July 14 2026)
+Net-new public 2-year college. Official Fall 2025 headcount is **14,135**; the official schedule is
+anonymous, server-rendered HTML with authoritative status, seats, dates, and CRNs. This is ready for a
+bespoke adapter, pending Build's production-fetch gate. Official enrollment reference:
+`https://foothill.edu/about/facts.html`.
+- Source: `GET https://foothill.edu/schedule/index.html?Quarter={TERM}&dept={SUBJ}&location=`. Fall 2026
+  is `2026F`; completed Spring 2026 is `2026S`. The page's term selector/official registration pages are
+  the authority for labels; do not hardcode a permanently current term. Use a subject page (`dept=ENGL`,
+  `COMM`, etc.), not an open-only or time/day-filtered URL. One subject page contains every section for
+  that subject, so group watched courses by subject and fetch once per subject+term per poll.
+- Example: `ENGL C1000` is represented by section codes such as `ENGL-C1000-02C`; the same page also
+  contains the sibling honors course `ENGL-C1000H`, so course matching MUST be exact. Accept the repo's
+  normalized `ENGL C1000` form, then match the displayed section code as `SUBJ-COURSE-SECTION` with an
+  exact course token (never a loose `C1000` prefix). `COMM C1000` is another verified example.
+- HTML parse: iterate every `div.section`. In `.fh_section-head .fh_sessid-dates p`, p[0] is the display
+  section code, p[1] is the **CRN** (native stable section key), and p[2] is the date text. Read status from
+  `.fh_sect-availability p` (`Open`, `Waitlist`, or `Closed`). Read the first line of
+  `.meet-availability p` as `N of M seats open` (N may be negative). Normalize `seats=N` and set open only
+  when `status == "Open" AND N > 0`. `Waitlist` and `Closed` are never open even when their numeric line
+  is positive; waitlist-seat counts are not primary seats. Do not guess when any required field is absent.
+- The schedule is a complete subject response with no pagination observed. Preserve the displayed section
+  count when available and fail closed on an unexpected empty/malformed response. CRN uniqueness is the
+  duplicate guard. The official page is already college-scoped, so no shared-campus filter is needed.
+- LIVE GATE (Fall 2026): all `ENGL` = **59 sections, 51 Open / 8 Waitlist, 59 unique CRNs**. Exact
+  `ENGL C1000` = **38 sections, 31 Open / 7 Waitlist, 38 unique CRNs**; `ENGL-C1000H` is present and
+  excluded by the exact matcher. This is a decisive mixed-status live feed, not an all-open lead.
+- COMPLETED-TERM DISPROOF (Spring 2026, same official feed): exact `COMM C1000` = **9 sections, 0 Open /
+  9 Closed, 9 unique CRNs**; 5 Closed rows still displayed positive numeric seats. Spring `COMM` overall
+  = 27 Closed rows, including 15 positive numeric values. This proves status must override numeric seats.
+- Latency: one current subject-page load measured about **1.36s** in browser tracing, well below the repo's
+  30s gate; the subject-grouped one-fetch design avoids N+1 requests. Isolation and dedup are clean:
+  official Foothill URL/branding, and `schools.py` has no Foothill registration. The old archived research
+  lead is superseded by this traced spec.
+- Adapter: **bespoke `Foothill` / `FoothillSchedule`**; no existing adapter matches this HTML structure.
+  `reg_url` should point to `https://foothill.edu/schedule/index.html`. Builder checklist: implement the
+  exact parser and fail-closed behavior; add term resolution/roll-forward; group requests by subject;
+  add Foothill to `_ALL_SCHOOLS`/`SCHOOLS`; run the real production-fetch gate with a watched open course,
+  a full/waitlisted course, a completed term, exact sibling isolation, CRN uniqueness, and latency; then
+  import-check and update the displayed school count. Do not mark shipped from this research block alone.
+
+### ⭐ Batch 2 — five additional direct seat sources — GATED, AWAITING GO-AHEAD (Codex, July 14 2026)
+These are five net-new identities promoted from the research archive because each has direct current and
+completed-term numeric/status evidence. They are builder handoffs, not claims that production code already
+exists. Keep the source-specific restrictions below; do not collapse them into one generic seat rule.
+
+1. **University of the Virgin Islands (USVI)** — two campus-scoped feeds, one institution. Fall 2026:
+   `GET https://schedclass.uvi.edu/stxschedule.aspx?term=202608` (St Thomas/St John) and
+   `https://schedclass.uvi.edu/sttschedule.aspx?term=202608` (St Croix); completed Spring 2026:
+   `https://schedclass.uvi.edu/sxmschedule.aspx?term=202601` (St Martin). Rows expose `CRN`, `MAX`,
+   `ENROLL`, `AVAIL`, wait fields, and `STATUS`. Gate Fall examples include ACC 201 CRNs 82901 (18
+   available), 82902 (11), and BIO 141A CRN 82594 (0); Spring examples include EDU 250 CRN 15389
+   (17), EDU 302 CRN 15390 (2), and EDU 354 CRN 15392 (-1). **Open = `AVAIL > 0` only**; `STATUS`
+   remains `ACTIVE` even for full rows. Key by `(campus, term, CRN)`, retain waitlist fields, and never
+   make St Thomas/St John/St Croix/St Martin separate school identities. Bespoke adapter; verify that
+   each requested campus is present before accepting rows.
+
+2. **Cal Poly Humboldt (CA)** — official Registrar reports, updated daily (not real-time). Landing page:
+   `https://www.humboldt.edu/registrar/register/class-schedule`. Current Fall report:
+   `https://pine.humboldt.edu/anstud/cgi-bin/filt_schd.pl?relevant=sched_ind_Fall.out`; completed Spring
+   report: `https://pine.humboldt.edu/anstud/cgi-bin/filt_schd.pl?relevant=sched_ind_Spring.out`.
+   Subject reports expose `Class`, `Sect`, `CN#`, `Cap`, `Enr`, `Rsrvd`, `Avail`, and wait columns. Gate
+   Fall ART rows CN 41185 (45/40/5), 41186 (45/26/19), and full 41187 (24/24/0); Spring rows include
+   CN 21115 (45/43/2), 21116 (24/18/6), and a negative-availability cross-list row. **Open = `Avail > 0`**,
+   but preserve `Rsrvd`, cross-list, and notes. Key by `(term, subject, CN#, section)`. Because the source
+   refreshes daily, the builder must surface freshness or reject it if SeatWatch requires real-time alerts;
+   do not present a daily snapshot as live polling.
+
+3. **Lawrence University (WI)** — public Banner summary/detail source. Entry point:
+   `https://www.lawrence.edu/offices/registrar/class-schedule-and-course-catalog`. Summary route:
+   `https://bannerweb.lawrence.edu/pls/voyager/zwglolib.call_class_schd_from_web_p?p_attr_code=G046&p_attr_code=N011&p_subj_code=%25`.
+   Current term is `202650`; completed Spring is `202630`. Summary rows expose exact CRNs and
+   `L:<limit> R:<registered> W:<waitlist>`; Fall CHJA 202 CRNs 5197/5198 are 10/3/0 and 10/2/0,
+   while CHJA 212 CRNs 5200/5201 are 10/2/0 and 10/0/0. Detail pages expose the same seat facts; Fall
+   BIOL 130 CRN 5278 has 16 remaining from a 24-seat limit. **Open = `L - R > 0`**, ignoring W for
+   primary seats. Key by `(term, subject, course, CRN, sequence)` and preserve cross-list/restriction
+   notes. This may fit the repo's tabular Banner family, but production must prove the summary is complete
+   for a watched course before reusing it.
+
+4. **Clark University (MA)** — public HTML course grids. Fall 2026:
+   `https://apps.clarku.edu/course-listings/course-grid-fall-2026-ug-gs/ugopen`; completed Spring 2026:
+   `https://apps.clarku.edu/course-listings/registrarSPRING26/undergraduate`. Rows expose CRN, course/
+   section, `CAP`, `Enr`, instructor, meetings, prerequisites, and permission-only flags. Fall examples:
+   PSYC 101-01 CRN 20059 (90/47), PHYS 130-01 CRN 20037 (16/11), HEBR 101-01 CRN 20187 (19/16);
+   Spring examples: MATH 119-01 CRN 30147 (25/10), MUSC 104-01 CRN 34700 (25/18), PSYC 108-01 CRN
+   30193 (75/37). **Open = `CAP - Enr > 0` only after preserving reserve/permission semantics**;
+   fetch the all-courses grid, not only the “seats remaining” view, so full sections are not silently
+   omitted. Key by `(term, CRN, course, section)`; do not collapse cross-listed rows. Bespoke HTML adapter
+   with a production check for row completeness and permission-only sections.
+
+5. **Wesleyan University (CT)** — public WesMaps registration pages with eligibility buckets. Fall index:
+   `https://owaprod-pub.wesleyan.edu/reg/%21wesmaps_page.html?crse_list=XAMS&facid=NONE&offered=Y&stuid=`;
+   Fall course example ECON 301 uses `term=1269`, and completed Spring ECON 103 uses `term=1261`.
+   Pages expose course/section, limit, `Seats Available`, class-year/major bins, permission/prerequisite
+   notes, and update timestamps. Fall ECON 301 has sections at 30 and 0 available; Spring ECON 103 has
+   sections at 9 and 22 available, with other Spring rows at zero/negative. **Do not treat a positive
+   aggregate as universally open**: parse the eligibility bins and only alert when the watched user's
+   supported scope is actually available; `X` means excluded. Key by `(term, course ID, section)` and
+   preserve cross-listings, prerequisites, POI, and drop/add request state. Bespoke adapter; production
+   gate must prove the selected course index is complete and the bin logic is fail-closed.
+
+**Batch builder checklist:** add five deduped school identities only after production fetches pass; use
+   exact term/course/section keys; include at least one open and one full/waitlisted example per source;
+   replay the completed term; verify no sibling/cross-list/campus leakage; enforce a 30-second timeout;
+   and surface daily/static freshness for Humboldt. No production code or registry edits were made by this
+   research pass.
+
 ### ⭐ RCCD ×3 — ✅ SHIPPED by Build July 13 (704→707). ⚠️ SPEC CORRECTION (accuracy lesson)
 Build shipped all 3. My crack (nometadata header + msappproxy feed) held, but re-gate caught TWO errors
 I'm recording so it doesn't recur: (1) **the SharePoint list ACCUMULATES 4 terms** (Fall+Winter+Spring+
@@ -3846,3 +3952,12 @@ gap; this is a temporal-staleness accuracy risk. No schools.py change.
   safety confirmed: BIO-101-01 had 3 available but status WAITLISTED → correctly NOT open (waitlist
   priority). Gate: ENG 101 4-full, MAT 111 4-open, ACC 201 2-open(7,6 seats); term auto-rolls from the
   page dropdown. Both net-new, prod-verified.
+
+### Monroe CC — ✅ SHIPPED July 14 (Build): 714->715
+Monroe Community College (monroecc-ny, NY ~13k). Grab APPLIED the Delaware cap-lesson (gated the huge
+ENG-101 = 129 sec, uncapped, complete — no round-number truncation). Bespoke per-course static HTML:
+GET /classes/{subj}-{num}-sections/ = ONE course's complete section list (headings confirm single course,
+no cap/pagination). Paired CRN↔seats by CRN-BLOCK split (not a fragile parallel zip). open = Seats
+Remaining > 0 (full shows 0). Key = CRN unique. Gate: ENG-101 129 sec 99 open/30 full (Grab 100/29, live
+drift), MTH-211 4 sec 3/1. Self-current term (no term in URL). ⚠️ LATENCY: ENG-101 page is 638KB → ~14s
+consistent (server serve-time for the big page); under the 30s cut line, most courses ~1s. Prod-verified.
