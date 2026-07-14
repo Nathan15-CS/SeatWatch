@@ -4364,6 +4364,122 @@ class IUBloomington:
             log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
 
 
+class PortlandCC:
+    """Portland Community College (~70k, one of the largest CCs in the US). Public, no
+    auth, REAL-TIME 2-step flow:
+      1. GET /schedule/{termword}/{subj}/{subj}{num}/ -> the course's section rows carry
+         data-crn (+ data-term = the PeopleSoft-style term code). Multi-MEETING sections
+         repeat a CRN across rows; dedup by CRN (unique per section).
+      2. POST /schedule/capacity/ {term, crn=comma-list} -> {CRN:{seat:[avail,cap],
+         wait:[n,cap]}}. This is the AUTHORITATIVE real-time count.
+
+    ⚠️ DO NOT trust the page's data-seats attribute — it is NOT the live available count
+    (it reads '1' even on FULL sections; using it would FALSE-ALERT). Only the capacity
+    POST's seat[0] is real. OPEN RULE: seat[0] (available) > 0. Waitlist (wait[]) is never
+    a seat. Section key = CRN. Addressability: the course page lists exactly that course's
+    CRNs (the wr121 path serves WR 121 / its Oregon-renumbered WR121Z as one course; the
+    detail links confirm every CRN is that course), so complete-scope-then-POST is exact.
+
+    Quarter system: only 1-2 terms are published at once; term auto-rolls to the newest
+    published quarter (highest data-term across the four termword pages)."""
+    id = "pcc-or"; name = "Portland Community College"
+    example = "WR 121"
+    _base = "https://www.pcc.edu/schedule"
+    _CAP = "https://www.pcc.edu/schedule/capacity/"
+    term = "202604"                       # Fall 2026 (auto-rolls)
+    termword = "fall"
+    _active = None                        # (termword, code) once resolved
+    _WORDS = ("fall", "winter", "spring", "summer")
+    _RE = re.compile(r"^([A-Za-z]{1,4})\s*(\d{2,3}[A-Za-z]?)$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def _cur(self):
+        return self._active or (self.termword, self.term)
+
+    def cur_term(self):
+        return self._cur()[1]
+
+    def reg_url(self, course):
+        subj, num = self._norm(course)
+        tw = self._cur()[0]
+        return f"{self._base}/{tw}/{subj.lower()}/{subj.lower()}{num.lower()}/" if subj else f"{self._base}/"
+
+    def _get(self, url):
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return r.read().decode("utf-8", "replace")
+
+    def fetch(self, courses):
+        tw, code = self._cur()
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            try:
+                page = self._get(f"{self._base}/{tw}/{subj.lower()}/{subj.lower()}{num.lower()}/")
+            except Exception:
+                continue
+            crns = list(dict.fromkeys(re.findall(r'data-crn="(\d+)"', page)))
+            if not crns:
+                continue
+            try:
+                data = urllib.parse.urlencode({"term": code, "crn": ",".join(crns)}).encode()
+                req = urllib.request.Request(self._CAP, data=data, headers={
+                    "User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded"})
+                cap = json.loads(urllib.request.urlopen(req, timeout=30).read())
+            except Exception:
+                continue                            # capacity failed -> skip, never guess from page
+            secs = {}
+            for crn in crns:
+                d = cap.get(crn) or cap.get(str(crn))
+                seat = (d or {}).get("seat")
+                if not seat or not isinstance(seat[0], int):
+                    continue                        # no real count -> skip
+                secs[str(crn)] = {"open": seat[0] > 0, "seats": max(seat[0], 0)}
+            if secs:
+                out[course] = secs
+        return out
+
+    def resolve_term(self):
+        """Newest published quarter = highest data-term across the four termword pages
+        (only 1-2 are live at once; the newest is the upcoming registration target)."""
+        best = None
+        for tw in self._WORDS:
+            try:
+                page = self._get(f"{self._base}/{tw}/{self.example.split()[0].lower()}/"
+                                 f"{self.example.replace(' ', '').lower()}/")
+            except Exception:
+                continue
+            codes = re.findall(r'data-term="(\d+)"', page)
+            if codes:
+                code = max(codes)
+                if best is None or code > best[1]:
+                    best = (tw, code)
+        return best
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self._cur():
+            return
+        prev = self._active
+        self._active = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self._cur()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or (self.termword, self.term)} -> {new}")
+
+
 class GeorgiaTech(Banner):
     id = "gatech"; name = "Georgia Tech"
     example = "CS 1301"; host = "registration.banner.gatech.edu"; term = "202608"
@@ -7967,7 +8083,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC(),
     GeorgeMason(), NorthernMichigan(), Hartford(), UTChattanooga(), IUBloomington(),
     MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege(),
-    MassArt()])
+    MassArt(), PortlandCC()])
 
 
 def refresh_all_terms(log=None):
