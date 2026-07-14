@@ -3830,3 +3830,19 @@ already gone) = a false-feeling alert on exactly the high-demand courses people 
 accuracy AND the fast-alert value prop. Nathan's criterion: harmful-if-it-compromises-accuracy -> SCRAP
 (distinct from reserved/consent seats which are real-but-unbookable = fine). Not the same as a completeness
 gap; this is a temporal-staleness accuracy risk. No schools.py change.
+
+### Portland CC + Wabash — ✅ SHIPPED July 14 (Build): 712->714
+- **Portland Community College** (pcc-or, ~70k — one of the largest CCs in the US): bespoke REAL-TIME
+  2-step. GET /schedule/{termword}/{subj}/{subj}{num}/ → data-crn per section; POST /schedule/capacity/
+  {term,crn=list} → {CRN:{seat:[avail,cap],wait:[]}}. ⚠️ The page's data-seats attr is STALE/FALSE (reads
+  '1' on FULL sections — would false-alert); ONLY the capacity POST's seat[0] is real. open=seat[0]>0,
+  key=CRN, multi-meeting rows dedup by CRN. Addressability: all page CRNs are the exact course (wr121 path
+  = WR121/renumbered WR121Z, detail links confirm). Grab said WR121=60; POST gives the true complete 157
+  (112 open/45 full). MTH 111 16/16, BI 101 8-all-full = disproof. Quarter auto-roll (newest published
+  data-term across 4 termword pages). Server-reachable, prod-verified.
+- **Wabash College** (wabash, ~900 private 4-yr): GET HTML table. Dedup multi-MEETING rows by SectionName
+  (407 rows→312 sections). open=status=='OPEN' (WAITLISTED/CLOSED not open); ⚠️ available seats live in a
+  <span class="count available"> — a naive \d+/\d+/\d+ mis-matches the m/d/yy date on the row. Textual-status
+  safety confirmed: BIO-101-01 had 3 available but status WAITLISTED → correctly NOT open (waitlist
+  priority). Gate: ENG 101 4-full, MAT 111 4-open, ACC 201 2-open(7,6 seats); term auto-rolls from the
+  page dropdown. Both net-new, prod-verified.
