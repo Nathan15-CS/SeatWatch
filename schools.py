@@ -2024,6 +2024,122 @@ class SanDiegoMiramar(SDCCD):
     example = "BIOL 131"; campus = "MIRA"
 
 
+class VCCCD:
+    """Ventura County CCD — Moorpark / Oxnard / Ventura College (~37k) on ONE Django app
+    (schedule.vcccd.edu). Its /filter/ POST IGNORES the subject filter and always returns
+    the COMPLETE district catalog (~7.3MB embedded JSON), so we fetch it ONCE per TTL into
+    a SHARED class-level cache and slice client-side by campus + course (Maricopa/SDCCD
+    shape). Plain stdlib: GET / sets a Django csrftoken cookie; POST /filter/ echoes it in
+    both the X-CSRFToken header and the csrfmiddlewaretoken field.
+
+    Each JSON record: SUBJECT_CODE, COURSE_NUMBER (campus-specific — Moorpark ENGL M01A,
+    Oxnard R101, Ventura V01A), COURSE_CRN, STATUS (OPEN/FULL/WAITLISTED, textual), and
+    CAMPUS_DESC + CRSE_SEATS_AVAIL. CAMPUS ISOLATION = exact CAMPUS_DESC (live-verified
+    100% coverage, ZERO cross-campus CRN collisions — cleaner than the Location-prefix a
+    relay suggested, which left a ~5% residual). ⚠️ multi-MEETING sections repeat a CRN
+    across records -> dedup by CRN. OPEN RULE: STATUS=='OPEN' AND CRSE_SEATS_AVAIL>0 (the
+    two agreed on all 3,672 sampled rows). Section key = CRN. Term pinned (Fall 2026 =
+    202607); bump per term."""
+    term = "202607"                       # Fall 2026; pinned
+    campus_desc = ""                      # 'Moorpark College' etc; subclass sets
+    _TTL = 600
+    _lock = threading.Lock()
+    _cat = {}                             # term -> (ts, {(campus,subj,num): {crn: rec}})
+    _OBJ = re.compile(r'\{"SUBJECT_CODE":.*?"RECORD_COUNT":\s*\d+\}')
+    _RE = re.compile(r"^([A-Za-z]{2,5})\s*([A-Za-z]?\d+[A-Za-z]{0,2})$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self.term
+
+    def reg_url(self, course):
+        return "https://schedule.vcccd.edu/"
+
+    def _catalog(self, term):
+        with VCCCD._lock:
+            c = VCCCD._cat.get(term)
+            if c and time.time() - c[0] < self._TTL:
+                return c[1]
+            try:
+                cj = http.cookiejar.CookieJar()
+                op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+                op.addheaders = [("User-Agent", UA)]
+                op.open("https://schedule.vcccd.edu/", timeout=30).read()
+                tok = next((k.value for k in cj if k.name == "csrftoken"), None)
+                if not tok:
+                    return c[1] if c else {}
+                form = {"csrfmiddlewaretoken": tok, "subjCombobox": "", "locCombobox": "",
+                        "crse": "", "crn": "", "ctitle": "", "start_hh": "05", "start_mm": "00",
+                        "start_ap": "a", "end_hh": "11", "end_mm": "00", "end_ap": "p",
+                        "newc": "0", "noncrc": "0", "offc": "0", "mdCombobox": "", "pace": "0",
+                        "ztc": "0", "geCombobox": "", "ge": "%", "csupport": "0", "term": term}
+                req = urllib.request.Request("https://schedule.vcccd.edu/filter/",
+                                             data=urllib.parse.urlencode(form).encode(),
+                                             headers={"User-Agent": UA, "X-CSRFToken": tok,
+                                                      "Referer": "https://schedule.vcccd.edu/"})
+                resp = op.open(req, timeout=60).read().decode("utf-8", "replace")
+            except Exception:
+                return c[1] if c else {}             # stale-if-error; never guess
+            index = {}
+            for o in self._OBJ.findall(resp):
+                try:
+                    d = json.loads(o)
+                except Exception:
+                    continue
+                subj, num, crn = d.get("SUBJECT_CODE"), d.get("COURSE_NUMBER"), d.get("COURSE_CRN")
+                camp = d.get("CAMPUS_DESC")
+                if not (subj and num and crn and camp):
+                    continue
+                index.setdefault((camp, subj, num.upper()), {}).setdefault(crn, d)  # dedup by CRN
+            if index:
+                VCCCD._cat[term] = (time.time(), index)
+                return index
+            return c[1] if c else {}
+
+    def fetch(self, courses):
+        cat = None
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            if cat is None:
+                cat = self._catalog(self.cur_term())
+            recs = cat.get((self.campus_desc, subj, num))
+            if not recs:
+                continue
+            secs = {}
+            for crn, d in recs.items():
+                st = re.search(r"(OPEN|FULL|WAITLIST)", d.get("STATUS") or "")
+                try:
+                    avail = int(str(d.get("CRSE_SEATS_AVAIL")).strip())
+                except (TypeError, ValueError):
+                    continue                          # no count -> skip, never guess
+                openb = bool(st) and st.group(1) == "OPEN" and avail > 0
+                secs[str(crn)] = {"open": openb, "seats": max(avail, 0)}
+            if secs:
+                out[course] = secs
+        return out
+
+class Moorpark(VCCCD):
+    id = "moorpark"; name = "Moorpark College"
+    example = "ENGL M01A"; campus_desc = "Moorpark College"
+
+class OxnardCollege(VCCCD):
+    id = "oxnard"; name = "Oxnard College"
+    example = "ENGL R101"; campus_desc = "Oxnard College"
+
+class VenturaCollege(VCCCD):
+    id = "venturacollege"; name = "Ventura College"
+    example = "ENGL V01A"; campus_desc = "Ventura College"
+
+
 class Fairfield:
     """Fairfield University — public course-search API (course-search-net.fairfield.edu)
     returns the WHOLE catalog (~2,250 rows, ~1.7MB) with NO server-side term/course filter,
@@ -8247,7 +8363,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC(),
     GeorgeMason(), NorthernMichigan(), Hartford(), UTChattanooga(), IUBloomington(),
     MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege(),
-    MassArt(), PortlandCC(), Wabash(), MonroeCC()])
+    MassArt(), PortlandCC(), Wabash(), MonroeCC(),
+    Moorpark(), OxnardCollege(), VenturaCollege()])
 
 
 def refresh_all_terms(log=None):
