@@ -4364,6 +4364,112 @@ class IUBloomington:
             log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
 
 
+class Wabash:
+    """Wabash College (IN, ~900, private 4-yr men's college). Public GET HTML table, no
+    auth: /apps/registrar/course-sections/?sortby=SectionName&term={term} (Fall 2026 =
+    26/FA, completed Spring = 26/SP). Each row = SectionName (ACC-201-01) + textual status
+    OPEN/CLOSED/WAITLISTED + 'enrolled / available / waitlist'.
+
+    ⚠️ MULTI-MEETING TRAP: a section with >1 weekly meeting repeats as MULTIPLE rows with
+    the SAME SectionName (status/seats identical) — dedup by SectionName or you double-
+    count. OPEN RULE: status == 'OPEN' (WAITLISTED and CLOSED are their own statuses for
+    full sections), and if the available number parses, require it > 0 (belt-and-suspenders;
+    OPEN-with-0 -> not open). Section key = SectionName. Exact scope = SectionName starts
+    with 'SUBJ-NUM-' (ACC 201 -> ACC-201-*, never ACC-202). Term auto-rolls from the page's
+    own term dropdown."""
+    id = "wabash"; name = "Wabash College"
+    example = "ACC 201"
+    term = "26/FA"                        # Fall 2026 (auto-rolls)
+    _active_term = None
+    _base = "https://www.wabash.edu/apps/registrar/course-sections/"
+    _RE = re.compile(r"^([A-Za-z]{2,4})\s*(\d{2,3}[A-Za-z]?)$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def reg_url(self, course):
+        return self._base
+
+    def _get(self, term):
+        url = self._base + "?sortby=SectionName&term=" + urllib.parse.quote(term)
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            return r.read().decode("utf-8", "replace")
+
+    def fetch(self, courses):
+        try:
+            html = self._get(self.cur_term())
+        except Exception:
+            return {}
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            prefix = f"{subj}-{num}-"
+            secs = {}
+            for row in re.findall(r"<tr[^>]*>.*?</tr>", html, re.S):
+                sm = re.search(r"\b(" + re.escape(subj) + r"-" + re.escape(num) + r"-\d{2,3})\b", row)
+                if not sm:
+                    continue
+                key = sm.group(1)
+                if key in secs:                     # dedup multi-meeting rows
+                    continue
+                st = re.search(r"\b(OPEN|CLOSED|WAITLISTED)\b", row)
+                # available seats live in a dedicated span (NOT the flat 'e / a / w' text,
+                # which a naive \d+/\d+/\d+ would mis-match to the m/d/yy date on the row)
+                av = re.search(r'class="count available[^"]*">\s*(\d+)', row)
+                avail = int(av.group(1)) if av else None
+                openb = (st is not None and st.group(1) == "OPEN") and (avail is None or avail > 0)
+                secs[key] = {"open": openb, "seats": avail if avail is not None else (0 if not openb else None)}
+            if secs:
+                out[course] = secs
+        return out
+
+    def resolve_term(self):
+        """Nearest upcoming term from the page's own term <option>s (labels like
+        '2026 Fall' -> value '26/FA'); skips past terms via the shared _SEASON delta."""
+        try:
+            html = self._get(self.cur_term())
+        except Exception:
+            return None
+        today = datetime.date.today()
+        best, best_delta = None, None
+        for val, label in re.findall(r'<option[^>]*value="([^"]*)"[^>]*>\s*(20\d\d\s+\w+)', html):
+            m = re.search(r"(20\d\d)\s+(fall|spring|summer|winter)", label, re.I)
+            if not m:
+                continue
+            year, season = int(m.group(1)), m.group(2).lower()
+            delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
+            if delta < 1:
+                continue
+            if best_delta is None or delta < best_delta:
+                best_delta, best = delta, val.replace("&#x2f;", "/").replace("&#47;", "/")
+        return best
+
+    def refresh_term(self, log=None):
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        ok = bool(self.fetch({self.example}).get(self.example))
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+
 class PortlandCC:
     """Portland Community College (~70k, one of the largest CCs in the US). Public, no
     auth, REAL-TIME 2-step flow:
@@ -8083,7 +8189,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     GateWayCC(), ParadiseValleyCC(), RioSalado(), ScottsdaleCC(), SouthMountainCC(),
     GeorgeMason(), NorthernMichigan(), Hartford(), UTChattanooga(), IUBloomington(),
     MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege(),
-    MassArt(), PortlandCC()])
+    MassArt(), PortlandCC(), Wabash()])
 
 
 def refresh_all_terms(log=None):
