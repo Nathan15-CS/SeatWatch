@@ -3798,3 +3798,12 @@ POST courses.json (paginated catalog, ~6,100 courses) → GET classes.json (sect
   separateEnrollmentControl==False and combinedEnrollTotal>=combinedEnrollCapacity -> full even if
   openSeats>0 (when control is separate, openSeats authoritative). Gate: ENG-W 131 = 88 sec 7 open/81 FULL
   (decisive), ENG-L 111 = 1 sec closed 0/30 (reproduces Codex class 23672). Server-reachable, prod-verified.
+
+### MassArt — ✅ SHIPPED July 13 (Build): 711->712
+Massachusetts College of Art and Design (massart). Grab diagnosed my earlier NewColleague no-data: it's
+the OLDER base `Colleague` API (/Student/Courses/PostSearchCriteria + textual AvailabilityStatus), NOT the
+numeric NewColleague/SearchAsync (that route 404s). So a 4-line base-Colleague subclass, host
+mca-ss.colleague.elluciancloud.com. Re-gated: CDAN 300 = 2 sec 1 open/1 full, CDAN 302 = 4 sec 2/2, CDAN
+303 = full — real mix disproof, section keys unique. Textual-Open safety confirmed: CDAN 302 sec 03 has
+seats=1 but reads NOT-open (AvailabilityStatus Waitlisted, reserved seat) — base Colleague correctly
+withholds it (no false open). Deployed, prod-verified, badge 712.
