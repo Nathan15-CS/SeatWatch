@@ -4,8 +4,8 @@ Cross-session research log for SeatWatch school expansion. **This file is kept l
 the full chronological batch-by-batch history lives in `research/ARCHIVE.md` (grep it for any past
 detail). Read THIS file + the lane files; only open ARCHIVE for a specific past finding.
 
-- **Live count: 718 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 15, 2026.
-  The older 703/715-school milestones remain in the chronological history; Batch 8 below is the current
+- **Live count: 720 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 15, 2026 after UVI
+  and Cayuga shipped. The older 703/715/718-school milestones remain in the chronological history; Batch 8 below is the current
   registry-wide dedup queue. The next discovery vein is system-first reusable-family enumeration.
 - **Who's doing what right now:** `research/lane-grabber.md` (Grab) + `research/lane-codex.md` (short, always current).
 - **How we work / accuracy+efficiency gate:** `research/PARTNER-NOTE-codex.md` and repo-root
@@ -39,6 +39,101 @@ existing bespoke adapter. Each reported lead must include: student count, existi
 classification, architecture (`plain GET`/JSON vs stateful portal), exact host/term/request recipe, freshness,
 huge-course completeness, completed-term result, reservation/eligibility behavior, and a rank based on
 **students × adapter reuse**. If any field is missing, label it `HOLD`—never `GATED`—and do not pad a batch.
+
+### Codex Batch 85 — LACCD system lead + old-Colleague self-screen (July 15, 2026)
+
+This pass stayed system-shaped and reloaded the live **720-school** registry before reporting. No existing ID,
+normalized display name, or already-shipped district identity was repeated. It produced **zero new GATED schools**:
+one unusually high-value multi-college lead is held for a live session replay, and the old-Colleague names below are
+held/cut rather than padded into a builder batch.
+
+#### 1. Los Angeles Community College District — nine net-new colleges, highest-priority HOLD
+
+LACCD's official district materials describe **nine colleges and nearly 200,000 annual students**. The nine exact
+identities are Los Angeles City College (`LACC`), East Los Angeles College (`ELAC`), Los Angeles Harbor College
+(`LAHC`), Los Angeles Mission College (`LAMC`), Los Angeles Pierce College (`LAPC`), Los Angeles Southwest College
+(`LASC`), Los Angeles Trade-Technical College (`LATTC`), Los Angeles Valley College (`LAVC`), and West Los Angeles
+College (`WLAC`). None is in `schools.py` under the live registry check. Official scale source:
+`https://www.laccd.edu/sites/laccd.edu/files/2026-01/LACCD_District_FactSheet_Final-ADA_01-15-26.pdf`.
+
+**Architecture / reuse:** one anonymous PeopleSoft guest surface at
+`https://mycollege-guest.laccd.edu/psc/classsearchguest/EMPLOYEE/HRMS/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL`.
+This is an existing PeopleSoft family in SeatWatch, but this exact district surface is a stateful guest GBL page,
+not yet proven to be compatible with the production JSON `IScript_ClassSearch` path. The public result exposes
+native class numbers, section codes, meeting data, and textual `Open`, `Wait List`, and `Closed` statuses, but the
+indexed result does not expose a numeric `enrollment_available` field. Rank is **very high students × partial
+PeopleSoft reuse**, but architecture is **stateful/fragile**, so it remains HOLD.
+
+**Exact public recipe:** select Fall 2026 (`strm=2268`), `subj=ENGL`, `catalogid=C1000`, and `Show Open Classes
+Only=No`, then scope with `Campus={LACC|ELAC|LAHC|LAMC|LAPC|LASC|LATTC|LAVC|WLAC}`. Example direct query:
+`https://mycollege-guest.laccd.edu/psc/classsearchguest/EMPLOYEE/HRMS/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL?Campus=LACC&catalogid=C1000&strm=2268&subj=ENGL`.
+The indexed exact-writing results are not round-capped in the visible counts: LACC **44**, ELAC **83**, LAHC **45**,
+LAPC **72**, LASC **29**, LATTC **47**, LAVC **57**, and WLAC **19**; LAMC was not counted because a current exact
+writing result was not reproducibly indexed. The page groups `ENGL C1000` with related `ENGL C1000E/H` variants,
+so the builder must prove the full variant set and deduplicate lecture/lab/combined-section rows before adopting it.
+
+**Why not GATED:** freshness is not proven from a search-index copy; a real cookie-backed fetch must capture HTTP
+date/cache headers. The completed Spring 2026 recipe is `strm=2264`; an indexed LASC exact `ENGL C1000` replay shows
+14 rows all `Open` even though those rows ended June 8, 2026. That is a decisive freshness/fake-status warning until
+the live response proves otherwise. LACCD's wait-list policy says wait-list enrollment begins only after seats are
+filled (`https://www.laccd.edu/sites/laccd.edu/files/2025-03/Wait%20List%20Policy-2025.pdf`), but reserved FYE,
+dual-enrollment, PACE, honors, combined-section, and permission restrictions still need section-detail evidence.
+
+**Builder resume gate:** use a live anonymous session, replay Fall 2026 and completed Spring 2026 for every campus,
+capture the native class-number keys and all `ENGL C1000/E/H` variants, prove no pagination/scatter/duplicate collapse,
+record the source timestamp, and inspect detail/eligibility text. Only after current/completed status is genuinely mixed
+and `Open` is shown to mean registerable for an unrestricted student may this become a shared PeopleSoft subclass batch.
+
+#### 2. Old-Colleague family screen — seven holds, two cuts, and one non-lead
+
+All tests used the existing production `Colleague` route: `GET /Student/Courses`, token/cookie bootstrap, JSON
+`POST /Student/Courses/PostSearchCriteria` with the exact first-year-writing keyword, then `POST /Student/Courses/Sections`
+for the full advertised ID set. Current Fall 2026 rows had numeric seat counts and textual status; every candidate below
+was deduped against all 720 registry entries before being named.
+
+| Student scale | College / host | Exact current writing result | Completed-term result | Reuse / architecture | Disposition |
+|---|---|---|---|---|---|
+| **~1,846 Fall 2024** (`https://www.berkshirecc.edu/about-bcc/bcc-foundation/media/impact-report.pdf`) | Berkshire CC — `bcc-ss.colleague.elluciancloud.com` | `ENG 101`: 26 rows, 20 Open / 6 Waitlisted | Spring 2026: 13/13 Open and positive | Existing old Colleague; anonymous JSON | **CUT** — fake-status replay |
+| **3,054 Spring 2026** (`https://www.nashcc.edu/press-releases/nash-community-college-reports-enrollment-growth-for-spring-2026/`) | Nash CC — `ss-prod-cloud.nashcc.edu` | `ENG 111`: 20 rows, 4 Open / 16 Waitlisted | No completed term in this feed | Existing old Colleague; anonymous JSON | **HOLD** — no history |
+| **7,742 total headcount, Quick Facts 2025** (`https://www.swtxc.edu/about/office-of-the-president/quick-facts.html`) | Southwest Texas Junior College — `colss-prod.swtxc.elluciancloud.com` | `ENGL 1301`: 57 rows, 47 Open / 10 Waitlisted | No completed term in this feed | Existing old Colleague; anonymous JSON | **HOLD** — no history |
+| **1,807 Fall 2023 credit** (`https://www.nicc.edu/about/consumer-information/data-definitions/`) | Northeast Iowa CC — `selfserv.nicc.edu` | `ENG 105`: 13 rows, 7 Open / 6 Waitlisted | No completed term in this feed | Existing old Colleague; anonymous JSON | **HOLD** — no history |
+| **3,323 curriculum 2024–25** (`https://www.wilkescc.edu/about/institutional-effectiveness/`) | Wilkes CC — `selfservice.cloud.wilkescc.edu` | `ENG 111`: 24 rows, 12 Open / 12 Waitlisted | No completed term in this feed | Existing old Colleague; anonymous JSON | **HOLD** — no history |
+| **2,297 Fall 2025** (`https://highlandcc.edu/news/2025-news/2025-hcc-enrollment-increase/`) | Highland CC (KS) — `colss-prod.highldsaas.elluciancloud.com` | `ENGL 101`: no usable current rows on new portal | Spring 2026 remains legacy; not same-feed | Existing old Colleague candidate; anonymous JSON | **HOLD** — migration split |
+| **2,149 Fall 2024** (`https://www.baycollege.edu/_resources-dev/pdf/about/consumer-information/michigan-transparency-act/bay-de-noc-community-college-single-audit-report-063024.pdf`) | Bay College — `colss-prod.baycollegesaas.elluciancloud.com` | `ENGL 101`: no usable current rows | New portal/current migration; no replay | Existing old Colleague candidate; anonymous JSON | **HOLD** — no rows/history |
+| **Unknown in this pass** | Garden City CC — `gccc-ss.colleague.elluciancloud.com` | Tested `MATH 108`, `MATH 110`, `MATH 111`, `ENG 101`, `ENGL 101`, `BIOL 101`: zero rows | No usable current comparison | Existing old Colleague candidate; anonymous JSON | **HOLD** — empty source |
+
+Additional hard cut: unidentified host `ssc-ss.colleague.elluciancloud.com` returned 16 `ENG 101` rows current
+(15 Open / 1 non-open), but its completed Spring 2026 replay was 13/13 Open; identity was never proven, so it is
+**not a school lead** and must not be added. Northern Pennsylvania Regional College (`nprc-ss...`) likewise returned
+no usable current exact-writing rows. These hosts are archived as cuts/holds only to prevent rediscovery.
+
+#### 3. Contra Costa Community College District — three-college HOLD/deprioritized
+
+Contra Costa CCD covers **Contra Costa College, Diablo Valley College, and Los Medanos College**. Official 2024–25
+fingertip facts report **50,355 unduplicated students** across the three colleges
+(`https://4cd.edu/about/docs/FingertipFacts.pdf`), so this is system-shaped and high-scale. It is nevertheless a
+poor near-term reuse target: the official course-search endpoint
+(`https://webapps.4cd.edu/apps/courseschedulesearch/search-course.aspx`) is an ASP.NET ViewState form, not a plain
+JSON/static feed or an existing SeatWatch adapter family.
+
+The live Fall 2026 DVC query
+(`https://webapps.4cd.edu/apps/courseschedulesearch/search-course.aspx?loc=dvc&o=n&sdate=8-1-2026&trm=2026FA`)
+returned HTTP 200 but only page **1–25 of 1,704** rows, with `Next >>` implemented through `__doPostBack`. The
+results page exposes no subject filter, and first-year writing was not on page one. That fails the addressability
+killer: a builder cannot safely prove complete `ENGL` coverage without reproducing stateful pagination and checking
+the entire result set. No same-feed completed-term writing replay, freshness stamp, or reserved/eligibility behavior
+was established. This is separate from the previously recorded `vsb.4cd.edu` Visual Schedule Builder cut; both remain
+deprioritized, not builder leads.
+
+**Resume gate:** only revisit if the district exposes a stable subject-filtered/API feed or a fully automated
+ViewState paginator that proves all exact first-year-writing rows, current freshness, a genuinely mixed completed
+term, and registerability. Do not add the three colleges from this endpoint yet.
+
+**Batch result:** 0 builder-ready additions; LACCD's nine-college PeopleSoft surface is the next highest-value live
+replay; Nash, Southwest Texas, Northeast Iowa, Wilkes, Highland, Bay, and Garden City remain explicit HOLDs; Berkshire
+and the unidentified `ssc-ss` host are CUT for completed-term all-open behavior; Contra Costa CCD is held for
+ViewState truncation/no subject addressability. No `schools.py`, builder, registry, deployment, commit, or contact
+changes were made.
 
 ### Codex Batch 73 — system/software-first district screen (July 14, 2026)
 
@@ -1090,6 +1185,238 @@ City and Evergreen Valley were skipped as duplicates because the live `sjeccd` d
 that shared system. Current registry is 720; this research pass did not edit `schools.py`, contact the builder,
 commit, or deploy.
 
+### Codex Batch 83 — old-Colleague family: DuPage + Elgin + Kellogg (July 15, 2026) — GATED, AWAITING GO-AHEAD
+
+This is the next software-family enumeration after the district-first screen, not three unrelated portal guesses.
+All three schools run the exact anonymous old-Colleague JSON flow already shipped in `Colleague` and strengthened
+by Batches 80/82. Exact ID, exact name, leading-article/punctuation normalization, and near-name checks against all
+**720** live `schools.SCHOOLS` entries found the three identities net-new. The older College of DuPage README
+entry is an unresolved research note, not a registry entry. Expected isolated registry change: **720 -> 723**.
+
+**Status: GATED, AWAITING GO-AHEAD — three tiny subclasses of Batch 82's `RegisterableColleague`; no new
+fetcher.** Architecture is the standard public `/Student/Courses` page plus anonymous cookie, antiforgery token,
+and direct JSON POSTs. There is no login, SSO, browser automation, bearer token, APEX, Jenzabar, viewstate, or
+HTML parser. Ranked by students x identical high adapter reuse:
+
+| Reuse rank | School | Suggested ID / host | Official student scale | Current Fall 2026 writing control |
+|---|---|---|---|---|
+| 1 | College of DuPage | `dupage`; `selfserv.cod.edu` | **28,004 Fall 2025** students, summed from the official student-type headcounts (`https://cod.edu/about/administration/planning-and-reporting-documents/pdf/student-demo.pdf`) | `ENGLI 1101`: 216 rows, 181 Open / 35 Waitlisted; **157 safe opens** |
+| 2 | Elgin Community College | `elgin`; `selfservice.elgin.edu:8173` | **17,161 AY2024-25** students (`https://elgin.edu/about/accreditation/assurance-argument/2025-ecc-assurance-argument-for-reaffirmation-of-accreditation.php`) | `ENG 101`: 79 rows, 48 Open / 31 Waitlisted; **38 safe opens** |
+| 3 | Kellogg Community College | `kellogg`; `portal.kellogg.edu` | **4,917 12-month 2022-23** students (`https://nces.ed.gov/ipeds/dfr/2024/ReportHTML.aspx?unitId=170550`) | `ENGL 151`: 31 rows, 26 Open / 5 Waitlisted; **22 safe opens** |
+
+The tagged scale is **50,082 students** and intentionally combines the latest official metrics available rather
+than pretending they are one uniform census. The three current first-year-writing controls contain **326 rows
+and 217 conservative registerable opens**.
+
+**Exact production recipe:** for each host, bootstrap `GET /Student/Courses`, retain the anonymous cookie and
+hidden `__RequestVerificationToken`, then POST JSON `{"Keyword":"{subject} {number}"}` to
+`/Student/Courses/PostSearchCriteria`. Require exact normalized `SubjectCode` and `Number`; do not accept the
+search response's related courses. The shipped term resolver selects Fall 2026. POST the exact model's complete
+`MatchingSectionIds` to `/Student/Courses/Sections`, require exact returned term-description equality, then key
+by native `Number` only after the exact-term filter.
+
+| School | Exact model observed | All advertised IDs / complete term partition |
+|---|---|---|
+| DuPage | `ENGLI 1101`, model `3726` | **361/361**: 119 Spring 2026 + 26 Summer 2026 + 216 Fall 2026 |
+| Elgin | `ENG 101`, model `332` | **139/139**: 47 Spring 2026 + 13 Summer 2026 + 79 Fall 2026 |
+| Kellogg | `ENGL 151`, model `ENGL_151` | **96/96**: 25 Spring 2026 + 7 Summer 2026 + 31 Fall 2026 + 25 Spring 2027 + 8 Summer 2027 |
+
+Model IDs are audit evidence, not values to hard-code. Every returned internal ID was unique and the returned ID
+set exactly equaled the advertised set. Native `Number` values repeat across terms, so filtering the exact term
+**before** keying is mandatory; within current Fall, all 216/79/31 native numbers are nonblank and unique.
+
+**Four-killer evidence, exact first-year writing:**
+
+1. **Freshness:** all bootstrap/search/section calls carried `Cache-Control: no-cache,no-store` or `no-store`,
+   no `Age`, and no stale `Last-Modified`. Live request-second HTTP dates were DuPage `16:04:33-38 GMT`, Elgin
+   `16:04:42-44`, and Kellogg `16:04:45-47` on July 15. The official DuPage guest page says the catalog can be
+   searched without login (`https://selfserv.cod.edu/Student/Courses`); Elgin's official classes page links its
+   search (`https://elgin.edu/academics/catalog-classes/`); Kellogg's official instructions say the same public
+   results show seats (`https://help.kellogg.edu/en_US/records-and-registration/class-schedules`).
+2. **Addressability/completeness:** the exact large writing models returned **361/361, 139/139, and 96/96**
+   advertised IDs with the complete term partitions above. Current Fall has 216/79/31 unique native section
+   numbers and internal IDs. There is no 49/50/100 cap, pagination remainder, subject scatter, sibling honors
+   leakage, or missing advertised section. DuPage's five-letter subject is exactly `ENGLI`, not `ENGL`.
+3. **Completed-term fake-status:** completed Spring 2026 is genuinely mixed at every school. DuPage returned
+   **105 Open / 14 Waitlisted**; Elgin **46 Open / 1 Closed**; Kellogg **24 Open / 1 Closed**. Positive
+   authoritative availability exactly matched the Open counts, while the non-open rows were zero. This is not
+   PeopleSoft `COMMUNITY_ACCESS` all-open replay.
+4. **Reservation/eligibility/registerability:** all 596 rows publish counts and are active and finite, but raw
+   Open plus positive aggregate availability is still unsafe. DuPage Fall has **41** rows with section
+   `Requisites` and/or `OverridesCourseRequisites`; 24 are positive/Open and must be excluded. CRN/section
+   `ALP10` alone shows 10 available with a required concurrent rule and override. Elgin has **10** positive/Open
+   override rows (`A01` is 5/20) and Kellogg has **4** positive/Open required/override rows (`0161` is 2/24).
+   The strict hook therefore contracts 181/48/26 raw Open rows to **157/38/22 safe**. Do not infer waitlist state
+   from numeric `Waitlisted`: some textually Waitlisted rows report zero occupants. `AvailabilityStatus` is the
+   authority.
+
+Seat arithmetic is diagnostic only. It held on DuPage **216/216 current** and 118/119 completed rows, but only
+**43/79 current and 32/47 completed Elgin** rows and **25/31 current and 18/25 completed Kellogg** rows. Examples
+include Elgin Spring section `102` at capacity 20, enrolled 17, authoritative available 2; Kellogg Spring `0160`
+at 24/16 with authoritative available 5; and DuPage completed `NET21` at capacity 12, enrolled 13, authoritative
+available 0 plus Waitlisted. Never reconstruct seats as `Capacity - Enrolled`.
+
+**Required builder integration — reuse Batches 80/82 exactly:** first land the protected old-Colleague hooks and
+`RegisterableColleague` from Batches 80/82 if they are still pending. In particular, require textual Open plus
+positive authoritative `Available`, enabled/finite/active counts, empty `Requisites`, and
+`OverridesCourseRequisites is False`; require every advertised ID; require exact term before keying; and fail the
+course closed on a missing/extra ID or blank/duplicate within-term key. Then add only these subclasses:
+
+```python
+class CollegeDuPage(RegisterableColleague):
+    id = "dupage"; name = "College of DuPage"
+    example = "ENGLI 1101"; host = "selfserv.cod.edu"
+
+class ElginCC(RegisterableColleague):
+    id = "elgin"; name = "Elgin Community College"
+    example = "ENG 101"; host = "selfservice.elgin.edu:8173"
+
+class KelloggCC(RegisterableColleague):
+    id = "kellogg"; name = "Kellogg Community College"
+    example = "ENGL 151"; host = "portal.kellogg.edu"
+```
+
+Register exactly one instance of each. Add fixtures for the five-letter `ENGLI` normalization, exact-model
+selection amid related courses, every advertised-ID set, exact-term-before-key behavior, cross-term repeated
+numbers, blank/duplicate current keys, disabled/unlimited/inactive counts, zero/negative availability, textual
+Waitlisted with zero occupants, nonempty requisites, override-only rows, and all three arithmetic mismatches.
+Use DuPage `ALP10`, Elgin `A01`, and Kellogg `0161` shapes as positive-but-ineligible regression fixtures. Live
+smoke the canonical examples through production and require **216/79/31 current rows with 157/38/22 safe opens**.
+Open counts are live and must not be hard-coded.
+
+This batch **supersedes the older College of DuPage FOLLOW-UP note**. Strict same-family exclusions from this
+pass: Hawkeye's old public host now redirects to `colss-prod.hawksaas.elluciancloud.com`, but completed Spring
+2026 `ENG 105` is **17/17 Open and positive**, so Hawkeye is CUT for false-open replay. Chaffey returned all
+237 `ENGL C1000` IDs but only Summer/Fall 2026 and Spring 2027; Northeast Iowa returned 16 `ENG 105` IDs only
+for Summer/Fall; Prairie State returned 24 `ENG 101` IDs only for Summer/Fall. All three lack a completed-term
+disproof and remain HOLD, not GATED. Highland's new Colleague system explicitly starts with Summer/Fall 2026
+while Spring stayed on its legacy system, so it also cannot pass same-feed completed replay. Current registry is
+720; this research pass did not edit `schools.py`, contact the builder, commit, or deploy.
+
+### Codex Batch 84 — high-scale old-Colleague family: Wake Tech + Schoolcraft + three NC colleges (July 15, 2026) — GATED, AWAITING GO-AHEAD
+
+This is the next exact-software enumeration after the multi-college-system screen, not another famous-flagship
+list. Only five anonymous old-Colleague survivors are promoted; weaker same-family schools are cut or held below
+instead of padding the batch. Exact ID, exact display name, punctuation/leading-article normalization, and
+near-name similarity checks against all **720** live `schools.SCHOOLS` entries found every identity net-new.
+Expected isolated registry change: **720 -> 725**.
+
+**Status: GATED, AWAITING GO-AHEAD — five tiny subclasses of Batch 82's `RegisterableColleague`; no new
+fetcher.** Every source is the same public `/Student/Courses` bootstrap plus anonymous cookie, antiforgery token,
+and direct JSON POSTs. There is no login, SSO, browser automation, bearer token, APEX, Jenzabar, viewstate, or
+HTML seat parser. Ranked by students x identical high adapter reuse:
+
+| Reuse rank | College | Suggested ID / exact host | Official student scale | Current Fall 2026 writing control |
+|---|---|---|---|---|
+| 1 | Wake Technical Community College | `waketech`; `selfserve.waketech.edu` | **more than 72,000 adults annually** (`https://www.waketech.edu/about-wake-tech`) | `ENG 111`: 196 rows, 55 Open / 141 Waitlisted; **55 safe opens** |
+| 2 | Schoolcraft College | `schoolcraft`; `self-service.schoolcraft.edu` | **more than 30,000 annually** across credit and personal/professional learning (`https://www.schoolcraft.edu/about/`) | `ENG 101`: 66 rows, 46 Open / 20 Waitlisted; **46 safe opens** |
+| 3 | Alamance Community College | `alamance`; `ss-prod.cloud.alamancecc.edu` | **more than 10,000 annually** (`https://www.alamancecc.edu/news/2026-press-releases/march-23-acc-ecu/mou-partnership.php`) | `ENG 111`: 38 rows, 9 Open / 29 Waitlisted; **9 safe opens** |
+| 4 | Central Carolina Community College | `central-carolina`; `ss-prod.cloud.cccc.edu` | **approximately 7,100 credential-seeking annually** across three campuses (`https://www.nccommunitycolleges.edu/students/what-we-offer/colleges/central-carolina-community-college/`) | `ENG 111`: 68 rows, 24 Open / 44 Waitlisted; **24 safe opens** |
+| 5 | Brunswick Community College | `brunswickcc`; `ss2-prod-cloud.brunswickcc.edu` | **2,590 12-month 2023-24** students (`https://brunswickcc.edu/wp-content/uploads/2026/01/2025-IPEDS-Report-for-BCC.pdf`) | `ENG 111`: 21 rows, 14 Open / 7 Waitlisted; **14 safe opens** |
+
+The comparable tagged reach is **more than 121,690 annual-scale students**. The five current writing controls
+contain **389 sections and 148 conservative registerable opens**. Positive authoritative availability appears
+on 155 current rows, but seven of those are explicitly Waitlisted and must remain closed; that difference is a
+useful production gate, not noise.
+
+**Exact production recipe:** bootstrap `GET /Student/Courses`, retain the anonymous cookie and hidden
+`__RequestVerificationToken`, and POST JSON `{"Keyword":"{subject} {number}"}` to
+`/Student/Courses/PostSearchCriteria`. Require exact normalized `SubjectCode` and `Number`; do not accept related
+search results. The existing primary-term resolver selects Fall 2026 on July 15. POST the exact model's complete
+`MatchingSectionIds` to `/Student/Courses/Sections`, require exact returned term-description equality, and filter
+the exact term before keying by native `Number`.
+
+| College | Exact model observed | Every advertised ID returned / complete term partition |
+|---|---|---|
+| Wake Tech | `ENG 111`, model `S26393` | **468/468**: 202 Spring + 70 Summer + 196 Fall 2026 |
+| Schoolcraft | `ENG 101`, model `ENG_101` | **135/135**: 45 Winter + 15 Spring + 9 Summer + 66 Fall 2026 |
+| Alamance | `ENG 111`, model `S26393` | **81/81**: 32 Spring + 11 Summer + 38 Fall 2026 |
+| Central Carolina | `ENG 111`, model `S26393` | **134/134**: 54 Spring + 12 Summer + 68 Fall 2026 |
+| Brunswick | `ENG 111`, model `S26393` | **36/36**: 11 Spring + 4 Summer + 21 Fall 2026 |
+
+Model IDs are audit evidence, not constants to pin. Within each of the five feeds, the **854/854** returned
+internal IDs are unique and exactly equal the corresponding advertised ID set. Native section numbers repeat across terms, so exact-term
+filtering must precede keying; inside every current term the native numbers are nonblank and unique.
+
+**Four-killer evidence, exact first-year writing:**
+
+1. **Freshness:** every bootstrap/search/section response was fetched live on July 15 with request-second HTTP
+   dates and `Cache-Control: no-store` or `no-store,no-cache`, with no `Age` or stale `Last-Modified`. Wake Tech
+   returned `16:16:41-46 GMT`, Central Carolina `16:18:24-26`, Schoolcraft `16:19:57-20:00`, Brunswick
+   `16:21:04-05`, and Alamance `16:22:26-27`. These are live query responses, not delayed schedule exports.
+2. **Addressability/completeness:** the large exact controls returned **468/468, 135/135, 81/81, 134/134, and
+   36/36** advertised IDs with the complete partitions above. Current slices are 196/66/38/68/21, not suspicious
+   49/50/100 caps; there is no subject pagination, page scatter, or silent omitted ID. All internal IDs and all
+   within-term native keys are unique.
+3. **Completed-term fake-status:** completed Spring 2026 is genuinely mixed at every school: Wake Tech **198
+   Open / 4 Closed**, Schoolcraft **14 Open / 1 Waitlisted**, Alamance **28 Open / 4 Waitlisted**, Central
+   Carolina **50 Open / 4 Waitlisted**, and Brunswick **10 Open / 1 Waitlisted**. That is **300 Open / 14
+   non-open across 314 completed rows**, not PeopleSoft `COMMUNITY_ACCESS` all-open replay. Schoolcraft also has
+   a second mixed completed control in Winter 2026 at 32 Open / 13 Waitlisted.
+4. **Reservation/eligibility/registerability:** all 854 audited rows publish counts, are active and finite, have
+   empty section `Requisites`, and set `OverridesCourseRequisites` false. Even so, textual state overrides the
+   positive aggregate. Current Wake sections `0023`/`323292` and `0027`/`323297` are Waitlisted with 15 and one
+   available; Central Carolina `LN10`/`106991` is Waitlisted with two available; Alamance `41BH`/`100087` is
+   Waitlisted with one. Wake has five such current rows in total, making seven across the current batch.
+   Brunswick's completed `03A`/`51037` is Waitlisted with four available, and Schoolcraft Winter `02`/`200560`
+   is Waitlisted with two. Require textual Open, positive authoritative `Available`, enabled finite counts,
+   active state, empty requisites, and `OverridesCourseRequisites is False`. Never treat aggregate positivity as
+   registerability.
+
+Seat arithmetic is diagnostic only. It happened to hold for all 196 current Wake, 38 Alamance, and 21 Brunswick
+rows, but only **60/66 Schoolcraft** and **51/68 Central Carolina** rows. Central Carolina Fall `HB1C`/`106943`
+reports authoritative available 1 at capacity 24/enrolled 20, while Schoolcraft Fall `10`/`204463` reports one at
+28/26. Completed controls show the same issue: only 17/54 Central Carolina and 9/15 Schoolcraft Spring rows match
+`Capacity - Enrolled`. Never reconstruct seats from those two fields.
+
+**Required builder integration — land Batches 80/82 first; do not clone `Colleague.fetch()`:** reuse the
+protected `_course_model_ok`, `_section_ok`, `_term_ok`, `_section_key`, and `_row_is_open` hooks, complete
+advertised-ID equality gate, and Batch 82's `RegisterableColleague`. That base must require textual Open plus
+positive authoritative availability, `AreSeatCountsAvailable is True`, `HasUnlimitedSeats is False`,
+`IsActive is True`, empty `Requisites`, and `OverridesCourseRequisites is False`; it must require exact returned
+term before keying and fail the course closed on a missing/extra advertised ID or blank/duplicate within-term key.
+Then add only these subclasses:
+
+```python
+class WakeTech(RegisterableColleague):
+    id = "waketech"; name = "Wake Technical Community College"
+    example = "ENG 111"; host = "selfserve.waketech.edu"
+
+class Schoolcraft(RegisterableColleague):
+    id = "schoolcraft"; name = "Schoolcraft College"
+    example = "ENG 101"; host = "self-service.schoolcraft.edu"
+
+class Alamance(RegisterableColleague):
+    id = "alamance"; name = "Alamance Community College"
+    example = "ENG 111"; host = "ss-prod.cloud.alamancecc.edu"
+
+class CentralCarolinaCC(RegisterableColleague):
+    id = "central-carolina"; name = "Central Carolina Community College"
+    example = "ENG 111"; host = "ss-prod.cloud.cccc.edu"
+
+class BrunswickCC(RegisterableColleague):
+    id = "brunswickcc"; name = "Brunswick Community College"
+    example = "ENG 111"; host = "ss2-prod-cloud.brunswickcc.edu"
+```
+
+Register exactly one instance of each. Add fixtures for exact-model selection amid related search results, all
+five complete advertised-ID sets, missing/extra returned ID, exact-term-before-key behavior, cross-term repeated
+numbers, blank/duplicate current keys, disabled/unlimited/inactive counts, negative/zero availability, nonempty
+requisites, override-only rows, and positive-but-Waitlisted rows. Preserve the exact `0023`, `LN10`, `41BH`,
+`03A`, and Schoolcraft `02` shapes above plus the `HB1C` and Schoolcraft `10` arithmetic mismatches. Live-smoke
+the canonical examples through production and require **196/66/38/68/21 current rows with 55/46/9/24/14 safe
+opens** in the class order above. Status/open counts are live and must not be hard-coded.
+
+This batch **supersedes every older bespoke Schoolcraft schedule-viewer GATED/FOLLOW-UP note** in this README;
+the anonymous Colleague JSON route is simpler, complete, and directly reusable. Strict same-family exclusions
+from this pass: Johnston CC completed Spring `ENG 111` at **39/39 Open and positive**, and Halifax CC at **6/6
+Open and positive**, so both are CUT for fake-status replay. Alvin, King's College (PA), NPRC, Forsyth Tech,
+Wayne CC, and Coffeyville expose no completed term in the same feed and remain HOLD. Catawba Valley's
+old-Colleague route is likewise HOLD for lacking a completed term; that does not invalidate its separately
+researched bespoke viewer. Columbus State exposes only Summer and no active plan terms, while Pitt's section
+request did not return usable JSON; neither is promoted. Current registry remains 720; this research pass did
+not edit `schools.py`, contact the builder, commit, or deploy.
+
 ---
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
@@ -1355,7 +1682,8 @@ of the implementation contract.
    open-only semantics (fail closed on missing rows and disclose snapshot freshness) or stop at the research
    gate; do not fabricate a full catalog from the open list.
 
-4. **Schoolcraft College (MI)** — public schedule viewer:
+4. **Schoolcraft College (MI) — SUPERSEDED; DO NOT BUILD THIS VIEWER.** Use Batch 84's anonymous
+   `RegisterableColleague` subclass instead. Historical public schedule viewer:
    `https://my.schoolcraft.edu/course-schedules/2026/Fall/All` and
    `https://my.schoolcraft.edu/course-schedules/2026/Spring/All`. Browser verification on July 14 found
    the same table schema in both terms: `Course`, native numeric `Section`, title,
@@ -1365,8 +1693,7 @@ of the implementation contract.
    0/28/4 / Closed`; Spring `ENG` shows the same fields and positive Open rows such as `101 / 127101 /
    1/28/0`. **Open = `Status == "Open" AND available > 0`**; `Closed` wins over any ambiguous numeric
    value. Key by `(term, course, section)`; preserve repeated meeting rows under one section and the
-   timestamp/part-of-term heading. This is the strongest new batch member and should be the first adapter
-   built.
+   timestamp/part-of-term heading. This bespoke path is retained as historical evidence only.
 
 5. **Grayson College (TX)** — official public planner pages:
    `https://planner.grayson.edu/Planner/CourseSearch/607` (Fall 2026) and
@@ -1377,10 +1704,11 @@ of the implementation contract.
    and any late-start/session fields. Verify the planner response is complete for the selected course and
    does not silently apply an open-only filter before production.
 
-**Batch builder checklist:** add only these five net-new names after production fetch tests; use native
+**Batch builder checklist:** skip Schoolcraft in this historical batch and implement it only through Batch 84;
+   add the remaining net-new names after production fetch tests; use native
    CRN/section keys; replay current and completed terms; test open/full/waitlist behavior; preserve campus,
    modality, restrictions, and repeated meeting rows; enforce a 30-second timeout; and surface nightly/static
-   freshness for Sandhills, Kenyon, and any timestamped Schoolcraft/Grayson response. No production code or
+   freshness for Sandhills, Kenyon, and any timestamped Grayson response. No production code or
    registry edits were made by this research pass.
 
 ### ⭐ Batch 4 — five additional direct seat sources — GATED, AWAITING GO-AHEAD (Codex, July 14 2026)
@@ -1550,7 +1878,8 @@ section is retained as an audit trail; Batch 8 below is the current unregistered
     `https://secure.cfk.edu/prod/bwckschd.p_disp_detail_sched`; exact `(term, subject/course,
     CRN)`; use primary `Remaining > 0`, ignore separate waitlist capacity, and preserve credit-level and other
     registration restrictions.
-11. **Schoolcraft College (MI)** — public Fall/Spring viewer
+11. **Schoolcraft College (MI) — SUPERSEDED; DO NOT BUILD THIS VIEWER.** Use Batch 84's anonymous
+    `RegisterableColleague` subclass instead. Historical public Fall/Spring viewer:
     `https://my.schoolcraft.edu/course-schedules/2026/Fall/All`; exact `(term, course, native section)`;
     require `Status == Open` and positive `Seat Available`, while retaining capacity, waitlist, location,
     modality, fees, start date, and part-of-term headings.
@@ -2926,7 +3255,8 @@ source-gated.
    July 11, 2026 and lists CRN, subject/number, title, instructor, meeting data, and `SEATS`; rows
    include open counts from 1 through 35. Gate exact term+CRN/section and `SEATS > 0`; the page is an
    open-only view, so omission means unknown rather than closed.
-5. **Schoolcraft College (MI).** Official schedule viewer: `https://my.schoolcraft.edu/course-schedules/2026/Fall/All`
+5. **Schoolcraft College (MI) — SUPERSEDED; DO NOT BUILD THIS VIEWER.** Use Batch 84's anonymous
+   `RegisterableColleague` subclass instead. Historical official schedule viewer: `https://my.schoolcraft.edu/course-schedules/2026/Fall/All`
    and `https://my.schoolcraft.edu/course-schedules/2026/Spring/All`. Fall rows publish timestamped
    `Seat Available/Capacity/Waitlist` plus `Status` (for example 24/25/0 Open beside 0/14/0 Closed);
    Spring page exposes the same fields and mixed open/closed rows. Gate exact term+course+section,
@@ -5453,3 +5783,19 @@ Term pinned 202607. Server-reachable, prod-verified. Closes Grab's browser-trace
   in title cell (blank Availability -> skip, never guess). open = Availability>0, key=CRN unique. Gate:
   ENGL 101 22 sec 17/5, BIOL 100 4 sec 3/1. Both prod-verified. GRAB'S QUEUE NOW FULLY CLOSED (USVI +
   Cayuga were the last two; VCCCD×3 + all prior sends already shipped or correctly skipped).
+
+### Los Rios CCD ×4 — DEFERRED July 15 (Build): ~20-cap, completeness UNCONFIRMED (needs browser pagination trace)
+Grab's high-value lead (American River/Cosumnes River/Folsom Lake/Sacramento City, ~75k, one feed
+hub.losrios.edu/classSearch/getCourses.php, per-college arc/crc/flc/scc filters + closedFilter=true).
+Re-gate could NOT confirm complete section retrieval:
+- Clean class-number parse (not the noisy raw-5-digit grep, which catches room#/times) shows MATH/HIST/
+  PSYC/BIOL each returning exactly 20 sections per call — a round, repeated cap (Delaware signature).
+- offset pagination is BROKEN via plain HTTP: offset=20/40/50, first=50, page=2 all return EMPTY.
+- Summed BIOL across 4 colleges = 248 (noisy) vs Grab's browser ~330 → real shortfall consistent with
+  a per-call cap the browser paginates past via a mechanism plain params don't replicate.
+- Isolation looked clean (arc/scc overlap ~0 modulo grep noise) and freshness passes (seconds-precision
+  "accurate as of" stamp), so DATA + ISOLATION are fine — only COMPLETENESS fails.
+VERDICT: uncircumventable ~20-cap on plain-HTTP calls = silent-miss on any subject >20 sections (most of
+them at a 75k district). NOT shippable until the browser's real pagination request is network-traced (the
+increment/token that fetches page 2+). High ROI IF cracked (4 colleges) — worth a dedicated browser trace
+(Grab's lane, or Build when the app-store push pauses). No schools.py edit. Same bar as Delaware/Brandeis.
