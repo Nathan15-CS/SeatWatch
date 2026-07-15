@@ -36,6 +36,13 @@ IU-Bloomington live; Harvard/CMU/Michigan blocked. Build added 2 addressability 
 now in [[seatwatch-gate-addressability]]); (2) combinedSections.separateEnrollmentControl flag gates the
 cross-list cap precisely.
 
+## CODEX OLD-GATED PILE re-swept (July 14, Nathan "codex did a lot of work") — 2 clean wins + freshness skips
+Extracted un-actioned value from Codex batches 12-19 GATED leads that I never re-gated:
+- **UVI (University of the Virgin Islands, ~2k)** ✅ READY: real-time .aspx schedclass.uvi.edu/stxschedule.aspx?term=202608 (Fall 202608/Spring 202601). Cols CRN/MAX/ENROLL/AVAIL/STATUS. Open=STATUS==ACTIVE AND AVAIL>0; key=CRN. Gate 376/8 live, 350/41 completed (disproof). 3 campuses = 1 school. Relayed.
+- **Cayuga CC (NY, ~4k)** ✅ READY: cayuga-cc.edu/academics/schedule-of-classes/fall/, FRESH (29-min stamp). Availability embedded in title cell (col2), key=CRN. Gate 438/35 (real mix). Relayed.
+- **Cal Poly Humboldt (~6k) SKIP**: pine.humboldt.edu daily report "as of 07:45 AM" fetched at 9:57 PM = ~14h STALE = false-open risk (like SJSU). Real-time is PeopleSoft-gated. Concordia Chicago SKIP (PDF export=stale). Lawrence (~1.5k) parked (Banner-8 real-time but need fuller disproof, small).
+- NEW STANDARD GATE (saved to memory): staleness-timestamp check — any "as of/generated/updated" stamp gets compared to current time; hours-stale = skip. Caught SJSU + Humboldt; UVI/Cayuga passed.
+
 ## Great Falls + Quinsigamond BOTH DEPRIORITIZED (July 14) — fragile stateful portals
 Traced both remaining bench leads; both are fragile stateful portals = poor ROI, NOT clean ships:
 - **Great Falls College MSU** (~2k): Oracle APEX interactive report. Data REAL (Fall 202670 = 304 sec,
