@@ -7920,6 +7920,31 @@ class BrunswickCC(Colleague):
     id = "brunswickcc"; name = "Brunswick Community College"
     example = "ENG 111"; host = "ss2-prod-cloud.brunswickcc.edu"
 
+class CollegeOfDuPage(Colleague):
+    id = "cod"; name = "College of DuPage"
+    example = "ENGLI 1101"; host = "selfserv.cod.edu"
+
+class SouthwesternCA(Colleague):
+    id = "swccd"; name = "Southwestern College (CA)"
+    example = "ENGL C1000"; host = "collselfserv.swccd.edu"
+
+class VictorValley(Colleague):
+    # salvaged onto the elluciancloud host (old IPEDS host fetched empty — excluded then).
+    id = "victorvalley"; name = "Victor Valley College"
+    example = "ENGL C1000"; host = "vvc-ss.colleague.elluciancloud.com"
+
+class Elgin(Colleague):
+    id = "elgin"; name = "Elgin Community College"
+    example = "ENG 101"; host = "selfservice.elgin.edu:8173"   # non-standard port
+
+class Kellogg(Colleague):
+    id = "kellogg"; name = "Kellogg Community College"
+    example = "ENGL 151"; host = "portal.kellogg.edu"
+
+class Coalinga(Colleague):
+    id = "coalinga"; name = "Coalinga College"
+    example = "ENGL C1000"; host = "ellucianssui.whccd.edu"
+
 class IndianHills(ShortYearTermColleague):
     id = "indianhills"; name = "Indian Hills Community College"
     example = "HCM 261"; host = "ss.indianhills.edu"
@@ -8535,7 +8560,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege(),
     MassArt(), PortlandCC(), Wabash(), MonroeCC(),
     Moorpark(), OxnardCollege(), VenturaCollege(), UVI(), Cayuga(),
-    WakeTech(), Schoolcraft(), CentralCarolinaCC(), BrunswickCC()])
+    WakeTech(), Schoolcraft(), CentralCarolinaCC(), BrunswickCC(),
+    CollegeOfDuPage(), SouthwesternCA(), VictorValley(), Elgin(), Kellogg(), Coalinga()])
 
 
 def refresh_all_terms(log=None):
