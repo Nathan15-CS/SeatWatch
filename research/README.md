@@ -5808,3 +5808,12 @@ seats — base Colleague textual-Open rule correctly withholds waitlisted-with-s
 4-line subclasses, no new code. ⚠️ Alamance CC HELD — production Colleague.fetch() returns NO DATA (term-
 picker/bootstrap mismatch, same shape as MassArt's SearchAsync-vs-PostSearchCriteria); do not ship until
 it reproduces through production. Codex Batches 80-84 are system-shaped adapter-reuse work — good vein.
+
+### Codex Batches 82+83 (Colleague) — ✅ 6 SHIPPED July 15 (Build): 724->730
+Grab-relayed, re-gated live through base `Colleague` (~107k students; batches 82/83 combined w/ 84 = 10
+net-new / ~215k): College of DuPage (~28k, ENGLI 1101 216 sec 180/36), Southwestern CA (ENGL C1000 120
+sec 67/53), Victor Valley (ENGL C1000 80 sec 18/62 — SALVAGED on vvc-ss.colleague.elluciancloud.com after
+the old IPEDS host fetched empty), Elgin (ENG 101 79 sec 48/31, host on :8173 — port works incl. from prod),
+Kellogg (ENGL 151 31 sec 25/6), Coalinga (ENGL C1000 34 sec 6/28). All 4-line subclasses, zero open-with-0-
+seats. Still pending from Grab: Batch 80 (Santa Ana + Santiago Canyon, SHARED rsccd host, campus codes
+SAC/SCC — needs isolation) + Batch 81 (Illinois Eastern 3-college shared Banner). Alamance still held.
