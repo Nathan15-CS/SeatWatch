@@ -4760,6 +4760,158 @@ class PortlandCC:
             log(f"[term] {self.id}: term auto-updated {prev or (self.termword, self.term)} -> {new}")
 
 
+class UVI:
+    """University of the Virgin Islands (~2k, ONE institution). Real-time ASP.NET
+    schedule pages, one per campus (stt / stx / sxm — all UVI), combined into one
+    school. ⚠️ The .aspx returns EMPTY on a plain GET unless a session cookie is
+    carried (live-verified: plain GET flaky 0/384; cookiejar reliable 384) — so we
+    fetch through a cookiejar opener, same as the Banner/Colleague families. The whole
+    3-page dump is cached per term (TTL) and shared across courses.
+
+    Columns (0-indexed): CRN(0) SUBJ(1) CRSE(2) SEC(3) ... MAX(11) ENROLL(12) AVAIL(13)
+    ... STATUS(16). OPEN RULE: STATUS=='ACTIVE' AND AVAIL>0 (CANCELLED excluded — 19 in
+    Fall). Section key = CRN (verified UNIQUE across all 3 campus pages — combining is
+    safe). Exact scope = SUBJ + CRSE. Disproof: 66 live-term full ACTIVE rows + 41 in
+    the completed term. Term pinned (bump per term)."""
+    id = "uvi"; name = "University of the Virgin Islands"
+    example = "ACC 201"
+    term = "202608"                        # Fall 2026 (Spring 2026 = 202601)
+    _PAGES = ("stt", "stx", "sxm")
+    _URL = "https://schedclass.uvi.edu/{}schedule.aspx?term={}"
+    _TTL = 300
+    _lock = threading.Lock()
+    _dump = {}                             # term -> (ts, rows)
+    _RE = re.compile(r"^([A-Za-z]{2,4})\s*(\d{2,3}[A-Za-z]?)$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self.term
+
+    def reg_url(self, course):
+        return self._URL.format(self._PAGES[0], self.cur_term())
+
+    def _rows(self):
+        term = self.cur_term()
+        with UVI._lock:
+            c = UVI._dump.get(term)
+            if c and time.time() - c[0] < self._TTL:
+                return c[1]
+            cj = http.cookiejar.CookieJar()
+            op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+            op.addheaders = [("User-Agent", UA)]
+            rows = []
+            for pg in self._PAGES:
+                # These .aspx pages intermittently return an EMPTY table server-side.
+                # Every real page has rows, so treat 0 as a flake and retry; if a page
+                # never yields rows, DON'T cache a dump missing a whole campus — serve
+                # the last complete dump instead (never a silent per-campus miss).
+                pg_rows = []
+                for _ in range(5):
+                    try:
+                        html = op.open(self._URL.format(pg, term), timeout=30).read().decode("utf-8", "replace")
+                    except Exception:
+                        continue
+                    pg_rows = [cells for r in re.findall(r"<tr[^>]*>.*?</tr>", html, re.S)
+                               for cells in [[re.sub(r"<[^>]+>", "", x).strip()
+                                              for x in re.findall(r"<td[^>]*>(.*?)</td>", r, re.S)]]
+                               if len(cells) >= 17 and re.match(r"^\d{4,6}$", cells[0])]
+                    if pg_rows:
+                        break
+                if not pg_rows:
+                    return c[1] if c else []    # incomplete -> keep last-good, never partial
+                rows += pg_rows
+            UVI._dump[term] = (time.time(), rows)
+            return rows
+
+    def fetch(self, courses):
+        rows = None
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            if rows is None:
+                rows = self._rows()
+            secs = {}
+            for c in rows:
+                if c[1].upper() != subj or c[2].upper() != num:
+                    continue
+                key = c[0]
+                if key in secs:
+                    continue
+                try:
+                    av = int(c[13])
+                except (ValueError, IndexError):
+                    continue                    # no numeric availability -> skip, never guess
+                secs[key] = {"open": c[16] == "ACTIVE" and av > 0, "seats": max(av, 0)}
+            if secs:
+                out[course] = secs
+        return out
+
+
+class Cayuga:
+    """Cayuga Community College (NY, ~4k). One public HTML page = the whole Fall
+    catalog, frequently refreshed (page carries a live 'updated: <today> <time>'
+    stamp, not a stale daily snapshot). Columns: CRN(0), Course(1)='SUBJ NUM-SEC',
+    Course Title(2) with 'Availability: N' embedded. OPEN RULE: Availability > 0
+    (a row with a blank Availability is skipped — never guessed open). Section key =
+    CRN (verified unique). Exact scope = the Course cell's SUBJ+NUM. Term is in the
+    URL path (/fall/)."""
+    id = "cayuga"; name = "Cayuga Community College"
+    example = "BIOL 100"
+    _URL = "https://www.cayuga-cc.edu/academics/schedule-of-classes/fall/"
+    _RE = re.compile(r"^([A-Za-z]{2,4})\s*(\d{2,3}[A-Za-z]?)$")
+    _COURSE = re.compile(r"^([A-Za-z]{2,4})\s+(\d{2,3}[A-Za-z]?)-")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def reg_url(self, course):
+        return self._URL
+
+    def fetch(self, courses):
+        try:
+            html = _http(self._URL)
+        except Exception:
+            return {}
+        # parse once: rows -> (crn, subj, num, avail)
+        parsed = []
+        for r in re.findall(r"<tr[^>]*>.*?</tr>", html, re.S):
+            cells = re.findall(r"<td[^>]*>(.*?)</td>", r, re.S)
+            if len(cells) < 3:
+                continue
+            crn = re.sub(r"<[^>]+>", " ", cells[0]).strip()
+            if not re.match(r"^\d{4,6}$", crn):
+                continue
+            cm = self._COURSE.match(re.sub(r"<[^>]+>", " ", cells[1]).strip())
+            am = re.search(r"Availability:\s*(\d+)", re.sub(r"<[^>]+>", " ", cells[2]))
+            if not cm or not am:               # no course code or blank availability -> skip
+                continue
+            parsed.append((crn, cm.group(1).upper(), cm.group(2).upper(), int(am.group(1))))
+        out = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            secs = {}
+            for crn, s, n, av in parsed:
+                if s == subj and n == num and crn not in secs:
+                    secs[crn] = {"open": av > 0, "seats": av}
+            if secs:
+                out[course] = secs
+        return out
+
+
 class GeorgiaTech(Banner):
     id = "gatech"; name = "Georgia Tech"
     example = "CS 1301"; host = "registration.banner.gatech.edu"; term = "202608"
@@ -8364,7 +8516,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     GeorgeMason(), NorthernMichigan(), Hartford(), UTChattanooga(), IUBloomington(),
     MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege(),
     MassArt(), PortlandCC(), Wabash(), MonroeCC(),
-    Moorpark(), OxnardCollege(), VenturaCollege()])
+    Moorpark(), OxnardCollege(), VenturaCollege(), UVI(), Cayuga()])
 
 
 def refresh_all_terms(log=None):
