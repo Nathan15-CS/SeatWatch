@@ -5799,3 +5799,12 @@ VERDICT: uncircumventable ~20-cap on plain-HTTP calls = silent-miss on any subje
 them at a 75k district). NOT shippable until the browser's real pagination request is network-traced (the
 increment/token that fetches page 2+). High ROI IF cracked (4 colleges) — worth a dedicated browser trace
 (Grab's lane, or Build when the app-store push pauses). No schools.py edit. Same bar as Delaware/Brandeis.
+
+### Codex Batch 84 (Colleague) — ✅ 4 SHIPPED July 15 (Build): 720->724
+Grab-relayed Codex batch, re-gated live through the registered base `Colleague` adapter (~112k students):
+Wake Tech (~72k, ENG 111 196 sec 52 open/144 not-open), Schoolcraft (ENG 101 66 sec 46/20, exact),
+Central Carolina CC (ENG 111 68 sec 25/43), Brunswick CC (ENG 111 21 sec 14/7, exact). Zero open-with-0-
+seats — base Colleague textual-Open rule correctly withholds waitlisted-with-seats (Wake Tech confirmed).
+4-line subclasses, no new code. ⚠️ Alamance CC HELD — production Colleague.fetch() returns NO DATA (term-
+picker/bootstrap mismatch, same shape as MassArt's SearchAsync-vs-PostSearchCriteria); do not ship until
+it reproduces through production. Codex Batches 80-84 are system-shaped adapter-reuse work — good vein.
