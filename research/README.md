@@ -4,17 +4,1104 @@ Cross-session research log for SeatWatch school expansion. **This file is kept l
 the full chronological batch-by-batch history lives in `research/ARCHIVE.md` (grep it for any past
 detail). Read THIS file + the lane files; only open ARCHIVE for a specific past finding.
 
-- **Live count: 715 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 14, 2026.
-  The older 703-school milestone remains in the chronological history; Batch 6 below is the current
-  registry-wide dedup audit. RCCD ×3 cracked below = next.
+- **Live count: 718 schools** (goal 1,000); verified from `len(schools.SCHOOLS)` on July 15, 2026.
+  The older 703/715-school milestones remain in the chronological history; Batch 8 below is the current
+  registry-wide dedup queue. The next discovery vein is system-first reusable-family enumeration.
 - **Who's doing what right now:** `research/lane-grabber.md` (Grab) + `research/lane-codex.md` (short, always current).
 - **How we work / accuracy+efficiency gate:** `research/PARTNER-NOTE-codex.md` and repo-root
   `CONTRIBUTING_AGENT.md`. Handoffs to the builder go through Fable; gated-but-unapproved candidates
   get a heading containing the phrase **`AWAITING GO-AHEAD`** (grep for it to find every pending item).
 
+## RESEARCH OPERATING UPDATE — July 14, 2026
+
+Claude's targeting correction is now the active protocol: optimize for **system-shaped, reusable feeds**,
+not famous-school volume. Every new pass starts with multi-college systems/districts and enumerates net-new
+schools running an existing family we already ship or can reuse with minimal change: Banner-9 SSB, Banner-8
+`listcrse`, College Scheduler GraphQL, Ellucian guest Colleague, and static `/data/{term}/crns.json` district
+viewers. A district/system lead is ranked above a single-school bespoke portal by estimated student count,
+adapter reuse, and public architecture quality. Stateful APEX/Jenzabar/viewstate sources are deprioritized;
+plain GET/JSON is preferred.
+
+No lead may be called **GATED** or reported as a builder-ready batch until all four killers pass:
+
+1. **Freshness:** capture the source's `as of`/updated stamp and compare it with the fetch time; hours-stale
+   snapshots are rejected for false-open risk.
+2. **Addressability/completeness:** query a known-large first-year writing course (or the school's exact
+   equivalent), follow every page, and reject round-number caps (49/50/100) or subject scatter that can silently
+   omit sections.
+3. **Real status:** replay a completed term for the same large course; an all-open historical result rejects the
+   source as fake-status PeopleSoft-style data.
+4. **Registerability:** inspect reserved/eligibility bins, waitlist and consent fields; positive aggregate
+   capacity is not an open seat unless the row is actually registerable under the source's semantics.
+
+Before reporting any lead, reload `schools.SCHOOLS` and dedupe by school ID, normalized display name, and any
+existing bespoke adapter. Each reported lead must include: student count, existing adapter family or bespoke
+classification, architecture (`plain GET`/JSON vs stateful portal), exact host/term/request recipe, freshness,
+huge-course completeness, completed-term result, reservation/eligibility behavior, and a rank based on
+**students × adapter reuse**. If any field is missing, label it `HOLD`—never `GATED`—and do not pad a batch.
+
+### Codex Batch 73 — system/software-first district screen (July 14, 2026)
+
+This was a deliberate high-signal screen, not a volume batch. The registry was reloaded before reporting:
+`schools.SCHOOLS` remains **718**, and no existing ID, normalized name, or bespoke adapter was repeated.
+Two net-new shared systems are recorded below as `HOLD`; neither cleared the four-killer gate.
+
+1. **Yuba Community College District — Yuba College + Woodland Community College (CA), HOLD.** The
+   official district site (`https://www.yccd.edu/`) says YCCD serves about **13,000 students** across the two colleges and its
+   centers. Official Fall 2026 pages link public guest Colleague Self-Service at
+   `https://yc-self-service.yccd.edu/Student/Courses/Search` and
+   `https://wcc-self-service.yccd.edu/Student/Courses/Search`; the district's admissions pages confirm
+   that students use Self-Service for current-term enrollment. Architecture is reusable **guest Colleague**,
+   but the rendered public search exposes **“Unlimited Seat Counts Unavailable”** instead of numeric
+   registerable seat counts. Freshness/as-of evidence, a complete first-year-writing section count, a
+   completed-term mixed-status replay, and reserved/eligibility behavior therefore cannot be proven.
+   **Rank:** high reuse × 13k students, but blocked at the seat-field gate.
+
+2. **Dallas College (TX) — seven-campus system, HOLD.** Dallas College's official site identifies
+   **seven campuses** and reports **103,253 credit + 24,927 non-credit students served in FY 2023–24**
+   (official institutional report: `https://www.dallascollege.edu/media/dallas-college/content-assets/documents/business-and-industry/labor-market-intelligence-center/DallasCollege_EIS_MainReport_2324_Formatted.pdf`).
+   The official schedule page (`https://www.dallascollege.edu/special-programs/schedules/`) advertises no-login browsing, while the current registration instructions
+   place live available-seat information inside Workday. The guest Ellucian Self-Service surface at
+   `https://selfsrv.dcccd.edu/Student/Courses` is reachable and reusable in principle, but this pass
+   produced no verified numeric current-term section rows; the public rendering returned
+   **“Unlimited Seat Counts Unavailable.”** The legacy browse route also did not yield a reproducible
+   current Fall 2026 exact-course payload. Freshness, first-year-writing completeness, completed-term
+   status, and registerability/reservation semantics are all unproven. **Rank:** very high reuse × student
+   count, but HOLD until a current, complete, seat-bearing guest endpoint is found.
+
+**Dedup/avoidance notes:** State Center CCD (`scccd`) and Grossmont/Cuyamaca (`gcccd`) are already in
+`schools.py` and were not re-reported. North Orange CCD's static JSON source was status-blocked at the time
+and was not duplicated here; **Batch 77 later supersedes that HOLD** after resolving cutoff, waitlist,
+restriction, reservation, and cross-list semantics. **Batch result: 0 new builder-ready schools; 2 net-new
+system-shaped HOLDs; registry unchanged at 718.**
+
+### Codex Batch 74 — IU iGPS regional-campus family audit (July 14, 2026)
+
+This was a software-family screen of the same public IU iGPS JSON host, not a flagship-name sweep. The
+registry was reloaded first: `schools.SCHOOLS` remains **718**; no existing IU regional campus identity or
+bespoke adapter was repeated. Official IU enrollment records give Fall 2025 census counts of **4,716 South
+Bend, 3,664 Southeast, 3,253 East, 2,964 Kokomo, and 3,260 Northwest** students
+(`https://institutionalmemory.iu.edu/aim/bitstreams/c74e8e66-f663-4b79-95b3-422794dc321a/download`).
+
+**Family/source:** `https://sisjee.iu.edu/sisigps-prd/web/igps/course`; official IU Southeast schedule
+instructions direct students to iGPS for available seats (`https://southeast.iu.edu/academics/register-1/index.html`)
+and its schedule page publishes Fall/Spring 2026 course-search links
+(`https://southeast.iu.edu/student-central/register/schedule-of-classes/index.html`). Exact recipe:
+`GET /search/terms.json?inst={inst}`; `POST /search/courses.json` with
+`{"inst":"{inst}","strm":"4268|4262","filters":{"attributes":null,"level":null,"locations":null,"meetingTimes":null,"mois":null,"sessions":null,"subject":null,"units":null},"from":0,50,...}`
+until the empty page; then `GET /search/classes.json?courseId={courseId}&courseOfferNumber={courseOfferNumber}&courseTopicId={courseTopicId}&effdt={effdt}&strm={term}&inst={inst}&car=UGRD`.
+The existing `IUBloomington` family is the reuse target, but production needs a shared-family variant: cache
+keys must include `(inst, term)` (the current class cache keys only by term), and every section must be
+filtered/validated by campus as well as `inst`.
+
+All calls returned `Cache-Control: no-cache, no-store, must-revalidate` with an HTTP `Date` within minutes of
+the July 14 EDT fetch, so the source is live rather than an hours-stale snapshot. The family screen used
+Fall 2026 `4268` and completed Spring 2026 `4262`, exact `ENG-W 131` (freshman writing), and `MATH-M 118`.
+The Fall `ENG-W 131` catalog was fully paged for each campus (679–1,198 catalog rows; no 49/50/100 cap),
+and campus-filtered section keys were unique in every sample. Completed-term responses were genuinely mixed,
+not all-open: closed rows included positive `openSeats` plus waitlists, proving `closed` is authoritative.
+
+**Net-new campus results — all HOLD, none builder-ready:**
+
+1. **IU South Bend (`IUSBA`, campus `SB`) — HOLD.** Fall `ENG-W 131`: 13 raw / 11 `SB` rows, 4 raw
+   opens; Spring: 15 raw / 14 `SB`, 1 raw open. The same `inst` returns `SE` rows, so campus filtering is
+   mandatory. Under the conservative registerability rule (`closed is false`, positive `openSeats`, no
+   department/instructor consent, no `enrollmentRequirements` reservation/eligibility text), both exact
+   `ENG-W 131` and `MATH-M 118` samples had **zero** clean current opens. HOLD until the shared adapter has
+   campus filtering and a positive unrestricted row.
+2. **IU Southeast (`IUSEA`, campus `SE`) — HOLD.** Fall `ENG-W 131`: 14/14 `SE`, 1 raw open but
+   `departmentConsentRequired=true`; Spring: 9/9 `SE`, 2 raw opens, one reserved for online students and
+   one unrestricted. Fall `MATH-M 118` has 2 clean `SE` opens but also 4 `EA` rows under the same `inst`;
+   this proves `inst=IUSEA` is not sufficient isolation. The exact course is addressable and mixed-status,
+   but the adapter must add campus filtering plus consent/reservation/eligibility guards before any gate.
+3. **IU East (`IUEAA`, campus `EA`) — HOLD.** Fall `ENG-W 131`: 13 raw / 11 `EA`, no open; Fall
+   `MATH-M 118`: 6/6 `EA`, 4 raw opens but zero clean unrestricted opens. Spring `ENG-W 131`: 5/4 `EA`,
+   3 clean opens. The same `inst` also returns `SE` rows; no builder handoff until the shared campus and
+   eligibility variant is production-tested.
+4. **IU Kokomo (`IUKOA`, campus `KO`) — HOLD.** Fall `ENG-W 131`: 12 raw / 10 `KO`, 4 raw opens but
+   zero clean unrestricted; Spring: 8/7 `KO`, 5 raw opens but zero clean unrestricted. Fall `MATH-M 118`
+   also returned `SE` rows and had zero clean unrestricted `KO` opens. Campus leakage and registerability
+   semantics are unresolved.
+5. **IU Northwest (`IUNWA`, campus `NW`) — HOLD.** Fall `ENG-W 131`: 22 raw / 20 `NW`, 12 raw opens,
+   2 clean unrestricted; Spring: 13/12 `NW`, 9 raw opens, 1 clean unrestricted. Fall/Spring `MATH-M 118`
+   also returned `SE` rows and no clean unrestricted `NW` opens. It is the strongest follow-up after a
+   shared campus-filtered adapter exists, but not safe to add as-is.
+
+**IU Indianapolis (`IUINA`) was not reported:** its terms endpoint exposed Summer/Fall 2026 but no Spring
+2026 term, so the mandatory completed-term replay could not be run. It remains a deduped HOLD, not a lead.
+
+**Why this batch is not `GATED`:** the host passes freshness, complete huge-course pagination, and completed
+term mixed-status checks, but the production-shaped `inst` parameter leaks sibling campus rows and positive
+capacity can be consent-, reservation-, or eligibility-bound. **Batch result: 0 builder-ready additions; 5
+net-new IU regional identities recorded as system-shaped HOLDs; registry unchanged at 718.**
+
+### Codex Batch 75 — San Mateo County CCD shared Banner 9 feed (July 14, 2026)
+
+This is a high-signal three-college system batch, not three independent guesses. The official district
+WebSchedule (`https://webschedule.smccd.edu/`) links to the same public Banner 9 host used by Cañada College,
+College of San Mateo, and Skyline College; the district says the three colleges serve **40,000+ students per
+year**. Registry reload and exact/diacritic-normalized dedup found no existing entry for any of the three
+colleges; `schools.SCHOOLS` remains **718**.
+
+**Status: GATED, AWAITING GO-AHEAD — three subclasses of existing `Banner`, one shared host.** Architecture
+is plain guest Banner 9 JSON, no auth/cookies beyond the normal anonymous session, with a small exact campus
+guard. The PDF download links on WebSchedule are open-only snapshots and contain no seat counts; the linked
+Banner endpoint is the builder source of truth.
+
+**Exact production recipe:** base `https://phx-ban-apps.smccd.edu/StudentRegistrationSsb/ssb`.
+
+- Bootstrap `GET /classSearch/classSearch`; term list `GET /classSearch/getTerms?searchTerm=&offset=1&max=40&_=1`.
+- Select Fall 2026 `202608`; completed Spring 2026 is `202603` and is explicitly marked “View Only”.
+  The current term resolver returned `202608` from the host’s own list.
+- Session term POST `/term/search?mode=search` with form body `term=202608`.
+- For each watched exact course, reset `POST /classSearch/resetDataForm` with an empty body, then request
+  `GET /searchResults/searchResults?txt_subject=ENGL&txt_courseNumber=110&txt_term=202608&pageOffset=0&pageMaxSize=100`.
+  Follow `totalCount`; if rows cannot be fully read, skip the course.
+- Keep only exact `subject == ENGL` and `courseNumber == 110`, then filter exact
+  `campusDescription`: `Canada College`, `College of San Mateo`, or `Skyline College`.
+  Section key is `courseReferenceNumber`/CRN for the handoff; it was unique after campus filtering.
+- Use **`seatsAvailable > 0` as the only open rule**. Ignore `openSection`: Fall had 14 zero-seat rows with
+  `openSection=true`; Spring had 5 such rows, including over-cap negative-seat rows. Clamp negative seats to
+  zero in output. Preserve `maximumEnrollment`, `enrollment`, `waitCapacity`, `waitCount`,
+  `reservedSeatSummary`, `crossList*`, and `campusDescription` for diagnostics.
+
+**Four-killer evidence, exact ENGL 110:**
+
+1. **Freshness:** the live Banner response carried HTTP `Date` within seconds of the July 14 EDT fetch;
+   the official WebSchedule Fall PDFs were also timestamped July 14. No stale snapshot was used.
+2. **Completeness/addressability:** Fall returned 39 rows total (13 Cañada / 11 CSM / 15 Skyline) and Spring
+   returned 80 (19 / 35 / 26), all below the 100-row page size; the full `totalCount` was read. No 49/50/100
+   cap or sibling-subject scatter appeared. The official district schedule also publishes this exact writing
+   course in the open-class listings.
+3. **Completed-term replay:** Spring 2026 was genuinely mixed, not all-open. Per campus: Cañada 17 open / 2
+   non-open; CSM 33 / 2; Skyline 19 / 7. Several Spring rows were over-cap or waitlisted, including negative
+   `seatsAvailable`, proving the source carries real enrollment state.
+4. **Registerability:** Fall per campus was Cañada 4 open / 9 non-open, CSM 7 / 4, Skyline 7 / 8; Spring
+   waitlist rows were present (4 / 21 / 12 respectively). `maximumEnrollment - enrollment == seatsAvailable`
+   held on **all 119 rows** across both terms; `reservedSeatSummary` was null on every exact-course row, and
+   no positive-seat row had `openSection=false`. Cross-list fields were present (8 Fall / 16 Spring rows),
+   but did not break seat arithmetic; retain them and trust `seatsAvailable`, never `openSection`.
+
+**End-to-end reuse test:** the existing `Banner` adapter with exact campus guards returned all sections in
+2.33s Cañada, 2.61s CSM, and 2.37s Skyline for Fall ENGL 110. Suggested rough enrollment/rank by students ×
+reuse: **1 Skyline College** (official Fall 2025 page: 9,204 credit students; official AY2024-25 report:
+17,584 unique), **2 College of San Mateo** (official 2024-25 fast facts: 16,528 unduplicated), **3 Cañada
+College** (official Fall 2025 planning report: 6,806 headcount; AY2023-24 unique total 10,979). All three
+share one host and one small adapter wrapper, so the system-level reuse rank is materially higher than the
+per-school rank. Official references: `https://skylinecollege.edu/aboutskyline/index.php`,
+`https://collegeofsanmateo.edu/impact/2425/02_fastfacts.php`,
+`https://www.canadacollege.edu/ipc/2526_files/course-enrollment-and-modalities_9.5.2025-version2.pdf`.
+
+**Builder guardrails:** use three exact-campus subclasses (do not use a bare shared-host class); filter before
+keying; never trust `openSection`; preserve CRN and waitlist fields; and rerun the exact Fall/Spring ENGL 110
+checks through the production class after implementation. No `schools.py` edits were made in this research
+pass; the three identities are ready only under the `AWAITING GO-AHEAD` marker above.
+
+### Codex Batch 76 — remaining public USG Banner 9 gaps (July 15, 2026)
+
+This pass enumerated the University System of Georgia by registration software rather than guessing school
+names. Three official public course-search links exposed net-new standard Banner 9 SSB hosts: University of
+North Georgia, Georgia Highlands College, and Savannah State University. An exact ID, normalized-name, and
+adapter dedup against all **718** live entries found no collision for any of the three. Combined Fall 2025
+enrollment is **29,391** students (20,317 + 5,896 + 3,178) in the USG Board of Regents report:
+`https://www.usg.edu/research/assets/research/documents/enrollment_reports/Fall_2025_SER_Final.pdf`.
+
+**Status: GATED, AWAITING GO-AHEAD — three existing-family Banner additions plus one small reusable
+registerability hook.** All three use the default `StudentRegistrationSsb` path and the same Fall/Spring term
+codes. Architecture is direct guest Banner JSON with only the normal anonymous session cookie; there is no
+login, SSO, browser automation, viewstate, APEX, or bespoke parser. Georgia Highlands uses public HTTPS on
+port `7985`; its official Banner page's **Public Access → Course Offerings** link redirects to that host.
+
+| Reuse rank | School / Fall 2025 students | Suggested production identity | Official guest host | Current ENGL 1101 | Completed ENGL 1101 |
+|---|---|---|---|---|---|
+| 1 | University of North Georgia — **20,317** | `id="ung"`, `name="University of North Georgia"`, `example="ENGL 1101"` | `ssb.ungprod.ung.edu` | Fall `202608`: **184** unique rows, 75 positive / 96 zero / 13 negative; 2 complete pages | Spring `202602`: **69**, 24 positive / 37 zero / 8 negative |
+| 2 | Georgia Highlands College — **5,896** | `id="ga-highlands"`, `name="Georgia Highlands College"`, `example="ENGL 1101"` | `fedwest.highlands.edu:7985` | Fall `202608`: **85** unique rows, 26 positive / 52 zero / 7 negative | Spring `202602`: **54**, 23 positive / 29 zero / 2 negative |
+| 3 | Savannah State University — **3,178** | `id="savstate"`, `name="Savannah State University"`, `example="ENGL 1101"` | `savstate.gabest.usg.edu` | Fall `202608`: **80** unique rows, 18 positive / 62 zero | Spring `202602`: **38**, 17 positive / 21 zero |
+
+**Exact production recipe (identical on all three hosts):** base
+`https://{host}/StudentRegistrationSsb/ssb`; bootstrap `GET /classSearch/classSearch`; list terms with
+`GET /classSearch/getTerms?searchTerm=&offset=1&max=40&_=1`; select the term using
+`POST /term/search?mode=search` with form body `term=202608`; reset with an empty-body
+`POST /classSearch/resetDataForm`; then fetch
+`GET /searchResults/searchResults?txt_subject=ENGL&txt_courseNumber=1101&txt_term=202608&pageOffset=0&pageMaxSize=100`.
+Follow `totalCount` until every page is read, and keep only exact `subject == "ENGL"` plus
+`courseNumber == "1101"` because Banner's course-number query is prefix matching. The existing `Banner`
+pagination and exact-field guards already implement this recipe. The host term lists identify `202608` as
+Fall 2026 and `202602` as Spring 2026 View Only; production `resolve_term()` selected `202608` on all three.
+
+**Four-killer evidence:**
+
+1. **Freshness:** current search responses carried HTTP dates equal to the local UTC fetch second on July 15:
+   UNG `13:41:08 GMT`, Savannah State `13:41:10 GMT`, and Georgia Highlands `13:43:42 GMT`. None is an
+   hours-stale mirror. Savannah State's official schedule page additionally says its enrollment data is current
+   when opened/refreshed; the GHC official page directly labels its link public Course Offerings.
+2. **Addressability/completeness:** exact first-year writing returned stable `totalCount` values of 184, 85,
+   and 80. UNG's 184 rows were completely read at offsets 0 and 100; the other two fit on one 100-row page.
+   Every CRN and `sequenceNumber` was unique within each school/term. No result pinned to 49/50/100, no
+   sibling course leaked after exact filtering, and the existing production paginator returned all 184/85/80
+   sections end to end.
+3. **Real completed status:** Spring 2026 was mixed at every host, with both positive and zero/negative seat
+   rows as shown in the table. This is not completed-term all-open `COMMUNITY_ACCESS` behavior. Across current
+   and completed terms, `maximumEnrollment - enrollment == seatsAvailable` held on **all 510 rows**.
+4. **Registerability:** `reservedSeatSummary` was null on all 510 rows. No positive-seat row had a waitlist
+   occupant, linked-section flag, or cross-list cap; no positive row had `openSection=false`. Waitlists did
+   exist on zero-seat current rows at Savannah State and GHC. The official UNG and Savannah instructions warn
+   that a newly available seat can be reserved for the next waitlisted student, and the GHC Banner UI carries
+   the same “Open Seats Reserved for Waitlisted Only” state. Therefore future safety requires the hook below;
+   aggregate positive capacity alone is not enough.
+
+**Required builder hook — keep existing-family reuse, do not clone `Banner.fetch()`:** add a protected
+`Banner._row_is_open(self, row, seats)` method whose default is `seats > 0`, and replace the hard-coded
+`"open": n > 0` assignment in `Banner.fetch()` with that hook. Add a small `WaitlistSafeBanner(Banner)`
+variant used by these three classes. Its open rule must be conservative:
+
+```python
+def _row_is_open(self, row, seats):
+    if seats <= 0 or int(row.get("waitCount") or 0) > 0:
+        return False
+    if row.get("reservedSeatSummary") or row.get("isSectionLinked"):
+        return False
+    has_cross_list = row.get("crossList") or row.get("crossListCapacity") is not None
+    if has_cross_list and int(row.get("crossListAvailable") or 0) <= 0:
+        return False
+    return True
+```
+
+Then add and register exactly one instance of each class (expected registry **718 → 721**):
+
+```python
+class NorthGeorgia(WaitlistSafeBanner):
+    id = "ung"; name = "University of North Georgia"
+    example = "ENGL 1101"; host = "ssb.ungprod.ung.edu"; term = "202608"
+
+class GeorgiaHighlands(WaitlistSafeBanner):
+    id = "ga-highlands"; name = "Georgia Highlands College"
+    example = "ENGL 1101"; host = "fedwest.highlands.edu:7985"; term = "202608"
+
+class SavannahState(WaitlistSafeBanner):
+    id = "savstate"; name = "Savannah State University"
+    example = "ENGL 1101"; host = "savstate.gabest.usg.edu"; term = "202608"
+```
+
+Continue to clamp negative `seatsAvailable` to zero and ignore `openSection`: it was falsely true on **4**
+zero-seat UNG rows, **22** zero-seat GHC rows, and **14** zero-seat Savannah rows in current Fall. Add
+synthetic tests for positive aggregate seats plus each blocker (`waitCount`, `reservedSeatSummary`, linked,
+cross-list full), and rerun the exact Fall/Spring counts above after implementation. With current data the hook
+does not remove any positive row, so expected production open counts remain UNG **75**, GHC **26**, Savannah
+**18**. Existing `Banner` end-to-end tests resolved Fall automatically and returned 184 sections in 2.59s,
+85 in 2.05s, and 80 in 2.09s respectively.
+
+**Official source entry points:** UNG publishes its guest Course Search at
+`https://ssb.ungprod.ung.edu/StudentRegistrationSsb/ssb/term/termSelection?mode=search`; Savannah State's
+official schedule page is `https://savannahstate.edu/registrar/schedule/` and links the host above; Georgia
+Highlands' official public Banner page is `https://www.highlands.edu/banner-portal/`. Registerability semantics
+come from `https://ung.edu/registrar/waitlisted-courses.php` and
+`https://savannahstate.edu/registrar/howtoregister/`. These are production registration schedule surfaces,
+not catalogs.
+
+**System-shaped cuts from the same pass (do not hand off or rediscover):** Peralta CCD's four-college public
+search is a custom PeopleSoft→HubSpot GraphQL mirror explicitly updated only twice daily; the same Spring 2026
+CRN appeared more than once with conflicting capacities/enrollments, so it fails freshness and identity
+integrity. Laney and Berkeley City were already pending README identities and were not re-reported; College of
+Alameda and Merritt were not promoted. Los Rios' four-college PHP feed had a current timestamp and numeric
+seats, but direct `ENGL C1000` returned zero while the undocumented former code `ENGWR 300` claimed 292
+results yet yielded **305 unique CRNs across 16 pages**; positive rows also included reserved/permission-only
+sections. It fails clean addressability and registerability, so American River, Cosumnes River, Folsom Lake,
+and Sacramento City remain CUT rather than padded leads.
+
+**Batch result:** 3 builder-ready, net-new USG schools ranked by **students × near-total Banner reuse**;
+registry remains 718. Research only: no `schools.py` edit, builder contact, commit, or deployment was made.
+
+### Codex Batch 77 — NOCCCD static-JSON district promotion (July 15, 2026) — GATED, AWAITING GO-AHEAD
+
+This pass returned to a multi-college system only after finding the missing authoritative status signals. The
+July 11 NOCCCD entry below was correctly held because positive aggregate seats alone were unsafe. The public
+client's enrollment-cutoff rule, restriction marker, waitlist display logic, cross-list pool, and dynamic
+reservation bins now provide a conservative registerability rule, so this block **supersedes that prior HOLD**.
+An exact ID plus normalized-name dedup against all **718** live `schools.SCHOOLS` entries found neither proposed
+identity nor an existing NOCCCD adapter. Expected registry change after implementation: **718 → 720**.
+
+**Status: GATED, AWAITING GO-AHEAD — one shared adapter, two colleges, approximately 37,207 Fall 2025
+students.** This is the preferred architecture from the new protocol: anonymous static GET/JSON, no login,
+cookie, SSO, browser automation, viewstate, APEX, or bearer token. It reuses the existing `WVMCCD` shared
+static-district design (shared term dump/cache plus exact campus subclasses) with NOCCCD's schema and separate
+minute-updated seats file; it is a small reusable family addition, not a bespoke portal parser. NOCCCD's
+Strategic Enrollment Plan estimates Fall 2025 headcount at **20,448 Fullerton** and **16,759 Cypress**:
+`https://www.nocccd.edu/documents/nocccd-strategic-enrollment-plan`.
+
+| Reuse rank | School / students | Exact production identity | Campus filter | Fall 2026 first-year writing |
+|---|---|---|---|---|
+| 1 | Fullerton College — **20,448** | `id="fullerton"`, `name="Fullerton College"`, `example="ENGL C1000"` | `sectCampCode.startswith("2")` (`2` + `2NH`) | internal `ENGL 100 F`: **102/102 unique CRNs**, 27 raw-positive, **26 safely open** |
+| 2 | Cypress College — **16,759** | `id="cypress"`, `name="Cypress College"`, `example="ENGL C1000"` | `sectCampCode.startswith("1")` (`1` + `1NH`) | internal `ENGL 100 C`: **59/59 unique CRNs**, 1 raw-positive, **0 safely open** because that row has a waitlist |
+
+**Exact source and request recipe:** use base `https://schedule.nocccd.edu/data`. List terms with
+`GET /terms.json?p={YYYYMMD}` and ignore every `termDesc` beginning `NOCE`; the current credit term is Fall
+2026 `202610`. For a term, fetch `courses.json?p={day}`, `sections.json?p={minute}`, and
+`seats.json?p={minute}`. The cache-buster is mandatory because CloudFront advertises a long shared-cache TTL
+even though the district regenerates the files every few minutes. Merge each dynamic seat row into its static
+section by exact `sectKey`, updating only `sectMaxEnrl`, `sectEnrl`, `sectSeatsAvail`, `sectWaitCount`,
+`sectXlst`, and `sectResv`. If a section has no matching dynamic row, a file is malformed, the two key sets
+disagree, or either live file cannot be refreshed, fail closed; never reuse a stale `open=True` result.
+
+The July 15 snapshot contained **1,669 courses and 3,914 sections/seats** with 3,914 unique `sectKey` values:
+Cypress had 1,696 campus-`1` plus 41 campus-`1NH` rows; Fullerton had 2,170 campus-`2` plus 7 campus-`2NH`
+rows. There was no CRN overlap between the two campus-prefix sets. `sectMaxEnrl - sectEnrl ==
+sectSeatsAvail` held on **3,914/3,914** current rows, so use `sectCrn` as the user-facing section key only
+after campus filtering and use `sectKey` for the merge.
+
+**Four-killer evidence:**
+
+1. **Freshness:** all four current files returned HTTP `Last-Modified: Wed, 15 Jul 2026 14:02:05 GMT` when
+   fetched at `14:06:02–03 GMT`, an age of about four minutes. Production must compare `Last-Modified` with
+   the response `Date` and fail closed when either `sections.json` or `seats.json` is over **15 minutes old**.
+2. **Addressability/completeness:** this is a complete whole-term file, not a paginated search. The course file
+   maps public alias `ENGL C1000` to both exact internal records (`100 C` and `100 F`); campus filtering then
+   returns exactly 59 Cypress and 102 Fullerton sections. Every CRN is unique, there is no 49/50/100 cap, and
+   all 3,914 source rows are consumed. Do not query the internal college-specific number directly for a normal
+   user request: map an exact `crseAlias` **or** exact `crseCrseNumb` through `courses.json`, then match the
+   resulting exact `(sectSubjCode, sectCrseNumb)` pair in `sections.json`.
+3. **Completed-term fake-status replay:** direct completed Spring 2026 `202520` contained **4,009** unique rows,
+   3,450 with positive aggregate seats; completed Fall 2025 `202510` contained **4,099**, 3,433 positive.
+   Every row still says `sectSstsCode="A"`, so raw status/seats alone would be catastrophically false-open.
+   However, every enrollment cutoff is in the past; the rule below returns **0 open in both complete files**,
+   including 0 across 48/60 Spring and 77/101 Fall Cypress/Fullerton first-year-writing rows. This is a real,
+   deterministic historical-status gate rather than the PeopleSoft all-open failure.
+4. **Reservations/eligibility:** current rows expose 182 `sectSaprCode` restrictions, 6 `sectResv` reservation
+   arrays, 668 cross-listed pools, 962 positive waitlists, and 74 zero-capacity/contact-department sections.
+   The feed proves each aggregate-seat trap directly: Cypress CRN `11566` has 1 raw seat plus 1 waitlisted;
+   Fullerton CRN `12010` has 2 raw seats plus a reservation bin and waitlist; Cypress CRN `10260` has 11 local
+   seats but 0 cross-list seats; Cypress CRN `14356` has 11 raw seats but `sectSaprCode="SA"`. All four must
+   be closed. Cypress's official schedule help independently says a class can display positive seats while
+   closed because it began or a dropped seat is being offered to a waitlisted student:
+   `https://www.cypresscollege.edu/schedule-of-classes-and-college-catalog/find-classes/`.
+
+**Mandatory conservative open rule:** parse `sectEnrlCutOffDate` (`MM/DD/YYYY`) at midnight in
+`America/Los_Angeles`, matching the client and Cypress's “closes at midnight” documentation. Require the
+current instant to be strictly before that deadline. `effective` is the minimum of local seats and every
+parseable cross-list availability; a malformed cross-list fails closed. Return `seats=effective` only for a
+safe-open row and `seats=0` for every blocker, so a reserved/waitlisted aggregate balance is never surfaced as
+registerable:
+
+```python
+def _is_open(row, now):
+    deadline = parse_pacific_midnight(row.get("sectEnrlCutOffDate"))
+    if row.get("sectSstsCode") != "A" or not deadline or now >= deadline:
+        return False, 0
+    if row.get("sectSaprCode") or row.get("sectResv"):
+        return False, 0
+    if as_int(row.get("sectWaitCount")) != 0 or as_int(row.get("sectMaxEnrl")) <= 0:
+        return False, 0
+    effective = as_int(row.get("sectSeatsAvail"))
+    for pool in row.get("sectXlst") or []:
+        effective = min(effective, as_int(pool.get("xlstSeatsAvail")))
+    return (effective > 0, max(effective, 0) if effective > 0 else 0)
+```
+
+`as_int` must fail closed on missing/non-numeric input; do not coerce malformed availability to a plausible
+open count. With this rule the current full feed contracts from 1,099 raw-positive to **881 safe-open Cypress**
+rows and from 1,342 to **1,268 safe-open Fullerton** rows. The counts are snapshot evidence, not brittle test
+constants because `seats.json` is live.
+
+**Builder implementation/acceptance contract:** add one shared `NOCCCD` class patterned after `WVMCCD`, with
+a class-level lock/cache keyed by term, a long course TTL, and a **maximum 120-second live section/seat TTL**.
+Add only these subclasses and register one instance of each:
+
+```python
+class CypressCollege(NOCCCD):
+    id = "cypress"; name = "Cypress College"
+    example = "ENGL C1000"; campus_prefix = "1"
+
+class FullertonCollege(NOCCCD):
+    id = "fullerton"; name = "Fullerton College"
+    example = "ENGL C1000"; campus_prefix = "2"
+```
+
+`reg_url()` should return
+`https://schedule.nocccd.edu/?college={campus_prefix}&term={term}&subj={subject}&status=OPEN`. Term refresh
+must select the nearest current/upcoming non-NOCE credit term from the source's labels, tentatively switch,
+verify the class's example through the production adapter, and roll back if empty. Add fixture tests for alias
+mapping, `1`/`1NH` and `2`/`2NH` inclusion, cross-campus exclusion, key-set mismatch, stale headers, passed
+cutoff, waitlist, restriction, reservation, cross-list exhaustion, zero capacity, malformed integers, and
+refresh failure. Then run live smoke checks that return all 59/102 `ENGL C1000` sections; do not hard-code the
+live open totals. Official district registration currently says Fall 2026 registration is open for both
+colleges: `https://www.nocccd.edu/`.
+
+**System-first screen notes (do not hand off):** Alamo Colleges District was tested before NOCCCD because one
+feed covers five colleges. Its guest Banner 9 current Fall 2026 `ENGL 1301` search was complete at 428 rows,
+but 89 of the first 100 completed Spring 2026 rows still reported positive/open seats after their classes had
+ended; 195 current writing rows were also linked. It fails the fake-status/registerability gates and is **CUT**,
+despite official Fall registration being open. SOCCCD (Saddleback + Irvine Valley) is **HOLD**: its public
+SmartSchedule uses a stateful two-hour guest bearer and the exact writing, reservation, and historical gates
+are not complete; its fragile architecture ranks below this plain-JSON district and was not padded into the
+batch.
+
+**Batch result:** 2 builder-ready, net-new colleges on one high-reuse district feed; one five-college system
+rejected and one two-college system held. Registry remains 718. Research only: no `schools.py` edit, builder
+contact, commit, or deployment was made.
+
+### Codex Batch 78 — existing-family system completion (July 15, 2026) — GATED, AWAITING GO-AHEAD
+
+This pass enumerated missing members of systems SeatWatch already supports rather than searching new school
+names. It found one of five unregistered LCTCS colleges that clears the strict completed-term test, then
+retested the three NMSU community-college campuses on the already-shipped NMSU host. The NMSU completed-term
+endpoint now returns populated rows, resolving the July 13 DACC omission. Exact ID, normalized-name, source,
+and adapter dedup against all **718** live entries found all four proposed identities net-new. Expected registry
+after implementation: **718 → 722**.
+
+**Status: GATED, AWAITING GO-AHEAD — four existing-family Banner additions, no new fetcher.** Fletcher is
+another entity on the existing `LCTCS` host; the three New Mexico colleges are exact campus-description
+subclasses on the existing `NMSU` host. Both are normal guest Banner 9 JSON: one anonymous cookie session,
+plain GET/form requests, no login, SSO, browser automation, APEX, viewstate, bearer token, or HTML parser.
+Rank is students × essentially total adapter reuse:
+
+| Reuse rank | School / student count | Exact identity and isolation | Current first-year writing | Completed replay |
+|---|---|---|---|---|
+| 1 | Doña Ana Community College — **7,200 Fall 2024** | `id="dacc"`, `name="Doña Ana Community College"`; exact `campusDescription == "DACC - Dona Ana"` | Fall `202640`, `ENGL 1110G`: **49** rows, 21 positive / 28 zero | Spring `202610`: **37**, 19 positive / 9 zero / 9 negative |
+| 2 | Fletcher Technical Community College — **3,392 AY2023-24 credit students** (6,698 total served) | `id="fletcher"`, `name="Fletcher Technical Community College"`; LCTCS `mepCode="FTCC"` | Fall `202710`, `ENGL 1006`: **8**, 1 positive / 6 zero / 1 negative at final fetch | Spring `202620`: **10**, 9 positive / 1 zero |
+| 3 | New Mexico State University–Alamogordo — **1,152 Fall 2024** | `id="nmsu-alamogordo"`, `name="New Mexico State University–Alamogordo"`; exact `campusDescription == "NMSU - Alamogordo"` | Fall `202640`, `ENGL 1110G`: **8**, 5 positive / 3 zero | Spring `202610`: **8**, 6 positive / 1 zero / 1 negative |
+| 4 | New Mexico State University–Grants — **754 Fall 2024** | `id="nmsu-grants"`, `name="New Mexico State University–Grants"`; exact `campusDescription == "NMSU - Grants"` | Fall `202640`, `ENGL 1110G`: **4**, all 4 positive | Spring `202610`: **4**, 2 positive / 2 negative |
+
+The three comparable NMSU counts come from the university's official 2024-25 Quick Facts:
+`https://oia.nmsu.edu/nmsudata/quickfacts/QuickFacts_24_25_web.pdf`. Fletcher's official strategic scorecard
+reports 3,392 credit students and 6,698 total students served in 2023-24:
+`https://www.fletcher.edu/about-us/files/documents/College%20Scorecard%20Worksheet%20-%202024-2025%20-%20Ending%20Q1.pdf`.
+The combined tagged scale is **12,498** students; this intentionally combines the three comparable NMSU Fall
+census counts with Fletcher's latest complete-year credit headcount and is not presented as one uniform census
+metric.
+
+**Exact request recipes:**
+
+- **Fletcher:** existing `LCTCS` base, host `reg-prod.ec.lctcs.edu`, path `StudentRegistrationSsb`,
+  `mepCode=FTCC`, current term `202710`. Bootstrap
+  `GET /ssb/classSearch/classSearch?mepCode=FTCC`; select with
+  `POST /ssb/term/search?mode=search&mepCode=FTCC` body `term=202710&mepCode=FTCC`; reset; then call the
+  existing paginated `searchResults` endpoint with exact `txt_subject=ENGL`, `txt_courseNumber=1006`, and
+  `txt_term=202710`. Fletcher's official Catalog page links this exact guest Banner host under “Browse Current
+  Schedule of Classes”: `https://www.fletcher.edu/catalog/index`.
+- **NMSU community colleges:** existing `NMSU` host `banner-public.nmsu.edu`, current term `202640`, no
+  `mepCode`. Search exact `ENGL 1110G` through the normal production paginator, then apply the exact campus
+  descriptions in the table **before section keying**. Never use `campus="NMSU"`: first-word filtering would
+  merge Alamogordo, Grants, Las Cruces, and Global. NMSU's official application page lists Doña Ana,
+  Alamogordo, Grants, Main, and Global as selectable campuses and says Fall 2026 applications remain open:
+  `https://nmsu.edu/apply/`.
+
+**Four-killer evidence:**
+
+1. **Freshness:** Fletcher's final current response carried HTTP `Date: Wed, 15 Jul 2026 14:26:02 GMT`; its
+   open writing count changed from 2 to 1 during this nine-minute validation window when CRN `10023` filled,
+   proving the endpoint is live rather than an hours-stale snapshot. The fully paged NMSU response carried
+   `Date: Wed, 15 Jul 2026 14:23:28 GMT`; DACC's current count has also moved from the earlier July 13 audit.
+   Both official institutions currently advertise active Fall 2026 enrollment.
+2. **Addressability/completeness:** Fletcher's exact query returned `totalCount=8`; its complete ENGL subject
+   returned 19 rows. Across complete Fall ENGL/MATH/BIOL subject reads it had **97/97 unique CRNs** and no
+   within-course duplicate sequence. NMSU `ENGL 1110G` returned **108 system rows**, explicitly read as pages
+   100 + 8. Exact campus counts were DACC 49, Alamogordo 8, Grants 4, Main 38, Global 9, totaling 108. DACC's
+   apparent 49 is therefore a real campus subset—not a 49/50 cap. Every proposed campus had unique CRNs and
+   sequence numbers in current and completed terms.
+3. **Completed-term fake-status:** all four have genuine full/over-capacity writing rows in completed Spring
+   2026, as shown in the table. A second NMSU replay, completed Fall 2025 `202540`, remained mixed: DACC
+   19 positive / 21 zero / 8 negative; Alamogordo 5 / 1 / 2; Grants 1 / 2 / 3. These are not
+   `COMMUNITY_ACCESS` all-open results. `maximumEnrollment - enrollment == seatsAvailable` held on every
+   audited current and completed row.
+4. **Reservations/eligibility:** current exact writing had no `reservedSeatSummary`, linked, or cross-list
+   rows at any proposed college. Fletcher had 4 waitlisted rows and DACC had 6, but **all ten had zero or
+   negative seats**; no positive-seat row was waitlisted. The source still proves why `openSection` must never
+   be trusted: it was true on all 8 Fletcher rows despite 7 being zero/negative, on all 49 DACC rows despite
+   28 zeroes, and on all 8 Alamogordo rows despite 3 zeroes. Negative availability must remain closed and be
+   clamped to zero. NMSU Global stays excluded; its own registration guidance says Global sections can be
+   reserved for that population.
+
+**Required builder integration — depend on Batch 76's shared hook, do not clone `Banner.fetch()`:** first add
+the protected `Banner._row_is_open(row, seats)` hook and `WaitlistSafeBanner` variant already specified in
+Batch 76. Use the same conservative rule here: positive numeric seats, zero waitlist, no
+`reservedSeatSummary`, no linked-section marker, and positive cross-list availability when present. Then make
+the already-existing shared families opt in (`class LCTCS(WaitlistSafeBanner)` and
+`class NMSU(WaitlistSafeBanner)`) and rerun their existing-school smoke tests. Current positive rows at these
+four candidates have no blocker, so safe expected current opens are Fletcher **1**, DACC **21**, Alamogordo
+**5**, and Grants **4** at the final snapshots.
+
+Add only these classes and one registry instance of each:
+
+```python
+class FletcherTechnical(LCTCS):
+    id = "fletcher"; name = "Fletcher Technical Community College"
+    example = "ENGL 1006"; mep = "FTCC"
+
+class DonaAnaCC(NMSU):
+    id = "dacc"; name = "Doña Ana Community College"
+    _CAMPUS = "DACC - Dona Ana"
+
+class NMSUAlamogordo(NMSU):
+    id = "nmsu-alamogordo"; name = "New Mexico State University–Alamogordo"
+    _CAMPUS = "NMSU - Alamogordo"
+
+class NMSUGrants(NMSU):
+    id = "nmsu-grants"; name = "New Mexico State University–Grants"
+    _CAMPUS = "NMSU - Grants"
+```
+
+The NMSU subclasses intentionally inherit `example`, `host`, `term`, exact `_campus_ok`, term refresh, and
+all fetch logic from the shipped `NMSU` class. Add synthetic blocker tests for positive seats plus waitlist,
+reservation, linked, and exhausted cross-list fields; exact-campus isolation tests including a tempting Global
+row; two-page pagination; negative-seat clamping; and Fletcher `mepCode` on bootstrap, term selection, and
+search. Then live-smoke all four through production. The test observed 8/49/8/4 sections in 1.57/4.74/4.14/
+4.13 seconds; open counts are live and must not be hard-coded.
+
+**Strict LCTCS cuts (do not add or rediscover):** the other four missing system colleges use the same host and
+passed current completeness/CRN checks, but each failed the required completed writing test: Central Louisiana
+Technical CC `ENGL 1010` was **2/2 positive** in completed Spring 2026; Louisiana Delta `ENGL 101` was
+**16/16 positive**; Northshore Technical `ENGL 1015` was **14/14 positive**; Northwest Louisiana Technical
+`ENGL 1015` was **1/1 positive**. They remain **CUT**, not padded behind a date workaround. The seven LCTCS
+colleges already in `schools.py` were not re-reported.
+
+**Batch result:** 4 builder-ready, net-new colleges through two already-shipped Banner families; 4 sibling
+colleges rejected by the historical test. Registry remains 718. Research only: no `schools.py` edit, builder
+contact, commit, or deployment was made.
+
+### Codex Batch 79 — University of Hawaiʻi ten-campus Banner 9 system (July 15, 2026) — GATED, AWAITING GO-AHEAD
+
+This is one complete system-shaped handoff, not ten school-name guesses. The legacy Banner 8
+`/uhdad/avail.classes` service was retired after December 2025 and still redirects to a 502 maintenance page;
+**do not revive or scrape it**. The replacement linked by UH's official schedule pages is anonymous Banner 9
+SSB at `https://www.sis.hawaii.edu:9234/StudentRegistrationSsb/ssb`. It exposes all ten UH campuses through one
+plain JSON family. Exact ID, punctuation/diacritic-normalized name, and adapter dedup against all **718** live
+entries found every proposed identity net-new. Expected isolated registry change: **718 → 728**.
+
+**Status: GATED, AWAITING GO-AHEAD — ten schools, one existing-family Banner integration.** Architecture is
+direct guest Banner JSON with only the normal anonymous `JSESSIONID`; there is no login, SSO, browser
+automation, bearer token, APEX, viewstate, or HTML parser. UH's official Fall 2025 census totals **51,411**
+students across exactly these ten campuses and supplies every campus count below:
+`https://www.hawaii.edu/news/article.php?aId=14169`. UH's official Fall 2026 announcement independently
+enumerates the same three universities plus seven community colleges:
+`https://www.hawaii.edu/news/2026/03/06/summer-fall-registration-dates/`.
+
+| Reuse rank | School / Fall 2025 students | Suggested ID / exact API campus / suffix | Current Fall 2026 `ENG 100` | Completed control |
+|---|---|---|---|---|
+| 1 | University of Hawaiʻi at Mānoa — **20,404** | `uh-manoa`; `University of Hawaii at Manoa`; `0` | backend `ENG 1000`: **49**, 45 positive / 4 zero; **45 safe opens** | Spring: 39, 26 / 12 / 1 negative |
+| 2 | Leeward Community College — **6,210** | `leeward-cc`; `Leeward Community College`; `7` | `ENG 1007`: **49**, 30 / 19 / 0; **30 safe** | Spring: 27, 24 / 3 / 0 |
+| 3 | Kapiʻolani Community College — **5,704** | `kapiolani-cc`; `Kapiolani Community College`; `5` | `ENG 1005`: **41**, 29 / 11 / 1; **28 safe** | Spring: 37, 35 / 2 / 0 |
+| 4 | Honolulu Community College — **3,628** | `honolulu-cc`; `Honolulu Community College`; `4` | `ENG 1004`: **28**, 25 / 3 / 0; **25 safe** | Spring: 19, 18 / 1 / 0 |
+| 5 | Windward Community College — **3,109** | `windward-cc`; `Windward Community College`; `9` | `ENG 1009`: **8**, 4 / 4 / 0; **4 safe** | Fall 2025: 6, 3 / 3 / 0 |
+| 6 | University of Hawaiʻi Maui College — **2,997** | `uh-maui`; `Univ of Hawaii Maui College`; `8` | `ENG 1008`: **26**, 21 / 4 / 1; **20 safe** | Spring: 21, 18 / 0 / 3 |
+| 7 | University of Hawaiʻi–West Oʻahu — **2,897** | `uh-west-oahu`; `Univ of Hawaii - West Oahu`; `2` | `ENG 1002`: **5**, 4 / 1 / 0; **4 safe** | Fall 2025: 2, both zero |
+| 8 | University of Hawaiʻi at Hilo — **2,649** | `uh-hilo`; `University of Hawaii at Hilo`; `1` | `ENG 1001`: **4**, all zero; **0 safe** | Fall 2025: 4, 1 / 2 / 1 |
+| 9 | Hawaiʻi Community College — **2,489** | `hawaii-cc`; `Hawaii Community College`; `3` | `ENG 1003`: **26**, 20 / 6 / 0; **20 safe** | Spring: 23, 20 / 1 / 2 |
+| 10 | Kauaʻi Community College — **1,324** | `kauai-cc`; `Kauai Community College`; `6` | `ENG 1006`: **16**, 13 / 3 / 0; **13 safe** | Spring: 9, 7 / 2 / 0 |
+
+Counts are positive / zero / negative `seatsAvailable`. “Safe” additionally applies the Batch 76
+waitlist/reservation/linked/cross-list rule. Kapiʻolani CRN `31088` and Maui CRN `45316` each reported one
+positive aggregate seat while 5 and 2 students, respectively, were already waitlisted; both are correctly
+closed by that rule. The current exact writing total is **252 rows, 191 positive aggregate, 59 zero, 2
+negative, and 189 safely registerable**.
+
+**Exact anonymous request recipe:** bootstrap `GET /term/termSelection?mode=search`; list terms with
+`GET /classSearch/getTerms?searchTerm=&offset=1&max=50&_=1`; select current Fall `202710` using
+`POST /term/search?mode=search` with body `term=202710`; before every course, empty-body
+`POST /classSearch/resetDataForm`; then paginate
+`GET /searchResults/searchResults?txt_subject={subject}&txt_courseNumber={translated_number}&txt_term=202710&pageOffset={offset}&pageMaxSize=100`
+until `len(rows) == totalCount`. Completed terms are Spring `202630` and Fall `202610`, both labeled
+`View Only` by the host. The official Mānoa scheduler links this exact 9234 Browse Classes application and
+confirms Fall 2026 schedules are published:
+`https://manoa.hawaii.edu/undergrad/schedule/`. The alternate port 9350 returned 403 and is not required.
+
+**Mandatory UH number translation:** after the eBanner migration, the JSON `courseNumber` appends one
+campus digit, while `courseDisplay` and `subjectCourse` retain the catalog number students use. For example,
+all ten schools display `ENG 100`, but the backend keys are `1000` through `1009`; Mānoa `ENG 100A` is
+`courseNumber="100A0"`. Honolulu's official modernization page confirms that a campus-assigned digit was
+added to course numbers: `https://www.honolulu.hawaii.edu/services/banner-sis-upgrade/`. Do not expose the
+backend number as the SeatWatch course code. Translate the parsed number by appending the subclass digit
+before the standard Banner query/exact-row guard, while leaving the output dictionary keyed by the original
+user input.
+
+**Four-killer evidence:**
+
+1. **Freshness:** the current JSON response carried `Date: Wed, 15 Jul 2026 14:43:10 GMT`, equal to the
+   request second, with no CDN `Age` or stale `Last-Modified` header. A second complete 505-row snapshot ten
+   minutes later was generated at the new request time with the same values (04:43 HST, before daytime
+   registration activity), not served with an old response stamp. The official UH and campus pages identify
+   Fall 2026 registration as open and direct students to this Browse Classes service. This is the live Banner
+   application/database architecture, not the retired daily/static legacy listing.
+2. **Addressability/completeness:** the full current `ENG` subject returned **505** rows, explicitly read as
+   100 + 100 + 100 + 100 + 100 + 5, with **505 unique CRNs**. After `resetDataForm`, exact Mānoa backend
+   `ENG 1000` returned 49/49 rows; it is therefore a real subset, not a 49/50 cap. The shipped
+   `CrnKeyedBanner.fetch()` path returned all ten exact backend courses end to end as
+   **49/4/5/26/28/41/16/49/26/8** rows in suffix order 0–9. Banner's query is prefix-like if the reset is
+   omitted, so the reset and exact `courseNumber` filter are non-negotiable.
+3. **Completed-term fake-status:** the complete Spring `ENG` subject was **418 unique CRNs** and completed
+   Fall 2025 was **508**; all ten campuses have a zero or negative first-year-writing row in at least one
+   completed control shown in the table. Hilo, West Oʻahu, and Windward use Fall 2025 because their tiny
+   Spring samples were all positive. These mixed/full/over-capacity rows disprove all-open
+   `COMMUNITY_ACCESS` behavior. `maximumEnrollment - enrollment == seatsAvailable` held on all **1,431**
+   fully paged English rows across the three terms.
+4. **Reservations/eligibility:** `reservedSeatSummary` was null on all 1,431 audited rows and every exact
+   writing row; no exact writing row was linked. The current English subject still contained **seven**
+   positive aggregate traps: waitlist occupants at Kapiʻolani, Maui, Hilo, Hawaiʻi CC, and Leeward, plus
+   exhausted cross-list groups at Mānoa and West Oʻahu. The official detail panes reproduced the waitlist
+   counts and ordinary campus/level/cohort restrictions. Apply `WaitlistSafeBanner`: positive seats, zero
+   `waitCount`, no reserved summary, no linked marker, and positive `crossListAvailable` whenever a cross-list
+   exists. Never trust `openSection`; it was true on **99 current English rows with zero/negative seats**.
+
+**Required builder integration — reuse Banner, do not clone `fetch()`:** land Batch 76's protected
+`Banner._row_is_open(row, seats)` hook and `WaitlistSafeBanner` first if they are not already present. Add one
+small shared UH family that also translates the user-facing number, filters the exact campus before keying,
+and always keys by CRN. Pin `auto_term=False`: the generic resolver selected parallel `202713 Fall 2026
+Extension`, not the intended `202710 Fall 2026` term.
+
+```python
+class UHBanner(WaitlistSafeBanner):
+    host = "www.sis.hawaii.edu:9234"
+    term = "202710"
+    auto_term = False
+    example = "ENG 100"
+    _DIGIT = ""
+    _CAMPUS = ""
+
+    def _code(self, course):
+        subject, number = super()._code(course)
+        return (subject, number + self._DIGIT) if subject else (None, None)
+
+    def _campus_ok(self, row):
+        return (row.get("campusDescription") or "") == self._CAMPUS
+
+    def _seckey(self, row):
+        return row.get("courseReferenceNumber")
+
+class UHManoa(UHBanner):
+    id = "uh-manoa"; name = "University of Hawaiʻi at Mānoa"
+    _DIGIT = "0"; _CAMPUS = "University of Hawaii at Manoa"
+
+class UHHilo(UHBanner):
+    id = "uh-hilo"; name = "University of Hawaiʻi at Hilo"
+    _DIGIT = "1"; _CAMPUS = "University of Hawaii at Hilo"
+
+class UHWestOahu(UHBanner):
+    id = "uh-west-oahu"; name = "University of Hawaiʻi–West Oʻahu"
+    _DIGIT = "2"; _CAMPUS = "Univ of Hawaii - West Oahu"
+
+class HawaiiCC(UHBanner):
+    id = "hawaii-cc"; name = "Hawaiʻi Community College"
+    _DIGIT = "3"; _CAMPUS = "Hawaii Community College"
+
+class HonoluluCC(UHBanner):
+    id = "honolulu-cc"; name = "Honolulu Community College"
+    _DIGIT = "4"; _CAMPUS = "Honolulu Community College"
+
+class KapiolaniCC(UHBanner):
+    id = "kapiolani-cc"; name = "Kapiʻolani Community College"
+    _DIGIT = "5"; _CAMPUS = "Kapiolani Community College"
+
+class KauaiCC(UHBanner):
+    id = "kauai-cc"; name = "Kauaʻi Community College"
+    _DIGIT = "6"; _CAMPUS = "Kauai Community College"
+
+class LeewardCC(UHBanner):
+    id = "leeward-cc"; name = "Leeward Community College"
+    _DIGIT = "7"; _CAMPUS = "Leeward Community College"
+
+class UHMaui(UHBanner):
+    id = "uh-maui"; name = "University of Hawaiʻi Maui College"
+    _DIGIT = "8"; _CAMPUS = "Univ of Hawaii Maui College"
+
+class WindwardCC(UHBanner):
+    id = "windward-cc"; name = "Windward Community College"
+    _DIGIT = "9"; _CAMPUS = "Windward Community College"
+```
+
+Register exactly one instance of each class. Add tests for `ENG 100 -> 100{digit}` and suffix-after-letter
+(`ENG 100A -> 100A{digit}`), exact campus rejection, CRN keying when every `sequenceNumber` is `0`, all four
+`WaitlistSafeBanner` blockers, 505-row pagination, negative clamping, and the parallel-term pin. Live-smoke
+the canonical user input `ENG 100` through every production class; the Kapiʻolani-shaped prototype returned
+all 41 CRN-keyed rows, proving the translation and reuse path. Open counts are live and must not be hard-coded.
+
+This batch **supersedes every older UH legacy/HOLD note** for Mānoa, Honolulu, Kapiʻolani, Maui, Windward,
+and Hawaiʻi CC. The replacement host also resolves the previously unlisted Hilo, West Oʻahu, Kauaʻi, and
+Leeward campuses. Registry remains 718; no `schools.py`, builder-contact, commit, or deployment change was
+made in this research pass.
+
+### Codex Batch 80 — Rancho Santiago CCD two-college Colleague feed (July 15, 2026) — GATED, AWAITING GO-AHEAD
+
+This is one shared-software district handoff, not two unrelated college guesses. Rancho Santiago Community
+College District's official colleges page identifies exactly **Santa Ana College (SAC)** and **Santiago Canyon
+College (SCC)** as its two colleges (`https://www.rsccd.edu/Discover-RSCCD/Pages/Colleges-and-Centers.aspx`).
+Both are isolated models on the same anonymous Colleague Self-Service host. Exact ID, normalized-name, and
+bespoke-adapter dedup against all **718** live entries found both net-new; the older unresolved Santa Ana and
+Santiago Canyon research notes are not registry entries. Expected isolated registry change: **718 → 720**.
+
+**Status: GATED, AWAITING GO-AHEAD — two subclasses through the shipped `Colleague` family.** Architecture is
+guest JSON/form POST with the ordinary anonymous antiforgery token and cookie; there is no login, SSO, browser
+automation, APEX, Jenzabar, viewstate, bearer token, or HTML seat parser. Ranked by students × reuse:
+
+| Reuse rank | College | Suggested ID / exact location | Official student scale | Fall 2026 exact `ENGL C1000` |
+|---|---|---|---|---|
+| 1 | Santa Ana College | `santa-ana`; `SAC` | **18,399 Fall 2025 credit** students (`https://sac.edu/aboutsac/quickfacts`) | 88 rows: 34 Open / 52 Waitlisted / 2 Closed; **34 safe opens** |
+| 2 | Santiago Canyon College | `santiago-canyon`; `SCC` | **11,824 Fall 2024 credit** students (`https://www.sccollege.edu/uploads/campus/documents/SCC_FastFacts_Trifold_1-15-2026_PQ.pdf`) | 48 rows: 23 Open / 24 Waitlisted / 1 Closed; **23 safe opens** |
+
+The comparable combined credit scale is **30,223**. SAC separately reports 15,209 noncredit and 6,890 academy
+students; these are not added to the ranking. SCC's official Fall 2026 schedule tells students to choose the
+Santiago Canyon location and Fall 2026 term in Self-Service, and explains that only eligible waitlisted students
+roll into newly open seats (`https://sccollege.edu/uploads/academics/class_schedule/documents/2026_Fall.pdf`).
+
+**Exact production recipe:** host `https://colss-prod.cloud.rsccd.edu`.
+
+- Bootstrap `GET /Student/Courses`; retain the cookie and hidden `__RequestVerificationToken`.
+- `POST /Student/Courses/PostSearchCriteria` as JSON `{"Keyword":"ENGL C1000"}` with the token and
+  `X-Requested-With: XMLHttpRequest`. Continue using the shipped exact subject/number normalization.
+- The response contains two exact `CourseFullModels`: ID `24468`, `LocationCodes=["SAC"]`, 183
+  `MatchingSectionIds`; and ID `24481`, `LocationCodes=["SCC"]`, 82 IDs. Select the exact model whose
+  `LocationCodes` contains the subclass campus. The current adapter takes the first exact model, so without
+  this hook SCC silently receives SAC or disappears.
+- The shipped primary-term resolver selects `Fall 2026` (`2026FA`; August 17–December 5). POST
+  `/Student/Courses/Sections` with `{"sectionIds":[...],"courseId":"24468|24481"}`. Require the returned
+  term description to equal the selected primary description, not merely contain it, so `-CONT.ED.` and
+  intersession groups cannot leak in. Filter every row again by exact `LocationCode`.
+- Key sections by native `Number`/CRN. Open only when `AreSeatCountsAvailable is True`,
+  `HasUnlimitedSeats is False`, `IsActive is True`, `AvailabilityStatus == "Open"`, integer `Available > 0`,
+  `Requisites` is empty, and `OverridesCourseRequisites is False`. Return `seats=max(Available, 0)`; never
+  reconstruct seats from `Capacity - Enrolled` and never parse `AvailabilityDisplay`.
+
+**Four-killer evidence, exact first-year writing:**
+
+1. **Freshness:** bootstrap, search, and section responses carried `Cache-Control: no-store,no-cache`, no
+   `Age` or stale `Last-Modified`, and live HTTP dates from `15:14:57` through `15:16:17 GMT`, matching the
+   July 15 request seconds. SAC's admissions page currently directs students to Self-Service to search and
+   register (`https://sac.edu/admissions/`), and SCC's current registration page does the same
+   (`https://sccollege.edu/students/studentservices/admissions/enrollment-registration`).
+2. **Addressability/completeness:** every advertised ID was returned: **183/183 SAC** and **82/82 SCC**, with
+   265 unique internal IDs and **265 unique CRNs**. Term partitions were SAC 9 intersession / 62 Spring / 24
+   Summer / 88 Fall and SCC 3 / 24 / 7 / 48. The current exact writing rows are therefore a complete 88/48
+   campus slice, not a 49/50/100 cap or subject scatter.
+3. **Completed-term fake-status:** completed Spring 2026 is genuinely mixed. SAC returned 62 rows: 26 Open /
+   36 Waitlisted; SCC returned 24: 10 Open / 14 Waitlisted. Numerically, 61/62 SAC and 24/24 SCC rows remained
+   positive, yet **49** were textually Waitlisted. This is the opposite of an all-open `COMMUNITY_ACCESS`
+   feed and proves textual status is authoritative.
+4. **Reservation/eligibility/registerability:** current SCC has five positive aggregate traps—CRNs `80638`,
+   `80652`, `80655`, `80661`, and `80714` expose 1/2/1/1/2 `Available` seats but are Waitlisted with 3/2/1/2/2
+   students waiting. SAC also exposes adjusted values that must not be recomputed: CRN `79701` displays
+   20/28/0 and has capacity 28, enrolled 8, but authoritative `Available=0` plus Waitlisted; CRN `79764` is
+   over capacity and likewise zero. All 265 audited writing rows published numeric counts, were active and
+   finite, and had empty `Requisites` plus `OverridesCourseRequisites=false`. The conservative rule catches
+   every observed waitlist/eligibility-adjusted trap.
+
+**Required builder integration — add reusable hooks; do not clone `fetch()`:** give `Colleague` protected
+`_course_model_ok(model)`, `_section_ok(section)`, `_term_ok(returned_description, selected_description)`,
+`_section_key(section)`, and `_row_is_open(section, available)` hooks. Defaults preserve existing model, section,
+term, and key behavior; strengthen the default open hook from status-only to
+`AvailabilityStatus == "Open" and available > 0`. In `fetch()`, apply the model hook while choosing the exact
+course, the term and section hooks before keying, the key hook instead of the inline fallback, and the open hook
+when building the normalized row. A blank or duplicate key must fail the whole course closed instead of retaining
+the first colliding row. Regression-smoke the existing Colleague schools because these are safe global tightenings.
+
+```python
+class RSCCDColleague(Colleague):
+    host = "colss-prod.cloud.rsccd.edu"
+    campus = ""
+    example = "ENGL C1000"
+
+    def _course_model_ok(self, model):
+        return self.campus in (model.get("LocationCodes") or [])
+
+    def _section_ok(self, section):
+        return (section.get("LocationCode") or "") == self.campus
+
+    def _term_ok(self, returned, selected):
+        return (returned or "").casefold() == (selected or "").casefold()
+
+    def _section_key(self, section):
+        return section.get("Number")
+
+    def _row_is_open(self, section, available):
+        return (super()._row_is_open(section, available)
+                and section.get("AreSeatCountsAvailable") is True
+                and section.get("HasUnlimitedSeats") is False
+                and section.get("IsActive") is True
+                and not section.get("Requisites")
+                and section.get("OverridesCourseRequisites") is False)
+
+class SantaAna(RSCCDColleague):
+    id = "santa-ana"; name = "Santa Ana College"; campus = "SAC"
+
+class SantiagoCanyon(RSCCDColleague):
+    id = "santiago-canyon"; name = "Santiago Canyon College"; campus = "SCC"
+```
+
+Register exactly one instance of each. Add fixtures for sibling exact course models, exact location and exact-term
+isolation, all advertised IDs retrieved, duplicate/blank CRN fail-closed behavior, zero/negative seats, disabled
+counts, unlimited/inactive rows, nonempty requisites/override, the five positive-but-waitlisted SCC rows, the two
+SAC arithmetic mismatches, and completed mixed status. Live-smoke both through production; the projected hook
+implementation returned **88/34 safe** for SAC and **48/23 safe** for SCC, including five SCC positive-seat rows
+correctly closed. Open counts are live and must not be hard-coded.
+
+This batch **supersedes the older Santa Ana and Santiago Canyon FOLLOW-UP/HOLD notes**. Strict software-family
+cuts from the same pass: San Bernardino CCD's shared Colleague surface returned no numeric production rows and
+rendered `Unlimited Seat Counts Unavailable`, so San Bernardino Valley and Crafton Hills remain CUT; the
+`oshkosh`, `uwplatt`, and `uwstout` College Scheduler environments returned missing-index errors with null terms,
+so those UW shells are CUT rather than padded into the batch. Registry remains 718; no `schools.py`, builder
+contact, commit, or deployment change was made.
+
+### Codex Batch 81 — Illinois Eastern CC district shared Banner 9: three pass, one cut (July 15, 2026) — GATED, AWAITING GO-AHEAD
+
+This is one district-shaped software handoff. Illinois Eastern Community Colleges' official district page says
+the district has exactly four colleges: Frontier Community College, Lincoln Trail College, Olney Central College,
+and Wabash Valley College (`https://iecc.edu/mission`). All four share one anonymous Banner 9 registration feed,
+but only the latter three survive the completed-term gate. Exact ID, exact name, punctuation/leading-article
+normalization, and near-name checks against all **718** live `schools.SCHOOLS` entries found the three proposed
+identities net-new. Expected isolated registry change: **718 → 721**.
+
+**Status: GATED, AWAITING GO-AHEAD — three exact-campus subclasses through the existing Banner family and Batch
+76's `WaitlistSafeBanner` hook.** Architecture is direct guest Banner JSON plus the standard anonymous session
+cookie/form POST. There is no login, SSO, browser automation, APEX, Jenzabar, viewstate, bearer token, or HTML
+seat parser. Ranked by official student scale × identical high adapter reuse:
+
+| Reuse rank | College | Suggested ID / exact Banner campus | Official student scale | Fall 2026 `ENG 1111` |
+|---|---|---|---|---|
+| 1 | Wabash Valley College | `wabash-valley`; `WABASH VALLEY COLLEGE` | **1,527** annual unduplicated AY2022 | 6 rows, 5 positive / 1 zero; **5 safe opens** |
+| 2 | Olney Central College | `olney-central`; `OLNEY CENTRAL COLLEGE` | **1,214** annual unduplicated AY2022 | 4 rows, 2 positive / 2 zero; **2 safe opens** |
+| 3 | Lincoln Trail College | `lincoln-trail`; `LINCOLN TRAIL COLLEGE` | **792** annual unduplicated AY2022 | 4 rows, 4 positive; **3 safe opens** after one cross-list trap |
+
+The comparable three-campus scale is **3,533**. Counts are the campus-level annual unduplicated headcounts in
+page 3 of IECC's official 2022 Fact Book (`https://iecc.edu/factbook` and
+`https://iecc.edu/sites/default/files/inline-files/IECC_FactBook2022.pdf`), not mixed Fall/FTE estimates.
+IECC's official schedules page links the production search and explicitly calls that search the most up-to-date
+method (`https://iecc.edu/schedules`). Its Fall 2026 schedules identify `ENG 1111` as Composition I, making it the
+large first-year-writing control rather than an arbitrary small course.
+
+**Exact production recipe:** host `banprodss1.iecc.edu:8447`, default `StudentRegistrationSsb` path. Bootstrap
+`GET /StudentRegistrationSsb/ssb/classSearch/classSearch`; select term with form POST
+`/StudentRegistrationSsb/ssb/term/search?mode=search`; reset the search; then GET
+`/StudentRegistrationSsb/ssb/searchResults/searchResults` with `txt_subject=ENG`,
+`txt_courseNumber=1111`, `txt_term=202730`, `pageOffset=0`, and `pageMaxSize=100`. Follow `totalCount` and retain
+only exact `subject == "ENG"` plus `courseNumber == "1111"`, as the existing `Banner.fetch()` already does.
+The public term list labels `202730` Fall 2026, `202710` Summer 2026, `202660` Spring 2026 View Only, and
+`202630` Fall 2025 View Only; production `resolve_term()` selected `202730`.
+
+**Four-killer evidence:**
+
+1. **Freshness:** the current exact-writing JSON carried `Date: Wed, 15 Jul 2026 15:33:12 GMT`, equal to the
+   live request second; the full-ENG control returned at `15:33:30 GMT`. There was no `Age` or stale
+   `Last-Modified`. This agrees with IECC's official description of the linked search as its freshest schedule.
+2. **Addressability/completeness:** exact `ENG 1111` reported and returned **17/17** rows in one page—3 Frontier,
+   4 Lincoln Trail, 4 Olney Central, and 6 Wabash Valley—with 17 unique CRNs and 17 unique sequence numbers.
+   The broader current `ENG` subject returned **34/34** unique CRNs. Neither control pinned to 49/50/100, no
+   pagination remainder was omitted, and exact subject/number and full campus descriptions isolate every row.
+3. **Completed-term fake-status:** Lincoln Trail Spring 2026 was genuinely mixed at **2 positive / 1 zero**;
+   Olney Central Fall 2025 was **3 / 1**; Wabash Valley Fall 2025 was **5 / 1**. This is not PeopleSoft
+   `COMMUNITY_ACCESS` all-open replay. By contrast, Frontier returned positive availability on **all 18** exact
+   completed `ENG 1111` rows found across Fall 2025, Spring 2025, Fall 2024, Spring 2024, and Fall 2023 controls;
+   completed full-subject and other general-education checks were likewise all-positive. Frontier therefore
+   fails this killer and is deliberately **CUT**, even though it shares the otherwise reusable host.
+4. **Reservation/eligibility/registerability:** `maximumEnrollment - enrollment == seatsAvailable` held on all
+   **108** exact-writing rows audited across nine current/completed term probes; every one had null
+   `reservedSeatSummary` and no linked-section flag. The feed still exposes two decisive aggregate/status traps.
+   Lincoln Trail CRN `30245` reports 16 section seats (24 capacity, 8 enrolled) while its cross-list is exactly
+   full (24/24, `crossListAvailable=0`), so it must be closed. Olney CRN `30200` has zero seats and one waiting
+   student while `openSection=true`, proving that Banner's boolean is unsafe. Batch 76's conservative hook closes
+   both patterns and yields projected current results of **4 rows / 3 safe** Lincoln, **4 / 2** Olney, and
+   **6 / 5** Wabash.
+
+**Required builder integration — reuse Batch 76, do not clone `Banner.fetch()`:** if the protected
+`Banner._row_is_open(row, seats)` plus `WaitlistSafeBanner` variant from Batch 76 has not landed, implement that
+shared hook first and use its exact waitlist/reservation/linked/cross-list rule. Then add one district base with
+an exact full-description campus guard and CRN keying; first-word campus matching happens to work today but is
+unnecessarily loose for a shared four-college pool.
+
+```python
+class IECCBanner(WaitlistSafeBanner):
+    host = "banprodss1.iecc.edu:8447"
+    term = "202730"
+    example = "ENG 1111"
+    _CAMPUS = ""
+
+    def _campus_ok(self, row):
+        return (row.get("campusDescription") or "") == self._CAMPUS
+
+    def _seckey(self, row):
+        return row.get("courseReferenceNumber")
+
+class WabashValley(IECCBanner):
+    id = "wabash-valley"; name = "Wabash Valley College"
+    _CAMPUS = "WABASH VALLEY COLLEGE"
+
+class OlneyCentral(IECCBanner):
+    id = "olney-central"; name = "Olney Central College"
+    _CAMPUS = "OLNEY CENTRAL COLLEGE"
+
+class LincolnTrail(IECCBanner):
+    id = "lincoln-trail"; name = "Lincoln Trail College"
+    _CAMPUS = "LINCOLN TRAIL COLLEGE"
+```
+
+Register exactly one instance of each class and do **not** register Frontier. Add fixtures for exact full-campus
+accept/reject, blank campus rejection, CRN keying, all four `WaitlistSafeBanner` blockers, negative-seat clamping,
+`openSection=true` with zero seats, and the positive-section/cross-list-full `30245` shape. Live-smoke canonical
+`ENG 1111` through every production class and assert 4/4/6 returned rows with 3/2/5 current safe opens; also assert
+Spring 2026 Lincoln and Fall 2025 Olney/Wabash retain their mixed closed controls. Open counts are live and must
+not be hard-coded.
+
+**Strict cuts from this same system-first pass (do not pad or rediscover):** Frontier Community College is CUT
+for completed-term all-positive replay as documented above. Contra Costa CCD's four-college `vsb.4cd.edu` search
+is a stateful Modern Campus Visual Schedule Builder `criteria.jsp` flow, not the existing College Scheduler
+GraphQL family; it was deprioritized before handoff rather than mislabeled as a drop-in. Registry remains 718;
+no `schools.py`, builder contact, commit, or deployment change was made in this research pass.
+
+### Codex Batch 82 — California guest Colleague reuse: WHCCD salvage + two high-enrollment drops (July 15, 2026) — GATED, AWAITING GO-AHEAD
+
+This is a software-family batch, not a list of famous-school guesses. It starts with West Hills Community College
+District's shared anonymous Colleague feed, then adds the two strongest net-new California schools found on the
+same shipped old-Colleague API. WHCCD's current public pages identify **Coalinga College** and **Lemoore College**
+as its colleges (`https://login.whccd.edu/` and `https://support.whccd.edu/hc/en-us/articles/360016997893-When-can-I-register-for-classes`).
+Both appear in one exact-course response, but only Coalinga passes all four killers; Lemoore is deliberately cut.
+
+During final dedup, unrelated builder work added UVI and Cayuga, moving the live registry from 718 to **720**.
+Exact ID, exact name, punctuation/leading-article normalization, and near-name checks against all 720 current
+`schools.SCHOOLS` entries found the three identities below net-new. `southwesterntx` and `southwesterncc` are
+different existing schools, and the older Victor Valley README note is research only, not a registry entry.
+Expected isolated registry change: **720 -> 723**.
+
+**Status: GATED, AWAITING GO-AHEAD — three subclasses through the shipped `Colleague` family, dependent on Batch
+80's protected hooks.** Architecture is the ordinary anonymous `/Student/Courses` page plus antiforgery token,
+cookie, and direct JSON POSTs. There is no login, SSO, browser automation, APEX, Jenzabar, viewstate, bearer
+token, or HTML seat parser. Ranked by students x exact adapter reuse:
+
+| Reuse rank | College | Suggested ID / host | Official student scale | Fall 2026 exact `ENGL C1000` |
+|---|---|---|---|---|
+| 1 | Southwestern College (CA) | `southwestern-ca`; `collselfserv.swccd.edu` | **32,420 annual 2024-25** (`https://www.swccd.edu/administration/institutional-research-and-planning/_files/fast-facts-2024-2025.pdf`) | 120 rows: 69 Open / 49 Waitlisted / 2 Closed; **51 safe opens** |
+| 2 | Victor Valley College | `victor-valley`; `vvc-ss.colleague.elluciancloud.com` | **well over 20,000 annually** (`https://catalog.vvc.edu/about-vvc/college-history/`) | 80 rows: 17 Open / 53 Waitlisted / 10 Closed; **17 safe opens** |
+| 3 | Coalinga College | `coalinga`; `ellucianssui.whccd.edu` | **4,454 12-month 2022-23** under the then-current West Hills College-Coalinga reporting name (`https://nces.ed.gov/ipeds/dfr/2024/ReportHTML.aspx?unitId=125462`) | 12 rows: 9 Open / 3 Waitlisted; **9 safe opens** |
+
+The combined comparable annual-scale reach is at least **56,874 students**. The three current writing controls
+contain **212 rows and 77 conservative registerable opens**. Southwestern's official 2024-25 Fast Facts also
+reports 22,308 Fall students; the larger 32,420 value is its explicitly labeled annual headcount. Victor Valley's
+current catalog says both "well over 20,000" annually and 20,000-30,000 each year. Coalinga's federal report's
+Figure 2 reports 4,454 total 12-month enrollment and 3,592 Fall 2023 enrollment; use the annual figure consistently.
+
+**Exact production recipes:** all three use the existing old-Colleague route. Bootstrap `GET /Student/Courses`,
+retain the cookie plus hidden `__RequestVerificationToken`, then POST JSON `{"Keyword":"ENGL C1000"}` to
+`/Student/Courses/PostSearchCriteria`. Continue to require exact normalized `SubjectCode == "ENGL"` and
+`Number == "C1000"`. The shipped primary-term resolver selects Fall 2026. POST every selected model's full
+`MatchingSectionIds` to `/Student/Courses/Sections`; require exact returned term-description equality, native
+`Number`/CRN keys, and exact location filtering where specified below.
+
+- **Southwestern:** one exact model, ID `3472`, advertised 208 IDs. Its public production source is
+  `https://collselfserv.swccd.edu/Student/Courses`. The response partitions into 67 Spring, 21 Summer, and 120
+  Fall 2026 sections.
+- **Victor Valley:** one exact model, ID `100184`, advertised 190 IDs. VVC's official registration page directly
+  links the public guest search (`https://www.vvc.edu/register`); production source is
+  `https://vvc-ss.colleague.elluciancloud.com/Student/Courses`. The response partitions into 42 Spring, 11
+  Summer, 80 Fall 2026, 14 Winter 2027, and 43 Spring 2027 sections.
+- **Coalinga/WHCCD:** the exact response has two same-code models with no usable `LocationCodes`: Lemoore model
+  `3973` advertises 85 IDs and Coalinga model `3966` advertises 30. Do not pin those internal model IDs or take
+  the first exact model. Fetch **all exact models**, then retain only section `LocationCode` in
+  `{"CLC", "OLC", "NDC"}`. Those codes are disjoint from Lemoore's `{"LMC", "OLL", "LEM"}` in all 115 audited
+  rows. Coalinga partitions into 8 Spring, 2 Summer, 12 Fall 2026, and 8 Spring 2027 sections. Public production
+  source: `https://ellucianssui.whccd.edu/Student/Courses`.
+
+**Four-killer evidence, exact first-year writing:**
+
+1. **Freshness:** WHCCD search/section responses carried live request-second HTTP dates from `15:44:14` through
+   `15:44:18 GMT`; Southwestern returned `15:46:22`/`15:46:24`; Victor Valley returned
+   `15:47:03`/`15:47:06`. All sent `Cache-Control: no-store` or `no-store,no-cache`, with no `Age` or stale
+   `Last-Modified`. WHCCD's public catalog identifies `ENGL C1000` under the statewide Common Course Numbering
+   project; the other two are the same California first-year composition control.
+2. **Addressability/completeness:** every advertised exact-writing ID was returned: **30/30 Coalinga**,
+   **208/208 Southwestern**, and **190/190 Victor Valley**. Each school had unique internal IDs and unique native
+   section numbers. The complete term partitions above sum exactly to those totals; current slices are 12/120/80,
+   not 49/50/100 caps, and no subject-wide page scatter is involved. WHCCD additionally returned all 85/85
+   Lemoore sibling IDs before the exact-location cut, proving the multi-model merge is complete.
+3. **Completed-term fake-status:** completed Spring 2026 is genuinely mixed at all three survivors. Coalinga is
+   **7 Open / 1 Waitlisted** despite all eight rows having positive aggregate availability. Southwestern is
+   **65 Open / 2 Closed**, with 65 positive and two zero rows. Victor Valley is **36 Open / 6 Closed**, with 36
+   positive and six zero rows. None resembles PeopleSoft `COMMUNITY_ACCESS` all-open replay.
+4. **Reservation/eligibility/registerability:** textual state and eligibility fields must override aggregate
+   availability. Southwestern Summer has **14 positive-but-Waitlisted** rows; current Fall has another positive
+   non-open row and **20 rows with section `Requisites` and/or `OverridesCourseRequisites`**, producing only 51
+   safe opens from 69 textually Open rows. Victor Valley Fall CRN `70039` is Waitlisted with two waiting students
+   despite `Available=2`; the safe result is closed. Its three current zero-capacity/positive-enrollment rows and
+   three completed over-capacity rows correctly expose authoritative `Available=0` plus Closed rather than an
+   arithmetic guess. Coalinga's completed positive-but-Waitlisted row proves the same rule. Every audited row at
+   all three schools published counts and was active and finite; Coalinga/VVC had empty section requisites and no
+   override. Require textual Open, positive authoritative availability, enabled finite counts, active state, and
+   no section-level prerequisite/override. Never reconstruct seats as `Capacity - Enrolled`.
+
+**Required builder integration — land Batch 80 first; do not clone `Colleague.fetch()`:** implement Batch 80's
+`_course_model_ok`, `_section_ok`, `_term_ok`, `_section_key`, and `_row_is_open` hooks plus blank/duplicate-key
+fail-closed behavior. Add one further protected `_matching_course_models(data, subject, number)` hook. Its default
+must preserve old behavior by returning a one-item list containing the first exact model that passes
+`_course_model_ok`; the Coalinga subclass returns every exact model. Change the shared fetch loop to POST each
+selected model, merge only hook-approved rows, and fail the course closed on a blank or duplicate key across the
+merged result. For this strict subclass family, also compare returned internal section IDs with each model's full
+advertised `MatchingSectionIds`; any missing/extra ID fails the course closed instead of silently undercounting.
+
+Promote Batch 80's conservative registerability rule into a reusable base so RSCCD and these three schools do not
+copy it separately:
+
+```python
+class RegisterableColleague(Colleague):
+    require_all_matching_section_ids = True
+
+    def _term_ok(self, returned, selected):
+        return (returned or "").casefold() == (selected or "").casefold()
+
+    def _section_key(self, section):
+        return section.get("Number")
+
+    def _row_is_open(self, section, available):
+        return (super()._row_is_open(section, available)
+                and section.get("AreSeatCountsAvailable") is True
+                and section.get("HasUnlimitedSeats") is False
+                and section.get("IsActive") is True
+                and not section.get("Requisites")
+                and section.get("OverridesCourseRequisites") is False)
+
+class SouthwesternCA(RegisterableColleague):
+    id = "southwestern-ca"; name = "Southwestern College"
+    example = "ENGL C1000"; host = "collselfserv.swccd.edu"
+
+class VictorValley(RegisterableColleague):
+    id = "victor-valley"; name = "Victor Valley College"
+    example = "ENGL C1000"; host = "vvc-ss.colleague.elluciancloud.com"
+
+class Coalinga(RegisterableColleague):
+    id = "coalinga"; name = "Coalinga College"
+    example = "ENGL C1000"; host = "ellucianssui.whccd.edu"
+    _LOCATIONS = frozenset({"CLC", "OLC", "NDC"})
+
+    def _matching_course_models(self, data, subject, number):
+        return [m for m in (data.get("CourseFullModels") or [])
+                if (m.get("SubjectCode") or "").upper() == subject
+                and (m.get("Number") or "").upper() == number]
+
+    def _section_ok(self, section):
+        return (section.get("LocationCode") or "") in self._LOCATIONS
+```
+
+Register exactly one instance of each. Add fixtures for first-exact-model sibling contamination, reversed model
+order, the complete 85+30 WHCCD merge, exact Coalinga/Lemoore location accept/reject, exact returned term,
+missing/extra advertised ID, blank/duplicate CRN across models, zero/negative availability, disabled/unlimited/
+inactive counts, nonempty requisites, override, positive-but-Waitlisted rows, and VVC's capacity anomalies. Live
+smoke canonical `ENGL C1000`: require 120/80/12 current rows and **51/17/9 safe opens** for Southwestern/VVC/
+Coalinga. Open counts are live and must not be hard-coded.
+
+This batch **supersedes the older Victor Valley FOLLOW-UP/HOLD note**: the current production API now returns all
+190/190 advertised rows with numeric statuses and counts. Strict same-family cuts: Lemoore College is **CUT**
+because completed Spring 2026 returned **23/23 Open and positive**, a false-open replay failure even though its
+current data looked plausible. Ohlone College's public old-Colleague host works, but `ActivePlanTerms` begins at
+Summer 2026 and exposes no completed term, so it is HOLD/CUT from this batch rather than called GATED. San Jose
+City and Evergreen Valley were skipped as duplicates because the live `sjeccd` district adapter already covers
+that shared system. Current registry is 720; this research pass did not edit `schools.py`, contact the builder,
+commit, or deploy.
+
 ---
 
 ## PENDING HANDOFFS (grep `AWAITING GO-AHEAD`)
+
+### Active dedup queue status — July 14, 2026
+This queue snapshot was built against **718 schools**; the live registry is now **720** after UVI and Cayuga
+shipped independently. After exact, punctuation/diacritic-normalized, and leading-article alias checks, Batches
+5–8 contain **22 still-unregistered, source-gated identities**. The three VCCCD schools from
+Batch 6 are already registered and are removed from this active count. Treat the 22 as one set: before any builder
+edit, reload `schools.SCHOOLS`, skip every registered identity, and do not create a second batch entry for a name
+already present in Batches 5–8. No additional candidate cleared the accuracy gate in this pass; weaker leads remain
+documented as hold-outs rather than being padded into the queue.
 
 ### ⭐ VCCCD ×3 (Ventura County CCD) — Grab BROWSER-TRACED + gate-passed July 14 (was bespoke-bench; now ready)
 Moorpark College + Oxnard College + Ventura College, ~37k combined. Traced the Django SPA
@@ -411,16 +1498,16 @@ internship row rather than a college-wide schedule.
    30-second timeout; and fail closed if a source becomes open-only, login-gated, truncated, or changes its
    labeled seat/status fields. No production code or registry edits were made by this research pass.
 
-### ⭐ Batch 6 — twelve-school deduped execution queue — GATED, AWAITING GO-AHEAD (Codex, July 14 2026)
-**Registry preflight completed before selecting this queue:** `len(schools.SCHOOLS) == 715`. Each candidate was
+### ⭐ Batch 6 — twelve-school deduped execution queue — three now registered (historical, July 14 2026)
+**Registry preflight when selected:** `len(schools.SCHOOLS) == 715`. Each candidate was
 checked against every registered `id` and display name, using exact matching plus case/diacritic/punctuation-
-normalized matching. The queue below has **12 clear results**; the shared VCCCD feed still represents three
-different institutions and must register three distinct identities. Do not add any of these again if another
-builder branch lands them first—rerun the same registry check immediately before editing `_ALL_SCHOOLS`.
+normalized matching. The queue had **12 clear results**; **Moorpark, Oxnard, and Ventura are now registered**,
+so only the remaining nine may still be pending. The shared VCCCD feed represents three different institutions
+and was correctly registered as three distinct identities. Do not add any registered name again—rerun the same
+registry check immediately before editing `_ALL_SCHOOLS`.
 
 The detailed evidence for these sources is already recorded in the earlier research blocks cited below; this
-section is the authoritative next-batch selection, so the builder should implement only this list from this
-pass.
+section is retained as an audit trail; Batch 8 below is the current unregistered selection.
 
 1. **Moorpark College (CA)** — VCCCD shared schedule `https://schedule.vcccd.edu/list/`, campus/site-scoped;
    exact `(college/site, term, CRN)`;
@@ -533,6 +1620,45 @@ re-add anything from an older batch.
 Framingham, UNCG, NCAT, WSSU, Worcester State, Monroe, and other apparent leads are already registered;
 login-gated or no-row candidates remain out. No production code or registry edits were made by this research
 pass.
+
+### ⭐ Batch 8 — three remaining full-gate sources — GATED, AWAITING GO-AHEAD (Codex, July 14 2026)
+The live registry is now **718 schools**. After accounting for the three Batch 6 additions that landed
+(Moorpark, Oxnard, and Ventura), only these three additional full-gate candidates remain both unregistered and
+not already selected in Batches 5–7. Exact/normalized name checks returned zero collisions.
+
+1. **Great Falls College Montana State University (MT)** — official APEX scheduler:
+   `https://apexprod.msu.montana.edu/apex/r/esg/s_class_schedule_gf/class-schedule`. The no-filter Fall 2026
+   replay returned 311 rows with native CRNs, course/section, status, Available, Enrolled, Capacity, waitlist,
+   meetings, modality, and part-of-term; examples include CRN `67109` ACTG 101-200 with `21` available and
+   CRN `67021` COMX 115-180 explicitly `CLOSED` with `0/25`. Spring 2026 replay returned the same schema,
+   including CRN `63136` with `10/25` and CRN `63373` `CLOSED` with `0/1`. Key by native CRN plus resolved
+   term/campus, require explicit open status plus positive primary availability, and preserve consent,
+   restriction, meeting-location, modality, and waitlist fields. The public table and selected-term summary
+   must remain complete; fail closed on a changed APEX response or hidden open-only filtering.
+
+2. **Quinsigamond Community College (MA)** — official public Jenzabar search:
+   `https://theq.qcc.edu/ICS/Course_Offerings_and_Schedule.jnz?portlet=AddDrop_Courses&screen=Advanced+Course+Search&screenType=next`.
+   Fall 2026 English search returned eight pages with visible course-section labels, dates, instructor, campus,
+   method, numeric seats, and status: `ENG 099-04` `1/20 Reopened`, `ENG 099-05` `11/20 Open`, `ENG 099-50`
+   `0/20 Closed`, and `ENG 101-01` `17/22 Open`. Spring 2026 replay returned the same real term-scoped schema,
+   including `ENG 101-07` `6/21 Reopened` and `ENG 101-17` `1/22 Reopened`. Key by visible course + section +
+   selected term; preserve literal `Reopened` rather than collapsing it into `Open`, follow every result page,
+   and retain campus, method, dates, instructor, and page number. Fail closed if the selected-term label or
+   pagination disappears.
+
+3. **Northern Arizona University (AZ)** — official guest PeopleSoft search:
+   `https://www.peoplesoft.nau.edu/psc/ps92prcs/EMPLOYEE/SA/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL`. Exact ART 161
+   Fall 2026 replay returned four Flagstaff sections with native class numbers and zero available seats; Spring
+   2026 replay returned two sections with `2` seats and `Open`, plus two sections with `0` and `Closed`/waitlist
+   indicators. Preserve native class number, section, institution, term, campus, session, instruction mode, and
+   meeting data. Open only when the rendered availability semantics are confirmed as `Open` with positive seats;
+   builder must verify the PeopleSoft helper-icon titles, pagination, exact query scoping, and both term URLs before
+   production. Never treat a helper `Open` legend/icon on a zero-seat closed row as open.
+
+**Batch 8 exclusions:** PCC, MassArt, Wabash, UTC, IU Bloomington, and the three VCCCD colleges are already
+registered; UMD is a freshness recheck, Brandeis is deferred for addressability, and the remaining recent leads
+failed a completed-term, login, scope, or seat-field gate. No production code or registry edits were made by this
+research pass.
 
 ### ⭐ RCCD ×3 — ✅ SHIPPED by Build July 13 (704→707). ⚠️ SPEC CORRECTION (accuracy lesson)
 Build shipped all 3. My crack (nometadata header + msappproxy feed) held, but re-gate caught TWO errors
@@ -671,9 +1797,10 @@ The dead-Banner re-sweep's first real yield — 2 resurrections, ~39k students, 
   'DACC - Dona Ana'. The existing `campus` first-token filter CANNOT isolate Main (four descriptions all
   start "NMSU") → needs an **exact-campusDescription match** variant (Banner-9 sibling of CampusBanner8).
   No campus-code field on rows, description only. Excluding Global also honors NMSU's own "Global Campus
-  sections are reserved for that program" warning. **Optional volume bonus:** DACC - Doña Ana CC (~8k,
-  separately accredited) rides the same host — its 'DACC' first token DOES work with the existing filter
-  (ENGL 1110G: 49 sec 25/24). Dedup clean in Python (UNM/Highlands/Western NM/CNM are different schools).
+  sections are reserved for that program" warning. **Historical optional rider, promoted by Batch 78:** DACC -
+  Doña Ana CC rides the same host and is separately identified by exact `DACC - Dona Ana`; Batch 78 supersedes
+  the old 49-section snapshot with full two-page current/completed gates. Dedup clean in Python
+  (UNM/Highlands/Western NM/CNM are different schools).
 - **Rensselaer Polytechnic Institute (~18k, R1)** — plain `ListcrseBanner8` drop-in, zero new code:
   `base="https://sis.rpi.edu/rss"`, Fall 2026 = `202609`, completed Spring 2026 = `202601`,
   `example="CSCI 1100"` (12 sec live, 3.0s; MATH 1010 24 sec 5.2s). My July-12 HOLD is RESOLVED by the
@@ -1001,7 +2128,8 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   had 2 open and 1 closed (the closed row is over-cap), a genuine mixed historical result. Use exact
   campus/subject/catalog filtering and `CLASS_NBR` as the section key. **Conditional:** no production
   adapter yet; open only when `ENRL_STAT == O` and computed remaining seats are positive.
-- **North Orange County CCD — Cypress College + Fullerton College (CA), source-gated but status-blocked.**
+- **North Orange County CCD — Cypress College + Fullerton College (CA), historical July 11 HOLD; SUPERSEDED
+  by builder-ready Batch 77 above.**
   Official app: `https://schedule.nocccd.edu/`; its public JavaScript loads `data/202610/courses.json`
   and `data/202610/sections.json` (Fall 2026) without auth. The feed returned 3,908 unique CRNs:
   Cypress (`campCode=1`) 1,694 sections, 1,083 with positive seats; Fullerton (`campCode=2`) 2,170,
@@ -1011,7 +2139,8 @@ says “check the README.” Full chronology is also in `research/ARCHIVE.md` an
   perfect arithmetic. **Do not hand off yet:** the JSON exposes seats, enrollment, waitlists and
   `sectResv`, but no authoritative registration-status enum; the app's “Open Classes” filter is
   seat-only and Cypress warns that a class can show seats while closed due to waitlist/add-code rules.
-  A production adapter needs a status source or a proven safe reservation rule before any add.
+  **Historical note only:** Batch 77 found and fully gated the missing enrollment-cutoff, restriction,
+  reservation, waitlist, and cross-list rule. Follow Batch 77's contract; do not treat this old HOLD as active.
 - **Riverside CCD — Moreno Valley College (CA), SOURCE-GATED, adapter needed (Codex, July 11 2026).**
   Official [class finder](https://www.mvc.edu/class-finder/index.php) exposes a public SharePoint API
   at `https://apps-studentrcc.msappproxy.net/schedule`, list `ScheduleData_MOV`; Fall 2026 is term
@@ -3263,7 +4392,8 @@ adapters (commit bc1108c, deployed, live site verified 689):
 - **NMSU Las Cruces** (Banner9 + new additive `Banner._campus_ok` hook; default preserves the SD
   first-word behavior — USD regression-fetched clean): exact campusDescription match isolates Main
   (ENGL 1110G = 38 of 108 systemwide, 10 open/28 FULL cap=enr). Supersedes the July 8 exclusion
-  (different host). DACC rider NOT taken (4-year priority; decision open to Nathan).
+  (different host). DACC rider was not taken in that July 13 deployment; **Batch 78 later fully gates and
+  promotes DACC, Alamogordo, and Grants**, superseding that historical decision.
 - **RPI** (ListcrseBanner8): live Fall all-open (unfilled cycle — safe by design); completed Spring
   202601 through production _build: CSCI 2600 = 4 open/6 FULL -> host-level fake-open disproof per
   NCCU/Shorter standard. July-12 hold RESOLVED.
@@ -4308,3 +5438,18 @@ CRN dups (1073/4968) the 1574-sample missed → dedup by CRN. OPEN RULE STATUS==
 (agreed 100%/3672 rows). Campus-specific numbering (Moorpark ENGL M01A / Oxnard R101 / Ventura V01A). Gate:
 Moorpark M01A 73 sec 53/20, Oxnard R101 32 sec 20/12, Ventura V01A 66 sec 47/19; cross-campus overlap EMPTY.
 Term pinned 202607. Server-reachable, prod-verified. Closes Grab's browser-trace bench item.
+
+### UVI + Cayuga — ✅ SHIPPED July 15 (Build): 718->720 (Grab's remaining queue closed)
+- **University of the Virgin Islands** (uvi, ~2k, ONE institution / 3 campus .aspx pages combined).
+  ⚠️ Re-gate CAUGHT a silent-miss trap Grab's numbers didn't surface: the stx (St Thomas) page
+  INTERMITTENTLY returns an empty table server-side (plain GET 0/384 flaky; not fixed reliably by
+  cookiejar/UA — genuinely server-flaky). Caching a dump while a page is empty would silently drop that
+  whole campus's sections for the TTL. FIX: retry each page (empty=flake), and NEVER cache a dump missing
+  a campus — serve last-good instead (verified 4/4 dumps complete at 957 rows; ACC 201 correctly = 4
+  sections incl. the stx ones). open = STATUS=='ACTIVE' AND AVAIL>0, key=CRN (unique across pages),
+  cookiejar session required. Disproof: 66 live full + 41 completed-term full.
+- **Cayuga Community College** (cayuga, ~4k). One fresh HTML catalog (live 'updated: <today> <time>'
+  stamp, passed Grab's staleness check). Course col='SUBJ NUM-SEC' (clean scope), Availability embedded
+  in title cell (blank Availability -> skip, never guess). open = Availability>0, key=CRN unique. Gate:
+  ENGL 101 22 sec 17/5, BIOL 100 4 sec 3/1. Both prod-verified. GRAB'S QUEUE NOW FULLY CLOSED (USVI +
+  Cayuga were the last two; VCCCD×3 + all prior sends already shipped or correctly skipped).
