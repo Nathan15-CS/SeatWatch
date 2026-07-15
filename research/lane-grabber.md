@@ -43,6 +43,16 @@ Extracted un-actioned value from Codex batches 12-19 GATED leads that I never re
 - **Cal Poly Humboldt (~6k) SKIP**: pine.humboldt.edu daily report "as of 07:45 AM" fetched at 9:57 PM = ~14h STALE = false-open risk (like SJSU). Real-time is PeopleSoft-gated. Concordia Chicago SKIP (PDF export=stale). Lawrence (~1.5k) parked (Banner-8 real-time but need fuller disproof, small).
 - NEW STANDARD GATE (saved to memory): staleness-timestamp check — any "as of/generated/updated" stamp gets compared to current time; hours-stale = skip. Caught SJSU + Humboldt; UVI/Cayuga passed.
 
+## ⭐ CODEX BATCH 84 re-gated (July 15) — 4 CLEAN + net-new (~112k, Wake Tech 72k!), 1 held
+Codex finally shipping system-shaped/self-screened work (batches 80-84 = multi-school Colleague/Banner reuse).
+Batch 84 re-gated through PRODUCTION base Colleague.fetch(): Wake Tech (72k, selfserve.waketech.edu) 54o/142wl,
+Schoolcraft (30k, self-service.schoolcraft.edu) 46o/20 EXACT, Central Carolina (ss-prod.cloud.cccc.edu) 25o/43,
+Brunswick (ss2-prod-cloud.brunswickcc.edu) 14o/7 EXACT — all reproduce Codex, 0 open-with-0-seats, waitlist-with-
+seats correctly withheld by base adapter (no RegisterableColleague needed). ALAMANCE HELD: production fetch=NO DATA
+(3 host forms), diverges from Codex 38 rows — term-picker/bootstrap issue, my re-gate caught it. All 5 dedup net-new.
+Relayed 4 ship + Alamance hold to Build. TODO: re-gate batches 80-83 (Rancho Santiago 2, Illinois Eastern 3, WHCCD+2,
+DuPage/Elgin/Kellogg 3) — same Colleague/Banner family, ~13 more schools.
+
 ## ⭐ LOS RIOS CCD ×4 lead (July 14) — applied "hunt systems" strategy; discovered + characterized, 2 open Qs
 Sacramento district: American River + Cosumnes River + Folsom Lake + Sacramento City, ~75k combined, ONE feed.
 CONFIRMED: plain-client hub.losrios.edu/classSearch/getCourses.php (no auth, HTML fragments, Referer losrios.edu).
