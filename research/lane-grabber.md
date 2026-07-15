@@ -43,6 +43,17 @@ Extracted un-actioned value from Codex batches 12-19 GATED leads that I never re
 - **Cal Poly Humboldt (~6k) SKIP**: pine.humboldt.edu daily report "as of 07:45 AM" fetched at 9:57 PM = ~14h STALE = false-open risk (like SJSU). Real-time is PeopleSoft-gated. Concordia Chicago SKIP (PDF export=stale). Lawrence (~1.5k) parked (Banner-8 real-time but need fuller disproof, small).
 - NEW STANDARD GATE (saved to memory): staleness-timestamp check — any "as of/generated/updated" stamp gets compared to current time; hours-stale = skip. Caught SJSU + Humboldt; UVI/Cayuga passed.
 
+## ⭐ LOS RIOS CCD ×4 lead (July 14) — applied "hunt systems" strategy; discovered + characterized, 2 open Qs
+Sacramento district: American River + Cosumnes River + Folsom Lake + Sacramento City, ~75k combined, ONE feed.
+CONFIRMED: plain-client hub.losrios.edu/classSearch/getCourses.php (no auth, HTML fragments, Referer losrios.edu).
+Per-college isolation built in via arcFilter/crcFilter/flcFilter/sccFilter (0 overlap verified). closedFilter=true
+MANDATORY (default hides full=Maricopa trap). strm=1269,Fall2026. Real Open/Full/Waitlist status (CSS-classed),
+class#=LEC/LAB &nbsp; 5-digit key, real-time (seconds-precision "accurate as of" stamp). OPEN QUESTIONS (relayed
+to Build, NOT gate-passed): (1) pagination/completeness — single call caps ~20 for lecture subjects (MATH/HIST/PSYC=20;
+BIOL=28,CHEM=49); browser got all 330 so pagination exists but offset=20 returned empty — must crack + verify a
+huge subject returns complete (Delaware-cap check). (2) exact status parse. High ROI if pagination cracks = 4 colleges.
+This is the strategy working (found a multi-college system) even though I couldnt fully close it solo.
+
 ## Great Falls + Quinsigamond BOTH DEPRIORITIZED (July 14) — fragile stateful portals
 Traced both remaining bench leads; both are fragile stateful portals = poor ROI, NOT clean ships:
 - **Great Falls College MSU** (~2k): Oracle APEX interactive report. Data REAL (Fall 202670 = 304 sec,
