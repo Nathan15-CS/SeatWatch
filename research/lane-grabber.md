@@ -43,6 +43,20 @@ Extracted un-actioned value from Codex batches 12-19 GATED leads that I never re
 - **Cal Poly Humboldt (~6k) SKIP**: pine.humboldt.edu daily report "as of 07:45 AM" fetched at 9:57 PM = ~14h STALE = false-open risk (like SJSU). Real-time is PeopleSoft-gated. Concordia Chicago SKIP (PDF export=stale). Lawrence (~1.5k) parked (Banner-8 real-time but need fuller disproof, small).
 - NEW STANDARD GATE (saved to memory): staleness-timestamp check — any "as of/generated/updated" stamp gets compared to current time; hours-stale = skip. Caught SJSU + Humboldt; UVI/Cayuga passed.
 
+## ⭐⭐ CODEX BATCHES 80-84 re-gated (July 15) — 12 net-new validated (~245k students!), directive worked
+Codex pivoted HARD to system-shaped/self-screened/adapter-reuse work (my directive). Re-gated all through
+PRODUCTION base Colleague.fetch(), reproduces Codex's numbers, ZERO false-opens (textual-Open withholds waitlist):
+- **10 CLEAN base-Colleague drop-ins (~215k)** relayed to ship: Wake Tech(72k), Schoolcraft(30k), DuPage(28k),
+  Southwestern(32k), Victor Valley(20k, salvaged from old IPEDS-exclude), Elgin(17k, :8173 port), Central
+  Carolina(7k), Kellogg(5k), Coalinga(4.5k), Brunswick(2.6k). All 4-line subclasses, no RegisterableColleague needed.
+- **Rancho Santiago x2 (~30k)** Santa Ana + Santiago Canyon: SHARED host colss-prod.cloud.rsccd.edu, needs
+  LocationCodes campus hook (base returns first-model=SAC only, SCC invisible). Relayed w/ isolation spec.
+- **Alamance HELD**: production fetch=NO DATA (diverges from Codex 38 rows), term/bootstrap issue.
+- **Batch 81** (Illinois Eastern 3 tiny Banner schools, campus isolation) pending, lower priority.
+KEY: Codex Batch 84 explicitly says "exact-software enumeration after multi-college-system screen, not famous-flagship"
++ did its own 4-killer screening. The directive I wrote (hunt systems, reuse adapters, self-screen) is exactly what
+it is now doing. This is the pipeline working at scale.
+
 ## ⭐ CODEX BATCH 84 re-gated (July 15) — 4 CLEAN + net-new (~112k, Wake Tech 72k!), 1 held
 Codex finally shipping system-shaped/self-screened work (batches 80-84 = multi-school Colleague/Banner reuse).
 Batch 84 re-gated through PRODUCTION base Colleague.fetch(): Wake Tech (72k, selfserve.waketech.edu) 54o/142wl,
