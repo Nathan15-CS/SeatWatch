@@ -36,6 +36,18 @@ IU-Bloomington live; Harvard/CMU/Michigan blocked. Build added 2 addressability 
 now in [[seatwatch-gate-addressability]]); (2) combinedSections.separateEnrollmentControl flag gates the
 cross-list cap precisely.
 
+## Great Falls + Quinsigamond BOTH DEPRIORITIZED (July 14) — fragile stateful portals
+Traced both remaining bench leads; both are fragile stateful portals = poor ROI, NOT clean ships:
+- **Great Falls College MSU** (~2k): Oracle APEX interactive report. Data REAL (Fall 202670 = 304 sec,
+  gated page1 88 open/10 CLOSED, real Avail/Enr/Cap + "Consent of Registrar" soft-open nuance) BUT served
+  via stateful wwv_flow.ajax (per-session id + checksums + 4-page pagination), no CSV export. Fragile APEX
+  scrape for a 2k school. Verdict: skip. Relayed to Build.
+- **Quinsigamond** (~13k): Jenzabar ICS ASP.NET portal (__VIEWSTATE 23KB, session cookie). Plain-client
+  viewstate postback did NOT reproduce results (no __EVENTVALIDATION, postback returned 25KB no-data shell);
+  needs full stateful Jenzabar flow. Data real per Codex but fragile viewstate scrape. Verdict: deprioritize.
+- PATTERN: the clean plain-client public feeds in the queue are exhausted; remaining leads are stateful
+  portals (APEX/Jenzabar/PeopleSoft) = fragile. Pipeline needs FRESH clean-feed leads (Codex/new discovery).
+
 ## VCCCD SHIPPED (718) + Great Falls / Quinsigamond next (July 14)
 Build shipped VCCCD x3 off my trace (715->718). Re-gate found a cleaner structured CAMPUS_DESC field
 (beats my Location-prefix, 0 residual) + 1073 dup CRNs at full scale my 1574-row sample missed (lesson
