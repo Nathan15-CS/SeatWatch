@@ -7902,6 +7902,24 @@ class MassArt(Colleague):
     id = "massart"; name = "Massachusetts College of Art and Design"
     example = "CDAN 300"; host = "mca-ss.colleague.elluciancloud.com"
 
+class WakeTech(Colleague):
+    # ~72k, one of the largest CCs in the US. ENG 111 = 196 sec 54 open/142 waitlisted;
+    # base textual-Open rule correctly withholds a waitlisted section that still has a seat.
+    id = "waketech"; name = "Wake Technical Community College"
+    example = "ENG 111"; host = "selfserve.waketech.edu"
+
+class Schoolcraft(Colleague):
+    id = "schoolcraft"; name = "Schoolcraft College"
+    example = "ENG 101"; host = "self-service.schoolcraft.edu"
+
+class CentralCarolinaCC(Colleague):
+    id = "centralcarolinacc"; name = "Central Carolina Community College"
+    example = "ENG 111"; host = "ss-prod.cloud.cccc.edu"
+
+class BrunswickCC(Colleague):
+    id = "brunswickcc"; name = "Brunswick Community College"
+    example = "ENG 111"; host = "ss2-prod-cloud.brunswickcc.edu"
+
 class IndianHills(ShortYearTermColleague):
     id = "indianhills"; name = "Indian Hills Community College"
     example = "HCM 261"; host = "ss.indianhills.edu"
@@ -8516,7 +8534,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     GeorgeMason(), NorthernMichigan(), Hartford(), UTChattanooga(), IUBloomington(),
     MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege(),
     MassArt(), PortlandCC(), Wabash(), MonroeCC(),
-    Moorpark(), OxnardCollege(), VenturaCollege(), UVI(), Cayuga()])
+    Moorpark(), OxnardCollege(), VenturaCollege(), UVI(), Cayuga(),
+    WakeTech(), Schoolcraft(), CentralCarolinaCC(), BrunswickCC()])
 
 
 def refresh_all_terms(log=None):
