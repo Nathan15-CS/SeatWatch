@@ -5817,3 +5817,20 @@ the old IPEDS host fetched empty), Elgin (ENG 101 79 sec 48/31, host on :8173 �
 Kellogg (ENGL 151 31 sec 25/6), Coalinga (ENGL C1000 34 sec 6/28). All 4-line subclasses, zero open-with-0-
 seats. Still pending from Grab: Batch 80 (Santa Ana + Santiago Canyon, SHARED rsccd host, campus codes
 SAC/SCC — needs isolation) + Batch 81 (Illinois Eastern 3-college shared Banner). Alamance still held.
+
+### Rancho Santiago CCD ×2 — ✅ SHIPPED July 16 (Build): 730->732
+Santa Ana + Santiago Canyon on shared host colss-prod.cloud.rsccd.edu. NOT a plain drop-in: base Colleague
+took the FIRST CourseFullModel → served SAC only, SCC invisible. FIX: additive `campus` hook on base
+Colleague (pick the model whose LocationCodes contains the campus code + keep only that campus's section
+rows by LocationCode). campus="" default = no-op, all ~46 existing Colleague schools unchanged (Wake Tech
+196-sec regression clean). Gate: Santa Ana ENGL C1000 88 sec 33/55, Santiago Canyon 48 sec 24/24, cross-
+campus section-key overlap EMPTY (isolation proven, prod-verified). Field names live-confirmed
+(LocationCodes on model, LocationCode on section).
+
+### Los Rios CCD ×4 (~75k) — ⚠️ OPEN COMPLETENESS QUESTION, NOT shipped
+hub.losrios.edu/classSearch/getCourses.php, per-college arcFilter/crcFilter/flcFilter/sccFilter, closedFilter
+=true mandatory (Maricopa-style, hides full otherwise). Isolation mostly clean (arc vs scc BIOL overlap=2,
+NOT fully 0 — needs a look). ⚠️ COMPLETENESS GAP: BIOL summed across 4 colleges = 248 via getCourses.php,
+but Grab saw ~330 in the browser. offset>0 returns EMPTY (couldn't crack pagination). The 248-vs-330 gap =
+possible truncation (Delaware-style) OR the browser counted differently. MUST resolve pagination + the
+2-section cross-college overlap before shipping. Held.
