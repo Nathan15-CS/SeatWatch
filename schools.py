@@ -6521,7 +6521,16 @@ class Colleague:
     `AvailabilityStatus` ('Open' ONLY) + true `Available` count, and ONLY when
     `AreSeatCountsAvailable` is set — Waitlisted/Closed/unknown are never 'open', so we
     never false-alert. {} on any failure. Self-maintaining term (nearest upcoming Fall/
-    Spring from ActivePlanTerms). Subclass sets: id, name, example, host."""
+    Spring from ActivePlanTerms). Subclass sets: id, name, example, host.
+
+    SHARED MULTI-COLLEGE HOSTS (Rancho Santiago: Santa Ana + Santiago Canyon on one
+    host) return ONE CourseFullModel PER COLLEGE for the same course, each tagged with
+    LocationCodes (['SAC'] / ['SCC']). Taking the first match would silently serve one
+    college's sections and make the other INVISIBLE. Such schools set `campus` to their
+    LocationCode: we then pick the model tagged for THAT college and also keep only its
+    section rows (LocationCode). campus = "" (the default) = single-college host, first
+    match, behaviour unchanged for every other Colleague school."""
+    campus = ""          # LocationCode on a shared district host; "" = single-college
     _SUBJ_RE = re.compile(r"^([A-Za-z]{2,5})[ \-]?([A-Za-z]?\d{2,4}[A-Za-z]?)$")
 
     def _norm(self, course):
@@ -6609,9 +6618,12 @@ class Colleague:
                     continue
                 match = None
                 for c in d.get("CourseFullModels") or []:
-                    if (c.get("SubjectCode") or "").upper() == subj and (c.get("Number") or "").upper() == num:
-                        match = c
-                        break
+                    if (c.get("SubjectCode") or "").upper() != subj or (c.get("Number") or "").upper() != num:
+                        continue
+                    if self.campus and self.campus not in (c.get("LocationCodes") or []):
+                        continue      # shared district host: that model is a sibling college's
+                    match = c
+                    break
                 if not match or not match.get("MatchingSectionIds"):
                     continue
                 sd = self._post(op, tok, "/Student/Courses/Sections",
@@ -6622,6 +6634,8 @@ class Colleague:
                         continue
                     for wrap in tm.get("Sections") or []:
                         s = wrap.get("Section") or wrap
+                        if self.campus and (s.get("LocationCode") or "") != self.campus:
+                            continue  # belt: keep only THIS college's section rows
                         if not s.get("AreSeatCountsAvailable"):      # counts not published -> skip
                             continue
                         try:
@@ -7945,6 +7959,15 @@ class Coalinga(Colleague):
     id = "coalinga"; name = "Coalinga College"
     example = "ENGL C1000"; host = "ellucianssui.whccd.edu"
 
+class SantaAna(Colleague):
+    # Rancho Santiago CCD shared host — SAC model + SAC section rows only.
+    id = "santaana"; name = "Santa Ana College"
+    example = "ENGL C1000"; host = "colss-prod.cloud.rsccd.edu"; campus = "SAC"
+
+class SantiagoCanyon(Colleague):
+    id = "santiagocanyon"; name = "Santiago Canyon College"
+    example = "ENGL C1000"; host = "colss-prod.cloud.rsccd.edu"; campus = "SCC"
+
 class IndianHills(ShortYearTermColleague):
     id = "indianhills"; name = "Indian Hills Community College"
     example = "HCM 261"; host = "ss.indianhills.edu"
@@ -8561,7 +8584,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     MassArt(), PortlandCC(), Wabash(), MonroeCC(),
     Moorpark(), OxnardCollege(), VenturaCollege(), UVI(), Cayuga(),
     WakeTech(), Schoolcraft(), CentralCarolinaCC(), BrunswickCC(),
-    CollegeOfDuPage(), SouthwesternCA(), VictorValley(), Elgin(), Kellogg(), Coalinga()])
+    CollegeOfDuPage(), SouthwesternCA(), VictorValley(), Elgin(), Kellogg(), Coalinga(),
+    SantaAna(), SantiagoCanyon()])
 
 
 def refresh_all_terms(log=None):
