@@ -5834,3 +5834,11 @@ NOT fully 0 — needs a look). ⚠️ COMPLETENESS GAP: BIOL summed across 4 col
 but Grab saw ~330 in the browser. offset>0 returns EMPTY (couldn't crack pagination). The 248-vs-330 gap =
 possible truncation (Delaware-style) OR the browser counted differently. MUST resolve pagination + the
 2-section cross-college overlap before shipping. Held.
+
+### Los Rios ×4 — DEFER CONFIRMED July 16 (Grab closed the ambiguity): question resolved, stays parked
+Grab cracked the real search param (searchBar=, its earlier subs= was its own bug) and proved the cap is
+REAL + unpaginatable: hard 20-per-call (ENGWR 300 = 20/20/20/20 across colleges while the API's own
+response reports total=292); offset IGNORED (23/46/100 all return the same batch); no page param; the
+official page itself never renders past ~23 of its claimed 330 (no lazy-load XHR on scroll). Isolation
+and freshness are fine — ONLY the cap kills it. Delaware verdict: silent-miss on the most-watched course.
+PARKED unless LRCCD ever exposes a complete/paginated endpoint.
