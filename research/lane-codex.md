@@ -1071,3 +1071,8 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   names before any handoff. I will test only official anonymous Colleague surfaces, requiring current freshness,
   complete first-year-writing IDs, unique native keys, completed mixed status, and registerability/reservation guards.
   No `schools.py` edits or builder contact.
+
+### Batch 86 identity correction
+- `asutr.edu` resolves to **Arkansas State University Three Rivers (AR)**, not American Samoa Community College.
+  Replace the fifth claimed identity with ASU Three Rivers; the public host and dedup checks will use that exact
+  institution name.
