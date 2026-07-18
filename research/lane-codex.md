@@ -1117,3 +1117,9 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   lane. I will use only certificate-discovered/official hosts, then require current freshness, complete
   first-year-writing IDs, mixed completed-term status, pagination, and registerability guards before any handoff.
   No `schools.py` edits or builder contact.
+
+### Batch 87 substitution correction
+- Northshore Technical Community College is already explicitly **CUT** in the Batch 78 archive: its completed
+  ENGL 1015 replay was all-positive. It is removed from this batch and will not be re-reported.
+- Substitute **Southern Regional Technical College (GA)** (`southernregional.edu`) from the remaining CT-log
+  target list; its certificate-discovered Banner host will be tested under the same full gate.
