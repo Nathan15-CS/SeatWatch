@@ -1217,3 +1217,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - **Jefferson State Community College (AL): HOLD.** Official ACCS guest host returned HTTP 503 `No valid route`
   on all documented paths; no numeric schedule or replay.
 - Batch outcome: **1 gated, 4 holds**; Northwest is the only safe handoff candidate, pending Nathan’s go-ahead.
+
+## July 18 Codex Batch 91 claim — fresh registrar-path targets
+- Claiming five exact-name-new targets for official schedule reconnaissance: **Salem State University (MA)**
+  (`salemstate.edu`), **Washburn University (KS)** (`washburn.edu`), **Northwest Indian College (WA)**
+  (`nwic.edu`), **Marion Technical College (OH)** (`mariontc.edu`), and **North Florida College (FL)**
+  (`nfc.edu`). Exact-name checks found no matching identity in `schools.py`, `research/README.md`, or this lane.
+  I will use only official public schedule/guest routes and require current freshness, exact first-year-writing
+  completeness, numeric registerability, completed mixed status, unique keys, and reservation/sibling guards.
+  No schools.py edits or builder contact.
