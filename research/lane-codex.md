@@ -1350,3 +1350,16 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   discovered hosts and public guest/search routes, and require current freshness, complete exact first-year-writing
   coverage, numeric/registerable status, a completed mixed replay, unique keys, and reservation/sibling guards before
   any handoff. No `schools.py` edits or builder contact.
+
+## July 18 Codex Batch 95 checkpoint — zero gated, five holds
+- **Atlantic Technical College (FL): HOLD.** Official site is Cloudflare-challenge protected; no permitted public
+  class-search/seat payload, exact writing result, or completed replay.
+- **Autry Technology Center (OK): HOLD.** Official portal is career/technical-program material with no college
+  first-year-writing section feed, numeric availability, or completed replay.
+- **Maine Maritime Academy (ME): HOLD.** Public CPMD page is a professional-mariner-development catalog without
+  live section capacity/status or completed mixed first-year-writing data.
+- **Manatee Technical College (FL): HOLD.** Official student route points to MTCDashboard/PeopleSoft and career
+  training; no permitted college-writing numeric seat/status feed or completed replay.
+- **Midland College (TX): HOLD.** Official Course Search embeds Power BI; anonymous bootstrap exposes no stable,
+  auditable row-level numeric seats/status or completed mixed replay.
+- Batch outcome: **0 gated, 5 holds**. No production edit or builder contact.

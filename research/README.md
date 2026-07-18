@@ -6315,3 +6315,30 @@ registerability/eligibility rules.
    UMS source with explicit status-plus-numeric guards. Montevallo is login-bound, Henderson lacks a completed mixed
    replay, and UAMont has no auditable seat feed. No `schools.py` edits, builder contact, registry changes, or
    deployment occurred.
+
+### Codex Batch 95 — five CT-log-discovered institutions checked July 18, 2026 (zero gated, five holds)
+
+These five domains came from the unexhausted CT-log target list and were claimed in `research/lane-codex.md` before
+inspection. Name/dedup checks found no registry identity, but none cleared the evidence bar; no production file or
+registry entry was changed.
+
+1. **Atlantic Technical College (FL) — HOLD.** The official [site](https://www.atlantictechnicalcollege.edu/) is
+   Cloudflare-challenge protected from the permitted fetch path. No anonymous public class-search response, exact
+   first-year-writing section set, numeric seat/status fields, or completed mixed replay could be established.
+2. **Autry Technology Center (OK) — HOLD.** The official [site](https://autrytech.edu/) is a career/technical-center
+   portal rather than a public college course-registration surface. No college first-year-composition course, guest
+   section rows, numeric availability, or completed replay was found; do not infer seats from program pages.
+3. **Maine Maritime Academy (ME) — HOLD.** The official public [CPMD course page](https://mainemaritime.edu/cpmd/courses/)
+   is a professional-mariner-development catalog with course descriptions and no live section capacity, enrollment,
+   availability, waitlist, or registerability payload. No exact first-year-writing feed or completed mixed replay.
+4. **Manatee Technical College (FL) — HOLD.** The official [student-services route](https://www.manateetech.edu/student-services/)
+   points to the MTCDashboard/PeopleSoft portal and career-training program material. The permitted public response
+   exposes no college first-year-writing schedule or numeric seat/status payload; no completed mixed replay.
+5. **Midland College (TX) — HOLD.** Midland’s official [Course Search](https://www.midland.edu/enrollment-aid/course-search.php)
+   embeds a Power BI report. The surrounding page says the tool can show available seats, but the anonymous bootstrap
+   is a visualization shell rather than a stable row-level numeric capacity/enrollment/status feed; no auditable
+   exact writing enumeration or completed mixed replay was obtained. Do not infer registerability from the visual.
+
+**Batch 95 result: zero gated, five holds.** The CT-log domains were useful for discovery but these five have no
+permitted, auditable first-year-writing seat source. No `schools.py` edits, builder contact, registry changes, or
+deployment occurred.
