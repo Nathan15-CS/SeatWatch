@@ -1123,3 +1123,20 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   ENGL 1015 replay was all-positive. It is removed from this batch and will not be re-reported.
 - Substitute **Southern Regional Technical College (GA)** (`southernregional.edu`) from the remaining CT-log
   target list; its certificate-discovered Banner host will be tested under the same full gate.
+
+## July 18 Codex Batch 87 checkpoint — two gated, three holds
+- **SUNY Delhi (NY)** passed the existing Banner gate on `prod.banner.delhi.edu` (`StudentRegistrationSsb`,
+  term `202609`): exact `ENGL 100` returned 22/22 rows in one page, unique sequence keys, current 1 positive /
+  21 zero-or-negative, and stable ~1.0s production fetches with `Date` plus `no-store`. Completed Spring 2026
+  returned 11 rows (7 positive / 4 full) and Fall 2025 25 (20 / 5), with wait fields all zero. Marked
+  **GATED, AWAITING GO-AHEAD** in README with builder-safe Banner hook requirements.
+- **Guam Community College (GU)** passed on official `reg-prod.gcctmsaas.elluciancloud.com:8103`: exact `EN 110`
+  returned 8/8 current rows, unique keys, 6 positive / 2 full; Spring 2026 was 5/1 and Fall 2025 1/7. Three
+  production fetches stayed ~2.3–2.5s; wait fields were zero. Marked **GATED, AWAITING GO-AHEAD** in README.
+- **College of the Muscogee Nation** is login-gated inside its Student Portal; **HOLD**.
+- **Navajo Technical University** publishes upcoming/static schedules but routes course details and registration
+  through My.NTU/ecampus login; **HOLD**.
+- **Southern Regional Technical College** certificate-listed Banner host timed out and its alternate host did not
+  resolve; **HOLD** on latency/reachability. Northshore was excluded as the previously documented Batch 78 cut.
+- Batch result: **2 gated candidates, 3 holds; no production edits or builder contact.** README contains the
+  self-contained specs and exact resume conditions.

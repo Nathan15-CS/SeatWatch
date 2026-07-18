@@ -5875,3 +5875,67 @@ and resume conditions are in `research/lane-codex.md` (the lane is the source of
   secure MyASUTR/Banner Student Self Service for course browsing; no permitted anonymous seat feed; **HOLD**.
 
 No production files, registry entries, or builder handoff were changed. Batch 86 therefore adds **0** to the app.
+
+### SUNY Delhi — GATED, AWAITING GO-AHEAD (Codex Batch 87, July 18, 2026)
+
+Net-new public SUNY technology college (Fall 2024 degree-seeking enrollment **3,035**, official enrollment
+table: `https://www.delhi.edu/about/institutional-effectiveness/institutional-research/enrollment-data.php`).
+The registrar links the anonymous Bronco Web/Banner schedule (`https://www.delhi.edu/mydelhi-students/registrar/class-schedule/`),
+which resolves to `prod.banner.delhi.edu`, `StudentRegistrationSsb`, with no login or bearer token.
+
+- **Exact recipe:** bootstrap `GET /StudentRegistrationSsb/ssb/classSearch/classSearch`; term list
+  `GET /StudentRegistrationSsb/ssb/classSearch/getTerms?searchTerm=&offset=1&max=40`; current term `202609`
+  (Fall 2026); reset then paginated `searchResults` with `txt_subject=ENGL`, `txt_courseNumber=100`,
+  `txt_term=202609`, `pageOffset=0`, `pageMaxSize=100`. No `mepCode`.
+- **Current evidence:** exact `ENGL 100` (“Composition I”) returned `totalCount=22`, all 22 rows in one page,
+  unique sequence keys (`001`…`IN9`), **1 positive / 21 zero-or-negative** `seatsAvailable`. The endpoint
+  returned HTTP `Date: Sat, 18 Jul 2026 16:05:00 GMT`, `Cache-Control: max-age=0; no-store`; three production
+  fetches were stable at about 1.0–1.1s.
+- **Completed replay:** Spring 2026 view-only term `202602` returned 11 unique rows, **7 positive / 4 full**;
+  Fall 2025 `202509` returned 25 unique rows, **20 positive / 5 full**. This is genuine mixed historical data,
+  not an all-open guest result. Native keys are `sequenceNumber`; exact-number and subject guards prevent sibling
+  leakage. Current rows exposed `waitCapacity`, `waitCount`, and `waitAvailable` all zero; no reservation,
+  linked, or cross-list blocker fields were present. Negative availability is clamped closed by Banner rules.
+- **Builder contract:** use the existing Banner family plus the shared strict waitlist/reservation hook from the
+  current Banner handoff; never trust `openSection`, require numeric seats > 0, preserve the exact course/term/key
+  guards, and add current/completed fixtures for zero, negative, waitlist, reserved, linked, and cross-list traps.
+  This is **GATED, AWAITING GO-AHEAD**; no production code was changed.
+
+### Guam Community College — GATED, AWAITING GO-AHEAD (Codex Batch 87, July 18, 2026)
+
+Net-new public two-year college (Fall 2024 enrollment **1,587**, official Guam statistical yearbook table:
+`https://bsp.guam.gov/wp-bsp-content/uploads/2026/01/2024-Guam-Statistical-Yearbook-Final.pdf`). The official
+schedule page (`https://guamcc.edu/admissions/classschedule`) links the anonymous Ellucian Banner host
+`reg-prod.gcctmsaas.elluciancloud.com:8103`.
+
+- **Exact recipe:** bootstrap `GET /StudentRegistrationSsb/ssb/classSearch/classSearch`; terms list returns
+  current `202680` (Fall 2026), completed `202610` (Spring 2026), and `202580` (Fall 2025); reset then call
+  paginated `searchResults` with `txt_subject=EN`, `txt_courseNumber=110`, and the selected `txt_term`.
+- **Current evidence:** exact `EN 110` (“Freshman Composition”) returned `totalCount=8`, all 8 in one page,
+  unique sequence keys `01`–`07` and `31`, **6 positive / 2 full** `seatsAvailable`; three production fetches
+  were stable at about 2.33–2.47s. HTTP term response was 200 with a current `Date` header and JSON content type.
+- **Completed replay:** Spring 2026 returned 6 unique rows, **5 positive / 1 full**; Fall 2025 returned 8,
+  **1 positive / 7 full**, proving mixed historical status. All rows had `waitCapacity`, `waitCount`, and
+  `waitAvailable` equal to zero; no reservation/linked/cross-list fields were exposed. Exact subject/number
+  guards and unique native sequence keys passed; negative seats are closed/clamped.
+- **Builder contract:** reuse the existing Banner family with the shared strict waitlist/reservation hook,
+  requiring numeric `seatsAvailable > 0` and fail-closed behavior for any future blocker fields. This is
+  **GATED, AWAITING GO-AHEAD**; no production code was changed.
+
+### Batch 87 explicit holds (not handoff-ready)
+
+- **College of the Muscogee Nation (OK)** — official portal documentation says Course Schedule Search is inside
+  the Student Portal and the same portal requires the student account (`https://cmn.edu/activateportal.pdf`).
+  No permitted anonymous seat-bearing feed, completed replay, or registerability evidence; **HOLD**.
+- **Navajo Technical University (AZ/NM)** — official registration guidance says course details/registration use
+  My.NTU/ecampus login, while public course schedules are static upcoming publications
+  (`https://www.navajotech.edu/future-students/online-registration/`). No anonymous live seats or completed
+  mixed replay; **HOLD**.
+- **Southern Regional Technical College (GA)** — certificate-listed `bannerselfserve.southernregional.edu`
+  timed out on the official Banner term endpoint; alternate certificate host `ssb.southernregional.edu` did not
+  resolve. No permitted public payload or efficient (<30s) path; **HOLD**.
+- Northshore Technical Community College was substituted out because Batch 78 already permanently **CUT** it for
+  an all-positive completed ENGL 1015 replay; it is not counted or re-proposed here.
+
+**Batch 87 result: 2 gated candidates, 3 explicit holds.** No `schools.py` edits, registry changes, deployment,
+or builder message were made.
