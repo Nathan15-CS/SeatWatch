@@ -1171,3 +1171,23 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 
 ## July 18 Codex Batch 89 claim — fresh public registrar-path targets
 - Claiming five exact-name-new targets for official schedule reconnaissance: **BridgeValley Community and Technical College (WV)** (`bridgevalley.edu`), **Clovis Community College (CA)** (`cloviscollege.edu`), **Housatonic Community College (CT)** (`housatonic.edu`), **Norwalk Community College (CT)** (`norwalk.edu`), and **Manchester Community College (CT)** (`manchestercc.edu`). Exact-name checks found no matching registry identity in `schools.py`; I will verify only official public schedule/registration routes and require current freshness, exact first-year-writing pagination, completed mixed status, unique keys, and registerability guards. No schools.py edits or builder contact.
+
+## July 18 Codex Batch 89 checkpoint — five holds, Clovis priority follow-up
+- **Clovis Community College (CA): HOLD / strong public Colleague lead.** Official `selfservice.scccd.edu/Student/Courses`
+  guest flow was queried with the sanctioned token/session API. Exact `ENGL C1000` selected the `CCC` model
+  (“Academ Reading & Writing”, 93 section IDs); Fall 2026 returned complete **31/31 unique** CCC rows in one
+  response. Three repeats were 3.16–3.48s and identical: **10 Open** rows (Available 1–21) and **21 Waitlisted**
+  rows (Available 0), with `AreSeatCountsAvailable=true` and `WaitlistAvailable=true`. Spring 2026 exposed 14
+  CCC rows but all were Open, so no completed mixed replay; preserve the shared-host `CCC` sibling guard and
+  obtain an official historical Fall 2025 route before any gate. No production code change.
+- **BridgeValley Community and Technical College (WV): HOLD.** Official class schedules route to a tokenized
+  Argos report on `maps.wvnet.edu`; the public route is Cloudflare-challenged and the report shell requires its
+  JS applet. No permitted numeric seat payload, replay, or efficient adapter path.
+- **Housatonic Community College (CT): HOLD.** Current CT State guidance routes course search/registration through
+  myCTState Student Self-Service; old myCommNet references are retired. No anonymous numeric feed or replay.
+- **Norwalk Community College (CT): HOLD.** Same CT State/myCTState portal-only path; no current guest rows,
+  exact writing scope, or completed replay.
+- **Manchester Community College (CT): HOLD.** Current identity is CT State Manchester; current course search is
+  myCTState-only and legacy Search-for-Courses references are stale. No numeric guest payload or replay.
+- Batch outcome: **0 gated, 5 holds**. Clovis is the sole high-value resume target; no schools.py edits, builder
+  contact, registry changes, or deployment.

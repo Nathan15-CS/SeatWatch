@@ -5986,3 +5986,49 @@ registerability semantics, and an efficient sanctioned host. No production files
 numeric seats + pagination), but it still needs exact writing-course enumeration and completed replay before any
 builder handoff. The other four remain blocked by dead claimed hosts, login/portal-only access, or missing numeric
 guest data. No `schools.py` edits, builder contact, or deployment occurred.
+
+### Codex Batch 89 — five registrar-path targets checked July 18, 2026 (all HOLD; Clovis is follow-up priority)
+
+These five exact-name-new schools were claimed after registry deduplication and checked against official current
+registrar/schedule routes. The gate requires a current exact first-year-writing result, complete pagination, numeric
+registerable status, a completed mixed replay, unique keys, freshness, and sibling/reservation guards. No production
+file or registry entry was changed.
+
+1. **Clovis Community College (CA) — strong public Colleague lead, HOLD pending completed mixed replay.** The
+   official class-schedule page links the guest SCCCD Self-Service catalog (`https://selfservice.scccd.edu/Student/Courses`)
+   and documents term/subject/course-number search (`https://www.cloviscollege.edu/current-students/schedule-of-classes.html`).
+   Read-only API audit used the official token/session flow: `POST /Student/Courses/PostSearchCriteria` with
+   `{"Keyword":"ENGL C1000"}` selected the exact `CourseFullModel` titled “Academ Reading & Writing” with
+   `LocationCodes` including `CCC` and 93 matching section IDs; `POST /Student/Courses/Sections` returned all
+   **31/31 Fall 2026 CCC rows** in one response, all 31 unique by native `Id`. Three repeated production requests
+   took 3.16–3.48s and reproduced the same rows/date (`2026-08-10` start): **10 `Open` rows with Available
+   1–21 and 21 `Waitlisted` rows with Available 0**. `AreSeatCountsAvailable` was true and `WaitlistAvailable`
+   was true; registerability must use `AvailabilityStatus == Open` plus positive numeric `Available`, never just
+   the count. Spring 2026 returned 14 CCC rows but every row was `Open` (no full/closed control), so the required
+   completed mixed replay is not proven. This is a shared SCCCD host: preserve the exact `CCC` location guard and
+   reject Fresno/Reedley/Madera/Oakhurst sibling models. **HOLD** until a completed term (e.g., Fall 2025) is
+   reachable through an official historical route and yields mixed status, plus HTTP freshness/header capture.
+2. **BridgeValley Community and Technical College (WV) — Argos report, HOLD.** The official registrar page lists
+   Fall 2026 and links “Class Schedules” (`https://www.bridgevalley.edu/registrar/calendars-schedules.html`), which
+   redirects to an Argos report at `maps.wvnet.edu/argos/awv/` with a short-lived report token. The report shell
+   requires its JavaScript applet, while the official BridgeValley route is Cloudflare-challenged in a direct
+   request; no permitted numeric seat payload, first-year-writing enumeration, completed replay, or efficient
+   adapter path was captured. **HOLD**; do not bypass the challenge.
+3. **Housatonic Community College / CT State Housatonic (CT) — portal-only schedule, HOLD.** Current CT State
+   registration guidance says students must use myCTState Student Self-Service to find/register classes and that
+   the schedule is available there (`https://ctstate.edu/admissions-registration/register-for-classes`). Historical
+   Housatonic catalogs describe the old myCommNet Course Search but no current anonymous numeric endpoint. No
+   sanctioned guest seat response, exact ENGL 1010/C1000 pagination, completed replay, or reservation semantics;
+   **HOLD**.
+4. **Norwalk Community College / CT State Norwalk (CT) — portal-only schedule, HOLD.** The official CT State
+   page routes current course search and registration through myCTState; archived Norwalk material describes the
+   retired myCommNet Course Schedule Search, not a current public feed. No anonymous numeric rows, exact
+   first-year-writing scope, completed mixed term, or efficient adapter path was captured; **HOLD**.
+5. **Manchester Community College / CT State Manchester (CT) — portal-only schedule, HOLD.** The official
+   Manchester pages identify the institution as CT State Manchester and route current registration/course search
+   through myCTState; legacy “Search for Courses” references are stale. No current anonymous numeric seat payload,
+   completed replay, or registerability/reservation audit was captured; **HOLD**.
+
+**Batch 89 result: 0 gated, 5 holds.** Clovis is the only high-value next probe: resume with a documented official
+historical-term route, preserve `CCC` sibling isolation, and require a mixed completed replay before any builder
+handoff. No `schools.py` edits, registry changes, deployment, or builder message were made.
