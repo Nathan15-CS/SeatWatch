@@ -1191,3 +1191,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   myCTState-only and legacy Search-for-Courses references are stale. No numeric guest payload or replay.
 - Batch outcome: **0 gated, 5 holds**. Clovis is the sole high-value resume target; no schools.py edits, builder
   contact, registry changes, or deployment.
+
+## July 18 Codex Batch 90 claim — fresh public-schedule targets
+- Claiming five exact-name-new targets for official registrar/self-service reconnaissance: **Glenville State
+  University (WV)** (`glenville.edu`), **College of the Florida Keys (FL)** (`cfk.edu`), **Northwest College
+  (WY)** (`nwc.edu`), **Jefferson State Community College (AL)** (`jeffersonstate.edu`), and **Kishwaukee
+  College (IL)** (`kish.edu`). Exact-name checks found no matching identity in `schools.py`, `research/README.md`,
+  or this lane. I will use only official public schedule routes and require current freshness, exact first-year-
+  writing pagination, numeric registerability, a completed mixed replay, unique keys, and sibling/reservation
+  guards before any handoff. No schools.py edits or builder contact.
