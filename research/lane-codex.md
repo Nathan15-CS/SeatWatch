@@ -1452,3 +1452,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - **Georgia Stone College (GA): HOLD.** Official HTTPS (including `www`/HTTP redirect variants) fails TLS handshake;
   no official schedule payload can be validated.
 - Batch outcome: **zero gated, five holds**. No `schools.py` edits, registry changes, deployment, or builder message.
+
+## July 18 Codex Batch 99 claim — fresh CT-log public-schedule targets
+- Claiming five exact-name-new institutions from the remaining CT-log pool: **Oklahoma State University–Oklahoma City**
+  (`osuokc.edu`), **Santa Fe College (FL)** (`sfcollege.edu`), **College of Micronesia–FSM** (`cmi.edu`), **North
+  Louisiana Technical Community College** (`nltcc.edu`), and **University of Virginia's College at Wise**
+  (`uvawise.edu`). Exact-name checks found no matching identity in `schools.py`, `research/README.md`, either
+  research lane, or a bespoke adapter. I will use only official public/guest schedule routes and require exact
+  first-year-writing coverage, numeric registerability, current freshness, a completed mixed replay, unique keys,
+  and reservation/sibling/eligibility guards. No `schools.py` edits or builder contact.
