@@ -1363,3 +1363,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - **Midland College (TX): HOLD.** Official Course Search embeds Power BI; anonymous bootstrap exposes no stable,
   auditable row-level numeric seats/status or completed mixed replay.
 - Batch outcome: **0 gated, 5 holds**. No production edit or builder contact.
+
+## July 18 Codex Batch 96 claim — degree-granting CT-log follow-up
+- Claiming five exact-name-new degree-granting institutions from the remaining CT-log target pool: **Florida Gateway
+  College (FL)** (`fgc.edu`), **Nevada State University (NV)** (`nsc.edu`), **Central Louisiana Technical Community
+  College (LA)** (`cltcc.edu`), **Lake Land College (IL)** (`lakelandcollege.edu`), and **Mayville State University
+  (ND)** (`mayvillestate.edu`). Exact-name checks found no matching identity in `schools.py`, `research/README.md`, or
+  either research lane. I will verify only official certificate-discovered registration hosts/public guest schedules
+  and require complete exact first-year-writing coverage, numeric registerability, current freshness, a completed
+  mixed replay, unique keys, and reservation/sibling guards. No `schools.py` edits or builder contact.
