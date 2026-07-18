@@ -1422,3 +1422,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - **Institute of American Indian Arts (NM): HOLD.** Official root is Cloudflare Attention Required; no permitted
   public schedule/seat payload or replay.
 - Batch outcome: **1 gated, 4 holds**. No `schools.py` edits, registry changes, deployment, or builder message.
+
+## July 18 Codex Batch 98 claim — fresh CT-log public-schedule targets
+- Claiming five exact-name-new institutions from the remaining CT-log pool: **Commonwealth University of Pennsylvania**
+  (`commonwealthu.edu`), **Tillamook Bay Community College (OR)** (`tillamookbaycc.edu`), **UC Blue Ash College (OH)**
+  (`ucblueash.edu`), **UC Clermont College (OH)** (`ucclermont.edu`), and **Georgia Stone College**
+  (`georgestonecollege.edu`). Exact-name checks found no matching identity in `schools.py`, `research/README.md`, either
+  research lane, or a bespoke adapter. I will use only official public/guest schedule routes and require exact
+  first-year-writing coverage, numeric registerability, current freshness, a completed mixed replay, unique keys,
+  and reservation/sibling/eligibility guards. No `schools.py` edits or builder contact.
