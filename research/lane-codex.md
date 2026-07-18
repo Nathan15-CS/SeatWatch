@@ -1241,3 +1241,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - **North Florida College (FL): HOLD.** Public APEX report lists `ENC 1101` CRN/section rows but no numeric
   capacity/availability/status columns; its “Seats Available” filter is not evidence of row values.
 - Batch outcome: **1 gated, 4 holds**; Washburn is the only safe handoff candidate pending Nathan’s go-ahead.
+
+## July 18 Codex Batch 92 claim — fresh official schedule targets
+- Claiming five exact-name-new targets for registrar/public-schedule reconnaissance: **University of Arkansas–Pulaski Technical College (AR)**
+  (`uaptc.edu`), **University of Arkansas Rich Mountain (AR)** (`uarichmountain.edu`), **University of Arkansas Community College at Hope (AR)**
+  (`uaht.edu`), **Southeastern Louisiana University (LA)** (`southeastern.edu`), and **Murray State University (KY)** (`murraystate.edu`).
+  Exact-name checks found no matching identity in `schools.py`, `research/README.md`, or this lane. I will use only official public schedule/guest
+  routes and require current freshness, exact first-year-writing completeness, numeric registerability, completed mixed status, unique keys, and
+  reservation/sibling guards. No schools.py edits or builder contact.
