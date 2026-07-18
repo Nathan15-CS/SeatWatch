@@ -1272,3 +1272,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   returned 58 Fall 2026 (57 Closed/1 Open) and 2 Summer Open sections, but section keys contain no numeric seat,
   capacity, enrollment, waitlist, or reservation fields and no completed historical term.
 - Batch outcome: **1 gated, 4 holds**; Murray State is the only safe handoff candidate pending Nathan’s go-ahead.
+
+## July 18 Codex Batch 93 claim — fresh official schedule targets
+- Claiming five exact-name-new targets for official registrar/public-schedule reconnaissance: **University of North Alabama (AL)**
+  (`una.edu`), **University of Southern Indiana (IN)** (`usi.edu`), **Southern Illinois University Carbondale (IL)**
+  (`siu.edu`), **Missouri University of Science and Technology (MO)** (`mst.edu`), and **Southern University and A&M College (LA)**
+  (`subr.edu`). Exact-name checks found no matching identity in `schools.py`, `research/README.md`, or this lane.
+  I will use only official public/guest routes and require current freshness, exact first-year-writing completeness,
+  numeric registerability, completed mixed status, unique keys, and reservation/sibling/eligibility guards. No schools.py edits or builder contact.
