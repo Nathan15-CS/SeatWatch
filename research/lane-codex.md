@@ -1149,3 +1149,22 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   identity in `schools.py`; I will verify only the certificate-listed production hosts and require current
   freshness, exact first-year-writing pagination, completed mixed status, unique keys, and registerability guards.
   No `schools.py` edits or builder contact.
+
+## July 18 Codex Batch 88 checkpoint — five holds, no handoff
+- **Fitchburg State University (MA): HOLD / follow-up lead.** The official registrar links the public Oracle APEX
+  seats list on `web4.fitchburgstate.edu` (Day Fall 2026); the page exposes 873 rows with CRN, Actual, Max,
+  Avail, Waitlist, dates, and explicit cross-list warnings. This is not one of the claimed certificate-listed
+  Banner hosts, and exact ENGL/first-year-writing pagination plus a completed mixed replay were not captured.
+- **Northeastern Illinois University (IL): HOLD.** Official Guest Access reaches `hrfin.neiu.edu` term
+  selection, but claimed `ssb-neiupprd.neiu.edu` is DNS-dead and `ssb.neiu.edu` is 404. The alternate host is
+  outside this claim; no exact English 101 JSON, completed replay, or latency/registerability audit.
+- **West Virginia State University (WV): HOLD.** Official “Searchable Schedule” routes to MyState; claimed
+  `banner.wvstateu.edu` does not resolve. No anonymous seat payload or replay.
+- **Missouri Southern State University (MO): HOLD.** Official LioNet guest Course List shows Fall 2026/Summer
+  2026 and Open/Closed/Class Type filters but no numeric rows in the accessible response; claimed `ssb.mssu.edu`
+  timed out. No exact first-year-writing or completed replay.
+- **Oklahoma Panhandle State University (OK): HOLD.** Claimed `banner.opsu.edu` returned 403 and `ssb.opsu.edu`
+  404; no official OPSU-specific numeric guest schedule or replayable payload.
+- Batch outcome: **0 gated, 5 holds**. Fitchburg is the only high-value sanctioned follow-up, but it still needs
+  exact writing-course extraction, completed-term mixed status, and a stable adapter contract. No schools.py edits,
+  builder contact, or production changes.

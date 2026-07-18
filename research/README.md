@@ -5939,3 +5939,50 @@ schedule page (`https://guamcc.edu/admissions/classschedule`) links the anonymou
 
 **Batch 87 result: 2 gated candidates, 3 explicit holds.** No `schools.py` edits, registry changes, deployment,
 or builder message were made.
+
+### Codex Batch 88 — five fresh CT-log targets checked July 18, 2026 (all HOLD; no safe handoff)
+
+These five exact-name-new identities were claimed from the certificate-log Banner sweep and checked against
+their official registrar/schedule surfaces. None cleared the production gate: a public schedule lead is not
+enough without an exact first-year-writing enumeration, current numeric seats, completed mixed replay,
+registerability semantics, and an efficient sanctioned host. No production files or registry entries were changed.
+
+1. **Fitchburg State University (MA) — strong public seats-list lead, HOLD.** The official registrar page
+   (`https://www.fitchburgstate.edu/academics/academic-calendars-course-and-exam-schedules`) links the public
+   Oracle APEX seats list at `https://web4.fitchburgstate.edu/apex/f?p=127:2::::::` (Day Fall 2026). The live
+   page reports 873 rows with `Course Number`, CRN, `Actual`, `Max`, `Avail`, and `Waitlist` columns; Fall rows
+   are dated 09/03/26–12/21/26 and include explicit cross-list warnings (for example, ARAB 2030). This is a
+   useful current numeric surface, but it is on `web4` rather than a certificate-listed Banner host, the exact
+   first-year-writing rows were not yet enumerated, and no completed-term replay or adapter parse was captured;
+   **HOLD** pending those checks. The official registration page confirms students use CRNs from the seats list
+   and authenticate through My Falcon (`https://www.fitchburgstate.edu/academics/courses-and-registration/registrar/how-register`).
+2. **Northeastern Illinois University (IL) — guest Banner alternate found, HOLD.** NEIU’s official class
+   schedule page (`https://www.neiu.edu/academics/registrar-services/class-schedules-and-registration-information`)
+   explicitly offers Guest Access and links to `https://hrfin.neiu.edu/StudentRegistrationSsb/ssb/term/termSelection?mode=search`,
+   which reaches a public term-selection page. The claimed CT-log hosts `ssb-neiupprd.neiu.edu` (DNS failure)
+   and `ssb.neiu.edu` (404) did not yield a permitted payload; the `hrfin` alternate was not certificate-listed
+   in this claim and its class-search JSON, exact English 101 rows, completed replay, and latency were not captured.
+   NEIU documents electronic waitlists, so reservation/waitlist semantics also require an exact response audit;
+   **HOLD**.
+3. **West Virginia State University (WV) — MyState-only schedule path, HOLD.** WVSU’s official class-schedule
+   page (`https://wvstateu.edu/academics/class-schedules/`) links “Searchable Schedule” to MyState and states
+   that students must apply/be admitted to register. The claimed `banner.wvstateu.edu` host did not resolve, and
+   no anonymous seat-bearing response, exact first-year-writing result, completed mixed term, or guest latency was
+   captured from MyState; **HOLD**.
+4. **Missouri Southern State University (MO) — live open/closed UI but no numeric guest rows, HOLD.** MSSU’s
+   official registrar guidance (`https://www.mssu.edu/student-affairs/registrar/enrollment.php`) directs users to
+   LioNet Browse Classes; the official open/closed page (`https://lionet.mssu.edu/web/guest/course-list`) currently
+   exposes `2026 Fall (AY27)`/`2026 Summer (AY26)` and Open/Closed/Class Type filters, but no numeric seat rows in
+   the accessible guest response. The official Fall 2026 schedule-book page confirms the term and points back to
+   that open-class list (`https://www.mssu.edu/academics/classes/index.php`). The claimed `ssb.mssu.edu` host timed
+   out; no exact ENGL 101, completed replay, or waitlist/reservation payload was captured; **HOLD**.
+5. **Oklahoma Panhandle State University (OK) — no verified public schedule path, HOLD.** Certificate-listed
+   `banner.opsu.edu` returned HTTP 403 and `ssb.opsu.edu` returned 404; no numeric guest endpoint or exact
+   first-year-writing/completed-term response was obtained. Search results route to Oklahoma State system registrar
+   material rather than an OPSU-specific public seat feed, so no identity or adapter inference is safe;
+   **HOLD** pending an official OPSU schedule URL and replayable payload.
+
+**Batch 88 result: 0 gated, 5 explicit holds.** Fitchburg is the only high-value follow-up (official current
+numeric seats + pagination), but it still needs exact writing-course enumeration and completed replay before any
+builder handoff. The other four remain blocked by dead claimed hosts, login/portal-only access, or missing numeric
+guest data. No `schools.py` edits, builder contact, or deployment occurred.
