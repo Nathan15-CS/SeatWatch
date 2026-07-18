@@ -1108,3 +1108,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - Batch result: **0 schools passed the full gate**. No `schools.py`, registry, deployment, or builder changes were
   made; resume only if each hold gains a permitted public current + completed replay with complete IDs, status/seats,
   pagination, and registerability/eligibility evidence.
+
+## July 18 Codex Batch 87 claim — CT-log hidden-host public Banner candidates
+- Claiming five exact-name-new CT-log targets for an official-host recon: **SUNY Delhi (NY)** (`delhi.edu`),
+  **Guam Community College (GU)** (`guamcc.edu`), **Northshore Technical Community College (LA)**
+  (`northshorecollege.edu`), **College of the Muscogee Nation (OK)** (`cmn.edu`), and **Navajo Technical
+  University (AZ)** (`navajotech.edu`). Exact-name checks found no matching identity in `schools.py` or either
+  lane. I will use only certificate-discovered/official hosts, then require current freshness, complete
+  first-year-writing IDs, mixed completed-term status, pagination, and registerability guards before any handoff.
+  No `schools.py` edits or builder contact.
