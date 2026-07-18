@@ -1391,3 +1391,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   textual Open/Closed badges. It exposes no numeric seat/capacity/enrollment/remaining/waitlist fields, so no safe
   numeric adapter or completed mixed replay exists.
 - Batch outcome: **0 gated, 5 holds**. No `schools.py` edits, registry changes, deployment, or builder message.
+
+## July 18 Codex Batch 97 claim — fresh CT-log degree/tribal public-schedule targets
+- Claiming five exact-name-new targets from the remaining CT-log pool: **Tompkins Cortland Community College (NY)**
+  (`tompkinscortland.edu`), **University of Maine at Augusta (ME)** (`uma.edu`), **WVU Parkersburg (WV)**
+  (`wvup.edu`), **Northern Marianas College (MP)** (`marianas.edu`), and **Institute of American Indian Arts (NM)**
+  (`iaia.edu`). Exact-name checks found no matching identity in `schools.py`, `research/README.md`, either research
+  lane, or a bespoke adapter. I will use only official public/guest schedules and require exact first-year-writing
+  coverage, numeric registerability, current freshness, a completed mixed replay, unique keys, and
+  reservation/sibling/eligibility guards. No `schools.py` edits or builder contact.
