@@ -43,6 +43,24 @@ Extracted un-actioned value from Codex batches 12-19 GATED leads that I never re
 - **Cal Poly Humboldt (~6k) SKIP**: pine.humboldt.edu daily report "as of 07:45 AM" fetched at 9:57 PM = ~14h STALE = false-open risk (like SJSU). Real-time is PeopleSoft-gated. Concordia Chicago SKIP (PDF export=stale). Lawrence (~1.5k) parked (Banner-8 real-time but need fuller disproof, small).
 - NEW STANDARD GATE (saved to memory): staleness-timestamp check — any "as of/generated/updated" stamp gets compared to current time; hours-stale = skip. Caught SJSU + Humboldt; UVI/Cayuga passed.
 
+## HUNT July 17-18: LACCD dead / Los Rios confirmed-defer / Batch 81 clean / VSB = TOP NEXT LEAD
+- **Batch 81 (Illinois Eastern 3 colleges)** re-gated CLEAN through prod Banner + campus filter (Wabash Valley 5/1,
+  Olney Central 2/2, Lincoln Trail 4/0, all EXACT to Codex, 0 false-opens). banprodss1.iecc.edu:8447, term 202730,
+  campus first-token WABASH/OLNEY/LINCOLN. Relayed. Completes Codex Batch 80-84 re-gate (~15 net-new validated).
+- **LACCD (9 colleges, ~200k) = DEAD/HOLD, fake-status.** Classic PeopleSoft COMMUNITY_ACCESS.CLASS_SEARCH.GBL —
+  my documented fake-all-open trap. Codex caught it (LASC completed-term 14 rows all Open after they ended). I probed
+  the IScript JSON API → returns HTML shell (no numeric enrollment_available), only stateful GBL w/ fake textual Open.
+  Cannot gate without false-open risk. Do NOT chase the 9-college mirage. Same class as NAU/UCF/UH.
+- **Los Rios ×4 (~75k) = CONFIRMED DEFER (cap).** Cracked the real param (searchBar= not my earlier subs=), but hard
+  20/call cap, no pagination (offset ignored, no page ctrl, scroll fires no new calls), ENGWR 300 truncates 80 of 292.
+  Silent-miss on flagship course = Delaware verdict. Parked unless LRCCD exposes a complete endpoint.
+- **⭐ VSB (Visual Schedule Builder) = TOP NEXT-SESSION LEAD (reusable pattern).** Contra Costa CCD vsb.4cd.edu: live,
+  campus-ENABLED, real seat data (XML os= open-seats attribute), 3 colleges. Endpoint: GET vsb.{school}.edu/api/class-data
+  ?term={code}&course_0_0={SUBJ}-{NUM}&t={epoch_ms}&e={?}&nouser=1. BLOCKER: the &e= timezone anti-scrape token (server
+  rejects with "correct your device timezone" unless t/e valid; t=(new Date()).getTime() confirmed, e-formula obfuscated
+  in engine.js). CRACK VIA BROWSER CAPTURE of one real class-data request → replicate t/e → then ENUMERATE all VSB
+  schools (VSB is used by many CA CCs + others = potential College-Scheduler-scale unlock). Highest ROI forward item.
+
 ## ⭐⭐ CODEX BATCHES 80-84 re-gated (July 15) — 12 net-new validated (~245k students!), directive worked
 Codex pivoted HARD to system-shaped/self-screened/adapter-reuse work (my directive). Re-gated all through
 PRODUCTION base Colleague.fetch(), reproduces Codex's numbers, ZERO false-opens (textual-Open withholds waitlist):
