@@ -1431,3 +1431,24 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   research lane, or a bespoke adapter. I will use only official public/guest schedule routes and require exact
   first-year-writing coverage, numeric registerability, current freshness, a completed mixed replay, unique keys,
   and reservation/sibling/eligibility guards. No `schools.py` edits or builder contact.
+
+## July 18 Codex Batch 98 checkpoint — zero gated, five holds
+- **Commonwealth University of Pennsylvania (PA): HOLD.** Official Registrar Available Courses uses shared PASSHE
+  `reg-prod.ec.passhe.edu/StudentRegistrationSsb` with `mepCode=003315`. Fall 2026 `ENGL` returned 45 numeric
+  rows and campus labels; `ENGL 152 Literature and Society` was 9 rows (1 positive / 8 zero) across Bloomsburg,
+  Lock Haven, and Commonwealth Online, while Spring 2026 was 5 rows (2/3). No exact first-year composition code
+  was established, and the shared three-campus pool is already represented by the shipped Bloomsburg/Commonwealth
+  entry; adding Commonwealth would duplicate/leak siblings.
+- **Tillamook Bay Community College (OR): HOLD.** Official Jenzabar anonymous course-search table endpoint
+  `.../pagedsectiondataforsearch?Id=97&IdNumber=-1&YearCode=2027&TermCode=SU` with `WR` begins-with returned
+  complete 3/3 exact rows: WR-121Q 13/30 Open, WR-121Z 11/30 Open, WR-122Z 20/30 Open. Nominal completed
+  `YearCode=2026&TermCode=SP` repeated the same IDs, seats, and 6/22/2026–8/29/2026 dates (only data-yearterm
+  changed), so no genuine historical mixed replay.
+- **UC Blue Ash College (OH): HOLD.** Official site links shared Catalyst; current Catalyst redirects to UC SAML
+  login and `classes.catalyst-services.uc.edu` is empty/404 on the classic route. No anonymous campus-safe numeric
+  section feed or replay.
+- **UC Clermont College (OH): HOLD.** Same shared UC Catalyst SSO/classic surface and no Clermont-isolated guest
+  seat/status payload or replay.
+- **Georgia Stone College (GA): HOLD.** Official HTTPS (including `www`/HTTP redirect variants) fails TLS handshake;
+  no official schedule payload can be validated.
+- Batch outcome: **zero gated, five holds**. No `schools.py` edits, registry changes, deployment, or builder message.

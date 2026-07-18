@@ -6429,3 +6429,49 @@ replays, a completed mixed-status term, unique keys, and fail-closed combined/re
 **Batch 97 result: one gated, four holds.** UMA clears the gate only with the explicit combined-section fail-closed
 guard; Tompkins is API-403, WVU fails the completed mixed-status test, and Marianas/IAIA are Cloudflare-blocked.
 No `schools.py` edits, builder contact, registry changes, deployment, or handoff occurred.
+
+### Codex Batch 98 — five fresh CT-log public-schedule targets checked July 18, 2026 (zero gated, five holds)
+
+These five exact-name-new targets were claimed in `research/lane-codex.md` before probing. The gate remains exact
+first-year-writing coverage, numeric registerability, fresh responses, a genuinely mixed completed-term replay,
+unique section keys, and fail-closed sibling/reservation/eligibility handling. No production file was changed.
+
+1. **Commonwealth University of Pennsylvania (PA) — HOLD (shared PASSHE feed / duplicate sibling scope).** The
+   official [Registrar page](https://www.commonwealthu.edu/offices-directory/registrar) links [Available Courses](https://reg-prod.ec.passhe.edu/StudentRegistrationSsb/ssb/term/termSelection?mode=search&mepCode=003315), the
+   shared PASSHE Banner host with `mepCode=003315`. The official Fall 2026 (`202630`) query returned numeric
+   `seatsAvailable` and campus labels for 45 ENGL rows; for example `ENGL 152 Literature and Society` returned
+   9 rows (1 positive / 8 zero) across Bloomsburg, Lock Haven, and Commonwealth Online. Spring 2026 (`202610`)
+   returned 5 rows (2 positive / 3 zero), so the feed is live and mixed, but `ENGL 152` is not a first-year
+   composition course and no exact first-year-writing course was established in the current subject list. More
+   importantly, the same `003315` response leaks the three Commonwealth campuses and is already represented by the
+   shipped `Bloomsburg University (Commonwealth U)` PASSHE entry; adding Commonwealth University would duplicate the
+   shared pool. Do not add without a campus/scope decision and a verified exact writing code.
+2. **Tillamook Bay Community College (OR) — HOLD (term selector echoes, historical data not real).** The official
+   [site](https://www.tillamookbaycc.edu/) links its anonymous [Jenzabar course search](https://tbcportal.jenzabarcloud.com/ICS/Home.jnz?portlet=Student_Registration_1&screen=StudentRegistrationPortlet_CourseSearchView&screenType=next).
+   Its table uses `POST https://tbcportal.jenzabarcloud.com/ICS/webserviceproxy/exi/rest/studentregistration/pagedsectiondataforsearch?Id=97&IdNumber=-1&YearCode=2027&TermCode=SU`
+   with the documented JSON `pageState.advancedFilters` (course code begins-with `WR`). Summer 2026/27 search
+   returned complete 3/3 exact writing rows: `WR-121Q-100-01` 13/30 Open, `WR-121Z-100-01` 11/30 Open, and
+   `WR-122Z-100-01` 20/30 Open. Replaying the nominal completed Spring term (`YearCode=2026&TermCode=SP`)
+   returned the identical three section IDs, identical seat values, and identical `6/22/2026–8/29/2026` dates;
+   only the embedded `data-yearterm` changed. All historical rows remained Open, proving the endpoint is not a
+   trustworthy completed-term source. Do not infer a mixed replay or ship an adapter until term data is independently
+   addressed.
+3. **UC Blue Ash College (OH) — HOLD (UC shared SSO/classic surface; no campus-safe guest feed).** The official
+   [campus site](https://www.ucblueash.edu/) exposes the shared [UC Catalyst](https://catalyst.uc.edu/) link. A
+   current Catalyst request redirects to the UC SAML login (`login.uc.edu`); the separate
+   `classes.catalyst-services.uc.edu` root is an empty 200 page and its classic PeopleSoft class-search path is
+   currently 404. No permitted anonymous exact writing rows, numeric seats/status, or campus-isolated replay was
+   obtained. Do not treat catalog/admissions pages as availability.
+4. **UC Clermont College (OH) — HOLD (same UC shared SSO/classic surface).** The official [campus site](https://www.ucclermont.edu/)
+   likewise links the shared UC Catalyst portal. The same SAML redirect/empty-classic
+   surface supplied no anonymous numeric seat payload and no way to isolate Clermont from the UC sibling campuses.
+   No exact writing gate or completed replay; hold rather than duplicate the UC feed.
+5. **Georgia Stone College (GA) — HOLD (official endpoint unreachable).** `https://georgestonecollege.edu/` (and
+   its `www`/HTTP redirect variants) failed the TLS handshake from the permitted fetch path. No official registrar or
+   public schedule payload could be validated; do not infer an institution or course absence from the transport
+   failure.
+
+**Batch 98 result: zero gated, five holds.** Commonwealth is a shared PASSHE/sibling duplicate with no verified
+first-year-writing code; Tillamook fails the historical-data gate; Blue Ash and Clermont are UC shared SSO/classic
+surfaces without a campus-safe guest feed; and Georgia Stone is unreachable. No `schools.py` edits, registry changes,
+deployment, builder contact, or handoff occurred.
