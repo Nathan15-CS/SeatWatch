@@ -1063,3 +1063,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   replay, or seat/status evidence was captured; hold and do not bypass the login boundary.
 - Batch result: zero new full-gate candidates. README records official URLs, exact public evidence, and resume
   conditions. No `schools.py`, registry, deployment, or builder changes were made.
+
+## July 18 Codex Batch 86 claim — fresh Colleague district/college hosts
+- Claiming five exact-name-new leads from the remaining CT-log Colleague set: St. Louis Community College;
+  College of Eastern Idaho; Westmoreland County Community College; Wayne State College (NE); and American Samoa
+  Community College. Exact-name checks found no matching identity in `schools.py`; I will verify the institution
+  names before any handoff. I will test only official anonymous Colleague surfaces, requiring current freshness,
+  complete first-year-writing IDs, unique native keys, completed mixed status, and registerability/reservation guards.
+  No `schools.py` edits or builder contact.
