@@ -6184,3 +6184,80 @@ keys, freshness, and reservation/sibling/eligibility guards. No production file 
 **Batch 92 result: 1 gated, 4 holds.** Murray State is the only builder-ready candidate, and only with the explicit
 Racer-Academy eligibility exclusion and existing Banner guards. No `schools.py` edits, builder contact, registry
 changes, or deployment occurred.
+
+### Codex Batch 93 — five official registrar paths checked July 18, 2026 (four gated, one hold)
+
+These five exact-name-new schools were claimed in `research/lane-codex.md` before probing. The gate requires a
+current exact first-year-writing result, complete pagination, numeric registerability, a completed mixed replay,
+unique keys, freshness, and reservation/sibling/eligibility guards. No production file or registry entry was changed.
+
+1. **University of North Alabama (AL) — GATED, AWAITING GO-AHEAD (existing Banner adapter with population guard).**
+   UNA's official [registrar schedule page](https://www.una.edu/registrar/registration/schedule.html) links the
+   public guest Banner host `https://selfserve.una.edu/StudentRegistrationSsb/ssb`. Its official `getTerms` exposed
+   Fall 2026 `202710`, Spring 2026 View Only `202620`, and Fall 2025 View Only `202610`. Exact `EN 111` rows are
+   titled **First-Year Composition I**; Fall 2026 returned complete **46/46** rows in one page, with unique native
+   sequence keys and `seatsAvailable`, `maximumEnrollment`, and `enrollment` arithmetic matching on 46/46. The
+   response includes 23 traditional Main-campus rows and 23 concurrent high-school rows (`instructionalMethodDescription`
+   contains `Taught at High School`); the latter must be rejected as an eligibility/population leak. On the safe
+   traditional set, current status is **10 positive / 11 full**, with 2 additional full rows carrying nonzero
+   `waitCount` (reject them). `crossList`, `isSectionLinked`, and `reservedSeatSummary` were empty on all audited
+   traditional rows. Three fresh current replays had distinct `Date`/raw hashes but the same canonical
+   `(sequenceNumber, seatsAvailable, maximumEnrollment, enrollment, waitCount, crossList, isSectionLinked,
+   reservedSeatSummary)` tuples. Completed Spring 2026 returned 12 rows (safe traditional set 10: 3 positive / 7
+   full); completed Fall 2025 returned 45 rows (safe traditional set 22: 17 positive / 5 full), both mixed with
+   numeric arithmetic. Strict builder contract: reuse `Banner` at `selfserve.una.edu`, exact `EN 111`, paginate to
+   `totalCount`, require exact title `First-Year Composition I`, reject any `Taught at High School` row, require
+   numeric `maximumEnrollment`, `enrollment`, `seatsAvailable` with `maximumEnrollment - enrollment == seatsAvailable`,
+   and fail closed on `seatsAvailable <= 0`, nonzero wait fields, truthy cross-list/link/reservation fields, or
+   non-Main campus. Retain native sequence keys. This is **GATED, AWAITING GO-AHEAD** pending Nathan's approval.
+2. **University of Southern Indiana (IN) — GATED, AWAITING GO-AHEAD (existing Banner adapter with punctuation/title guard).**
+   USI's official [classes page](https://www.usi.edu/registrar/classes) explicitly links its public online search
+   catalog at `https://banproxyp.usi.edu/StudentRegistrationSsb/ssb/term/termSelection?mode=search`. Official terms
+   exposed Fall 2026 `202710`, Spring 2026 View Only `202620`, and Fall 2025 View Only `202610`. The exact course
+   identity is `ENG 101.` (the API course number includes a literal trailing period), titled `Rhet&amp;Comp I:Literacy/Self`
+   (one current TLC variant has the same prefix). Fall 2026 returned complete **34/34** rows in one page with unique
+   sequence keys; `maximumEnrollment - enrollment == seatsAvailable` held on 34/34. Applying exact `courseNumber ==
+   "101."`, title-prefix, positive-capacity, and no-wait/link/reservation/cross-list guards leaves **10 positive / 19
+   full** rows; 5 zero-capacity rows are rejected. Three fresh current replays (with `Date` headers) had different raw
+   hashes but identical canonical tuples. Completed Spring 2026 returned 15 mixed rows (11 positive / 3 full after
+   the same guards); Fall 2025 returned 30 (26 positive / 4 full). Wait, cross-list, linked-section, and reserved-seat
+   fields were empty/zero in all audited rows. Strict builder contract: use the official host and term resolver,
+   query the literal `ENG 101.` (do not strip the period), require exact subject/course/title-prefix, numeric
+   `maximumEnrollment`, `enrollment`, `seatsAvailable` with arithmetic agreement, positive-capacity for alerts, and
+   fail closed on zero/negative capacity, nonzero wait, or any cross-list/link/reservation field; retain native
+   sequence keys. This is **GATED, AWAITING GO-AHEAD** pending Nathan's approval.
+3. **Southern Illinois University Carbondale (IL) — GATED, AWAITING GO-AHEAD (existing Banner adapter).** SIU's
+   official [Registrar home](https://registrar.siu.edu/) links the public [Schedule of Classes Search](https://banssb1.siu.edu/StudentRegistrationSsb/ssb/term/termSelection?mode=search).
+   Official terms exposed Fall 2026 `202660`, Spring 2026 View Only `202620`, and Fall 2025 View Only `202560`.
+   Exact `ENGL 101` is titled **English Composition I** and returned complete **55/55** Fall 2026 rows in one page,
+   all with `campusDescription=Carbondale Campus `, unique native sequence keys, and arithmetic agreement on 55/55.
+   The current mix is **13 positive / 42 full** (two over-enrolled rows report `seatsAvailable=-1`; the adapter must
+   clamp/reject them as non-open). Three fresh replays had `Date` headers and identical canonical tuples. Completed
+   Spring 2026 returned 12 rows (7 positive / 5 full) and Fall 2025 returned 49 rows (32 positive / 17 full), both
+   mixed with exact arithmetic; all audited wait, cross-list, linked-section, and reserved-seat fields were empty or
+   zero. Strict builder contract: reuse `Banner` at `banssb1.siu.edu`, exact `ENGL 101`, paginate until `totalCount`,
+   require exact title and Carbondale-campus guard, numeric seat/capacity/enrollment arithmetic, and fail closed on
+   nonpositive `seatsAvailable`, any nonzero wait, or any cross-list/link/reservation field; retain native sequence
+   keys. This is **GATED, AWAITING GO-AHEAD** pending Nathan's approval.
+4. **Missouri University of Science and Technology (MO) — HOLD.** The official [Fall 2026 class-offerings page](https://registrar.mst.edu/classofferings/fall/)
+   states that current class-offering information is available through authenticated Joe'SS; its public Distance
+   Classes listing is a static schedule and does not expose a permitted row-level numeric capacity, enrollment,
+   available-seat, waitlist, or registerability payload. No exact first-year-writing feed or completed mixed replay
+   can be built from the official public surface; **HOLD**.
+5. **Southern University and A&amp;M College (LA) — GATED, AWAITING GO-AHEAD (bespoke ASP.NET schedule adapter).**
+   Southern's official [Course Schedule](https://myaccess.southern.edu/apps/courseschedule/Default.aspx) exposes a
+   public GET-filtered table. `Departments=English&PageSize=100&Page=1&Term=F26` returned the complete `Results (54)`
+   page and exact `ENGL-101-*` **17/17** rows titled `Crit Think Ac Rdg/Wrtg I`. Native section-code keys were unique;
+   each row had numeric `Enr`, `Cap`, and `Wait` fields plus explicit cross-list markers. Strict current evaluation
+   (`Cap>0`, `Cap-Enr>0`, `Wait==0`, no cross-list) yields **6 positive / 4 full** safe rows; rows with nonzero wait,
+   zero/negative capacity, or cross-list markers are rejected. Three fresh current replays (0.358–0.371s, `Date`
+   headers) had identical canonical section/enrollment tuples. Completed Fall 2025 returned 18 rows (12 positive / 1
+   full after the same guards; five cap-zero rows rejected); completed Spring 2026 returned 5 rows (1 positive / 1
+   full safe, two waitlisted and one cap-zero row rejected). Strict builder contract: use the official GET filters,
+   require a complete page, exact `ENGL-101-*` identity/title, numeric `Enr`/`Cap`/`Wait`, `Cap-Enr` arithmetic, and
+   fail closed on `Cap<=0`, nonpositive availability, `Wait>0`, any cross-list marker/cross-list capacity, or missing
+   fields; retain the native section-code key. This is **GATED, AWAITING GO-AHEAD** pending Nathan's approval.
+
+**Batch 93 result: 4 gated, 1 hold.** UNA, USI, SIU, and Southern are safe only under the explicit contracts above;
+MST lacks a permitted numeric public feed. No `schools.py` edits, builder contact, registry changes, or deployment
+occurred.

@@ -1280,3 +1280,30 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   (`subr.edu`). Exact-name checks found no matching identity in `schools.py`, `research/README.md`, or this lane.
   I will use only official public/guest routes and require current freshness, exact first-year-writing completeness,
   numeric registerability, completed mixed status, unique keys, and reservation/sibling/eligibility guards. No schools.py edits or builder contact.
+
+## July 18 Codex Batch 93 checkpoint — four gated, one hold
+- **University of North Alabama (AL): GATED, AWAITING GO-AHEAD.** Official guest Banner `selfserve.una.edu` exact
+  `EN 111` (First-Year Composition I) returned complete 46/46 Fall 2026 rows with 46/46 seat arithmetic matches,
+  10 positive / 11 full safe traditional rows, and 23 concurrent high-school rows that must be excluded by the
+  `Taught at High School` instructional-method guard. Three current canonical replays matched; completed Spring
+  2026 (safe 10: 3/7) and Fall 2025 (safe 22: 17/5) were mixed. README Batch 93 records strict title, capacity,
+  wait, cross-list/link/reservation, and Main-campus guards. No production edit or builder contact.
+- **University of Southern Indiana (IN): GATED, AWAITING GO-AHEAD.** Official guest Banner `banproxyp.usi.edu`
+  exact literal `ENG 101.` (trailing period) returned complete 34/34 Fall 2026 rows, arithmetic on 34/34, and safe
+  10 positive / 19 full after rejecting five zero-capacity rows; exact title-prefix and all wait/link/reservation/
+  cross-list guards are required. Three canonical current replays matched; completed Spring 2026 was 11/3 and Fall
+  2025 26/4. README Batch 93 records the punctuation/title contract. No production edit or builder contact.
+- **Southern Illinois University Carbondale (IL): GATED, AWAITING GO-AHEAD.** Official guest Banner `banssb1.siu.edu`
+  exact `ENGL 101` (English Composition I) returned complete 55/55 Fall 2026 rows, 13 positive / 42 full, exact
+  arithmetic, Carbondale-campus isolation, and identical canonical tuples across three fresh replays. Completed
+  Spring 2026 was 7/5 and Fall 2025 32/17; two current over-enrolled rows are non-open. README Batch 93 records
+  exact-title/campus, pagination, numeric, and fail-closed guards. No production edit or builder contact.
+- **Missouri University of Science and Technology (MO): HOLD.** Official registrar says current offerings are in
+  authenticated Joe'SS; public distance listing has no permitted numeric capacity/enrollment/registerability feed
+  or completed mixed replay.
+- **Southern University and A&M College (LA): GATED, AWAITING GO-AHEAD.** Official ASP.NET schedule
+  `myaccess.southern.edu/apps/courseschedule/Default.aspx` with `Departments=English&PageSize=100&Page=1&Term=F26`
+  returned complete 17/17 `ENGL-101-*` rows (Results 54), numeric Enr/Cap/Wait, unique section codes, and 6 positive /
+  4 full safe rows after capacity, wait, and cross-list guards. Three 0.358–0.371s canonical replays matched;
+  completed Fall 2025 safe result was 12/1 and Spring 2026 1/1. README Batch 93 records the bespoke GET contract.
+- Batch outcome: **4 gated, 1 hold**. No schools.py edits, registry changes, deployment, or builder message.
