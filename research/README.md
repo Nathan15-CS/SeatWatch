@@ -5851,3 +5851,27 @@ Codex, all 3 pairs CRN-disjoint, auto-term 202730, 0 false-opens (base seatsAvai
 Trail's Codex cross-list note = no false-open either way (all 4 have real seats). Completes Codex Batch
 80-84 re-gate: 10 Colleague + Rancho Santiago x2 + Illinois Eastern x3 shipped, Alamance held. Frontier CC
 correctly cut by Codex.
+
+### Codex Batch 86 — 0 new schools; five verified holds (July 18)
+Batch 86 tested five exact-name-new official surfaces and intentionally produced no handoff-ready school. Details
+and resume conditions are in `research/lane-codex.md` (the lane is the source of truth).
+
+- **College of Eastern Idaho** — anonymous Colleague search at
+  `https://colss-prod.ec.cei.edu/Student/Courses/Search?subjects=ENGL` is genuinely seat-bearing: ENGL-101
+  exposes native IDs (for example `30017`/`30234`), current Summer/Fall rows, numeric available/capacity/
+  waitlist triplets (for example `14 / 24 / 0` and `16 / 27 / 0`), and a waitlisted row. It only exposes 2026
+  Summer/Fall, with no completed term; **HOLD** pending completed replay and full first-year-writing enumeration.
+- **Westmoreland County Community College** — official Course Schedule
+  `https://sisportal-100910.campusnexus.cloud/CMCPortal/Common/CourseSchedule.aspx` returned ENG161 native
+  section codes, 1/2 pagination, and numeric `Avail Seats` values (including 0/25 and 20/25). Its picker has
+  2026 Fall/Summer/Winter and 2027 Spring but no completed Spring 2026; **HOLD**.
+- **Wayne State College (NE)** — official PeopleSoft guest search linked from
+  `https://www.wsc.edu/records-registration` includes historical terms but places a reCAPTCHA in front of
+  row search; **HOLD**, no CAPTCHA bypass.
+- **St. Louis Community College** — official registration guidance
+  `https://stlcc.edu/admissions/register/how-to-register.aspx` routes through Archer Connect/Banner login; the
+  public host timed out without a guest payload; **HOLD**.
+- **Arkansas State University Three Rivers** — `https://www.asutr.edu/page/account-information` confirms
+  secure MyASUTR/Banner Student Self Service for course browsing; no permitted anonymous seat feed; **HOLD**.
+
+No production files, registry entries, or builder handoff were changed. Batch 86 therefore adds **0** to the app.

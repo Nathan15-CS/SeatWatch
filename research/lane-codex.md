@@ -1076,3 +1076,35 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - `asutr.edu` resolves to **Arkansas State University Three Rivers (AR)**, not American Samoa Community College.
   Replace the fifth claimed identity with ASU Three Rivers; the public host and dedup checks will use that exact
   institution name.
+
+## July 18 Codex Batch 86 checkpoint — zero full-gate candidates; five explicit holds
+- **College of Eastern Idaho (CEI)** — official registration instructions link the anonymous Colleague search at
+  `https://colss-prod.ec.cei.edu/Student/Courses/Search?subjects=ENGL`. The guest English search is live and
+  reproducible: filters show 2026 Summer (3 ENGL-101 sections) and 2026 Fall (7 ENGL-101 sections), and expanding
+  ENGL-101 returns native IDs such as `ENGL-101-01 (30017)` and `ENGL-101-01 (30234)` with numeric
+  available/capacity/waitlist triplets (e.g. `14 / 24 / 0`, `16 / 27 / 0`) plus a waitlisted row. The same
+  public surface exposes **no completed term** (only 2026 Summer/Fall), so freshness/current-seat evidence is
+  strong but the completed mixed-status replay gate is missing. **HOLD** pending a completed term and a full
+  first-year-writing enumeration check.
+- **Westmoreland County Community College** — official schedule page
+  `https://westmoreland.edu/resources/class-schedules.html` links the public Course Schedule at
+  `https://sisportal-100910.campusnexus.cloud/CMCPortal/Common/CourseSchedule.aspx`. The 2026 Fall search for
+  ENG161 with Open & Closed selected returned native section codes across Youngwood/New Kensington/Indiana/Latrobe,
+  pagination (1/2), and numeric `Avail Seats` values (examples: 5/25, 1/25, 0/25, 20/25). Term choices were
+  2026 Fall, 2026 Summer, 2026 Winter, and 2027 Spring—no completed Spring 2026 replay. **HOLD** despite strong
+  current numeric/pagination evidence.
+- **Wayne State College (NE)** — official registrar page
+  `https://www.wsc.edu/records-registration` links the public PeopleSoft search at
+  `https://wildcatsonline.nebraska.edu/psp/wildcatsonline/NBW/HRMS/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL?INSTITUTION=WAYNE`.
+  The guest form exposes Wayne and historical terms through Spring 2026, but requires a visible reCAPTCHA
+  checkbox before search; no row, native key, or seat payload was obtained. **HOLD**; do not bypass CAPTCHA.
+- **St. Louis Community College** — official registration guidance
+  `https://stlcc.edu/admissions/register/how-to-register.aspx` routes Browse Classes through Archer Connect/Banner
+  Self-Service. The old public self-service course host timed out and no anonymous seat-bearing payload was exposed.
+  **HOLD** at the login/unreachable boundary; no bypass or inference.
+- **Arkansas State University Three Rivers (AR)** — official site `https://www.asutr.edu/` and account guidance
+  `https://www.asutr.edu/page/account-information` state that course browsing/registration uses secure MyASUTR
+  Banner Student Self Service. No permitted anonymous seat-bearing feed was found. **HOLD** at the login boundary.
+- Batch result: **0 schools passed the full gate**. No `schools.py`, registry, deployment, or builder changes were
+  made; resume only if each hold gains a permitted public current + completed replay with complete IDs, status/seats,
+  pagination, and registerability/eligibility evidence.
