@@ -6384,3 +6384,48 @@ and fail-closed reservation/sibling/eligibility rules.
 Nevada State is login-bound; CLTCC has no public feed; Lake Land has exact rows but no seat fields; and Mayville has
 text-only Open/Closed status without numeric capacity. No `schools.py` edits, builder contact, registry changes,
 deployment, or handoff occurred.
+
+### Codex Batch 97 — five fresh CT-log degree/tribal targets checked July 18, 2026 (one gated, four holds)
+
+These five exact-name-new institutions were claimed in `research/lane-codex.md` before probing. No production file or
+registry entry was changed. The gate requires exact first-year-writing coverage, numeric registerability, fresh
+replays, a completed mixed-status term, unique keys, and fail-closed combined/reservation/sibling rules.
+
+1. **University of Maine at Augusta (ME) — GATED, AWAITING GO-AHEAD (bespoke public UMS search adapter; roughly
+   4,000 students).** The official [Course Search](https://www.uma.edu/academics/courseguide/) accepts the exact
+   GET query
+   `doClassSearch=1&strm=2710&subject=ENG-busunit-UMS01&keywords=ENG+101&includeClosedClassSections=1` for Fall 2026.
+   It returned one complete result page of **22/22** exact `ENG 101 College Writing` sections (unique class-number
+   and section keys): raw status mix **10 Open / 12 Closed** with numeric `Enrollment: N of M seats`. The official
+   response emits a `Combined Section ID` for nine rows; the safe contract must parse all rows but reject every
+   nonempty combined-section ID (shared-capacity/sibling semantics are not independently authoritative). That leaves
+   **5 alertable Open rows** with positive `M-N` and **8 Closed rows**; alert only explicit `Open` with numeric
+   `M-N > 0`, never infer status from seats. Three cache-busted current replays took about **0.49–0.51s**, carried
+   fresh `Date` headers, and had identical canonical `(classNumber, section, status, enrollment, Combined Section ID)`
+   tuples. The completed Spring 2026 query (`strm=2620`, same subject/keywords/include-closed parameters) returned
+   complete **13/13** exact rows with raw **10 Open / 3 Closed**; rejecting five combined-ID rows leaves 7 Open / 1
+   Closed, proving genuine mixed historical status. No waitlist/reservation fields are present; unexpected status,
+   malformed `N of M`, missing keys, any combined ID, or visible pagination must fail closed (and pagination must be
+   exhausted if it appears). This is **GATED, AWAITING GO-AHEAD** pending Nathan's approval; use the exact `UMS01`
+   subject code and retain native class-number+section keys.
+2. **Tompkins Cortland Community College (NY) — HOLD.** The official [schedule page](https://www.tompkinscortland.edu/schedule)
+   links public Fall 2026 Self Service at `https://selfservice.tc3.edu/SelfService/Search/Section?period=2026%2FFALL`.
+   The page is a JavaScript shell whose documented `POST /SelfService/Sections/Search` endpoint returned the official
+   Error403 page both without and with the anonymous session cookie. No exact writing rows, numeric seat/status
+   payload, or completed replay can be reproduced through the permitted public route.
+3. **WVU Parkersburg (WV) — HOLD.** The official [course-schedules page](https://www.wvup.edu/current-students/student-resources/course-schedules/)
+   links the public `schedules.wvup.edu/schedule/schedule.php?term=...&campus=1` view and its XML data endpoints
+   `/schedule/dosql/1.php` and `/schedule/dosql/2.php` (query `q=<term>||MAIN`). Fall 2026 exact `ENGL 101`
+   returned **11/11** rows with numeric seats-available and wait count (3 positive / 8 zero, wait count 0), but
+   completed Spring 2026 returned **9/9 all positive** and Fall 2025 **11/11 all positive**. The mandatory
+   completed mixed-status test therefore fails; the source also lacks an explicit status enum. No handoff.
+4. **Northern Marianas College (MP) — HOLD.** The official [site](https://marianas.edu/) was Cloudflare “Just a
+   moment…” protected from the permitted fetch path; no anonymous registrar/class-search response, exact writing
+   rows, numeric seats/status, or completed replay was established.
+5. **Institute of American Indian Arts (NM) — HOLD.** The official [site](https://iaia.edu/) returned a Cloudflare
+   Attention Required page from the permitted fetch path; no anonymous class-search/seat payload, exact writing
+   result, or completed replay was established.
+
+**Batch 97 result: one gated, four holds.** UMA clears the gate only with the explicit combined-section fail-closed
+guard; Tompkins is API-403, WVU fails the completed mixed-status test, and Marianas/IAIA are Cloudflare-blocked.
+No `schools.py` edits, builder contact, registry changes, deployment, or handoff occurred.

@@ -1400,3 +1400,25 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   lane, or a bespoke adapter. I will use only official public/guest schedules and require exact first-year-writing
   coverage, numeric registerability, current freshness, a completed mixed replay, unique keys, and
   reservation/sibling/eligibility guards. No `schools.py` edits or builder contact.
+
+## July 18 Codex Batch 97 checkpoint — one gated, four holds
+- **University of Maine at Augusta (ME): GATED, AWAITING GO-AHEAD.** Official UMS Course Search exact
+  `strm=2710&subject=ENG-busunit-UMS01&keywords=ENG+101&includeClosedClassSections=1` returned complete 22/22
+  `ENG 101 College Writing` sections (10 Open / 12 Closed) with unique class-number+section keys and numeric
+  `N of M seats`. Rejecting every nonempty `Combined Section ID` leaves 5 positive Open / 8 Closed safe rows;
+  three 0.49–0.51s cache-busted current replays had fresh Date headers and identical canonical tuples. Completed
+  Spring 2026 (`strm=2620`) returned 13/13 mixed rows (10/3 raw; 7/1 after the same combined-ID guard). Builder
+  contract must require exact UMS01/title, explicit Open plus `M-N>0`, numeric parsing, unique keys, exhausted
+  pagination, and fail closed on combined IDs, unexpected status, or missing fields. README Batch 97 contains the
+  self-contained bespoke adapter spec. No production edit or builder contact.
+- **Tompkins Cortland Community College (NY): HOLD.** Official Fall 2026 Self Service shell links `POST
+  /SelfService/Sections/Search`, but the endpoint returned Error403 both without and with its anonymous session
+  cookie; no exact writing rows, numeric seat/status, or replay.
+- **WVU Parkersburg (WV): HOLD.** Official XML schedule endpoints yielded Fall 2026 exact ENGL 101 11/11 rows
+  (3 positive / 8 zero, wait count 0), but completed Spring 2026 9/9 and Fall 2025 11/11 were all positive; no
+  genuine completed mixed-status control and no explicit status enum.
+- **Northern Marianas College (MP): HOLD.** Official root is Cloudflare “Just a moment…” protected; no permitted
+  public schedule/seat payload or replay.
+- **Institute of American Indian Arts (NM): HOLD.** Official root is Cloudflare Attention Required; no permitted
+  public schedule/seat payload or replay.
+- Batch outcome: **1 gated, 4 holds**. No `schools.py` edits, registry changes, deployment, or builder message.
