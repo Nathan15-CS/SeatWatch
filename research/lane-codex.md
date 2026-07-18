@@ -1307,3 +1307,11 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   4 full safe rows after capacity, wait, and cross-list guards. Three 0.358–0.371s canonical replays matched;
   completed Fall 2025 safe result was 12/1 and Spring 2026 1/1. README Batch 93 records the bespoke GET contract.
 - Batch outcome: **4 gated, 1 hold**. No schools.py edits, registry changes, deployment, or builder message.
+
+## July 18 Codex Batch 94 claim — fresh public-schedule targets
+- Claiming five exact-name-new targets for official registrar/public-schedule reconnaissance: **Pasco-Hernando State College (FL)**
+  (`phsc.edu`), **University of Montevallo (AL)** (`montevallo.edu`), **Henderson State University (AR)** (`hsu.edu`),
+  **University of Arkansas at Monticello (AR)** (`uamont.edu`), and **University of Maine at Presque Isle (ME)** (`umpi.edu`).
+  Exact-name checks found no matching identity in `schools.py`, `research/README.md`, or this lane. I will use only
+  official public/guest routes and require current freshness, exact first-year-writing completeness, numeric
+  registerability, completed mixed status, unique keys, and reservation/sibling/eligibility guards. No schools.py edits or builder contact.
