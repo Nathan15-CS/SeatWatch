@@ -1140,3 +1140,12 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   resolve; **HOLD** on latency/reachability. Northshore was excluded as the previously documented Batch 78 cut.
 - Batch result: **2 gated candidates, 3 holds; no production edits or builder contact.** README contains the
   self-contained specs and exact resume conditions.
+
+## July 18 Codex Batch 88 claim — fresh CT-log Banner hosts
+- Claiming five exact-name-new targets for certificate-discovered official Banner recon: **Fitchburg State
+  University (MA)** (`fitchburgstate.edu`), **Northeastern Illinois University (IL)** (`neiu.edu`), **West
+  Virginia State University (WV)** (`wvstateu.edu`), **Missouri Southern State University (MO)** (`mssu.edu`),
+  and **Oklahoma Panhandle State University (OK)** (`opsu.edu`). Exact-name checks found no matching registry
+  identity in `schools.py`; I will verify only the certificate-listed production hosts and require current
+  freshness, exact first-year-writing pagination, completed mixed status, unique keys, and registerability guards.
+  No `schools.py` edits or builder contact.
