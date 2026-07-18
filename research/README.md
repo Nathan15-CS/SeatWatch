@@ -6261,3 +6261,57 @@ unique keys, freshness, and reservation/sibling/eligibility guards. No productio
 **Batch 93 result: 4 gated, 1 hold.** UNA, USI, SIU, and Southern are safe only under the explicit contracts above;
 MST lacks a permitted numeric public feed. No `schools.py` edits, builder contact, registry changes, or deployment
 occurred.
+
+### Codex Batch 94 — five public registrar paths checked July 18, 2026 (two gated, three holds)
+
+These five exact-name-new targets were claimed in `research/lane-codex.md` before probing. No production file or
+registry entry was changed. The gate requires an exact first-year-writing result, complete result coverage, numeric
+seat evidence, a completed mixed-status replay, fresh repeated fetches, unique native keys, and fail-closed
+registerability/eligibility rules.
+
+1. **Pasco-Hernando State College (FL) — GATED, AWAITING GO-AHEAD (existing Banner adapter).** The official
+   [registration search](https://www.phsc.edu/faq/how-do-i-register-classes) links the public Banner guest host
+   `reg-prod.phsc.elluciancloud.com:8103/StudentRegistrationSsb`. Official `getTerms` resolved Fall 2026
+   `202701`, Spring 2026 View Only `202602`, and Fall 2025 View Only `202601`. Exact `ENC 1101` (English
+   Composition I) returned complete **45/45** current rows in one page with unique sequence/CRN keys. Numeric
+   `maximumEnrollment`, `enrollment`, and `seatsAvailable` arithmetic held on **45/45**; one zero-capacity `W10`
+   row (`0/0/0`) is rejected, leaving **44 safe rows: 25 positive / 19 full**. All audited wait fields were zero,
+   `crossList`/`reservedSeatSummary` were empty, and `isSectionLinked` was false. Three fresh current replays had
+   distinct HTTP `Date`/raw responses and identical canonical tuples. Completed Spring 2026 returned 33 rows
+   (21 positive / 12 full) and Fall 2025 returned 48 (33 positive / 15 full), with the same numeric guards and no
+   wait/cross-list/link/reservation flags. Strict builder contract: reuse `Banner` at the exact host, resolve the
+   official current term, query exact `ENC 1101`, paginate until `totalCount`, retain native sequence keys, reject
+   missing/non-numeric fields and any `maximumEnrollment <= 0`, and fail closed on nonzero wait, truthy link/cross-list,
+   or nonempty reservation fields; alert only when numeric `seatsAvailable > 0`. This is **GATED, AWAITING GO-AHEAD**.
+2. **University of Maine at Presque Isle (ME) — GATED, AWAITING GO-AHEAD (bespoke public UMS search adapter).**
+   The official [Course Search](https://www.umpi.edu/academics/course-registration/) is a public GET form. The
+   exact query `doClassSearch=1&strm=2710&subject=ENG-busunit-UMS07&keywords=ENG+101&includeClosedClassSections=1`
+   returned complete **6/6** Fall 2026 `ENG 101 College Composition` sections with unique class-number/section
+   keys. Each row exposes explicit status and numeric `Enrollment: N of M seats`: four `Open` rows (11/16, 12/20,
+   18/20, 11/20) and two `Waitlisted` rows (20/20); strict alerting must require status exactly `Open`, numeric
+   capacity/enrollment, and `M-N > 0`, never infer openness from seats alone. Three cache-busted replays had
+   `Date` headers with `Age: 0`, different raw hashes, and identical canonical section/status/enrollment tuples.
+   Completed Spring 2026 (`strm=2620`) returned complete **2/2** exact rows: one `Open` 9/15 and one `Closed` 20/20,
+   proving mixed historical status. The exact query has no pagination control for these six rows; a future adapter must
+   still detect/exhaust the documented WordPress REST pagination endpoint (`/academics/wp-json/ums-class-search/v1/get_page`)
+   whenever page buttons appear. Strict contract: keep the `UMS07` institution subject code and exact title/course
+   identity, parse only the numeric `N of M seats` field, alert only explicit `Open` with positive `M-N`, reject
+   `Waitlisted`/`Closed`/missing or malformed fields, retain class-number+section keys, and fail closed on any
+   unexpected status or incomplete page. This is **GATED, AWAITING GO-AHEAD** as a bespoke adapter.
+3. **University of Montevallo (AL) — HOLD.** The official [registrar class-schedule page](https://www.montevallo.edu/about-um/administration/registrars-office/class-schedule/)
+   exposes a Banner-looking route, but its schedule/search endpoints redirect to Microsoft sign-in. No permitted
+   anonymous first-year-writing seat payload or completed mixed replay was obtained; authentication was not bypassed.
+4. **Henderson State University (AR) — HOLD pending completed replay.** The official [registration page](https://www.hsu.edu/register/)
+   links the shared Banner guest host with `mepCode=HENDSN`. Exact `ENGL 10103` (English A: Writing and Rhetoric I)
+   returned complete **21/21** Fall 2026 rows (2 positive / 19 full) with arithmetic and unique CRN/sequence keys;
+   three fresh replays were canonically identical and all current rows were Arkadelphia Main Campus with clean wait,
+   link, cross-list, and reservation fields. However, every tested completed term returned **0 exact rows**, so there
+   is no completed mixed-status evidence yet. **HOLD** until an official historical route yields real rows.
+5. **University of Arkansas at Monticello (AR) — HOLD.** The official [class-schedules page](https://www.uamont.edu/academics/class-schedules.html)
+   exposes a published-schedule label and Workday/student links but no anonymous machine-readable row-level numeric
+   capacity, enrollment, availability, or waitlist payload. No completed mixed replay or safe adapter contract exists.
+
+**Batch 94 result: 2 gated, 3 holds.** PHSC is safe through the existing Banner adapter; UMPI is a bespoke public
+   UMS source with explicit status-plus-numeric guards. Montevallo is login-bound, Henderson lacks a completed mixed
+   replay, and UAMont has no auditable seat feed. No `schools.py` edits, builder contact, registry changes, or
+   deployment occurred.

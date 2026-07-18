@@ -1315,3 +1315,28 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Exact-name checks found no matching identity in `schools.py`, `research/README.md`, or this lane. I will use only
   official public/guest routes and require current freshness, exact first-year-writing completeness, numeric
   registerability, completed mixed status, unique keys, and reservation/sibling/eligibility guards. No schools.py edits or builder contact.
+
+## July 18 Codex Batch 94 checkpoint — two gated, three holds
+- **Pasco-Hernando State College (FL): GATED, AWAITING GO-AHEAD.** Official Banner guest `reg-prod.phsc.elluciancloud.com:8103`
+  exact `ENC 1101` (English Composition I) returned complete 45/45 Fall 2026 rows with unique sequence/CRN keys;
+  numeric maximum/enrollment/available arithmetic held on 45/45. One malformed zero-capacity `W10` row is rejected,
+  leaving 44 safe rows (25 positive / 19 full). Wait fields were zero; cross-list/reservation fields empty and linked
+  false. Three current replays had fresh Date/raw differences and identical canonical tuples. Completed Spring 2026
+  returned 33 (21/12) and Fall 2025 48 (33/15), both mixed with clean guards. README Batch 94 records the exact
+  existing-Banner contract and fail-closed rules. No production edit or builder contact.
+- **University of Maine at Presque Isle (ME): GATED, AWAITING GO-AHEAD.** Official public UMS Course Search exact
+  `strm=2710`, `subject=ENG-busunit-UMS07`, `keywords=ENG+101`, `includeClosedClassSections=1` returned complete
+  6/6 `ENG 101 College Composition` rows keyed by class number/section. Numeric `N of M seats` plus explicit status
+  produced four Open rows (11/16, 12/20, 18/20, 11/20) and two Waitlisted 20/20 rows; only explicit Open with
+  positive `M-N` is alertable. Three cache-busted replays had Date/Age:0 headers, different raw hashes, and stable
+  canonical tuples. Completed Spring 2026 exact search returned 2/2 (Open 9/15; Closed 20/20), proving mixed status.
+  README Batch 94 records the bespoke adapter contract, exact UMS07/title guard, status and numeric parsing, and
+  fail-closed pagination/status rules. No production edit or builder contact.
+- **University of Montevallo (AL): HOLD.** Official registrar route redirected schedule/search requests to Microsoft
+  sign-in; no permitted anonymous seat payload or completed replay, and authentication was not bypassed.
+- **Henderson State University (AR): HOLD pending completed replay.** Official shared Banner `mepCode=HENDSN` exact
+  `ENGL 10103` returned complete 21/21 Fall 2026 rows (2 positive / 19 full) with unique keys, arithmetic, fresh
+  replays, and clean current guards, but all tested completed terms returned zero exact rows.
+- **University of Arkansas at Monticello (AR): HOLD.** Official schedule page exposes a published-schedule label and
+  Workday links but no anonymous row-level numeric capacity/status feed or completed mixed replay.
+- Batch outcome: **2 gated, 3 holds**. No schools.py edits, registry changes, deployment, or builder message.
