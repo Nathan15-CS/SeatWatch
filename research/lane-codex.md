@@ -1168,3 +1168,6 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - Batch outcome: **0 gated, 5 holds**. Fitchburg is the only high-value sanctioned follow-up, but it still needs
   exact writing-course extraction, completed-term mixed status, and a stable adapter contract. No schools.py edits,
   builder contact, or production changes.
+
+## July 18 Codex Batch 89 claim — fresh public registrar-path targets
+- Claiming five exact-name-new targets for official schedule reconnaissance: **BridgeValley Community and Technical College (WV)** (`bridgevalley.edu`), **Clovis Community College (CA)** (`cloviscollege.edu`), **Housatonic Community College (CT)** (`housatonic.edu`), **Norwalk Community College (CT)** (`norwalk.edu`), and **Manchester Community College (CT)** (`manchestercc.edu`). Exact-name checks found no matching registry identity in `schools.py`; I will verify only official public schedule/registration routes and require current freshness, exact first-year-writing pagination, completed mixed status, unique keys, and registerability guards. No schools.py edits or builder contact.
