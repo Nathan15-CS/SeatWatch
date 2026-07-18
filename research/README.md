@@ -6126,3 +6126,61 @@ registry entry was changed.
 
 **Batch 91 result: 1 gated, 4 holds.** Washburn is builder-ready through the existing Banner adapter with strict
 wait/reservation/link guards. No `schools.py` edits, builder contact, registry changes, or deployment occurred.
+
+### Codex Batch 92 — five official registrar paths checked July 18, 2026 (one gated, four holds)
+
+These exact-name-new targets were claimed in `research/lane-codex.md` before probing. The gate requires a current
+exact first-year-writing result, complete pagination, numeric registerable status, a completed mixed replay, unique
+keys, freshness, and reservation/sibling/eligibility guards. No production file or registry entry was changed.
+
+1. **Murray State University (KY) — GATED, AWAITING GO-AHEAD (existing Banner adapter with eligibility guard).** The
+   official [Registrar calendar](https://www.murraystate.edu/academics/RegistrarsOffice/calendar.aspx) links the
+   anonymous Banner guest host `https://prodssbstureg.murraystate.edu/StudentRegistrationSsb/ssb`. Its official
+   `getTerms` returned Fall 2026 `202680`, Spring 2026 (View Only) `202610`, and Fall 2025 (View Only) `202580`.
+   Exact `ENG 105` (Critical Reading, Writing, and Inquiry; the university's first-year composition course) returned
+   complete **56/56** current rows in one page, unique by `sequenceNumber` and CRN. Three fresh production replays
+   were 0.817–0.926s, had `Date: Sat, 18 Jul 2026 17:53:28 GMT`, and identical canonical
+   `(sequenceNumber, CRN, campus, seatsAvailable, maximumEnrollment, enrollment, wait, link/reservation)` tuples
+   (raw response hashes differ only in non-canonical dynamic fields). Current rows had numeric
+   `seatsAvailable`, `maximumEnrollment`, and `enrollment`; arithmetic held on 56/56, `openSection` agreed with
+   `seatsAvailable > 0` on 56/56, and the mix was 36 positive / 20 full. The feed exposed wait, cross-list,
+   linked-section, and reserved-seat fields; all were zero/empty on the current rows. Two rows were marked
+   `instructionalMethodDescription=Racer Academy` (campuses `RA Carlisle Co HS` and `Hopkinsville Regional
+   Campus`) and must be rejected as concurrent-enrollment/eligibility rows. The safe current set is therefore
+   **54 rows: 34 positive / 20 full**, allowing only non-Racer-Academy rows (Main traditional/hybrid and Web).
+   Completed Spring 2026 returned 34/34 unique rows, safe non-Racer set 32 with **30 positive / 2 full**; completed
+   Fall 2025 returned 29/29 unique, safe set 28 with **27 positive / 1 full**. Both completed terms had zero seat
+   arithmetic errors, zero nonzero wait values, zero cross-list/link/reservation fields, and exact status agreement.
+   Strict builder contract: reuse `Banner` against `prodssbstureg.murraystate.edu`, exact `ENG 105`, official
+   `getTerms` term resolution, paginate until `totalCount`, require numeric `seatsAvailable > 0`, and fail closed
+   on any nonzero wait field, truthy cross-list/link/reservation field, or
+   `instructionalMethodDescription == "Racer Academy"`; retain native sequence/CRN keys. This is **GATED,
+   AWAITING GO-AHEAD** pending Nathan's approval because the eligibility filter is essential.
+2. **University of Arkansas–Pulaski Technical College (AR) — HOLD (Power BI schedule, no machine-readable seat
+   evidence).** The official [Schedule of Classes](https://uaptc.edu/schedule-of-classes) embeds a public Power BI
+   course-listing report. The surrounding official page describes course names, instructors, locations, meeting
+   days/times, and prerequisites, but the anonymous report bootstrap supplied no stable numeric capacity,
+   enrollment, availability, waitlist, or registerability payload and no completed mixed replay. The official
+   [registration instructions](https://uaptc.edu/student-workday/register) route registration through Workday.
+   **HOLD**; do not infer seats from a Power BI listing.
+3. **University of Arkansas Rich Mountain (AR) — HOLD (Power BI schedule without an auditable seat feed).** The
+   official [student-login page](https://www.uarichmountain.edu/student-login.html) links `Course Schedules` to
+   a public Power BI report. Its anonymous report bootstrap was only a loading shell; no stable row-level numeric
+   capacity/enrollment/open/waitlist fields or completed mixed replay could be obtained. **HOLD** pending an
+   official machine-readable guest feed; no assumption that a visual schedule implies registerability.
+4. **University of Arkansas Community College at Hope (AR) — HOLD (course-schedule pages are descriptions only).**
+   The official [Course Schedules page](https://www.uaht.edu/academics/course-schedules.php) exposes only
+   2024–25 and 2025–26 course-description links; its linked [Texarkana schedule page](https://www.uaht.edu/academics/course-schedule-texarkana.php)
+   contains no current numeric row data. Registration news directs students to the college's authenticated
+   systems; no anonymous first-year-writing capacity/status feed or completed mixed replay was found. **HOLD**.
+5. **Southeastern Louisiana University (LA) — HOLD (public JSON has string status but no numeric seats).** The
+   official Registrar page says non-students should use the public [Course Section Offerings](https://www2.southeastern.edu/external/course_section_offerings/)
+   page. Its official `assets/course_catalog.json` returned exact `ENGL 1010` (Freshman Composition) rows for the
+   2026–27 academic year: Fall **58** unique sections (57 `Closed`, 1 `Open`) and Summer **2** (`Open`), but
+   section objects contain only `unique_id`, course/term, meeting, instructor, delivery, and `class_status` keys—no
+   capacity, enrollment, available-seat, waitlist, or reservation fields anywhere in the payload. It exposes no
+   completed historical mixed term. String `Open` is therefore not safe numeric registerability. **HOLD**.
+
+**Batch 92 result: 1 gated, 4 holds.** Murray State is the only builder-ready candidate, and only with the explicit
+Racer-Academy eligibility exclusion and existing Banner guards. No `schools.py` edits, builder contact, registry
+changes, or deployment occurred.

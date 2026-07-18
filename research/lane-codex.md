@@ -1249,3 +1249,26 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Exact-name checks found no matching identity in `schools.py`, `research/README.md`, or this lane. I will use only official public schedule/guest
   routes and require current freshness, exact first-year-writing completeness, numeric registerability, completed mixed status, unique keys, and
   reservation/sibling guards. No schools.py edits or builder contact.
+
+## July 18 Codex Batch 92 checkpoint — one gated, four holds
+- **Murray State University (KY): GATED, AWAITING GO-AHEAD.** Official Banner guest `prodssbstureg.murraystate.edu`
+  returned exact `ENG 105` current Fall 2026 `202680` **56/56** unique rows; three 0.817–0.926s replays had identical
+  canonical tuples and a `Date` header. Numeric `seatsAvailable == maximumEnrollment - enrollment` and
+  `openSection == (seatsAvailable > 0)` held on every row; current mix was 36 positive / 20 full. Wait,
+  cross-list, linked, and reserved fields were all zero/empty. Two `instructionalMethodDescription=Racer Academy`
+  rows (RA Carlisle Co HS and Hopkinsville Regional Campus) are concurrent-enrollment/eligibility rows and must be
+  excluded; safe non-Racer set is 54 rows (34 positive / 20 full). Completed Spring 2026 was 34/34 (safe 32: 30/2)
+  and Fall 2025 was 29/29 (safe 28: 27/1), both with mixed numeric status and clean guards. README Batch 92 gives
+  the strict existing-`Banner` hook: exact `ENG 105`, paginate to `totalCount`, numeric positive seats, and fail
+  closed on wait/link/reservation/cross-list or `Racer Academy`. No production edit or builder contact.
+- **University of Arkansas–Pulaski Technical College (AR): HOLD.** Official Course Schedule is a public Power BI
+  listing; Workday is the registration path. No stable anonymous numeric seat/capacity/status payload or completed
+  replay was obtained.
+- **University of Arkansas Rich Mountain (AR): HOLD.** Official Course Schedules link a public Power BI report,
+  but anonymous bootstrap exposed no auditable row-level numeric seats or completed mixed replay.
+- **University of Arkansas Community College at Hope (AR): HOLD.** Official schedule pages expose only course
+  descriptions/empty schedule pages and no current numeric first-year-writing availability or completed replay.
+- **Southeastern Louisiana University (LA): HOLD.** Official `assets/course_catalog.json` exact `ENGL 1010`
+  returned 58 Fall 2026 (57 Closed/1 Open) and 2 Summer Open sections, but section keys contain no numeric seat,
+  capacity, enrollment, waitlist, or reservation fields and no completed historical term.
+- Batch outcome: **1 gated, 4 holds**; Murray State is the only safe handoff candidate pending Nathan’s go-ahead.
