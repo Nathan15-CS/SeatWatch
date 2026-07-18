@@ -5842,3 +5842,12 @@ response reports total=292); offset IGNORED (23/46/100 all return the same batch
 official page itself never renders past ~23 of its claimed 330 (no lazy-load XHR on scroll). Isolation
 and freshness are fine — ONLY the cap kills it. Delaware verdict: silent-miss on the most-watched course.
 PARKED unless LRCCD ever exposes a complete/paginated endpoint.
+
+### Illinois Eastern CC ×3 — ✅ SHIPPED July (Build): 732->735
+Wabash Valley + Olney Central + Lincoln Trail on shared Banner-9 host banprodss1.iecc.edu:8447 (:8447 port
+works incl. prod). Campus isolation via campusDescription first-token (SD-regental `IECC(Banner)` base;
+WABASH/OLNEY/LINCOLN). ENG 1111: Wabash 6 sec 5/1, Olney 4 sec 2/2, Lincoln Trail 4 sec 4/0 — all EXACT to
+Codex, all 3 pairs CRN-disjoint, auto-term 202730, 0 false-opens (base seatsAvailable>0 rule). Lincoln
+Trail's Codex cross-list note = no false-open either way (all 4 have real seats). Completes Codex Batch
+80-84 re-gate: 10 Colleague + Rancho Santiago x2 + Illinois Eastern x3 shipped, Alamance held. Frontier CC
+correctly cut by Codex.
