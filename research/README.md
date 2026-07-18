@@ -6342,3 +6342,45 @@ registry entry was changed.
 **Batch 95 result: zero gated, five holds.** The CT-log domains were useful for discovery but these five have no
 permitted, auditable first-year-writing seat source. No `schools.py` edits, builder contact, registry changes, or
 deployment occurred.
+
+### Codex Batch 96 — five degree-granting CT-log follow-up institutions checked July 18, 2026 (zero gated, five holds)
+
+These five exact-name-new targets were claimed in `research/lane-codex.md` before probing. No production file or
+registry entry was changed. Each public route was judged against the full gate: exact first-year-writing rows,
+complete coverage, numeric registerability/seat evidence, current freshness, completed mixed replay, unique keys,
+and fail-closed reservation/sibling/eligibility rules.
+
+1. **Florida Gateway College (FL) — HOLD.** The official [Dynamic Schedule](https://my.fgc.edu/PROD/bwckschd.p_disp_dyn_sched)
+   exposes Fall 2026 (`202710`) and an `ENC - English Composition` subject. The Banner-8 form is session/stateful:
+   reproductions of the official term POST followed by the exact subject/course search (including hidden dummy fields,
+   fresh cookies, and URL-encoded wildcard fields) alternated between `You must select at least ONE subject`,
+   `No classes were found that meet your search criteria`, and one server-side URL-decoder error. No exact current
+   writing section rows, numeric seats/status payload, or completed mixed replay was obtained; do not infer that the
+   course is absent from those form errors.
+2. **Nevada State University (NV) — HOLD.** The official [class-search link](https://mycolleges.shr.nevada.edu/psp/spcssprd/NSC/HRMS/c/COMMUNITY_ACCESS.CLASS_SEARCH.GBL)
+   lands on an Oracle PeopleSoft sign-in/error page (`You must have cookies enabled in order to sign in`). No
+   anonymous exact first-year-writing seat payload or completed replay is available; authentication was not bypassed.
+3. **Central Louisiana Technical Community College (LA) — HOLD.** The official [programs-of-study page](https://www.cltcc.edu/programs-and-courses/programs-of-study)
+   lists career/technical offerings. Official-site search did not reveal a permitted public registrar/class-search
+   feed; no exact college first-year-writing rows, numeric availability/status, or completed mixed replay could be
+   audited. Do not infer seats from program descriptions.
+4. **Lake Land College (IL) — HOLD.** The official [Schedules page](https://www.lakelandcollege.edu/schedules/)
+   uses the public AJAX endpoint
+   `/wp-content/mu-plugins/Laker/as/as/schedules/schedules-submit.php`. A direct POST with the page's documented
+   fields (`pageno=1`, `term=2026FA`, `subject=English`) returned all **29** current English rows, including **14**
+   `ENG-120 Composition I` and **6** `ENG-119 Composition I Pathway` rows. The row schema contains term, course,
+   credits, instructor, dates, location/meeting, schedule type, course type, and description, but zero fields named
+   or representing seats, capacity, enrollment, availability, status, or waitlist. The page exposes 2026SP/2026SU/
+   2026FA terms, but without numeric status/seat evidence the full gate and historical mixed replay cannot be met.
+5. **Mayville State University (ND) — HOLD.** The official [public course schedule](https://my.mayvillestate.edu/asp/ExtendedLearning/index.aspx?page=allcourses)
+   (redirecting to the same host's `/schedules/index.aspx?page=allcourses`) returned Fall 2026 (`2710`) with **373**
+   rows and a fresh `Date` header. Exact current writing rows are present: `ENGL 110 College Composition I`
+   (three sections: one Open online and two Closed on campus) and `ENGL 120 College Composition II` (two Open
+   sections). The table exposes a textual Open/Closed badge, class number, delivery, dates, meeting, instructor, and
+   credits, but no numeric seat/capacity/enrollment/remaining-seat or waitlist fields. Text-only status cannot satisfy
+   the numeric registerability gate; no safe adapter or completed numeric mixed replay exists.
+
+**Batch 96 result: zero gated, five holds.** FGC is a stateful Banner form with no reproducible exact row payload;
+Nevada State is login-bound; CLTCC has no public feed; Lake Land has exact rows but no seat fields; and Mayville has
+text-only Open/Closed status without numeric capacity. No `schools.py` edits, builder contact, registry changes,
+deployment, or handoff occurred.

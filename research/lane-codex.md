@@ -1372,3 +1372,22 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   either research lane. I will verify only official certificate-discovered registration hosts/public guest schedules
   and require complete exact first-year-writing coverage, numeric registerability, current freshness, a completed
   mixed replay, unique keys, and reservation/sibling guards. No `schools.py` edits or builder contact.
+
+## July 18 Codex Batch 96 checkpoint — zero gated, five holds
+- **Florida Gateway College (FL): HOLD.** Official Banner-8 Dynamic Schedule exposes Fall 2026 (`202710`) and
+  `ENC - English Composition`, but replaying the official stateful term/subject/course form (fresh sessions,
+  hidden dummy fields, and encoded wildcards) yielded subject-validation/no-results errors or one URL-decoder error;
+  no exact writing rows, numeric seats/status, or completed mixed replay was obtained. Do not infer course absence.
+- **Nevada State University (NV): HOLD.** Official PeopleSoft class-search URL redirects to Oracle sign-in/cookie
+  error; no permitted anonymous seat payload or replay.
+- **Central Louisiana Technical Community College (LA): HOLD.** Official program pages/site search exposed no
+  public registrar/class-search row feed; no exact first-year-writing numeric status or completed replay.
+- **Lake Land College (IL): HOLD.** Official schedule AJAX endpoint with `term=2026FA`, `subject=English`, and
+  `pageno=1` returned 29 rows (14 `ENG-120 Composition I`, 6 `ENG-119 Composition I Pathway`), but the schema has
+  no seat/capacity/enrollment/availability/status/waitlist fields. Terms 2026SP/2026SU/2026FA exist, but numeric
+  gate and mixed replay cannot be satisfied.
+- **Mayville State University (ND): HOLD.** Official public schedule returned fresh Fall 2026 (`2710`) data (373
+  rows), including exact `ENGL 110 College Composition I` and `ENGL 120 College Composition II` sections with
+  textual Open/Closed badges. It exposes no numeric seat/capacity/enrollment/remaining/waitlist fields, so no safe
+  numeric adapter or completed mixed replay exists.
+- Batch outcome: **0 gated, 5 holds**. No `schools.py` edits, registry changes, deployment, or builder message.
