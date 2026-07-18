@@ -1226,3 +1226,18 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   I will use only official public schedule/guest routes and require current freshness, exact first-year-writing
   completeness, numeric registerability, completed mixed status, unique keys, and reservation/sibling guards.
   No schools.py edits or builder contact.
+
+## July 18 Codex Batch 91 checkpoint — one gated, four holds
+- **Washburn University (KS): GATED, AWAITING GO-AHEAD.** Official Banner guest host returned exact `EN 101`
+  **31/31** current rows with unique sequence/CRN keys and stable canonical fields across three 0.373–0.519s
+  replays; Fall 2026 was 7 positive / 24 full, while completed Fall 2025 was 26 positive / 4 full with
+  `seatsAvailable == capacity-enrollment`. Current wait/reserved/linked/cross-list fields were empty/zero; README
+  Batch 91 gives the strict existing-`Banner` hook and fail-closed guards. No production edit or builder contact.
+- **Salem State University (MA): HOLD.** Browse Classes exposes filters but routes the actual search to Navigator;
+  the official PeopleSoft guest boundary yielded no anonymous numeric rows.
+- **Northwest Indian College (WA): HOLD.** Quarterly schedule/JICS registration material has no numeric seat feed.
+- **Marion Technical College (OH): HOLD.** Career-certificate/application pages expose no first-year-writing seat
+  payload or completed replay.
+- **North Florida College (FL): HOLD.** Public APEX report lists `ENC 1101` CRN/section rows but no numeric
+  capacity/availability/status columns; its “Seats Available” filter is not evidence of row values.
+- Batch outcome: **1 gated, 4 holds**; Washburn is the only safe handoff candidate pending Nathan’s go-ahead.

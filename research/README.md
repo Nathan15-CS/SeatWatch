@@ -6084,3 +6084,45 @@ keys, freshness, and reservation/sibling guards. No production file or registry 
 **Batch 90 result: 1 gated, 4 holds.** Northwest College is the only builder-ready candidate, with a strict
 `SEC_CAPACITY>0`/no-`CONC`/numeric-delta contract that excludes its dual-enrollment rows. No `schools.py` edits,
 builder contact, registry changes, or deployment occurred.
+
+### Codex Batch 91 — five registrar paths checked July 18, 2026 (one gated, four holds)
+
+These exact-name-new targets were claimed in `research/lane-codex.md` before probing. No production file or
+registry entry was changed.
+
+1. **Washburn University (KS) — GATED, AWAITING GO-AHEAD (existing Banner adapter).** Washburn’s official
+   [schedule page](https://www.washburn.edu/academics/course-schedule/index.html) links the public Banner guest host
+   `https://banssb-lb-prod.washburn.edu/StudentRegistrationSsb/ssb`. `getTerms` exposed Fall 2026 `202630`, Spring
+   2026 `202611`, and Fall 2025 `202530`. Exact `EN 101` (Introductory College Writing) returned complete **31/31
+   unique** current rows in one page; three production replays were 0.373–0.519s and had identical canonical
+   `(sequenceNumber, CRN, seatsAvailable, capacity, enrollment, status, wait, link)` tuples. Fall 2026 had 7
+   positive/open rows and 24 zero/negative/full rows; `seatsAvailable == maximumEnrollment - enrollment` held on
+   the audited rows. `waitAvailable`, `waitCapacity`, and `waitCount` were all zero; `crossList`, `isSectionLinked`,
+   and `reservedSeatSummary` were empty on the current rows. Completed Fall 2025 returned **30/30 unique** rows
+   with genuine mixed numeric status (26 positive/open, 4 full), and the same seat arithmetic. Strict builder
+   contract: reuse `Banner` with `host="banssb-lb-prod.washburn.edu"`, exact `EN 101`, term selected by the
+   official `getTerms`, and the normal `seatsAvailable>0` rule; additionally fail closed when any row has a
+   nonzero wait field, nonempty `reservedSeatSummary`, truthy `isSectionLinked`, or truthy `crossList`/linked
+   identifiers. This is **GATED, AWAITING GO-AHEAD**; builder should add no production entry until Nathan approves.
+2. **Salem State University (MA) — HOLD (browse UI stops at Navigator).** The official [Browse Classes page]
+   (https://www.salemstate.edu/browse-classes) exposes term/subject filters and explicitly directs current students
+   to Navigator. The linked PeopleSoft guest browse/class-search routes produced an authorization/error boundary
+   rather than an anonymous numeric section payload; no exact ENG 101 rows, completed replay, or registerability
+   audit was captured. **HOLD**; do not bypass Navigator authentication.
+3. **Northwest Indian College (WA) — HOLD (quarterly schedule/JICS registration, no seats).** Official [admissions
+   guidance](https://www.nwic.edu/admissions/) requires an enrollment form/JICS registration and points students
+   to an online quarterly schedule/calendar. The public material contains term dates and registration windows but
+   no anonymous numeric capacity/status rows or replayable first-year-writing feed. **HOLD**.
+4. **Marion Technical College (OH) — HOLD (career-certificate catalog, no college-writing seat feed).** The official
+   [programs page](https://mariontc.edu/programs/) describes career-certificate cohorts and waitlist/application
+   workflows, while its continuing-course catalog uses an authenticated Focus application. No public first-year
+   composition course, numeric seats, or completed mixed replay was found. **HOLD**.
+5. **North Florida College (FL) — HOLD (public APEX schedule omits availability).** NFC’s official [catalog and
+   schedule page](https://www.nfc.edu/admissions/catalog-and-schedule/index.php) links the public APEX [Schedule of
+   Classes](https://infonetwork.nfc.edu/apex/r/nfcapi/nfc_schedule/home). The Fall 2026 report contains `ENC 1101`
+   rows (CRN/section/title/instructor/modality/dates) and a “Seats Available” filter control, but the rendered
+   anonymous report has no seat-capacity, enrollment, open/closed, or waitlist values in its row columns. No safe
+   numeric status or completed replay; **HOLD**.
+
+**Batch 91 result: 1 gated, 4 holds.** Washburn is builder-ready through the existing Banner adapter with strict
+wait/reservation/link guards. No `schools.py` edits, builder contact, registry changes, or deployment occurred.
