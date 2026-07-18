@@ -1461,3 +1461,22 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   research lane, or a bespoke adapter. I will use only official public/guest schedule routes and require exact
   first-year-writing coverage, numeric registerability, current freshness, a completed mixed replay, unique keys,
   and reservation/sibling/eligibility guards. No `schools.py` edits or builder contact.
+
+## July 18 Codex Batch 99 checkpoint — zero gated, five holds
+- **Oklahoma State University–Oklahoma City (OK): HOLD.** Official root returned a Cloudflare “Just a moment…”
+  403 challenge from the permitted fetch path; no anonymous registrar/class-search response, exact writing rows,
+  numeric seats/status, or replay. Do not infer absence.
+- **Santa Fe College (FL): HOLD / resume lead.** Official Registrar class-schedule page embeds the eSfcc public
+  tool at `https://epublic.sfcollege.edu/eSfcc?hptAppId=SR1098P&hptProgramPackage=PublicServices.Servlets.&hptExec=Y&hptRecord=SR1098UI1&hptUIRecordPackage=sr1098p.pkg`.
+  The iframe fetch was rejected by the environment network-escalation usage cap, so no row-level numeric evidence
+  or replay is claimed and no absence is inferred. Resume from this official iframe.
+- **College of Micronesia–FSM (FM): HOLD.** Official root returned a Cloudflare “Just a moment…” 403 challenge;
+  no permitted anonymous schedule/seat payload or replay.
+- **North Louisiana Technical Community College (LA): HOLD.** Official registration page sends students to the
+  authenticated LOLA portal; its public LCTCS equivalent-course lookup is catalog-only. No anonymous exact writing
+  section rows with numeric seat/status fields or completed mixed replay.
+- **University of Virginia’s College at Wise (VA): HOLD.** Official Registrar page exposes catalog/forms/exam
+  schedule resources but no public class-search/seat endpoint; no anonymous exact writing rows, numeric
+  registerability, or completed mixed replay.
+- Batch outcome: **0 gated, 5 holds**. Santa Fe remains a concrete resume lead; no `schools.py` edit, builder
+  contact, registry change, deployment, or handoff.

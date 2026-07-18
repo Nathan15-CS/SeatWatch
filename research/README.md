@@ -6475,3 +6475,32 @@ unique section keys, and fail-closed sibling/reservation/eligibility handling. N
 first-year-writing code; Tillamook fails the historical-data gate; Blue Ash and Clermont are UC shared SSO/classic
 surfaces without a campus-safe guest feed; and Georgia Stone is unreachable. No `schools.py` edits, registry changes,
 deployment, builder contact, or handoff occurred.
+
+### Codex Batch 99 — five fresh CT-log targets checked July 18, 2026 (zero gated, five holds)
+
+These five exact-name-new institutions were claimed in `research/lane-codex.md` before probing. The gate remains
+exact first-year-writing coverage, numeric registerability, fresh responses, a completed mixed-status replay,
+unique section keys, and fail-closed sibling/reservation/eligibility handling. No production file was changed.
+
+1. **Oklahoma State University–Oklahoma City (OK) — HOLD.** The official [site](https://osuokc.edu/) returned a
+   Cloudflare “Just a moment…” 403 challenge from the permitted fetch path. No anonymous registrar/class-search
+   response, exact writing rows, numeric seats/status, or completed replay was obtained; do not infer absence.
+2. **Santa Fe College (FL) — HOLD / resume lead.** The official [Registrar class-schedule page](https://www.sfcollege.edu/registrar/class-schedule.html)
+   embeds the public eSfcc schedule tool at
+   `https://epublic.sfcollege.edu/eSfcc?hptAppId=SR1098P&hptProgramPackage=PublicServices.Servlets.&hptExec=Y&hptRecord=SR1098UI1&hptUIRecordPackage=sr1098p.pkg`.
+   The iframe itself could not be audited in this pass because the environment's network-escalation usage cap
+   rejected the fetch. Therefore no numeric row, status/seat field, or replay is claimed, and no absence is inferred;
+   resume from the official iframe before considering a gate.
+3. **College of Micronesia–FSM (FM) — HOLD.** The official [site](https://www.cmi.edu/) returned a Cloudflare
+   “Just a moment…” 403 challenge. No permitted anonymous schedule/seat payload or completed replay was obtained.
+4. **North Louisiana Technical Community College (LA) — HOLD.** The official [registration page](https://www.nltcc.edu/admissions/register-for-classes)
+   directs students to the authenticated LOLA portal for course search and registration. Its linked public LCTCS
+   equivalent-course lookup is catalog-only; no anonymous exact writing section rows with numeric seat/status fields
+   or a completed mixed replay were available.
+5. **University of Virginia’s College at Wise (VA) — HOLD.** The official [Registrar page](https://www.uvawise.edu/registrar)
+   exposes catalog, forms, and exam-schedule resources but no public class-search/seat endpoint. No anonymous exact
+   writing rows, numeric registerability, or completed mixed replay was established.
+
+**Batch 99 result: zero gated, five holds.** Santa Fe is retained as a concrete official-iframe resume lead, but is
+not counted as an addition until its row-level numeric evidence and mixed replay are independently verified. No
+`schools.py` edits, builder contact, registry changes, deployment, or handoff occurred.
