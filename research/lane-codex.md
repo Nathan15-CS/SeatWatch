@@ -1340,3 +1340,13 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
 - **University of Arkansas at Monticello (AR): HOLD.** Official schedule page exposes a published-schedule label and
   Workday links but no anonymous row-level numeric capacity/status feed or completed mixed replay.
 - Batch outcome: **2 gated, 3 holds**. No schools.py edits, registry changes, deployment, or builder message.
+
+## July 18 Codex Batch 95 claim — CT-log-discovered institutions
+- Claiming five exact-name-new institutions surfaced by the unexhausted CT-log target list for official registrar/
+  schedule reconnaissance: **Atlantic Technical College (FL)** (`atlantictechnicalcollege.edu`), **Autry Technology
+  Center (OK)** (`autrytech.edu`), **Maine Maritime Academy (ME)** (`mainemaritime.edu`), **Manatee Technical College
+  (FL)** (`manateetech.edu`), and **Midland College (TX)** (`midland.edu`). Exact-name checks found no matching
+  identity in `schools.py`, `research/README.md`, or either research lane. I will use only official certificate-
+  discovered hosts and public guest/search routes, and require current freshness, complete exact first-year-writing
+  coverage, numeric/registerable status, a completed mixed replay, unique keys, and reservation/sibling guards before
+  any handoff. No `schools.py` edits or builder contact.
