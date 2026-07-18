@@ -5118,6 +5118,24 @@ class CCSF(Banner):
 # --- South Dakota regental system: ONE shared Banner host + ONE shared course pool for
 # --- all six public universities. Rows are separated ONLY by campusDescription, so each
 # --- school subclass sets `campus` and fetch() filters to it (no cross-campus mixups).
+class IECC(Banner):
+    # Illinois Eastern CC — 3 colleges on one Banner-9 host (:8447), separated by
+    # campusDescription first token (SD-regental pattern). Base seats>0 rule is
+    # waitlist-safe. Subclasses set id, name, example, campus.
+    host = "banprodss1.iecc.edu:8447"; term = "202730"   # Fall 2026 (auto-rolls)
+
+class WabashValley(IECC):
+    id = "wabashvalley"; name = "Wabash Valley College"
+    example = "ENG 1111"; campus = "WABASH"
+
+class OlneyCentral(IECC):
+    id = "olneycentral"; name = "Olney Central College"
+    example = "ENG 1111"; campus = "OLNEY"
+
+class LincolnTrail(IECC):
+    id = "lincolntrail"; name = "Lincoln Trail College"
+    example = "ENG 1111"; campus = "LINCOLN"
+
 class SouthDakota(Banner):
     host = "registration.sdbor.edu"; term = "202680"; mep = "BOR"
 
@@ -8585,7 +8603,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     Moorpark(), OxnardCollege(), VenturaCollege(), UVI(), Cayuga(),
     WakeTech(), Schoolcraft(), CentralCarolinaCC(), BrunswickCC(),
     CollegeOfDuPage(), SouthwesternCA(), VictorValley(), Elgin(), Kellogg(), Coalinga(),
-    SantaAna(), SantiagoCanyon()])
+    SantaAna(), SantiagoCanyon(), WabashValley(), OlneyCentral(), LincolnTrail()])
 
 
 def refresh_all_terms(log=None):
