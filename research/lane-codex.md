@@ -1200,3 +1200,20 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   or this lane. I will use only official public schedule routes and require current freshness, exact first-year-
   writing pagination, numeric registerability, a completed mixed replay, unique keys, and sibling/reservation
   guards before any handoff. No schools.py edits or builder contact.
+
+## July 18 Codex Batch 90 checkpoint — one gated, four holds
+- **Northwest College (WY): GATED, AWAITING GO-AHEAD.** Official `area10.nwc.edu/nwcforms/Syllabi/` JSON returned
+  exact `ENGL-1010` **14/14** Fall 2026 rows (7 safe positive opens after filtering `SEC_CAPACITY>0`, numeric
+  `SEC_CAPACITY-ACTIVE_COUNT>0`, and no `CONC`; six concurrent high-school rows have capacity zero), stable
+  identical hashes across three 0.815–0.977s `no-store` fetches, and Spring 2026 **5/5** with 4 positive / 1
+  full. Builder contract and exact endpoint/fields are recorded in README Batch 90; no production edit or
+  builder contact.
+- **Kishwaukee College (IL): HOLD.** Public guest Colleague `ENG 103` returned 23 Fall 2026 rows with numeric
+  Open/Waitlisted status, but Spring 2026 was all Open after completion; historical mixed replay is missing.
+- **Glenville State University (WV): HOLD.** Official public term/program schedules expose no numeric seat/status
+  fields; EdNet registration requires a student PIN.
+- **College of the Florida Keys (FL): HOLD.** Official course-search link terminates at classic Banner login; no
+  anonymous seat payload or replay.
+- **Jefferson State Community College (AL): HOLD.** Official ACCS guest host returned HTTP 503 `No valid route`
+  on all documented paths; no numeric schedule or replay.
+- Batch outcome: **1 gated, 4 holds**; Northwest is the only safe handoff candidate, pending Nathan’s go-ahead.

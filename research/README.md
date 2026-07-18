@@ -6032,3 +6032,55 @@ file or registry entry was changed.
 **Batch 89 result: 0 gated, 5 holds.** Clovis is the only high-value next probe: resume with a documented official
 historical-term route, preserve `CCC` sibling isolation, and require a mixed completed replay before any builder
 handoff. No `schools.py` edits, registry changes, deployment, or builder message were made.
+
+### Codex Batch 90 — five public registrar paths checked July 18, 2026 (one gated, four holds)
+
+These exact-name-new targets were claimed in `research/lane-codex.md` before probing. The gate requires a current
+exact first-year-writing result, complete pagination, numeric registerable status, a completed mixed replay, unique
+keys, freshness, and reservation/sibling guards. No production file or registry entry was changed.
+
+1. **Northwest College (WY) — GATED, AWAITING GO-AHEAD (bespoke static JSON adapter).** Official registrar links
+   the public [Class Schedule & Syllabi page](https://www.nwc.edu/academics/class-schedule.html), whose Vue client
+   calls `https://area10.nwc.edu/nwcforms/Syllabi/GetCurrentTerm`, `GetTermsJson`, and
+   `GetScheduleDownload?term={term}&sub=ENG`. On July 18, `GetCurrentTerm` returned `26/FA` and the exact
+   `ENGL-1010` (English Composition I) filter returned **14/14 unique** rows in one JSON response. Three identical
+   production fetches were 0.815–0.977s with `Date: Sat, 18 Jul 2026 17:03:45–47 GMT` and `Cache-Control: no-store`.
+   Fall 2026 rows had numeric `SEC_CAPACITY`/`ACTIVE_COUNT`; raw availability is `SEC_CAPACITY - ACTIVE_COUNT`.
+   Eight rows have positive capacity (seven safe positive opens; one full), while six concurrent high-school rows
+   carry `TYPES_DELIM` containing `CONC` and `SEC_CAPACITY=0` (some have positive active counts), so the adapter
+   must fail closed on `SEC_CAPACITY <= 0` and never count those as seats. `WL_COUNT` was null on all 14; the
+   official UI renders rows with `SEC_CAPACITY-ACTIVE_COUNT < 1` gray and displays a wait-list count when present.
+   Completed Spring 2026 returned **5/5 unique** `ENGL-1010` rows with a genuine mixed control (4 positive,
+   1 full); Fall 2025 returned 18 mixed rows. Required builder contract: pin exact `term`, `SEC_SUBJECT=ENGL`,
+   `SEC_COURSE_NO=1010`, native `COURSE_SECTIONS_ID` (or `SEC_SYNONYM`) keys, `SEC_CAPACITY>0`, numeric
+   `ACTIVE_COUNT`, `available>0`, no `CONC` token, and reject any `WL_COUNT` truthy/nonzero row. This is
+   **GATED, AWAITING GO-AHEAD** as a source-gated bespoke adapter; builder should add no production entry until
+   Nathan approves the handoff.
+2. **Kishwaukee College (IL) — HOLD (excellent guest Colleague feed, no completed mixed status).** Official
+   [course-search page](https://kish.edu/academics/course-search-catalog/) links the public
+   `https://kish-ss.colleague.elluciancloud.com/Student/Courses` flow. Exact `ENG 103` (Composition I) returned
+   41 matching IDs and **23/23 Fall 2026** rows, all unique by native `Number`/`Id`; three section calls were
+   0.444–0.584s with `Date` and `no-store,no-cache`. Current rows included Open and Waitlisted statuses with
+   numeric `Available` and `AreSeatCountsAvailable=true`, so the conservative rule is status `Open` plus
+   `Available>0` (never Waitlisted). Spring 2026 returned 15 rows but all were Open after the term ended, so the
+   required completed mixed replay is not proven. **HOLD** pending an official historical Fall 2025 route and
+   preserve the single-campus host guard.
+3. **Glenville State University (WV) — HOLD (schedule has no seat payload).** The official [course-schedule page]
+   (https://www.glenville.edu/academics/course-schedule) links [Undergraduate Course Schedules]
+   (https://www.glenville.edu/academics/course-schedule/undergraduate), which exposes term/program schedule
+   listings but no numeric capacity, active, status, or registerability fields in the public response. Registration
+   is through EdNet and requires a student PIN. No permitted seat-bearing guest payload or replay; **HOLD**.
+4. **College of the Florida Keys (FL) — HOLD (classic Banner login boundary).** The official [registration page]
+   (https://www.cfk.edu/admissions/plan-register/) says the real-time schedule is behind the College’s Course
+   Search link and that students must be enrolled/admitted to register. The linked `secure.cfk.edu` route resolves
+   to the classic `twbkwbis.P_WWWLogin` sign-in page; no anonymous numeric schedule response or completed replay
+   was available. **HOLD**; do not bypass authentication.
+5. **Jefferson State Community College (AL) — HOLD (official linked host unreachable).** The official [class
+   schedules page](https://www.jeffersonstate.edu/admissions/registration/class-schedules/) links the ACCS guest
+   host `https://reg-prod.ec.accs.edu/Student/Courses`, but read-only requests returned HTTP 503 `No valid route`
+   for the root and documented course paths. No exact English 101 rows, numeric status payload, freshness, or
+   completed replay; **HOLD** pending an official reachable guest route.
+
+**Batch 90 result: 1 gated, 4 holds.** Northwest College is the only builder-ready candidate, with a strict
+`SEC_CAPACITY>0`/no-`CONC`/numeric-delta contract that excludes its dual-enrollment rows. No `schools.py` edits,
+builder contact, registry changes, or deployment occurred.
