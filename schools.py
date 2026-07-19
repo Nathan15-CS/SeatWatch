@@ -3268,6 +3268,13 @@ class Banner:
         exact-match rule instead — first-word matching cannot separate those."""
         return not self.campus or (r.get("campusDescription") or "").split(" ")[0] == self.campus
 
+    def _eligible(self, r):
+        """Hook: is this section registerable by a normal student? Default yes. Schools
+        with dual-enrollment / high-school-only sections (Murray State 'Racer Academy',
+        UNA 'Taught at High School') override to exclude them: those carry real open seats
+        a general watcher CANNOT actually register for — an eligibility false-open."""
+        return True
+
     @staticmethod
     def _retry(fn, tries=3):
         """Retry transient network blips (timeouts under load) before giving up."""
@@ -3348,6 +3355,8 @@ class Banner:
                     continue
                 if not self._campus_ok(r):
                     continue                            # shared-pool host: only OUR campus
+                if not self._eligible(r):
+                    continue                            # dual-enroll/HS-only -> not a real open
                 seq = self._seckey(r)
                 try:
                     n = int(r.get("seatsAvailable"))    # no count -> skip, never guess
@@ -5135,6 +5144,53 @@ class OlneyCentral(IECC):
 class LincolnTrail(IECC):
     id = "lincolntrail"; name = "Lincoln Trail College"
     example = "ENG 1111"; campus = "LINCOLN"
+
+# --- Codex batches 87/91-94 (Grab-relayed, re-gated live). Stock Banner9 unless noted. ---
+class SUNYDelhi(Banner):
+    id = "sunydelhi"; name = "SUNY Delhi"
+    example = "ENGL 100"; host = "prod.banner.delhi.edu"; term = "202609"
+
+class GuamCC(Banner):
+    id = "guamcc"; name = "Guam Community College"   # != Univ of Guam (Colleague)
+    example = "EN 110"; host = "reg-prod.gcctmsaas.elluciancloud.com:8103"; term = "202680"
+
+class Washburn(Banner):
+    id = "washburn"; name = "Washburn University"
+    example = "EN 101"; host = "banssb-lb-prod.washburn.edu"; term = "202630"
+
+class MurrayState(Banner):
+    # REJECT 'Racer Academy' rows: concurrent/high-school sections with real open seats a
+    # normal student can't register for = eligibility false-open.
+    id = "murraystate"; name = "Murray State University"
+    example = "ENG 105"; host = "prodssbstureg.murraystate.edu"; term = "202680"
+    def _eligible(self, r):
+        return "racer academy" not in (r.get("instructionalMethodDescription") or "").lower()
+
+class NorthAlabama(Banner):
+    # REJECT 'Taught at High School' rows (same eligibility false-open risk).
+    id = "una"; name = "University of North Alabama"
+    example = "EN 111"; host = "selfserve.una.edu"; term = "202710"
+    def _eligible(self, r):
+        return "taught at high school" not in (r.get("instructionalMethodDescription") or "").lower()
+
+class SIUCarbondale(Banner):
+    id = "siuc"; name = "Southern Illinois University Carbondale"   # != SIUE (shipped)
+    example = "ENGL 101"; host = "banssb1.siu.edu"; term = "202660"
+
+class PascoHernando(Banner):
+    id = "phsc"; name = "Pasco-Hernando State College"
+    example = "ENC 1101"; host = "reg-prod.phsc.elluciancloud.com:8103"; term = "202701"
+
+class USI(Banner):
+    # USI stores courseNumber with a LITERAL TRAILING PERIOD ('ENG 101.') — the base
+    # regex would send '101' and match nothing. Append the period so txt_courseNumber
+    # and the exact-row match both use '101.'.
+    id = "usi"; name = "University of Southern Indiana"
+    example = "ENG 101"; host = "banproxyp.usi.edu"; term = "202710"
+    @staticmethod
+    def _code(course):
+        subj, num = Banner._code(course)
+        return (subj, (num + ".") if num else num)
 
 class SouthDakota(Banner):
     host = "registration.sdbor.edu"; term = "202680"; mep = "BOR"
@@ -8603,7 +8659,9 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     Moorpark(), OxnardCollege(), VenturaCollege(), UVI(), Cayuga(),
     WakeTech(), Schoolcraft(), CentralCarolinaCC(), BrunswickCC(),
     CollegeOfDuPage(), SouthwesternCA(), VictorValley(), Elgin(), Kellogg(), Coalinga(),
-    SantaAna(), SantiagoCanyon(), WabashValley(), OlneyCentral(), LincolnTrail()])
+    SantaAna(), SantiagoCanyon(), WabashValley(), OlneyCentral(), LincolnTrail(),
+    SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),
+    PascoHernando(), USI()])
 
 
 def refresh_all_terms(log=None):
