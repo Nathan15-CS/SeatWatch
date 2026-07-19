@@ -6504,3 +6504,16 @@ unique section keys, and fail-closed sibling/reservation/eligibility handling. N
 **Batch 99 result: zero gated, five holds.** Santa Fe is retained as a concrete official-iframe resume lead, but is
 not counted as an addition until its row-level numeric evidence and mixed replay are independently verified. No
 `schools.py` edits, builder contact, registry changes, deployment, or handoff occurred.
+
+### Codex Batches 87/91-94 (Banner) — ✅ 8 SHIPPED July 19 (Build): 735->743
+Grab-relayed DIRECT school-adds, re-gated live. SUNY Delhi, Guam CC (≠ Univ of Guam), Washburn, Murray
+State, UNA, SIU Carbondale (≠ SIUE), Pasco-Hernando + USI. Stock Banner9 except:
+- NEW additive `Banner._eligible(r)` hook (default True = no-op, 400+ Banner regression clean): rejects
+  dual-enrollment / HS-only sections whose real open seats a normal student can't register for (eligibility
+  false-open). Murray State excludes 'Racer Academy' (2 rows removed, verified), UNA excludes 'Taught at
+  High School' (23 of 46 removed, verified precise — the other 23 blank/OffCampus/Internet kept).
+- USI: overrides `_code` to append a trailing period (USI stores courseNumber as 'ENG 101.'; base '101'
+  matched nothing). Verified 34 sec 11/23.
+RE-GATE CORRECTED Grab's relayed counts (its numbers were stale/raw): UNA 62->46, Guam 19->8, Murray 71->56
+raw. Zero false-opens on all 8. Bench (bespoke, un-built): Northwest College WY, Southern U A&M, UMaine
+Presque Isle + Augusta.
