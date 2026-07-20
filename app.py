@@ -930,11 +930,10 @@ __NOTICE__
  </div>
  <label>Course code <small id="ex"></small></label>
  <input name="course" id="course" placeholder="e.g. ENG101" required>
- <label>Section number(s) <small>— up to 2, comma-separated</small></label>
- <input name="sections" placeholder="e.g. 0101, 0102" required>
+ __SECFIELD__
  <button type="submit">Watch this class<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
 </form>
-<p class="note">Free plan: <b>1 class, up to 2 sections</b>. Heads up — a seat that opens in a section you're <i>not</i> watching won't alert you; paid plans watch unlimited sections.</p>
+__PLANNOTE__
 __PUSHBLOCK__
 __WATCHES__
 <script>
@@ -1590,7 +1589,24 @@ def form_page(notice="", user=None):
                 .replace("__APPLEBTN__", APPLE_BTN if APPLE_ENABLED else ""))
     else:
         tok = csrf_token(user["id"])
+        # Section field + plan note are tier-aware. Paid (tier>=1) watches EVERY section, so
+        # listing them is pointless — the field goes optional and the copy says so. Free copy
+        # is preserved verbatim (and is what shows whenever paid is parked, since tier is 0).
+        if effective_tier(user) >= 1:
+            secfield = ('<label>Section number(s) <small>— optional; we watch <b>every</b> '
+                        'section</small></label>\n'
+                        ' <input name="sections" placeholder="Leave blank — we watch them all">')
+            plannote = ('<p class="note">Your plan watches <b>every section</b> of each class — '
+                        'you don\'t need to list section numbers.</p>')
+        else:
+            secfield = ('<label>Section number(s) <small>— up to 2, comma-separated</small></label>\n'
+                        ' <input name="sections" placeholder="e.g. 0101, 0102" required>')
+            plannote = ('<p class="note">Free plan: <b>1 class, up to 2 sections</b>. Heads up — a '
+                        'seat that opens in a section you\'re <i>not</i> watching won\'t alert you; '
+                        'paid plans watch unlimited sections.</p>')
         card = (CARD_FORM.replace("__NOTICE__", notice)
+                .replace("__SECFIELD__", secfield)
+                .replace("__PLANNOTE__", plannote)
                 .replace("__EMAIL__", html.escape(user["email"]))
                 .replace("__PUSHBLOCK__", push_block(tok))
                 .replace("__CSRF__", tok)
