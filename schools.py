@@ -20,6 +20,7 @@ import threading
 import time
 import urllib.parse
 import urllib.request
+import xml.etree.ElementTree as ET
 
 UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) SeatWatch/1.0"
 
@@ -8457,6 +8458,172 @@ class CunySPS(CUNY):
 class BrooklynCUNY(CUNY):
     id = "cuny-brooklyncuny"; name = "Brooklyn College (CUNY)"; inst = "BKL01"; example = "BIOL 1001"
 
+class VSB:
+    """Visual Schedule Builder (VSB Software Inc.) — ONE engine, hosted per district at
+    vsb.<district>.edu, so this adapter is REUSABLE: a subclass sets host/term/cams/campuses.
+    Proven on Contra Costa CCD (3 colleges). Public guest access, no login.
+
+    Two GET endpoints, both gated by a per-minute anti-scrape token (lifted from unity.js):
+        t = floor(now_ms / 60000) % 1000  ;  e = t%3 + t%39 + t%42
+    1. /api/courses/suggestions?...&course_add=<code> -> <rs>SUBJ NUM</rs>, the term's real
+       course keys. A key carries a SPACE and its number may LEAD with a letter (POLS C1000)
+       or TRAIL one (MATH 121L), so we never hand-split the user's text — we ask this
+       endpoint (it resolves 'POLSC1000' -> 'POLS C1000' in one hop) and keep the key whose
+       space-stripped form matches ours. The search is FUZZY (course_add=BIOL also returns
+       ANTHR 141L, BIOSC 005), so it must be an exact match, NEVER "first result".
+    2. /api/class-data?...&course_0_0=<KEY> -> XML sections.
+
+    XML: <course><uselection><selection><block secNo= os= isFull= campus=/>. A section is
+    keyed by secNo and carries TWO blocks — the metered primary plus a linked LAB1 whose
+    os/me/ws are ALL -1 (it holds no seat data) -> dedup by secNo and skip os<0, or a lab
+    sentinel gets read as a seat count.
+
+    ⚠️ OPEN RULE = os>0 AND isFull==0 — never os alone. Sections exist with os>0 while
+    isFull=1 because every remaining seat is RESERVED: live-verified os == nres EXACTLY on
+    all such sections (LMC CHEM 006 sec3246 os=4 nres=4, sec3255 os=4 nres=4, CHEM 007
+    sec1143 os=3 nres=3, sec1410 os=5 nres=5, POLS C1000 sec0302 os=3 nres=3). Trusting
+    os>0 would false-open every one. nres is NOT the discriminator either — 26 genuinely
+    open sections carry nres>0 alongside isFull=0. isFull is the authority.
+
+    ⚠️ `cams` DOES NOT FILTER class-data: CCC / DVC / LMC / all-five return byte-identical
+    payloads (live-verified). It IS required by /suggestions (omit it -> zero keys). Campus
+    isolation is therefore CLIENT-SIDE on each block's campus= attribute, and `campuses` is
+    a SET because a college owns its satellite sites — Diablo Valley = DVC + San Ramon
+    (SRC), Los Medanos = LMC + Brentwood (BRT), confirmed on the colleges' own sites.
+    Scoping to the bare code would silently drop every satellite section. Live-verified
+    ZERO secNo collisions within a college across 168 sections.
+
+    A course not offered in the requested term answers HTTP 500 -> no data, never a guess.
+    Term is pinned per district (VCCCD shape); bump per term."""
+    host = ""                             # 'vsb.4cd.edu'        subclass sets
+    term = ""                             # '202630' Fall 2026   subclass sets
+    cams = ""                             # required by /suggestions only
+    campuses = ()                         # campus codes this college owns
+    _TTL = 60                             # seats must stay fresh; only dedupes sibling colleges
+    _KEY_TTL = 3600                       # code -> VSB key is stable within a term
+    _lock = threading.Lock()
+    _data = {}                            # (host, term, key) -> (ts, {(campus, secNo): {...}})
+    _keys = {}                            # (host, term, flat) -> (ts, key or None)
+    _RE = re.compile(r"^[A-Za-z]{2,6}[\s\-]*[A-Za-z]?\d{1,4}[A-Za-z]{0,2}$")
+
+    @staticmethod
+    def _token():
+        t = int(time.time() // 60) % 1000
+        return t, t % 3 + t % 39 + t % 42
+
+    def _get(self, url):
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        with urllib.request.urlopen(req, timeout=30) as r:
+            body = r.read()
+            if r.headers.get("Content-Encoding") == "gzip":
+                body = gzip.decompress(body)
+            return body.decode("utf-8", "replace")
+
+    def valid_course(self, course):
+        return bool(self._RE.match(course.strip()))
+
+    def cur_term(self):
+        return self.term
+
+    def reg_url(self, course):
+        return f"https://{self.host}/"
+
+    def _resolve(self, course):
+        """User text -> VSB's exact course key, or None. Cached per term."""
+        flat = re.sub(r"[^A-Za-z0-9]", "", course).upper()
+        if not flat:
+            return None
+        ck = (self.host, self.cur_term(), flat)
+        with VSB._lock:
+            c = VSB._keys.get(ck)
+            if c and time.time() - c[0] < self._KEY_TTL:
+                return c[1]
+        t, e = self._token()
+        url = (f"https://{self.host}/api/courses/suggestions?term={self.cur_term()}"
+               f"&cams={self.cams}&course_add={urllib.parse.quote(course.strip())}"
+               f"&page_num=0&sco=0&sio=1&already=&t={t}&e={e}")
+        try:
+            root = ET.fromstring(self._get(url))
+        except Exception:
+            return None                   # transient: don't cache a failure as "no such course"
+        key = None
+        for n in root.iter("rs"):
+            cand = (n.text or "").strip()
+            if cand and re.sub(r"\s+", "", cand).upper() == flat:
+                key = cand
+                break
+        with VSB._lock:
+            VSB._keys[ck] = (time.time(), key)
+        return key
+
+    def _sections(self, key):
+        """All sections for a course key, district-wide: {(campus, secNo): {open, seats}}.
+        Cached so sibling colleges on one host share a single fetch."""
+        ck = (self.host, self.cur_term(), key)
+        with VSB._lock:
+            c = VSB._data.get(ck)
+            if c and time.time() - c[0] < self._TTL:
+                return c[1]
+        t, e = self._token()
+        url = (f"https://{self.host}/api/class-data?term={self.cur_term()}"
+               f"&course_0_0={urllib.parse.quote(key)}&cams={self.cams}"
+               f"&t={t}&e={e}&nouser=1")
+        try:
+            root = ET.fromstring(self._get(url))
+        except Exception:
+            return c[1] if c else {}      # 500 (not offered this term) or transient -> silence
+        secs = {}
+        for b in root.iter("block"):
+            cam, sec = b.get("campus"), b.get("secNo")
+            if not cam or not sec:
+                continue
+            try:
+                avail, full = int(b.get("os")), int(b.get("isFull"))
+            except (TypeError, ValueError):
+                continue                  # no count -> skip, never guess
+            if avail < 0:
+                continue                  # LAB1 sentinel: os/me/ws all -1, carries no seats
+            openb = avail > 0 and full == 0            # reserved-seat trap: os>0 can be FULL
+            prev = secs.get((cam, sec))
+            secs[(cam, sec)] = ({"open": prev["open"] and openb,
+                                 "seats": min(prev["seats"], avail)}    # 2 metered blocks:
+                                if prev else {"open": openb, "seats": avail})  # both must be open
+        with VSB._lock:
+            VSB._data[ck] = (time.time(), secs)
+        return secs
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            key = self._resolve(course)
+            if not key:
+                continue
+            mine = {sec: v for (cam, sec), v in self._sections(key).items()
+                    if cam in self.campuses}
+            if mine:
+                out[course] = mine
+        return out
+
+
+class ContraCostaCollege(VSB):
+    id = "contracostacollege"; name = "Contra Costa College"
+    host = "vsb.4cd.edu"; term = "202630"          # Fall 2026; pinned
+    cams = "CCC_BRT_SRC_DVC_LMC"; campuses = ("CCC",)
+    example = "MATH 120"
+
+class DiabloValley(VSB):
+    id = "diablovalley"; name = "Diablo Valley College"
+    host = "vsb.4cd.edu"; term = "202630"
+    cams = "CCC_BRT_SRC_DVC_LMC"; campuses = ("DVC", "SRC")   # + San Ramon campus
+    example = "BIOL 130"
+
+class LosMedanos(VSB):
+    id = "losmedanos"; name = "Los Medanos College"
+    host = "vsb.4cd.edu"; term = "202630"
+    cams = "CCC_BRT_SRC_DVC_LMC"; campuses = ("LMC", "BRT")   # + Brentwood Center
+    example = "CHEM 006"
+
+
 _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(),
                              CUBoulder(), Brown(), Yale(), NotreDame(), Emory(), Dartmouth(),
                              Wisconsin(), Iowa(),
@@ -8661,7 +8828,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     CollegeOfDuPage(), SouthwesternCA(), VictorValley(), Elgin(), Kellogg(), Coalinga(),
     SantaAna(), SantiagoCanyon(), WabashValley(), OlneyCentral(), LincolnTrail(),
     SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),
-    PascoHernando(), USI()])
+    PascoHernando(), USI(),
+    ContraCostaCollege(), DiabloValley(), LosMedanos()])
 
 
 def refresh_all_terms(log=None):
