@@ -6546,3 +6546,17 @@ host `registration.prod.angelo.edu`, path `/StudentRegistrationSsb/ssb`.
   `CENG 3332-010` seats=13 (max 20 / enr 7); `ENGL 1301-010` seats=0 (max 22 / enr 22).
 
 Awaiting Nathan's go-ahead before any `schools.py` edit or builder handoff.
+
+**Angelo State outcome (same day):** Nathan approved; Build re-gated live and SHIPPED it — **746 -> 747**
+(commit `6043687`). The re-gate confirmed the evidence above and produced three findings worth reusing:
+(a) production `Banner.fetch` **already** POSTs `resetDataForm` before every course search, so the replay bug
+    is a *manual-probe-only* hazard — no shipped adapter was ever mis-verified by it;
+(b) the ELLI concern was a **false alarm** — the "elli" hits were the instructor name "Huffman, Mellisa";
+    ELLI terms are View-Only and don't leak into Fall 2026. No `_eligible` override needed;
+(c) **new reusable gate check** — `MENG 3441-01Z` reports `openSection=True` with `seatsAvailable=-1`
+    (over-enrolled). A live false-open in the source's own status flag. Production reads `seatsAvailable`
+    and never `openSection`, so it correctly returns closed. **Add to every future gate:** does `openSection`
+    ever disagree with `seatsAvailable > 0`? One disagreement = the status flag is untrustworthy, integers only.
+Note `202710` = Fall **2026** (academic-year numbering runs a year ahead); term resolution keys off the
+DESCRIPTION, not the code. Scout cadence changed weekly -> **daily** on 2026-07-20; (a) and (c) are now
+baked into the scheduled task's probe instructions.
