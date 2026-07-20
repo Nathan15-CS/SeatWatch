@@ -315,9 +315,9 @@ def current_season():
     runs ahead of the term, so this maps the CALENDAR month to the season students are
     signing up for; it's a label only — entitlement expiry is the fixed PAID_TERM_DAYS
     window, not this."""
-    t = datetime.date.today()
-    season = "spring" if t.month <= 5 else "summer" if t.month <= 7 else "fall"
-    return f"{t.year}-{season}"
+    t = time.localtime()   # app.py imports `time`, not `datetime` — use what's here
+    season = "spring" if t.tm_mon <= 5 else "summer" if t.tm_mon <= 7 else "fall"
+    return f"{t.tm_year}-{season}"
 
 
 def effective_tier(user):
