@@ -2134,6 +2134,7 @@ class Handler(BaseHTTPRequestHandler):
 
 # ----------------------------------------------------------------- health guard
 health = {}            # course -> {fails, alerted, last_count}  (in-memory)
+_stale_logged = set()  # (school, watch_term, cur_term) already reported — log once, not per cycle
 
 # --- fake-all-open watchdog (accuracy backstop for the never-false-alert promise) ---
 # The one way a school could false-alert is a STATUS-ONLY guest view that reports every
@@ -2307,9 +2308,26 @@ def run_cycle():
         if not school:
             continue
         data = data_by_school.get(school_id, {})  # {course: {section: {open(bool), seats}}}
+        cur_term = (school.cur_term() if callable(getattr(school, "cur_term", None))
+                    else getattr(school, "term", None))
 
         for r in items:
             course = r["course"]
+            # A watch is bound to the term it was created in, but the fetch above always
+            # returns the school's CURRENT term. Once a school rolls semesters, a leftover
+            # watch would be matched against a same-numbered section in the NEW term and
+            # fire "a seat opened in CMSC216-0101" for a semester the student never signed
+            # up for — a FALSE ALERT, the one thing we must never do. Skip it.
+            # Only on a DEFINITE mismatch: if either term is unknown we cannot prove
+            # staleness, and skipping would silently kill a working watch.
+            if r["term"] and cur_term and r["term"] != cur_term:
+                k = (school_id, r["term"], cur_term)
+                if k not in _stale_logged:
+                    _stale_logged.add(k)
+                    sw.log(f"  [term] {school_id}: watches created for term {r['term']} are "
+                           f"stale (school now on {cur_term}) — they will NOT alert. "
+                           f"Students must re-create them for the new term.")
+                continue
             hkey = f"{school_id}:{course}"
             h = health.setdefault(hkey, {"fails": 0, "alerted": False, "last_count": 0})
             secs = data.get(course)
