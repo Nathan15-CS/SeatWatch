@@ -6517,3 +6517,32 @@ State, UNA, SIU Carbondale (≠ SIUE), Pasco-Hernando + USI. Stock Banner9 excep
 RE-GATE CORRECTED Grab's relayed counts (its numbers were stale/raw): UNA 62->46, Guam 19->8, Murray 71->56
 raw. Zero false-opens on all 8. Bench (bespoke, un-built): Northwest College WY, Southern U A&M, UMaine
 Presque Isle + Augusta.
+
+### Weekly scheduled CT-log run — July 20, 2026 — ✅ 1 READY (Angelo State)
+
+**HOLD recheck:** Aurora University, Colorado Mountain, American Samoa CC, Columbus State — all still
+`FALL-LIVE=no`. No change; keep holding.
+
+**CT-log discovery (certspotter, 10 domains before 429):** Fort Hays State, Pittsburg State, Midwestern
+State (msutexas), Sul Ross, Chadron State, Eastern New Mexico returned **no** registration-looking hosts.
+Probed and rejected: `ssb.angelo.edu` (403), `enterpriseregistration.cameron.edu` (404),
+`ssb9.cameron.edu` (conn refused), `sis.wtamu.edu` (404) — Cameron + WTAMU remain uncovered/unproven.
+Lamar's CT hosts were non-registration. Rate-limited out before Peru State / Dickinson State — retry next run.
+
+**GATED — Angelo State University (TX, ~10k students), net-new (no `angelo` substring in `schools.py`,
+746 live).** Stock Banner 9 SSB, guest-readable, no login:
+host `registration.prod.angelo.edu`, path `/StudentRegistrationSsb/ssb`.
+- *Freshness:* `202710 = 2026 FALL SEMESTER` is live and **not** View-Only (`202630` and older all carry
+  the `(View Only)` suffix).
+- *Addressability:* subject filter is exact once `classSearch/resetDataForm` is POSTed between searches —
+  ENGL→76 rows all `subject=ENGL`, MATH→74, CENG→12. No round-number cap (not 50/100), no subject scatter.
+  **Gotcha worth keeping:** without the `resetDataForm` step the session replays the previous subject's
+  result set verbatim, which looks exactly like a scatter/addressability failure. Reset first, always.
+- *Real status:* completed **Spring 2026 (`202620`) replay is mixed, not all-open** — ENGL 29/73 zero-seat,
+  MATH 12/62 zero-seat. Not fake-status PeopleSoft-style data.
+- *Registerability:* `seatsAvailable` is a true integer incl. negative over-enrollment (`-1`, `-5`, `-8`),
+  consistent with genuine Banner capacity math.
+- *Verified live examples (Fall 2026, fetched 2026-07-20):* `MATH 1314-050` seats=3 (max 42 / enr 39);
+  `CENG 3332-010` seats=13 (max 20 / enr 7); `ENGL 1301-010` seats=0 (max 22 / enr 22).
+
+Awaiting Nathan's go-ahead before any `schools.py` edit or builder handoff.
