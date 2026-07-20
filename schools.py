@@ -41,9 +41,44 @@ _SUBTERM = ("week", "online", "late", "early", "law", "vet", "med ", "session", 
             "intersession", "weekend", "express", "flex", "saturday", "evening", "sprint",
             "ccp", "dual", "high school", "workforce", "abroad", "noncredit", "non-credit")
 _SEASON = {"spring": 1, "summer": 5, "fall": 8, "autumn": 8, "winter": 12}
+# Seasons a picker is allowed to AUTO-ADOPT. Winter is deliberately absent everywhere.
+_AUTO_SEASONS = ("spring", "summer", "fall", "autumn")
 
 
-def _pick_current_term(terms, today=None):
+def _auto_season(season):
+    """May a term with this season word be auto-adopted? Winter: never.
+
+    A winter label cannot be dated from the label alone. At a semester school 'Winter
+    2027' is a 3-week December/January intersession carrying a handful of courses; at a
+    quarter school (the UCs, Oregon) 'Winter 2026' is the full Jan-Mar quarter, NAMED for
+    the year it runs in. _SEASON has to pick one month for both and picks December — which
+    for a quarter school points ~11 months into the FUTURE, so a quarter that ENDED last
+    March outranks the real next term and the picker rolls BACKWARD into it.
+
+    Live-verified 2026-07-20: on Oct 1 2026 UCLA/UCI/UCSC would each have adopted the
+    completed Winter 2026 quarter, passed the live-data gate, and reported its sections as
+    OPEN (UCLA COM SCI 32: 42/43/23 seats) — a false alert, the one thing we never do.
+    UCSB the same with 0 open (silent miss). Miami Ohio and Montclair would have adopted a
+    3-week winter intersession in place of a full semester.
+
+    Holding the pinned term instead costs a manual bump at rollover. That is the trade the
+    VSB adapter already makes (see VSB.refresh_term): a term we cannot date is a term we
+    do not adopt, and rolling late is the only safe direction to be wrong in."""
+    return str(season).lower() in _AUTO_SEASONS
+
+
+def _season_of(desc):
+    """('fall', 2026) from a human term description, or None. Handles both orderings."""
+    d = (desc or "").lower()
+    m = (re.search(r"(spring|summer|fall|autumn|winter)\D{0,14}(20\d\d)", d) or
+         re.search(r"(20\d\d)\D{0,14}(spring|summer|fall|autumn|winter)", d))
+    if not m:
+        return None
+    g = m.groups()
+    return (g[0] if g[0] in _SEASON else g[1]), int(g[1] if g[0] in _SEASON else g[0])
+
+
+def _pick_current_term(terms, today=None, cur=None):
     """From a Banner getTerms list, pick the MAIN term students are registering for.
     Anchored on the human-readable description — term CODES are not portable across
     schools, but 'Fall 2026' always is. Returns code or None. Validated to reproduce all
@@ -54,24 +89,43 @@ def _pick_current_term(terms, today=None):
     month instead (delta < 1) hands the whole school to the next published term the moment
     the semester begins: on Aug 1 a Fall watcher would silently be switched to Winter and
     never alerted again all semester. refresh_term's live-data gate does NOT protect
-    against that, because a school publishing its next term early satisfies the gate."""
+    against that, because a school publishing its next term early satisfies the gate.
+
+    Pass `cur` (the term we are on) to also forbid rolling BACKWARD: candidates strictly
+    EARLIER than `cur` are dropped. Defence in depth behind _auto_season — a mis-parsed
+    description must not be able to hand a school an older term.
+
+    `cur` itself deliberately stays in the running: it has the smallest delta of anything
+    at-or-after it, so while it is still in-window it keeps winning and the pick is a
+    no-op. Excluding it instead (<= rather than <) hands the school to the next published
+    term immediately — gate-caught doing exactly that to 8 live schools (SD regental,
+    Kettering, Lake Michigan, Touro, WCCS)."""
     if today is None:
         today = datetime.date.today()
+    cur_rank = None
+    if cur is not None:
+        for t in terms:
+            if str(t.get("code")) == str(cur):
+                p = _season_of(t.get("description"))
+                if p:
+                    cur_rank = (p[1], _SEASON[p[0]])
+                break
     best, best_delta = None, None
     for t in terms:
         d = (t.get("description") or "").lower()
         if "view only" in d or any(s in d for s in _SUBTERM):
             continue
-        m = (re.search(r"(spring|summer|fall|autumn|winter)\D{0,14}(20\d\d)", d) or
-             re.search(r"(20\d\d)\D{0,14}(spring|summer|fall|autumn|winter)", d))
-        if not m:
+        p = _season_of(d)
+        if not p:
             continue
-        g = m.groups()
-        season = g[0] if g[0] in _SEASON else g[1]
-        year = int(g[1] if g[0] in _SEASON else g[0])
+        season, year = p
+        if not _auto_season(season):
+            continue                       # winter: undateable from a label, never adopt
         delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
         if delta < -1:                     # keep the current term through add/drop
             continue
+        if cur_rank and (year, _SEASON[season]) < cur_rank:
+            continue                       # never roll back onto a term older than ours
         if best_delta is None or delta < best_delta:
             best_delta, best = delta, t.get("code")
     return best
@@ -362,7 +416,7 @@ class Fose:
                 g = sm.groups()
                 season, year = (g[0], int(g[1])) if g[0] in _SEASON else (g[1], int(g[0]))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, t.get("code")
@@ -471,8 +525,12 @@ class OregonState(Fose):
     # OSU's English subject is "ENG", not "ENGL" — the first handoff example used the
     # wrong code and gated to zero; corrected and re-gated clean (real A/F mix). The
     # srcDBs auto-roll correctly skips OSU's "999999 All Terms" catch-all.
+    # QUARTER CALENDAR — auto_term is OFF, same reason as the UC adapters: OSU's real next
+    # term on Oct 1 is Winter 2027, which _auto_season refuses (a winter label cannot be
+    # dated), so auto-rolling could only ever skip it. Pinned term, bumped by hand.
+    auto_term = False
     id = "oregonstate"; name = "Oregon State University"
-    example = "ENG 104Z"; srcdb = "202701"     # Fall 2026 (auto-rolls)
+    example = "ENG 104Z"; srcdb = "202701"     # Fall 2026 (bumped by hand — see auto_term)
     api = "https://classes.oregonstate.edu/api/?page=fose&route=search"
 
 
@@ -549,11 +607,14 @@ class UIUC:
         keep the current term until ~2 months past its start so it survives add/drop
         (delta < -1), then pick the smallest remaining delta. Existence/live-data is
         verified separately by refresh_term's own fetch of the example course before
-        adopting — this method only computes the calendar-correct candidate."""
+        adopting — this method only computes the calendar-correct candidate. 'winter' is
+        skipped via _auto_season: UIUC does run a winter session, but it is a handful of
+        courses over the December break, and adopting it on Oct 1 would point the whole
+        campus at it right through spring registration."""
         today = datetime.date.today()
         best, best_delta = None, None
         for season, mon in _SEASON.items():
-            if season == "autumn":
+            if season == "autumn" or not _auto_season(season):
                 continue
             for year in (today.year, today.year + 1):
                 delta = (year - today.year) * 12 + (mon - today.month)
@@ -601,9 +662,16 @@ class UCI:
 
     YearTerm auto-rolls from the landing page's own <select> ('2026-92' = 2026 Fall
     Quarter), skipping Law/Summer/COM sub-terms; verify-before-adopt as usual."""
+    # QUARTER CALENDAR — auto_term is OFF. The shared season model dates a term by one
+    # nominal month per season and cannot express a quarter year: "Winter 2027" runs
+    # Jan-Mar 2027, not December. _auto_season therefore refuses winter outright, which
+    # leaves this school jumping Fall -> Spring and silently skipping the whole winter
+    # quarter (gate-verified on UCLA: 26F -> 27S on Oct 1). Holding the pinned term and
+    # bumping it by hand is the honest trade until a per-adapter quarter month-map lands.
+    auto_term = False
     id = "uci"; name = "University of California, Irvine"
     example = "I&C SCI 31"
-    term = "2026-92"                    # Fall 2026 (auto-rolls)
+    term = "2026-92"                    # Fall 2026 (bumped by hand — see auto_term)
     _active_term = None
     base = "https://www.reg.uci.edu/perl/WebSoc"
     _RE = re.compile(r"^(.+?)\s+(\d+[A-Za-z]{0,3})$")
@@ -645,7 +713,7 @@ class UCI:
                     continue
                 year, season = int(sm.group(1)), sm.group(2)
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -728,9 +796,16 @@ class UCSC:
     sibling leak), and rows are still scoped to the exact watched code as a backstop.
     Sections keyed by pisa's section id (01/02/...). Term auto-rolls from the form's
     own term dropdown ('2268' = 2026 Fall Quarter)."""
+    # QUARTER CALENDAR — auto_term is OFF. The shared season model dates a term by one
+    # nominal month per season and cannot express a quarter year: "Winter 2027" runs
+    # Jan-Mar 2027, not December. _auto_season therefore refuses winter outright, which
+    # leaves this school jumping Fall -> Spring and silently skipping the whole winter
+    # quarter (gate-verified on UCLA: 26F -> 27S on Oct 1). Holding the pinned term and
+    # bumping it by hand is the honest trade until a per-adapter quarter month-map lands.
+    auto_term = False
     id = "ucsc"; name = "University of California, Santa Cruz"
     example = "CSE 30"
-    term = "2268"                       # Fall 2026 (auto-rolls)
+    term = "2268"                       # Fall 2026 (bumped by hand — see auto_term)
     _active_term = None
     base = "https://pisa.ucsc.edu/class_search/index.php"
     _RE = re.compile(r"^([A-Za-z&]{1,6})\s+(\d+[A-Za-z]{0,2})$")
@@ -770,7 +845,7 @@ class UCSC:
                     continue
                 year, season = int(sm.group(1)), sm.group(2)
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -867,9 +942,16 @@ class UCSB:
     One row per section (the course title repeats per row); sections keyed by UCSB's
     5-digit enroll code. Term auto-rolls from the server-rendered quarterList <select>
     ('20264' = FALL 2026; format 2026 + quarter-digit, Winter1/Spring2/Summer3/Fall4)."""
+    # QUARTER CALENDAR — auto_term is OFF. The shared season model dates a term by one
+    # nominal month per season and cannot express a quarter year: "Winter 2027" runs
+    # Jan-Mar 2027, not December. _auto_season therefore refuses winter outright, which
+    # leaves this school jumping Fall -> Spring and silently skipping the whole winter
+    # quarter (gate-verified on UCLA: 26F -> 27S on Oct 1). Holding the pinned term and
+    # bumping it by hand is the honest trade until a per-adapter quarter month-map lands.
+    auto_term = False
     id = "ucsb"; name = "University of California, Santa Barbara"
     example = "WRIT 2"
-    term = "20264"                      # Fall 2026 (auto-rolls)
+    term = "20264"                      # Fall 2026 (bumped by hand — see auto_term)
     _active_term = None
     base = "https://my.sa.ucsb.edu/public/curriculum/coursesearch.aspx"
     _RE = re.compile(r"^([A-Za-z][A-Za-z ]{0,7}?)\s+(\d+[A-Za-z]{0,2})$")
@@ -918,7 +1000,7 @@ class UCSB:
                     continue
                 season, year = sm.group(1), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -1014,9 +1096,16 @@ class UCLA:
     never hidden from a watcher — the handoff's suggested 8am-8pm window was verified
     harmless on MATH but we drop it entirely to be safe. Term auto-rolls from the
     page's own term <select> (26F = Fall 2026; code = YY + F/W/S)."""
+    # QUARTER CALENDAR — auto_term is OFF. The shared season model dates a term by one
+    # nominal month per season and cannot express a quarter year: "Winter 2027" runs
+    # Jan-Mar 2027, not December. _auto_season therefore refuses winter outright, which
+    # leaves this school jumping Fall -> Spring and silently skipping the whole winter
+    # quarter (gate-verified on UCLA: 26F -> 27S on Oct 1). Holding the pinned term and
+    # bumping it by hand is the honest trade until a per-adapter quarter month-map lands.
+    auto_term = False
     id = "ucla"; name = "University of California, Los Angeles"
     example = "COM SCI 32"
-    term = "26F"                        # Fall 2026 (auto-rolls)
+    term = "26F"                        # Fall 2026 (bumped by hand — see auto_term)
     _active_term = None
     root = "https://sa.ucla.edu/ro/public/soc"
     _RE = re.compile(r"^([A-Za-z][A-Za-z& ]{0,24}?)\s+([A-Z]?\d+[A-Z]{0,2})$")
@@ -1060,7 +1149,7 @@ class UCLA:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -1202,7 +1291,7 @@ class SFSU:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -1437,7 +1526,7 @@ class CSUN:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -1552,7 +1641,7 @@ class UtahU:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -1675,7 +1764,7 @@ class Purdue:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -2325,7 +2414,7 @@ class Berkeley:
                     continue
                 season, year = m.group(1).lower(), int(m.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, tid
@@ -2471,7 +2560,7 @@ class CollegeScheduler:
                 season = season.lower()
                 mon = _SEASON.get(season if season != "autumn" else "fall", 8)
                 delta = (int(year) - today.year) * 12 + (mon - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, str(t.get("code"))
@@ -2576,9 +2665,16 @@ class UOregon:
     courses in a summary line). Numeric Avail can't fake open; verified real open/full mix
     live AND in a completed term. NOTE Oregon renames some courses with a 'Z' suffix
     (MATH 251 -> 251Z, WR 121 -> 121Z) — enter the exact catalog code. {} on any failure."""
+    # QUARTER CALENDAR — auto_term is OFF. The shared season model dates a term by one
+    # nominal month per season and cannot express a quarter year: "Winter 2027" runs
+    # Jan-Mar 2027, not December. _auto_season therefore refuses winter outright, which
+    # leaves this school jumping Fall -> Spring and silently skipping the whole winter
+    # quarter (gate-verified on UCLA: 26F -> 27S on Oct 1). Holding the pinned term and
+    # bumping it by hand is the honest trade until a per-adapter quarter month-map lands.
+    auto_term = False
     id = "uoregon"; name = "University of Oregon"
     example = "MATH 251Z"
-    term = "202601"                      # Fall 2026 (DuckWeb code; auto-rolls, verify-before-adopt)
+    term = "202601"                      # Fall 2026 (DuckWeb code; bumped by hand — see auto_term)
     _active_term = None
     _BASE = "https://duckweb.uoregon.edu/duckweb"
     _RE = re.compile(r"^([A-Za-z][A-Za-z ]*?)\s+(\d{2,3}[A-Za-z]?)$")
@@ -2649,7 +2745,7 @@ class UOregon:
                     r'term=(\d{6})"[^>]*>\s*(Spring|Summer|Fall|Winter)\s+(20\d\d)', h):
                 mon = _SEASON.get(season.lower(), 8)
                 delta = (int(year) - today.year) * 12 + (mon - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -2933,7 +3029,7 @@ class TAMU:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:
+                if not _auto_season(season) or delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, t.get("STVTERM_CODE")
@@ -3216,9 +3312,10 @@ class Banner:
         return json.loads(raw)
 
     def resolve_term(self):
-        """Auto-detect the current registration term; None on failure."""
+        """Auto-detect the current registration term; None on failure. `cur` makes the
+        pick forward-only, so a mis-dated row can never walk a school backward."""
         try:
-            return _pick_current_term(self._get_terms())
+            return _pick_current_term(self._get_terms(), cur=self.cur_term())
         except Exception:
             return None
 
@@ -3554,7 +3651,7 @@ class USC:
             if season not in _SEASON or not isinstance(year, int):
                 continue
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < -1:
+            if not _auto_season(season) or delta < -1:
                 continue                           # skip in-progress Actives
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, str(t.get("termCode"))
@@ -3699,7 +3796,7 @@ class Rice:
                 continue
             season, year = m.group(1), int(m.group(2))
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < -1:
+            if not _auto_season(season) or delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, code
@@ -3952,7 +4049,7 @@ class Maricopa:
                 continue
             season, year = m.group(1).lower(), int(m.group(2))
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < -1:
+            if not _auto_season(season) or delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, code
@@ -4124,7 +4221,7 @@ class RCCD:
                 continue
             season, year = m.group(1), int(m.group(2))
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < -1:
+            if not _auto_season(season) or delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, t.get("Term")
@@ -4222,7 +4319,7 @@ class WVMCCD:
                 continue
             season, year = m.group(1), int(m.group(2))
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < -1:
+            if not _auto_season(season) or delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, t.get("SOBTERM_TERM_CODE")
@@ -4480,7 +4577,7 @@ class IUBloomington:
                 continue
             season, year = m.group(1), int(m.group(2))
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < -1:
+            if not _auto_season(season) or delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, t.get("strm")
@@ -4644,7 +4741,7 @@ class Wabash:
                 continue
             year, season = int(m.group(1)), m.group(2).lower()
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < -1:
+            if not _auto_season(season) or delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, val.replace("&#x2f;", "/").replace("&#47;", "/")
@@ -6265,7 +6362,7 @@ class PeopleSoft:
                     season, year = g[1].lower(), int(g[0])
                 mon = _SEASON.get(season if season != "autumn" else "fall", 8)
                 delta = (year - today.year) * 12 + (mon - today.month)
-                if delta < -1:                          # skip clearly-past terms
+                if not _auto_season(season) or delta < -1:                          # skip clearly-past terms
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, t.get("strm")
@@ -6497,7 +6594,7 @@ class MinnState:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < -1:                       # skip clearly-past terms
+                if not _auto_season(season) or delta < -1:                       # skip clearly-past terms
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -6680,7 +6777,7 @@ class Colleague:
                 season, year = g[1].lower(), int(g[0])
             mon = _SEASON.get(season if season != "autumn" else "fall", 8)
             delta = (year - today.year) * 12 + (mon - today.month)
-            if delta < -1:
+            if not _auto_season(season) or delta < -1:
                 continue
             subpenalty = 1 if self._SUBTERM_RE.search(desc) else 0
             key = (delta, subpenalty, len(desc))   # nearest; then primary/undergrad; then plainest
@@ -8948,6 +9045,11 @@ def refresh_all_terms(log=None):
     semester's term. Safe — each school verifies live data before adopting, else keeps
     last-known-good. Call this periodically (e.g. daily) from the app."""
     for s in SCHOOLS.values():
+        # auto_term = False opts a school OUT of auto-rolling entirely (parallel same-season
+        # populations, or a quarter calendar the shared season model can't express). Checked
+        # HERE so it binds every family, not just Banner, whose refresh_term also checks it.
+        if not getattr(s, "auto_term", True):
+            continue
         # duck-typed: any adapter exposing refresh_term participates (they all follow
         # verify-before-adopt), so new one-off adapters (Berkeley) self-maintain too.
         if callable(getattr(s, "refresh_term", None)):
