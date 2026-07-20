@@ -7114,10 +7114,6 @@ class LincolnLandCC(Colleague):
     id = "llcc"; name = "Lincoln Land Community College"
     example = "CSC 170"; host = "selfservice.llcc.edu"
 
-class RhodesState(Banner):
-    id = "rhodesstate"; name = "Rhodes State College"
-    example = "MTH 1260"; host = "banner-prod.rhodesstate.edu"; term = "202620"
-
 class Regent(Banner):
     id = "regent"; name = "Regent University"
     example = "CSCI 233"; host = "banssb.regent.edu"; term = "202710"
@@ -7542,11 +7538,6 @@ class AcadYearColleague(Colleague):
         pick = super()._pick_term(fixed)
         return next((f["_orig"] for f in fixed if f["Description"] == pick), None) if pick else None
 
-class EdisonState(AcadYearColleague):
-    id = "edisonoh"; name = "Edison State Community College (Ohio)"
-    example = "ENG 121S"; host = "selfservice.edisonohio.edu"
-
-
 _QTR_MON = {m: i for i, m in enumerate(
     ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"], 1)}
 
@@ -7812,10 +7803,6 @@ class YearSpanNewColleague(NewColleague):
 
 # --- Batch 22: newer-Colleague schools (numeric-status SearchAsync/SectionsAsync).
 # Enum verified per school; conservative rule (status==0 AND Available>0) in NewColleague.
-class LebanonValley(NewColleague):
-    id = "lvc"; name = "Lebanon Valley College"
-    example = "BIO 111L"; host = "selfservice.lvc.edu"
-
 class AugustanaIL(YearSpanNewColleague):   # ≠ Augustana University; term '2026-27 Fall Semester'
     id = "augustana-il"; name = "Augustana College (IL)"
     example = "BIOL 130"; host = "selfservice.augustana.edu"
@@ -8906,7 +8893,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                              GuilfordTech(), StanlyCC(), HaywoodCC(), Cedarville(),
                              EasternIowaCC(), McLennan(), Roanoke(), HardinSimmons(), Elmhurst(), Bellarmine(), Wittenberg(), Quinnipiac(), Juniata(), SWOklahomaState(), LuzerneCC(), EastCentralOK(), USAOklahoma(), Hartwick(), CaldwellCC(), RoanokeChowan(), NorthArkansas(), Aquinas(), Alma(), GrandView(), ElCamino(), Triton(), Canyons(), Grossmont(), PrinceGeorges(), GovernorsState(), CarrollCCMD(), BergenCC(), CincinnatiState(), JolietJC(), LewisClarkCC(), MortonCollege(), McHenry(), WesternIdaho(),
                              FingerLakesCC(), HockingCollege(), OklahomaChristian(), LincolnLandCC(),
-                             RhodesState(), Regent(), ButteCollege(), EssexCC(),
+                             Regent(), ButteCollege(), EssexCC(),
                              DelawareTech(), WesternNewEngland(), SaintMichaels(), Evansville(),
                              DenmarkTech(), Tulsa(), CarlAlbert(), RedlandsCC(), SoutheastCCNE(),
                              Coconino(), EasternWyoming(), MissouriValley(),
@@ -8968,7 +8955,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                                SouthwesternCCNC(), Daemen(), EasternOKState(),
                                SoutheasternOKState(), WesternOKState(), HolyFamily(),
                                MontgomeryCountyCC(), WestminsterUT(), WesternWyoming(),
-                               EdisonState(), GeorgiaMilitary(), Bridgeport(),
+                               GeorgiaMilitary(), Bridgeport(),
                                OrangeCoast(), GoldenWest(), Coastline(),
                                Bakersfield(), CerroCoso(), Porterville()]
                             + [CtcLink(*t) for t in _CTCLINK]
@@ -9021,7 +9008,7 @@ def _guard_registry(all_schools):
 
 
 SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
-    LebanonValley(), AugustanaIL(), CamdenCounty(), WalshCollege(),
+    AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
     MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(), SanDiegoCity(), SanDiegoMesa(), SanDiegoMiramar(), Fairfield(),
     IvyTech(), UTArlington(), UAlaska(), UOregon(),
