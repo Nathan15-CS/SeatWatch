@@ -3386,6 +3386,12 @@ class FAU(Banner):
     id = "fau"; name = "Florida Atlantic University"
     example = "COP 3035C"; host = "bannerxe.fau.edu"; term = "202608"
 
+class AngeloState(Banner):
+    # 202710 IS Fall 2026 — ASU numbers by ACADEMIC year (AY 2026-27, term 10), so the code
+    # looks a year ahead. The picker reads the description ("2026 FALL SEMESTER"), not the code.
+    id = "angelostate"; name = "Angelo State University"
+    example = "ENGL 1301"; host = "registration.prod.angelo.edu"; term = "202710"
+
 class BallState(Banner):
     id = "ballstate"; name = "Ball State University"
     example = "CS 120"; host = "banner.bsu.edu"; term = "202610"
@@ -8934,7 +8940,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     SantaAna(), SantiagoCanyon(), WabashValley(), OlneyCentral(), LincolnTrail(),
     SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),
     PascoHernando(), USI(),
-    ContraCostaCollege(), DiabloValley(), LosMedanos()])
+    ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState()])
 
 
 def refresh_all_terms(log=None):
