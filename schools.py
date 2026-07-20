@@ -44,10 +44,17 @@ _SEASON = {"spring": 1, "summer": 5, "fall": 8, "autumn": 8, "winter": 12}
 
 
 def _pick_current_term(terms, today=None):
-    """From a Banner getTerms list, pick the nearest MAIN term whose registration is the
-    current target (starts >= ~1 month out). Anchored on the human-readable description —
-    term CODES are not portable across schools, but 'Fall 2026' always is. Returns code
-    or None. This was validated to reproduce all 43 hand-verified hardcoded terms."""
+    """From a Banner getTerms list, pick the MAIN term students are registering for.
+    Anchored on the human-readable description — term CODES are not portable across
+    schools, but 'Fall 2026' always is. Returns code or None. Validated to reproduce all
+    43 hand-verified hardcoded terms.
+
+    ROLL-OFF is delta < -1, i.e. the current term is KEPT until ~2 months past its start
+    month, so it survives add/drop — the peak seat-watch window. Dropping it at its start
+    month instead (delta < 1) hands the whole school to the next published term the moment
+    the semester begins: on Aug 1 a Fall watcher would silently be switched to Winter and
+    never alerted again all semester. refresh_term's live-data gate does NOT protect
+    against that, because a school publishing its next term early satisfies the gate."""
     if today is None:
         today = datetime.date.today()
     best, best_delta = None, None
@@ -63,7 +70,7 @@ def _pick_current_term(terms, today=None):
         season = g[0] if g[0] in _SEASON else g[1]
         year = int(g[1] if g[0] in _SEASON else g[0])
         delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-        if delta < 1:                      # skip in-progress / past terms
+        if delta < -1:                     # keep the current term through add/drop
             continue
         if best_delta is None or delta < best_delta:
             best_delta, best = delta, t.get("code")
@@ -355,7 +362,7 @@ class Fose:
                 g = sm.groups()
                 season, year = (g[0], int(g[1])) if g[0] in _SEASON else (g[1], int(g[0]))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, t.get("code")
@@ -539,11 +546,10 @@ class UIUC:
     def resolve_term(self):
         """Nearest UPCOMING term as {year}/{season} — same delta-months-ahead logic as
         every other adapter's term picker (_pick_current_term, PeopleSoft.resolve_term):
-        skip anything already in progress (delta < 1), pick the smallest remaining
-        delta. Existence/live-data is verified separately by refresh_term's own fetch
-        of the example course before adopting — this method only computes the
-        calendar-correct candidate, so it never hands back an in-progress term like
-        the current summer session just because its page happens to load."""
+        keep the current term until ~2 months past its start so it survives add/drop
+        (delta < -1), then pick the smallest remaining delta. Existence/live-data is
+        verified separately by refresh_term's own fetch of the example course before
+        adopting — this method only computes the calendar-correct candidate."""
         today = datetime.date.today()
         best, best_delta = None, None
         for season, mon in _SEASON.items():
@@ -551,7 +557,7 @@ class UIUC:
                 continue
             for year in (today.year, today.year + 1):
                 delta = (year - today.year) * 12 + (mon - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, f"{year}/{season}"
@@ -639,7 +645,7 @@ class UCI:
                     continue
                 year, season = int(sm.group(1)), sm.group(2)
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -764,7 +770,7 @@ class UCSC:
                     continue
                 year, season = int(sm.group(1)), sm.group(2)
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -912,7 +918,7 @@ class UCSB:
                     continue
                 season, year = sm.group(1), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -1054,7 +1060,7 @@ class UCLA:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -1196,7 +1202,7 @@ class SFSU:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -1306,7 +1312,7 @@ class SacState:
             for season, mon in (("spring", 1), ("summer", 5), ("fall", 8)):
                 for year in (today.year, today.year + 1):
                     delta = (year - today.year) * 12 + (mon - today.month)
-                    if delta < 1:
+                    if delta < -1:
                         continue
                     if best_delta is None or delta < best_delta:
                         best_delta, best = delta, f"{season}-{year}"
@@ -1431,7 +1437,7 @@ class CSUN:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -1546,7 +1552,7 @@ class UtahU:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -1669,7 +1675,7 @@ class Purdue:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -2319,7 +2325,7 @@ class Berkeley:
                     continue
                 season, year = m.group(1).lower(), int(m.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, tid
@@ -2643,7 +2649,7 @@ class UOregon:
                     r'term=(\d{6})"[^>]*>\s*(Spring|Summer|Fall|Winter)\s+(20\d\d)', h):
                 mon = _SEASON.get(season.lower(), 8)
                 delta = (int(year) - today.year) * 12 + (mon - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, code
@@ -2927,7 +2933,7 @@ class TAMU:
                     continue
                 season, year = sm.group(1).lower(), int(sm.group(2))
                 delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if best_delta is None or delta < best_delta:
                     best_delta, best = delta, t.get("STVTERM_CODE")
@@ -3542,7 +3548,7 @@ class USC:
             if season not in _SEASON or not isinstance(year, int):
                 continue
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < 1:
+            if delta < -1:
                 continue                           # skip in-progress Actives
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, str(t.get("termCode"))
@@ -3687,7 +3693,7 @@ class Rice:
                 continue
             season, year = m.group(1), int(m.group(2))
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < 1:
+            if delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, code
@@ -3940,7 +3946,7 @@ class Maricopa:
                 continue
             season, year = m.group(1).lower(), int(m.group(2))
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < 1:
+            if delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, code
@@ -4112,7 +4118,7 @@ class RCCD:
                 continue
             season, year = m.group(1), int(m.group(2))
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < 1:
+            if delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, t.get("Term")
@@ -4210,7 +4216,7 @@ class WVMCCD:
                 continue
             season, year = m.group(1), int(m.group(2))
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < 1:
+            if delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, t.get("SOBTERM_TERM_CODE")
@@ -4468,7 +4474,7 @@ class IUBloomington:
                 continue
             season, year = m.group(1), int(m.group(2))
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < 1:
+            if delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, t.get("strm")
@@ -4632,7 +4638,7 @@ class Wabash:
                 continue
             year, season = int(m.group(1)), m.group(2).lower()
             delta = (year - today.year) * 12 + (_SEASON[season] - today.month)
-            if delta < 1:
+            if delta < -1:
                 continue
             if best_delta is None or delta < best_delta:
                 best_delta, best = delta, val.replace("&#x2f;", "/").replace("&#47;", "/")
@@ -7403,7 +7409,7 @@ class SynthTermColleague(Colleague):
         for season, mon in (("Spring", 1), ("Summer", 5), ("Fall", 8)):
             for yr in (today.year, today.year + 1):
                 delta = (yr - today.year) * 12 + (mon - today.month)
-                if delta < 1:
+                if delta < -1:
                     continue
                 if bd is None or delta < bd:
                     bd, best = delta, f"{season} {yr}"
@@ -7460,7 +7466,7 @@ class QuarterColleague(Colleague):
                 continue
             year = int(ym.group(1)) if mon >= 8 else int(ym.group(2))
             delta = (year - today.year) * 12 + (mon - today.month)
-            if delta < 1:
+            if delta < -1:
                 continue
             if bd is None or delta < bd:
                 bd, best = delta, d
