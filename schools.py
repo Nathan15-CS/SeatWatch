@@ -6195,6 +6195,7 @@ class PeopleSoft:
     """
     _active_term = None
     node = "EMPLOYEE"          # PeopleSoft portal node; most use EMPLOYEE, some differ (UVA=UVSS)
+    seg = "SA"                 # portal segment; nearly always SA, some differ (Illinois Central=CAMP)
     _SUBJ_RE = re.compile(r"^([A-Za-z]{1,6}&?)\s*(\d{2,4}[A-Za-z]?)$")
 
     def _norm(self, course):
@@ -6205,14 +6206,14 @@ class PeopleSoft:
         return self._norm(course)[0] is not None
 
     def reg_url(self, course):
-        return (f"https://{self.host}/psp/{self.site}/{self.node}/SA/s/"
+        return (f"https://{self.host}/psp/{self.site}/{self.node}/{self.seg}/s/"
                 "WEBLIB_HCX_CM.H_BROWSE_CLASSES.FieldFormula.IScript_Main")
 
     def cur_term(self):
         return self._active_term or self.term
 
     def _cs(self):
-        return (f"https://{self.host}/psc/{self.site}/{self.node}/SA/s/"
+        return (f"https://{self.host}/psc/{self.site}/{self.node}/{self.seg}/s/"
                 "WEBLIB_HCX_CM.H_CLASS_SEARCH.FieldFormula")
 
     def _session(self):
@@ -6221,7 +6222,7 @@ class PeopleSoft:
         cj = http.cookiejar.CookieJar()
         op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
         op.addheaders = [("User-Agent", UA), ("Accept", "application/json")]
-        op.open(f"https://{self.host}/psp/{self.site}/{self.node}/SA/s/"
+        op.open(f"https://{self.host}/psp/{self.site}/{self.node}/{self.seg}/s/"
                 "WEBLIB_HCX_CM.H_BROWSE_CLASSES.FieldFormula.IScript_Main", timeout=20).read()
         return op
 
@@ -6326,6 +6327,17 @@ class Towson(PeopleSoft):
     id = "towson"; name = "Towson University"
     example = "COSC 236"; host = "tuclasssearch.towson.edu"; site = "CS9PRD"
     inst = "TOWSN"; term = "1264"      # Fall 2026 (auto-refreshes via ClassSearchOptions)
+
+class CSUChico(PeopleSoft):
+    id = "csuchico"; name = "California State University, Chico"
+    example = "MATH 105"; host = "cmsweb.csuchico.edu"; site = "CCHIPRD"
+    inst = "CHICO"; term = "2268"      # Fall 2026
+
+class IllinoisCentral(PeopleSoft):
+    # Portal segment is /CAMP/, not the usual /SA/ — see PeopleSoft.seg.
+    id = "illinoiscentral"; name = "Illinois Central College"
+    example = "ENGL 110"; host = "eservices.icc.edu"; site = "eservices"
+    inst = "ICC"; term = "2273"; seg = "CAMP"      # Fall 2026
 
 class UVA(PeopleSoft):
     id = "uva"; name = "University of Virginia"
@@ -8771,6 +8783,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                              ConcordiaTX(), TAMUSanAntonio(), TAMUCentralTexas(), UDallas(),
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
                              Towson(), UVA(), USM(), Palomar(), BostonUniversity(), Coppin(),
+                             CSUChico(), IllinoisCentral(),
                              LoyolaNO(), UnionNY(), ManchesterU(), Whitman(), Linfield(),
                              FranklinU(), Ursinus(), SalveRegina(), Cornerstone(), NorthPark(),
                              Gannon(), Mercyhurst(), SaintVincent(), Maryville(),
