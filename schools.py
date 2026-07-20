@@ -8494,17 +8494,25 @@ class VSB:
     ZERO secNo collisions within a college across 168 sections.
 
     A course not offered in the requested term answers HTTP 500 -> no data, never a guess.
-    Term is pinned per district (VCCCD shape); bump per term."""
+    The pinned `term` is the seed / last-known-good; refresh_term auto-rolls it (see there)."""
     host = ""                             # 'vsb.4cd.edu'        subclass sets
     term = ""                             # '202630' Fall 2026   subclass sets
     cams = ""                             # required by /suggestions only
     campuses = ()                         # campus codes this college owns
     _TTL = 60                             # seats must stay fresh; only dedupes sibling colleges
     _KEY_TTL = 3600                       # code -> VSB key is stable within a term
+    _MENU_TTL = 21600                     # term menu barely changes
     _lock = threading.Lock()
     _data = {}                            # (host, term, key) -> (ts, {(campus, secNo): {...}})
     _keys = {}                            # (host, term, flat) -> (ts, key or None)
+    _menus = {}                           # host -> (ts, [(code, name)]) in menu order
     _RE = re.compile(r"^[A-Za-z]{2,6}[\s\-]*[A-Za-z]?\d{1,4}[A-Za-z]{0,2}$")
+    _TERM_RE = re.compile(r'"(\w+)":\{"name":"([^"]+)"')
+    _NAME_RE = re.compile(r"(spring|summer|fall|autumn|winter)\s*(20\d\d)", re.I)
+    # Last day we still consider a term "live". Deliberately generous: rolling LATE only
+    # costs a manual bump, rolling EARLY silently serves the wrong term's seats.
+    _SEASON_END = {"winter": (2, 15), "spring": (6, 15), "summer": (9, 1), "fall": (1, 15)}
+    _active_term = None
 
     @staticmethod
     def _token():
@@ -8523,10 +8531,23 @@ class VSB:
         return bool(self._RE.match(course.strip()))
 
     def cur_term(self):
-        return self.term
+        return self._active_term or self.term
 
     def reg_url(self, course):
         return f"https://{self.host}/"
+
+    def _suggest(self, term, text):
+        """Course keys matching `text` in `term`. Fuzzy — callers must match exactly."""
+        t, e = self._token()
+        url = (f"https://{self.host}/api/courses/suggestions?term={term}"
+               f"&cams={self.cams}&course_add={urllib.parse.quote(text)}"
+               f"&page_num=0&sco=0&sio=1&already=&t={t}&e={e}")
+        out = []
+        for n in ET.fromstring(self._get(url)).iter("rs"):
+            v = (n.text or "").strip()
+            if v and v != "_more_":
+                out.append(v)
+        return out
 
     def _resolve(self, course):
         """User text -> VSB's exact course key, or None. Cached per term."""
@@ -8538,20 +8559,12 @@ class VSB:
             c = VSB._keys.get(ck)
             if c and time.time() - c[0] < self._KEY_TTL:
                 return c[1]
-        t, e = self._token()
-        url = (f"https://{self.host}/api/courses/suggestions?term={self.cur_term()}"
-               f"&cams={self.cams}&course_add={urllib.parse.quote(course.strip())}"
-               f"&page_num=0&sco=0&sio=1&already=&t={t}&e={e}")
         try:
-            root = ET.fromstring(self._get(url))
+            cands = self._suggest(self.cur_term(), course.strip())
         except Exception:
             return None                   # transient: don't cache a failure as "no such course"
-        key = None
-        for n in root.iter("rs"):
-            cand = (n.text or "").strip()
-            if cand and re.sub(r"\s+", "", cand).upper() == flat:
-                key = cand
-                break
+        key = next((c for c in cands
+                    if re.sub(r"\s+", "", c).upper() == flat), None)   # exact, never first-hit
         with VSB._lock:
             VSB._keys[ck] = (time.time(), key)
         return key
@@ -8603,6 +8616,92 @@ class VSB:
             if mine:
                 out[course] = mine
         return out
+
+    def _menu(self):
+        """[(code, name)] in the site's own order, from the term map criteria.jsp hands
+        to EE.initEntrance({"202630":{"name":"Fall 2026",...}})."""
+        with VSB._lock:
+            c = VSB._menus.get(self.host)
+            if c and time.time() - c[0] < self._MENU_TTL:
+                return c[1]
+        try:
+            body = self._get(f"https://{self.host}/criteria.jsp")
+        except Exception:
+            return c[1] if c else []
+        menu = [(code, name) for code, name in self._TERM_RE.findall(body)
+                if self._term_end(name)]        # keep only terms we can date
+        if menu:
+            with VSB._lock:
+                VSB._menus[self.host] = (time.time(), menu)
+        return menu or (c[1] if c else [])
+
+    def _term_end(self, name):
+        """Last day a term is still 'live', from its DISPLAY NAME ('Fall 2026'). The name
+        is used rather than the code because codes come from each school's own SIS and vary
+        per host, while VSB always renders a human season+year."""
+        m = self._NAME_RE.search(name or "")
+        if not m:
+            return None
+        season = m.group(1).lower().replace("autumn", "fall")
+        year = int(m.group(2))
+        mo, day = self._SEASON_END[season]
+        return datetime.date(year + (1 if season == "fall" else 0), mo, day)
+
+    def _probe(self, term):
+        """Does THIS college have live sections in `term`? The verify half of
+        verify-before-adopt — a term can sit in the menu for months before its schedule
+        is loaded, and adopting an empty one would silently stop every alert."""
+        subj = re.match(r"^[A-Za-z]+", (self.example or "").strip())
+        if not subj:
+            return False
+        try:
+            keys = self._suggest(term, subj.group(0))
+        except Exception:
+            return False
+        for key in keys[:3]:
+            try:
+                if any(cam in self.campuses for cam, _ in self._sections(key)):
+                    return True
+            except Exception:
+                continue
+        return False
+
+    def refresh_term(self, log=None, today=None):
+        """Roll the pinned term forward ONLY once it has ENDED, never early.
+
+        Rolling early is the dangerous direction: VSB loads future terms months ahead
+        (Spring 2027 already returned sections in July 2026), so the usual 'newest term
+        with live data' rule would have jumped every college a full term ahead and
+        silently starved current watchers of alerts. Rolling late merely costs a manual
+        bump. So: keep the pinned term until its own season is over, then take the next
+        dateable term in the menu that is still live AND verifiably has this college's
+        sections; otherwise keep last-known-good."""
+        menu = self._menu()
+        if not menu:
+            return
+        names = dict(menu)
+        codes = [c for c, _ in menu]
+        cur = self.cur_term()
+        today = today or datetime.date.today()
+        end = self._term_end(names.get(cur))
+        if cur not in codes or end is None or today <= end:
+            return                            # still current (or unknown) -> never roll
+        for code in codes[codes.index(cur) + 1:]:          # forward only
+            nend = self._term_end(names.get(code))
+            if nend is None or nend < today:
+                continue                      # already over too
+            prev = self._active_term
+            self._active_term = code
+            if self._probe(code):
+                if log:
+                    log(f"[term] {self.id}: term auto-updated {cur} -> {code} "
+                        f"({names.get(code)})")
+                return
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: {cur} ({names.get(cur)}) ended but {code} has no "
+                    f"live data yet — keeping {cur}")
+            return
 
 
 class ContraCostaCollege(VSB):
