@@ -6333,6 +6333,12 @@ class CSUChico(PeopleSoft):
     example = "MATH 105"; host = "cmsweb.csuchico.edu"; site = "CCHIPRD"
     inst = "CHICO"; term = "2268"      # Fall 2026
 
+class CSUChannelIslands(PeopleSoft):
+    # Host also answers on seg HRMS; SA is used for consistency with the rest of the fleet.
+    id = "csuci"; name = "California State University Channel Islands"
+    example = "BIOL 200"; host = "cmsweb.csuci.edu"; site = "CCIPRD"
+    inst = "CI"; term = "2268"         # Fall 2026
+
 class IllinoisCentral(PeopleSoft):
     # Portal segment is /CAMP/, not the usual /SA/ — see PeopleSoft.seg.
     id = "illinoiscentral"; name = "Illinois Central College"
@@ -8783,7 +8789,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                              ConcordiaTX(), TAMUSanAntonio(), TAMUCentralTexas(), UDallas(),
                              Immaculata(), RoseHulman(), Earlham(), EmporiaState(),
                              Towson(), UVA(), USM(), Palomar(), BostonUniversity(), Coppin(),
-                             CSUChico(), IllinoisCentral(),
+                             CSUChico(), IllinoisCentral(), CSUChannelIslands(),
                              LoyolaNO(), UnionNY(), ManchesterU(), Whitman(), Linfield(),
                              FranklinU(), Ursinus(), SalveRegina(), Cornerstone(), NorthPark(),
                              Gannon(), Mercyhurst(), SaintVincent(), Maryville(),
