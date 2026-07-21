@@ -6560,3 +6560,23 @@ Awaiting Nathan's go-ahead before any `schools.py` edit or builder handoff.
 Note `202710` = Fall **2026** (academic-year numbering runs a year ahead); term resolution keys off the
 DESCRIPTION, not the code. Scout cadence changed weekly -> **daily** on 2026-07-20; (a) and (c) are now
 baked into the scheduled task's probe instructions.
+
+### Daily scheduled CT-log run — July 21, 2026 — nothing actionable (745 live)
+
+**HOLD recheck:** Aurora University, Colorado Mountain, American Samoa CC, Columbus State — all still
+`FALL-LIVE=no`. No change.
+
+**CT-log discovery (certspotter, 8 domains, no rate-limit hit):** Dickinson State (`dickinsonstate.edu`),
+Peru State (`peru.edu`), Adams State (`adams.edu`), Mayville State (`mayvillestate.edu`), Valley City
+State (`vcsu.edu`), Minot State (`minotstateu.edu`) returned zero registration-looking subdomains.
+Fort Lewis College (`fortlewis.edu`) surfaced `banner.fortlewis.edu` (connection timed out — likely
+internal/VPN-only) and `enterpriseregistration.fortlewis.edu` (reachable but is an Ellucian Ethos
+integration API returning `{"odata.error":"Unsupported method or endpoint"}` on both classSearch and
+root — not the public guest SSB UI; also a TLS SAN mismatch, consistent with a shared multi-tenant
+Ellucian endpoint, not a school-specific guest surface). Western Colorado University (`western.edu`)
+surfaced `pbanner.western.edu` / `dbanner.western.edu`, both connection-timed-out (internal-only).
+No candidate cleared the live-guest-classSearch gate. Note for future runs: Colleague-hosted schools
+(self-service on `*.colleague.elluciancloud.com`) are invisible to this method since certspotter is
+queried per school-domain, not per Elluciano host — a known blind spot, not a bug.
+
+Zero gated, zero holds worth tracking. No `schools.py` edit.
