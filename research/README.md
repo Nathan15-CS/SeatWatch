@@ -6580,3 +6580,29 @@ No candidate cleared the live-guest-classSearch gate. Note for future runs: Coll
 queried per school-domain, not per Elluciano host — a known blind spot, not a bug.
 
 Zero gated, zero holds worth tracking. No `schools.py` edit.
+
+### Daily scheduled CT-log run — July 22, 2026 — nothing actionable (762 live)
+
+**HOLD recheck:** Aurora University, Colorado Mountain, American Samoa CC, Columbus State — all still
+`FALL-LIVE=no`. No change.
+
+**CT-log discovery (certspotter, 9 domains queried before 429s):** Delta State (`deltastate.edu`),
+Mississippi Valley State (`mvsu.edu`), Langston University (`langston.edu`) returned zero
+registration-looking subdomains. Four hosts surfaced but none cleared the live-guest-classSearch gate:
+- `banner.ferris.edu` (Ferris State) — connection timed out (internal/VPN-only), same pattern as prior
+  Fort Lewis / Western Colorado rejects.
+- `banssb.semo.edu` (Southeast Missouri State) — 404 at both the classSearch path and root; dead or
+  wrong path, no live service found.
+- `bannerbeis.ucmo.edu` (Central Missouri) — connection timed out (internal/VPN-only).
+- `banner.uncp.edu` (UNC Pembroke) — redirects to `banxp-uncp.uncecs.edu:9632/uncpprodApplicationNavigator`,
+  the staff-facing INB Application Navigator, not the public guest Student Registration SSB; the redirect
+  target itself timed out (internal-only).
+Two false-positive keyword matches worth noting for future filtering: `genesyssbc.uncfsu.edu` (Fayetteville
+State) matches on substring "ssb" but is Genesys Cloud telephony infrastructure, not Banner; `phausis.wcu.edu`
+(Western Carolina) matches on substring "sis" but is unrelated to student registration.
+**Rate-limited before probing (retry next run):** `hssu.edu` (Harris-Stowe State), `usao.edu` (Science and
+Arts of Oklahoma), and `alcorn.edu` (Alcorn State — note: `alcornstate.edu` was queried in error first and
+returned empty; the correct domain is `alcorn.edu`).
+No candidate cleared the gate. No `schools.py` edit.
+
+Zero gated, zero holds worth tracking.
