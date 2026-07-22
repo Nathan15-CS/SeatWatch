@@ -3490,6 +3490,12 @@ class ECU(Banner):
     id = "ecu"; name = "East Carolina University"
     example = "ENGL 1100"; host = "banprd-ssb-cld.ecu.edu"; term = "202680"
 
+class SamHoustonState(Banner):
+    # Summer 2026 (202640) is also non-View-Only, but the forward-only picker keeps Fall
+    # (202680) through add/drop. seatsAvailable authoritative, as always.
+    id = "shsu"; name = "Sam Houston State University"
+    example = "MATH 1314"; host = "banxeappx.shsu.edu"; term = "202680"
+
 class AngeloState(Banner):
     # 202710 IS Fall 2026 — ASU numbers by ACADEMIC year (AY 2026-27, term 10), so the code
     # looks a year ahead. The picker reads the description ("2026 FALL SEMESTER"), not the code.
@@ -9021,6 +9027,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),
     PascoHernando(), USI(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
+    SamHoustonState(),
     AshlandCTC(), BigSandyCTC(), BluegrassCTC(), ElizabethtownCTC(), GatewayKY(),
     HazardCTC(), HendersonCC(), HopkinsvilleCC(), JeffersonCTC(), MadisonvilleCC(),
     MaysvilleCTC(), OwensboroCTC(), SomersetCC(), SouthcentralKY(), SoutheastKY(),
