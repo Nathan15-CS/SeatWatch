@@ -8724,6 +8724,89 @@ class LosMedanos(VSB):
     example = "CHEM 006"
 
 
+class KCTCS(VSB):
+    """Kentucky Community & Technical College System — 16 colleges on ONE VSB host.
+    Public guest access (their own page invites non-students to browse).
+
+    Campus ownership comes from the host's OWN authority, not name patterns: mscams in
+    /api/v2/multiselectdata.js lists exactly 36 public campuses, each tagged with its
+    college. class-data's campus= attr uses precisely these campus-level ids
+    (live-verified: 5,931 sections across 60 courses -> 36 distinct values, 35 in the
+    map). Each subclass's `campuses` is its college's exact mscams set.
+
+    ⚠️ The 36th value, KCTCSiMYCEC ('Maysville CT E KY Correctional'), is EXCLUDED on
+    purpose: sections taught inside the Eastern Kentucky Correctional Complex, absent
+    from KCTCS's own public campus picker. A general Maysville student cannot enroll in
+    them, so alerting on their seats would be an eligibility false-open (Racer-Academy
+    class). A prefix-match rule (match any campus starting with the college's stem) was
+    considered and REJECTED: it would have swept MYCEC in, and stems cross college
+    lines in the location data (Ashland's own location list carries Maysville-stem
+    codes), so prefixes can mis-assign, not just over-include.
+
+    Term menu is just Summer 2026 (4262) + Fall 2026 (4264) — no premature future term;
+    auto-rolls via VSB.refresh_term. cams (needed by /suggestions only) = all 36."""
+    host = "kctvsbprd.ps.kctcs.edu"; term = "4264"           # Fall 2026
+    cams = ("KCTCSiACTC_KCTCSiBSC_KCTCSiBLC_KCTCSiECTC_KCTCSiECTCL_KCTCSiECTCS_"
+            "KCTCSiGTW_KCTCSiHZC_KCTCSiHZCKN_KCTCSiHZCLE_KCTCSiHZCLC_KCTCSiHZCTC_"
+            "KCTCSiHEC_KCTCSiHPC_KCTCSiHPCFC_KCTCSiJFC_KCTCSiJFCBC_KCTCSiJFCCA_"
+            "KCTCSiJFCSC_KCTCSiJFCSW_KCTCSiJFCTC_KCTCSiMDC_KCTCSiMYC_KCTCSiMYCRC_"
+            "KCTCSiMYCLV_KCTCSiMYCMC_KCTCSiOWC_KCTCSiSMC_KCTCSiSKY_KCTCSiSEC_"
+            "KCTCSiSECHA_KCTCSiSECKC_KCTCSiSECMD_KCTCSiSECPV_KCTCSiSECWH_KCTCSiWKCTC")
+    example = "ENG 101"
+
+class AshlandCTC(KCTCS):
+    id = "ashlandctc"; name = "Ashland Community & Technical College"
+    campuses = ("KCTCSiACTC",)
+class BigSandyCTC(KCTCS):
+    id = "bigsandyctc"; name = "Big Sandy Community & Technical College"
+    campuses = ("KCTCSiBSC",)
+class BluegrassCTC(KCTCS):
+    id = "bluegrassctc"; name = "Bluegrass Community & Technical College"
+    campuses = ("KCTCSiBLC",)
+class ElizabethtownCTC(KCTCS):
+    id = "elizabethtownctc"; name = "Elizabethtown Community & Technical College"
+    campuses = ("KCTCSiECTC", "KCTCSiECTCL", "KCTCSiECTCS")
+class GatewayKY(KCTCS):
+    id = "gatewayky"; name = "Gateway Community & Technical College"  # ≠ GateWay CC (AZ)
+    campuses = ("KCTCSiGTW",)
+class HazardCTC(KCTCS):
+    id = "hazardctc"; name = "Hazard Community & Technical College"
+    campuses = ("KCTCSiHZC", "KCTCSiHZCKN", "KCTCSiHZCLE", "KCTCSiHZCLC", "KCTCSiHZCTC")
+class HendersonCC(KCTCS):
+    id = "hendersoncc"; name = "Henderson Community College"
+    campuses = ("KCTCSiHEC",)
+class HopkinsvilleCC(KCTCS):
+    id = "hopkinsvillecc"; name = "Hopkinsville Community College"
+    campuses = ("KCTCSiHPC", "KCTCSiHPCFC")                  # + Fort Campbell
+class JeffersonCTC(KCTCS):
+    id = "jeffersonctc"; name = "Jefferson Community & Technical College"  # ≠ SUNY Jefferson
+    campuses = ("KCTCSiJFC", "KCTCSiJFCBC", "KCTCSiJFCCA",
+                "KCTCSiJFCSC", "KCTCSiJFCSW", "KCTCSiJFCTC")
+class MadisonvilleCC(KCTCS):
+    id = "madisonvillecc"; name = "Madisonville Community College"
+    campuses = ("KCTCSiMDC",)
+class MaysvilleCTC(KCTCS):
+    # KCTCSiMYCEC deliberately absent — correctional-facility sections, see KCTCS docstring
+    id = "maysvillectc"; name = "Maysville Community & Technical College"
+    campuses = ("KCTCSiMYC", "KCTCSiMYCRC", "KCTCSiMYCLV", "KCTCSiMYCMC")
+class OwensboroCTC(KCTCS):
+    id = "owensboroctc"; name = "Owensboro Community & Technical College"
+    campuses = ("KCTCSiOWC",)
+class SomersetCC(KCTCS):
+    id = "somersetcc"; name = "Somerset Community College"
+    campuses = ("KCTCSiSMC",)
+class SouthcentralKY(KCTCS):
+    id = "southcentralky"; name = "Southcentral Kentucky Community & Technical College"
+    campuses = ("KCTCSiSKY",)
+class SoutheastKY(KCTCS):
+    id = "southeastky"; name = "Southeast Kentucky Community & Technical College"
+    campuses = ("KCTCSiSEC", "KCTCSiSECHA", "KCTCSiSECKC",
+                "KCTCSiSECMD", "KCTCSiSECPV", "KCTCSiSECWH")
+class WestKentuckyCTC(KCTCS):
+    id = "westkentuckyctc"; name = "West Kentucky Community & Technical College"
+    campuses = ("KCTCSiWKCTC",)
+
+
 _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(),
                              CUBoulder(), Brown(), Yale(), NotreDame(), Emory(), Dartmouth(),
                              Wisconsin(), Iowa(),
@@ -8930,7 +9013,11 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     SantaAna(), SantiagoCanyon(), WabashValley(), OlneyCentral(), LincolnTrail(),
     SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),
     PascoHernando(), USI(),
-    ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState()])
+    ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(),
+    AshlandCTC(), BigSandyCTC(), BluegrassCTC(), ElizabethtownCTC(), GatewayKY(),
+    HazardCTC(), HendersonCC(), HopkinsvilleCC(), JeffersonCTC(), MadisonvilleCC(),
+    MaysvilleCTC(), OwensboroCTC(), SomersetCC(), SouthcentralKY(), SoutheastKY(),
+    WestKentuckyCTC()])
 
 
 def refresh_all_terms(log=None):
