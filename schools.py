@@ -2352,6 +2352,95 @@ class ClevelandState:
         return out
 
 
+class TennesseeTech:
+    """Tennessee Tech — a CUSTOM Banner 8 package. The standard bwckschd/bwckctlg guest
+    routes are DEAD here (empty/500), so this is bespoke: POST bwskttuclasses.P_DispClasses
+    with my_term + my_subject returns the WHOLE subject as a flat labelled table, no
+    session/reset needed. Columns: Subject | Course # | Section # | Call # | Title | Type
+    | Credit Hrs | Days | Begin | End | Location | Enrollment | Seats Available | Max.
+
+    open = 'Seats Available' > 0 (authoritative; clamp negatives to full). Key = Call #
+    (CRN). One POST per subject covers every watched course in it -> cached by (term,
+    subject); multi-meeting rows share a CRN and collapse in the CRN-keyed dict.
+
+    Standard Banner term auto-detect can't be used (its routes are dead), so the term is
+    PINNED and hand-bumped, like the ListcrseBanner8 siblings."""
+    id = "tntech"; name = "Tennessee Technological University"
+    example = "ENGL 1010"
+    base = "https://ttuss1.tntech.edu/PROD"
+    term = "202680"                        # Fall 2026; pinned (no auto-roll — routes dead)
+    _TTL = 300
+    _lock = threading.Lock()
+    _cache = {}                            # (term, subj) -> (ts, {crn: {open, seats, num}})
+    _RE = re.compile(r"^([A-Za-z]{2,4})\s*(\d{3,4}[A-Za-z]?)$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self.term
+
+    def reg_url(self, course):
+        return f"{self.base}/bwskttuclasses.P_DispClasses"
+
+    def _subject(self, subj):
+        """Whole-subject table -> {crn: {open, seats, num}}. Cached per (term, subject)."""
+        key = (self.term, subj)
+        with TennesseeTech._lock:
+            c = TennesseeTech._cache.get(key)
+            if c and time.time() - c[0] < self._TTL:
+                return c[1]
+        try:
+            req = urllib.request.Request(
+                f"{self.base}/bwskttuclasses.P_DispClasses",
+                data=f"my_term={self.term}&my_subject={urllib.parse.quote(subj)}".encode(),
+                headers={"User-Agent": UA, "Content-Type": "application/x-www-form-urlencoded"})
+            with urllib.request.urlopen(req, timeout=40) as r:
+                body = r.read()
+                if r.headers.get("Content-Encoding") == "gzip":
+                    body = gzip.decompress(body)
+                body = body.decode("utf-8", "replace")
+        except Exception:
+            return c[1] if c else {}       # transient -> last-known-good, never fabricate
+        out = {}
+        for row in re.findall(r"<tr[^>]*>(.*?)</tr>", body, re.S):
+            cells = [html.unescape(re.sub(r"<[^>]+>", "", x)).strip()
+                     for x in re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)]
+            if len(cells) < 14 or cells[0] != subj:
+                continue
+            if not re.match(r"^\d{4,6}$", cells[3] or ""):   # col3 = Call#/CRN
+                continue
+            try:
+                seats = int(cells[12])                       # col12 = Seats Available
+            except (TypeError, ValueError):
+                continue                   # no numeric count -> skip, never guess
+            out[cells[3]] = {"open": seats > 0, "seats": max(seats, 0), "num": cells[1].upper()}
+        if out:
+            with TennesseeTech._lock:
+                TennesseeTech._cache[key] = (time.time(), out)
+        return out
+
+    def fetch(self, courses):
+        out = {}
+        bysubj = {}
+        for course in courses:
+            subj, num = self._norm(course)
+            if subj:
+                bysubj.setdefault(subj, []).append((course, num))
+        for subj, wanted in bysubj.items():
+            table = self._subject(subj)
+            for course, num in wanted:
+                secs = {crn: {"open": v["open"], "seats": v["seats"]}
+                        for crn, v in table.items() if v["num"] == num}
+                if secs:
+                    out[course] = secs
+        return out
+
+
 class Fairfield:
     """Fairfield University — public course-search API (course-search-net.fairfield.edu)
     returns the WHOLE catalog (~2,250 rows, ~1.7MB) with NO server-side term/course filter,
@@ -9163,6 +9252,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     PascoHernando(), USI(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
     SamHoustonState(), ClevelandState(), JacksonvilleState(), OaklandU(), ETSU(),
+    TennesseeTech(),
     AshlandCTC(), BigSandyCTC(), BluegrassCTC(), ElizabethtownCTC(), GatewayKY(),
     HazardCTC(), HendersonCC(), HopkinsvilleCC(), JeffersonCTC(), MadisonvilleCC(),
     MaysvilleCTC(), OwensboroCTC(), SomersetCC(), SouthcentralKY(), SoutheastKY(),
