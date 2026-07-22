@@ -3483,6 +3483,13 @@ class FAU(Banner):
     id = "fau"; name = "Florida Atlantic University"
     example = "COP 3035C"; host = "bannerxe.fau.edu"; term = "202608"
 
+class ECU(Banner):
+    # openSection is near-meaningless here (True on hundreds of 0-seat rows) — the base's
+    # seatsAvailable rule is what keeps this school honest. Medical/Dental run in their own
+    # View-Only terms, so the main term is the general population.
+    id = "ecu"; name = "East Carolina University"
+    example = "ENGL 1100"; host = "banprd-ssb-cld.ecu.edu"; term = "202680"
+
 class AngeloState(Banner):
     # 202710 IS Fall 2026 — ASU numbers by ACADEMIC year (AY 2026-27, term 10), so the code
     # looks a year ahead. The picker reads the description ("2026 FALL SEMESTER"), not the code.
@@ -9013,7 +9020,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     SantaAna(), SantiagoCanyon(), WabashValley(), OlneyCentral(), LincolnTrail(),
     SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),
     PascoHernando(), USI(),
-    ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(),
+    ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
     AshlandCTC(), BigSandyCTC(), BluegrassCTC(), ElizabethtownCTC(), GatewayKY(),
     HazardCTC(), HendersonCC(), HopkinsvilleCC(), JeffersonCTC(), MadisonvilleCC(),
     MaysvilleCTC(), OwensboroCTC(), SomersetCC(), SouthcentralKY(), SoutheastKY(),
