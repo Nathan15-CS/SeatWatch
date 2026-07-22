@@ -125,6 +125,36 @@ STRIPE_PUBLISHABLE_KEY = os.environ.get("STRIPE_PUBLISHABLE_KEY", "")
 STRIPE_WEBHOOK_SECRET = os.environ.get("STRIPE_WEBHOOK_SECRET", "")
 PAID_LIVE = bool(PAID_ENABLED and STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET)
 
+# --- SMS alerts (Twilio) — ships DORMANT behind SMS_ENABLED (default off): until that
+# flag is "1" no SMS is ever sent, the opt-in UI renders nothing and the /sms routes 404.
+# Go-live is a SEPARATE gate from the code existing: A2P 10DLC registration + Twilio
+# prepaid balance with auto-recharge OFF (the only ceiling no code bug can bypass) +
+# Nathan's explicit go. SMS is PAID-TIER ONLY (enforced inside send_sms, not at call
+# sites): every recipient paid ~$20/term and a text costs ~1¢, so volume growth is
+# self-funding by construction — the unbounded-cost case only exists if free users get
+# SMS, so they never do. Every cap below is DERIVED from the alert_log ledger at check
+# time, never held in memory: the poller restarts on every deploy, and an in-memory
+# counter would let a crashing runaway loop reset its own circuit breaker. ---
+SMS_ENABLED = os.environ.get("SMS_ENABLED") == "1"
+TWILIO_SID = os.environ.get("TWILIO_ACCOUNT_SID", "")
+TWILIO_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "")
+TWILIO_FROM = os.environ.get("TWILIO_FROM", "")          # E.164 number or Messaging Service SID
+SMS_LIVE = bool(SMS_ENABLED and TWILIO_SID and TWILIO_TOKEN and TWILIO_FROM)
+SMS_COST_CENTS = int(os.environ.get("SMS_COST_CENTS", "1"))          # ledger estimate/segment
+# Cost-safety knobs — env vars, not constants: they are stage-appropriate catastrophe
+# floors Nathan raises in seconds as real volume grows, never permanent growth ceilings.
+SMS_DAILY_CAP_CENTS = int(os.environ.get("SMS_DAILY_CAP_CENTS", "2000"))   # $20/day site-wide
+SMS_PER_WATCH_MAX = int(os.environ.get("SMS_PER_WATCH_MAX", "3"))    # >3 on one watch = a bug
+SMS_PER_USER_DAILY = int(os.environ.get("SMS_PER_USER_DAILY", "15"))
+SMS_DEDUP_SECS = int(os.environ.get("SMS_DEDUP_SECS", "3600"))       # retry-storm shield
+SMS_VELOCITY_PER_MIN = int(os.environ.get("SMS_VELOCITY_PER_MIN", "30"))
+SMS_VELOCITY_FLOOR = int(os.environ.get("SMS_VELOCITY_FLOOR", "50"))  # breaker can't trip under
+                                                                      # this many sends today
+SMS_CONSENT_WORDING = ("I agree to receive automated seat-alert text messages from SeatWatch "
+                       "at the number I provided. Message frequency varies by watched classes. "
+                       "Msg&data rates may apply. Reply STOP to cancel, HELP for help. "
+                       "Consent is not a condition of purchase.")
+
 PLAN_MSG = ("Your free plan covers 1 class — up to 2 of its sections. Stop watching "
             "your current class below to switch classes.")
 
@@ -229,6 +259,43 @@ def init_db():
             p256dh   TEXT NOT NULL,
             auth     TEXT NOT NULL,
             created  REAL NOT NULL)""")
+        # --- alert delivery ledger: append-only, one row per channel that reported
+        # success. The SINGLE source of truth three features query: SMS cost caps
+        # (per-watch / per-user / dedup / velocity / daily spend are all derived from it
+        # at check time — nothing in memory, so a poller restart can't reset a breaker),
+        # refund eligibility ("was this account ever alerted since purchase" — the
+        # watches.alerted latch resets when a section refills, so it can't answer that),
+        # and the TCPA audit trail of what was sent to whom when. Rows with channel
+        # 'sms_breaker' are circuit-breaker trip markers, not deliveries — cost 0, and
+        # written so the daily pause survives restarts. ---
+        c.execute("""CREATE TABLE IF NOT EXISTS alert_log(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id    INTEGER,
+            watch_id   INTEGER,
+            school     TEXT,
+            course     TEXT,
+            section    TEXT,
+            channel    TEXT NOT NULL,          -- ntfy | webpush | email | sms | sms_breaker
+            cost_cents INTEGER NOT NULL DEFAULT 0,
+            sent_at    REAL NOT NULL)""")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_alog_chan_time ON alert_log(channel, sent_at)")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_alog_user ON alert_log(user_id, channel, sent_at)")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_alog_watch ON alert_log(watch_id, channel)")
+        # --- SMS consent (TCPA): durable record of exactly who agreed to what, when,
+        # from which IP, in which words. Double opt-in: a row is REQUESTED at form
+        # submit and only CONFIRMED when the user texts back YES; revoked_at set by
+        # STOP. send_sms refuses anything but (confirmed, not revoked). ---
+        c.execute("""CREATE TABLE IF NOT EXISTS sms_consent(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id      INTEGER NOT NULL,
+            phone        TEXT NOT NULL,        -- E.164
+            wording      TEXT NOT NULL,        -- exact consent text shown at opt-in
+            ip           TEXT,
+            requested_at REAL NOT NULL,
+            confirmed_at REAL,
+            revoked_at   REAL)""")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_smsc_user ON sms_consent(user_id, requested_at)")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_smsc_phone ON sms_consent(phone)")
 
 
 # ------------------------------------------------------------------- auth
@@ -1588,6 +1655,37 @@ def push_block(tok):
     return PUSH_BLOCK.replace("__CSRF__", tok).replace("__VAPIDPK__", VAPID_PUBLIC_KEY)
 
 
+def sms_block(user, tok):
+    """Text-alert opt-in for PAID users. Renders nothing while SMS is dormant, for free
+    users, and for anyone already confirmed — so the page is byte-identical to before
+    unless SMS is live AND this user can actually use it."""
+    if not SMS_ENABLED or not user or effective_tier(user) < 1:
+        return ""
+    with db() as c:
+        row = c.execute("SELECT phone, confirmed_at, revoked_at FROM sms_consent WHERE "
+                        "user_id=? ORDER BY id DESC LIMIT 1", (user["id"],)).fetchone()
+    if row and row["confirmed_at"] and not row["revoked_at"]:
+        return ('<div style="margin-top:14px;border-top:1px solid #F3F4F6;padding-top:13px">'
+                '<p class="note" style="margin:0">📱 Text alerts are ON for '
+                f'<b>••• ••• {html.escape(row["phone"][-4:])}</b>. Reply STOP to any '
+                'alert to turn them off.</p></div>')
+    pending = ('<p class="note" style="margin:0 0 8px">We texted you — reply <b>YES</b> '
+               'to finish turning on SMS alerts.</p>') if row and not row["revoked_at"] else ""
+    return (f'<div style="margin-top:14px;border-top:1px solid #F3F4F6;padding-top:13px">'
+            f'{pending}<form method="post" action="/sms/optin" style="margin:0">'
+            f'<input type="hidden" name="csrf" value="{tok}">'
+            f'<label>Text alerts <small>— fastest channel, paid plans only</small></label>'
+            f'<input name="phone" type="tel" placeholder="e.g. 301 555 0123" '
+            f'autocomplete="tel" required>'
+            f'<label style="display:flex;gap:8px;align-items:flex-start;font-weight:400;'
+            f'font-size:12.5px;line-height:1.5;margin-top:8px;text-transform:none;'
+            f'letter-spacing:0"><input type="checkbox" name="sms_consent" value="1" '
+            f'required style="margin-top:2px;flex:none;width:auto">'
+            f'<span>{html.escape(SMS_CONSENT_WORDING)}</span></label>'
+            f'<button type="submit" style="margin-top:10px">Enable text alerts</button>'
+            f'</form></div>')
+
+
 def form_page(notice="", user=None):
     if user is None:
         card = (CARD_LOGIN.replace("__NOTICE__", notice)
@@ -1613,7 +1711,7 @@ def form_page(notice="", user=None):
                 .replace("__SECFIELD__", secfield)
                 .replace("__PLANNOTE__", plannote)
                 .replace("__EMAIL__", html.escape(user["email"]))
-                .replace("__PUSHBLOCK__", push_block(tok))
+                .replace("__PUSHBLOCK__", push_block(tok) + sms_block(user, tok))
                 .replace("__CSRF__", tok)
                 .replace("__WATCHES__", watches_html(user["id"], tok))
                 .replace("__SCHOOLS__", SCHOOLS_JS))
@@ -1937,7 +2035,26 @@ class Handler(BaseHTTPRequestHandler):
                 sw.log(f"  [stripe] apply failed: {e}")
                 return self._send_json({"ok": False}, 500)   # let Stripe retry
             return self._send_json({"ok": True})
-        if path not in ("/watch", "/unwatch", "/push/subscribe", "/auth/apple"):
+        if path == "/sms/inbound":
+            # Twilio calls this server-to-server for student replies (STOP/YES/HELP).
+            # No session; authenticity = X-Twilio-Signature HMAC over url+params. 404
+            # while dormant so the surface doesn't exist until SMS does.
+            if not SMS_ENABLED:
+                return self._send(page("<p>Not found.</p>"), 404)
+            length = max(0, min(int(self.headers.get("Content-Length", 0) or 0), 8192))
+            form = {k: v[0] for k, v in parse_qs(
+                self.rfile.read(length).decode("utf-8", "replace")).items()}
+            if not _twilio_verify(BASE_URL + "/sms/inbound", form,
+                                  self.headers.get("X-Twilio-Signature", "")):
+                return self._send_json({"ok": False}, 403)
+            reply = sms_apply_inbound(form.get("From", ""), form.get("Body", ""))
+            twiml = ("<?xml version='1.0' encoding='UTF-8'?><Response>"
+                     + (f"<Message>{html.escape(reply)}</Message>" if reply else "")
+                     + "</Response>")
+            return self._send_bytes(twiml.encode(), "text/xml; charset=utf-8",
+                                    cache="no-store")
+        if path not in ("/watch", "/unwatch", "/push/subscribe", "/auth/apple",
+                        "/sms/optin"):
             return self._send(page("<p>Not found.</p>"), 404)
 
         # (1) rate limit FIRST — blocks form-flooding before any work is done
@@ -1972,6 +2089,43 @@ class Handler(BaseHTTPRequestHandler):
         # (2) WHO IS THIS? Signed session cookie or nothing. Entitlements are
         # per-account — an anonymous POST can no longer create watches at all.
         user = self._user()
+
+        if path == "/sms/optin":            # form POST from the signed-in card
+            if not SMS_ENABLED:
+                return self._send(page("<p>Not found.</p>"), 404)
+            if not user:
+                return self._redirect("/login")
+            oform = parse_qs(raw_body)
+            if not hmac.compare_digest(oform.get("csrf", [""])[0], csrf_token(user["id"])):
+                return self._notice("Session expired — please try again.", user=user)
+            if effective_tier(user) < 1:
+                return self._notice("Text alerts are part of the paid plans.", user=user)
+            phone = _norm_phone(oform.get("phone", [""])[0])
+            if not phone:
+                return self._notice("That phone number doesn't look right — use a US "
+                                    "10-digit number.", user=user)
+            if not oform.get("sms_consent"):
+                return self._notice("Please check the consent box to enable text alerts.",
+                                    user=user)
+            # Durable consent record: who, what wording, when, from where. NOT yet
+            # confirmed — that happens only when they text back YES (double opt-in).
+            with db() as c:
+                c.execute("INSERT INTO sms_consent(user_id,phone,wording,ip,requested_at) "
+                          "VALUES(?,?,?,?,?)",
+                          (user["id"], phone, SMS_CONSENT_WORDING, self._client_ip(),
+                           time.time()))
+            confirm_sent = False
+            if SMS_LIVE:
+                try:
+                    confirm_sent = _twilio_post(
+                        phone, "SeatWatch: reply YES to confirm seat-alert texts. "
+                               "Msg&data rates may apply. Reply STOP to cancel, HELP for help.")
+                except Exception as e:
+                    sw.log(f"  [sms] confirm send failed: {type(e).__name__}")
+            return self._notice("Almost done — reply YES to the text we just sent to "
+                                "turn on SMS alerts." if confirm_sent else
+                                "Number saved. Text alerts will activate once SMS "
+                                "service is live.", user=user)
 
         if path == "/push/subscribe":       # JSON body, JSON reply
             if not user:
@@ -2448,6 +2602,209 @@ def send_email(to, subject, body_text, url):
         return False
 
 
+# ------------------------------------------------------------------- SMS (dormant)
+def _day_start(now=None):
+    """Epoch of local midnight — the boundary for 'today' in every daily cap."""
+    t = time.localtime(now if now is not None else time.time())
+    return (now if now is not None else time.time()) - (t.tm_hour * 3600 + t.tm_min * 60 + t.tm_sec)
+
+
+def _log_alert(r, channel, cost=0):
+    """Append one delivery to the ledger. Never raises — a logging failure must not
+    block the alert itself (the send already happened)."""
+    try:
+        with db() as c:
+            c.execute("INSERT INTO alert_log(user_id,watch_id,school,course,section,"
+                      "channel,cost_cents,sent_at) VALUES(?,?,?,?,?,?,?,?)",
+                      (r["user_id"] if "user_id" in r.keys() else None, r["id"],
+                       r["school"], r["course"], r["section"], channel, cost, time.time()))
+    except Exception as e:
+        sw.log(f"  [ledger] write failed ({channel}): {type(e).__name__}")
+
+
+def _sms_phone(user_id):
+    """The user's consented phone: newest consent row that is CONFIRMED (they texted
+    back YES) and not revoked (no STOP). Anything else -> None, no SMS."""
+    with db() as c:
+        row = c.execute("SELECT phone FROM sms_consent WHERE user_id=? AND "
+                        "confirmed_at IS NOT NULL AND revoked_at IS NULL "
+                        "ORDER BY id DESC LIMIT 1", (user_id,)).fetchone()
+    return row["phone"] if row else None
+
+
+def _twilio_post(to, body):
+    """One SMS via Twilio's REST API, stdlib only. Returns True on 2xx accept."""
+    url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_SID}/Messages.json"
+    field = "MessagingServiceSid" if TWILIO_FROM.startswith("MG") else "From"
+    data = urllib.parse.urlencode({"To": to, field: TWILIO_FROM, "Body": body}).encode()
+    auth = base64.b64encode(f"{TWILIO_SID}:{TWILIO_TOKEN}".encode()).decode()
+    req = urllib.request.Request(url, data=data,
+                                 headers={"Authorization": f"Basic {auth}",
+                                          "User-Agent": UA})
+    with urllib.request.urlopen(req, timeout=15) as resp:
+        return 200 <= resp.status < 300
+
+
+_sms_paged = set()   # which cap trips were already operator-paged today (page once, not
+                     # per cycle; cosmetic only — the CAPS themselves are ledger-derived)
+
+
+def send_sms(user_id, r, message, url):
+    """Deliver one seat alert by SMS, spending real money — so this function is where
+    EVERY cost gate lives, structurally, not at call sites. Returns True only when
+    Twilio accepted the message. Any refusal returns False silently toward the caller:
+    _alert fires web-push/email/ntfy regardless, so capping SMS switches channels and
+    never suppresses the student's alert (the existing DELIVERED-TO-NOBODY page still
+    covers the nobody-reachable case).
+
+    Order of gates (cheapest first, all ledger-derived):
+      dormant -> paid tier (HARD: free users never get SMS, that's what makes growth
+      self-funding) -> consent (confirmed double opt-in, no STOP) -> per-watch latch
+      (ONE text per watch: a flickering section costs exactly one SMS — push/email keep
+      re-arming, they're free; another SMS requires the user to re-create the watch,
+      and even then the per-(course,section) cap below bounds total spend) -> 1h dedup
+      (retry storms) -> per-course cap -> per-user daily -> daily $ ceiling -> velocity
+      breaker (a loop is a vertical spike; growth is a slope — the floor keeps tiny
+      legitimate volume from ever tripping it)."""
+    if not SMS_LIVE:
+        return False
+    if not user_id:
+        return False
+    with db() as c:
+        u = c.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
+    if not u or effective_tier(u) < 1:
+        return False                       # PAID ONLY — refused here, not by callers
+    phone = _sms_phone(user_id)
+    if not phone:
+        return False
+    now = time.time()
+    day0 = _day_start(now)
+    wid = r["id"]
+    with db() as c:
+        # one SMS per watch, ever (manual re-create is the only re-arm)
+        if c.execute("SELECT 1 FROM alert_log WHERE watch_id=? AND channel='sms' LIMIT 1",
+                     (wid,)).fetchone():
+            return False
+        # retry-storm dedup: same user+course+section within the window
+        if c.execute("SELECT 1 FROM alert_log WHERE user_id=? AND course=? AND section=? "
+                     "AND channel='sms' AND sent_at>? LIMIT 1",
+                     (user_id, r["course"], r["section"], now - SMS_DEDUP_SECS)).fetchone():
+            return False
+        # per-(user,course,section) cap — survives watch re-creation, which is what
+        # makes SMS_PER_WATCH_MAX reachable rather than dead code behind the latch
+        n = c.execute("SELECT COUNT(*) FROM alert_log WHERE user_id=? AND course=? AND "
+                      "section=? AND channel='sms' AND sent_at>?",
+                      (user_id, r["course"], r["section"], now - 180 * 86400)).fetchone()[0]
+        if n >= SMS_PER_WATCH_MAX:
+            if (user_id, r["course"], "watchcap") not in _sms_paged:
+                _sms_paged.add((user_id, r["course"], "watchcap"))
+                operator_alert(f"SMS per-watch cap hit: user {user_id} {r['course']}-"
+                               f"{r['section'] or 'ALL'} reached {SMS_PER_WATCH_MAX} texts "
+                               "— almost certainly a bug, investigate.")
+            return False
+        # per-user daily
+        n = c.execute("SELECT COUNT(*) FROM alert_log WHERE user_id=? AND channel='sms' "
+                      "AND sent_at>?", (user_id, day0)).fetchone()[0]
+        if n >= SMS_PER_USER_DAILY:
+            return False                   # falls back to free channels; log-only
+        # site-wide daily $ ceiling (env-tunable catastrophe floor, not a growth cap)
+        spent = c.execute("SELECT COALESCE(SUM(cost_cents),0) FROM alert_log WHERE "
+                          "channel='sms' AND sent_at>?", (day0,)).fetchone()[0]
+        if spent + SMS_COST_CENTS > SMS_DAILY_CAP_CENTS:
+            if "dailycap" not in _sms_paged:
+                _sms_paged.add("dailycap")
+                operator_alert(f"💸 SMS daily cap ${SMS_DAILY_CAP_CENTS/100:.2f} reached — "
+                               "SMS paused until midnight, alerts falling back to "
+                               "push/email. Raise SMS_DAILY_CAP_CENTS if this is growth.")
+            return False
+        # circuit breaker: already tripped today? (durable — it's a ledger row, so a
+        # crashing runaway loop cannot reset it by restarting the process)
+        if c.execute("SELECT 1 FROM alert_log WHERE channel='sms_breaker' AND sent_at>? "
+                     "LIMIT 1", (day0,)).fetchone():
+            return False
+        # velocity: vertical spike = loop signature; the floor keeps small real volume
+        # from ever tripping it
+        today_n = c.execute("SELECT COUNT(*) FROM alert_log WHERE channel='sms' AND "
+                            "sent_at>?", (day0,)).fetchone()[0]
+        minute_n = c.execute("SELECT COUNT(*) FROM alert_log WHERE channel='sms' AND "
+                             "sent_at>?", (now - 60,)).fetchone()[0]
+        if today_n >= SMS_VELOCITY_FLOOR and minute_n >= SMS_VELOCITY_PER_MIN:
+            c.execute("INSERT INTO alert_log(user_id,watch_id,school,course,section,"
+                      "channel,cost_cents,sent_at) VALUES(NULL,NULL,'','','',"
+                      "'sms_breaker',0,?)", (now,))
+            operator_alert(f"🚨 SMS VELOCITY BREAKER: {minute_n} texts/min with {today_n} "
+                           "today — looks like a loop, not growth. SMS paused until "
+                           "midnight; alerts falling back to push/email.")
+            return False
+    try:
+        ok = _twilio_post(phone, f"SeatWatch: {message} Register now: {url} (Reply STOP to opt out)")
+    except Exception as e:
+        sw.log(f"  [sms] send failed to user {user_id}: {type(e).__name__}: {str(e)[:80]}")
+        return False
+    if ok:
+        _log_alert(r, "sms", SMS_COST_CENTS)
+    return ok
+
+
+def _norm_phone(raw):
+    """US-defaulted E.164 or None. A wrong format returns None (no SMS), never a guess."""
+    d = re.sub(r"\D", "", raw or "")
+    if len(d) == 10:
+        return "+1" + d
+    if len(d) == 11 and d.startswith("1"):
+        return "+" + d
+    return None
+
+
+def _twilio_verify(url, params, signature):
+    """Twilio webhook auth: base64(HMAC-SHA1(auth_token, url + params sorted by key,
+    concatenated key+value)). Constant-time compare; False on anything malformed."""
+    if not TWILIO_TOKEN or not signature:
+        return False
+    try:
+        s = url + "".join(k + v for k, v in sorted(params.items()))
+        want = base64.b64encode(hmac.new(TWILIO_TOKEN.encode(), s.encode(),
+                                         hashlib.sha1).digest()).decode()
+        return hmac.compare_digest(want, signature)
+    except Exception:
+        return False
+
+
+def sms_apply_inbound(from_phone, body):
+    """Handle a student's reply text. STOP revokes consent (durable, effective
+    immediately); YES/START confirms the double opt-in (or re-subscribes after a STOP);
+    HELP gets a help reply. Returns the reply text to send back, or None for silence.
+    Twilio's own Advanced Opt-Out also enforces STOP at the carrier level — this keeps
+    OUR consent records authoritative rather than relying on theirs."""
+    word = (body or "").strip().upper().split()[:1]
+    word = word[0] if word else ""
+    now = time.time()
+    if word in ("STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "END", "QUIT"):
+        with db() as c:
+            c.execute("UPDATE sms_consent SET revoked_at=? WHERE phone=? AND revoked_at IS NULL",
+                      (now, from_phone))
+        sw.log(f"  [sms] STOP from {from_phone[-4:].rjust(4, '*')}")
+        return None                        # Twilio sends the compliance STOP reply itself
+    if word in ("YES", "START", "UNSTOP", "SUBSCRIBE"):
+        with db() as c:
+            row = c.execute("SELECT id, confirmed_at, revoked_at FROM sms_consent WHERE "
+                            "phone=? ORDER BY id DESC LIMIT 1", (from_phone,)).fetchone()
+            if not row:
+                return None                # a YES from a number that never opted in: ignore
+            if row["revoked_at"] is not None:
+                # re-subscribe after STOP: fresh confirmation on the newest record
+                c.execute("UPDATE sms_consent SET revoked_at=NULL, confirmed_at=? WHERE id=?",
+                          (now, row["id"]))
+            elif row["confirmed_at"] is None:
+                c.execute("UPDATE sms_consent SET confirmed_at=? WHERE id=?", (now, row["id"]))
+        return ("SeatWatch: you're confirmed for seat alerts. Msg frequency varies. "
+                "Msg&data rates may apply. Reply STOP to cancel, HELP for help.")
+    if word == "HELP":
+        return ("SeatWatch seat alerts. Support: support@seatwatchapp.com. "
+                "Msg&data rates may apply. Reply STOP to cancel.")
+    return None
+
+
 _undelivered = set()   # watch_ids whose last alert reached NOBODY (retrying each cycle)
 
 
@@ -2469,9 +2826,20 @@ def _alert(r, message, url):
         if row and row["email"]:
             emailed = send_email(row["email"], f"Seat open: {r['course']} — go register",
                                  message + " Register now before it fills again.", url)
-    delivered = bool(ok) or (pushed > 0) or emailed
+    texted = send_sms(uid, r, message, url)     # no-op unless SMS_LIVE + paid + consented
+    # Ledger: one row per channel that reported success. ntfy is logged but is NOT
+    # proof a human was reached (a publish to a topic with no subscribers still returns
+    # 200) — refund/reachability queries should count webpush/email/sms rows only.
+    if ok:
+        _log_alert(r, "ntfy")
+    if pushed:
+        _log_alert(r, "webpush")
+    if emailed:
+        _log_alert(r, "email")
+    delivered = bool(ok) or (pushed > 0) or emailed or texted
     sw.log(f"  ALERT {r['course']}-{r['section'] or 'ALL'} -> {r['topic']} "
            f"(ntfy {'sent' if ok else 'FAILED'}; web-push {pushed}; email {'sent' if emailed else 'off'}"
+           f"; sms {'sent' if texted else 'off'}"
            f"{'; ⚠️DELIVERED-TO-NOBODY' if not delivered else ''})")
     wid = r["id"]
     if not delivered:
