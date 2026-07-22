@@ -13,6 +13,7 @@ Normalized section shape:  {section_id: {"open": bool, "seats": int|None}}
 """
 import datetime
 import gzip
+import html
 import http.cookiejar
 import json
 import re
@@ -2234,6 +2235,114 @@ class OxnardCollege(VCCCD):
 class VenturaCollege(VCCCD):
     id = "venturacollege"; name = "Ventura College"
     example = "ENGL V01A"; campus_desc = "Ventura College"
+
+
+class ClevelandState:
+    """Cleveland State University — Jenzabar CampusNet, guest access (no login). One AJAX
+    servlet returns an XML envelope whose CDATA holds an HTML class table.
+
+    ⚠️ OPEN = Stat=='O' AND a real free seat. The seat pair is Enrl/Tot (enrolled /
+    capacity), and a CANCELLED section (Stat=='X') shows 0/Tot — enrolled<capacity would
+    read as maximally OPEN, so deriving open from the seat math alone false-alerts on
+    every cancelled class (live-verified: all 14 MTH cancellations were 0/N). Stat is
+    authoritative: O=open, C=full, X=cancelled -> fail closed. Requiring enr<tot too
+    means an over-enrolled 'O' can never false-open either.
+
+    ⚠️ Careers (UGRD/GRAD/LAW/CNED) are SEPARATE result sets — a subject's sections split
+    across them (MTH: 84 undergrad + 7 grad; LAW lives only under LAW), so we query all
+    four and merge by ClassNr (the unique key), or a grad/law watcher silently misses
+    sections. catalognbr filters server-side to exactly one course, so each response is
+    already course-scoped (no header-to-row association to parse).
+
+    Future terms (118-Spring 2027, 119-Summer 2027) are already listed, so the term is
+    PINNED and hand-bumped (auto_term off) — biasing late per the roll-off rule."""
+    id = "clevelandstate"; name = "Cleveland State University"
+    example = "MTH 167"
+    host = "campusnet.csuohio.edu"
+    term = "117-Fall 2026"                 # pinned; future terms already public
+    auto_term = False
+    _CAREERS = ("UGRD", "GRAD", "LAW", "CNED")
+    _TTL = 120
+    _lock = threading.Lock()
+    _cache = {}                            # (subj, cat) -> (ts, {classnr: {open, seats}})
+    _RE = re.compile(r"^([A-Za-z]{2,4})\s*(\d{3}[A-Za-z]?)$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self.term
+
+    def reg_url(self, course):
+        return f"https://{self.host}/guest/search_guest.jsp"
+
+    def _session(self):
+        cj = http.cookiejar.CookieJar()
+        op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+        op.addheaders = [("User-Agent", UA)]
+        op.open(f"https://{self.host}/guest/search_guest.jsp", timeout=20).read()
+        return op
+
+    def _query(self, op, subj, cat, career):
+        url = (f"https://{self.host}/AJAX/AJAXMasterServlet"
+               "?AJAXClassName=AJAX.Ajax_ClassSearch&function=getClasessResults"
+               f"&termVal={urllib.parse.quote(self.term)}&acadVal={career}"
+               f"&subject={subj}&catalognbr={urllib.parse.quote(cat)}")
+        raw = op.open(url, timeout=30).read().decode("utf-8", "replace")
+        m = re.search(r"<!\[CDATA\[(.*?)\]\]>", raw, re.S)
+        tbl = m.group(1) if m else ""
+        out = {}
+        for row in re.split(r"<tr[^>]*>", tbl):
+            cells = [html.unescape(re.sub(r"<[^>]+>", "", c)).strip()
+                     for c in re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)]
+            cells = [c for c in cells if c.strip()]
+            # a class-header row LEADS with the numeric ClassNr; continuation rows (extra
+            # meeting patterns) don't, so they're skipped and never overwrite the key
+            if len(cells) < 4 or not re.match(r"^\d{3,6}$", cells[0]):
+                continue
+            sm = re.search(r"(\d+)\s*/\s*(\d+)", cells[-1])
+            st = re.search(r"\b([OCX])\b", " ".join(cells[-3:]))
+            if not (sm and st):
+                continue                   # no seat pair or status -> skip, never guess
+            enr, tot = int(sm.group(1)), int(sm.group(2))
+            out[cells[0]] = {"open": st.group(1) == "O" and enr < tot,
+                             "seats": max(tot - enr, 0)}
+        return out
+
+    def fetch(self, courses):
+        out = {}
+        op = None
+        for course in courses:
+            subj, cat = self._norm(course)
+            if not subj:
+                continue
+            ckey = (subj, cat)
+            with ClevelandState._lock:
+                c = ClevelandState._cache.get(ckey)
+            if c and time.time() - c[0] < self._TTL:
+                if c[1]:
+                    out[course] = dict(c[1])
+                continue
+            if op is None:
+                try:
+                    op = self._session()
+                except Exception:
+                    return out             # can't even prime a session -> silent
+            merged = {}
+            try:
+                for career in self._CAREERS:
+                    merged.update(self._query(op, subj, cat, career))
+            except Exception:
+                continue                   # fail-safe: skip this course, never partial-guess
+            with ClevelandState._lock:
+                ClevelandState._cache[ckey] = (time.time(), merged)
+            if merged:
+                out[course] = merged
+        return out
 
 
 class Fairfield:
@@ -9027,7 +9136,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),
     PascoHernando(), USI(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
-    SamHoustonState(),
+    SamHoustonState(), ClevelandState(),
     AshlandCTC(), BigSandyCTC(), BluegrassCTC(), ElizabethtownCTC(), GatewayKY(),
     HazardCTC(), HendersonCC(), HopkinsvilleCC(), JeffersonCTC(), MadisonvilleCC(),
     MaysvilleCTC(), OwensboroCTC(), SomersetCC(), SouthcentralKY(), SoutheastKY(),
