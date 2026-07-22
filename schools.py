@@ -1919,6 +1919,13 @@ class MTSU(ListcrseBanner8):
     example = "ENGL 1010"; term = "202680"     # Fall 2026 (completed Spring = 202610)
     base = "https://ssb.mtsu.edu/pls/PROD"
 
+class ETSU(ListcrseBanner8):
+    # base MUST be lowercase /pls/prod — uppercase /pls/PROD silently returns
+    # "No classes found". TN sibling of MTSU on the same catalog route.
+    id = "etsu"; name = "East Tennessee State University"
+    example = "BIOL 1010"; term = "202680"     # Fall 2026; pro-school 202681/202682 pinned out
+    base = "https://selfserv.etsu.edu/pls/prod"
+
 class Framingham(ListcrseBanner8):
     id = "framingham"; name = "Framingham State University"
     example = "PSYC 101"; term = "202690"      # Fall 2026 HERE (per-host codes differ)
@@ -3604,6 +3611,25 @@ class SamHoustonState(Banner):
     # (202680) through add/drop. seatsAvailable authoritative, as always.
     id = "shsu"; name = "Sam Houston State University"
     example = "MATH 1314"; host = "banxeappx.shsu.edu"; term = "202680"
+
+class JacksonvilleState(Banner):
+    # Dual-enrollment / high-school sections (instructionalMethodDescription) carry open
+    # seats a general student cannot register for — an eligibility false-open, same as the
+    # UNA sibling. 32 such sections had open seats at gate time; _eligible drops them.
+    id = "jsu"; name = "Jacksonville State University"
+    example = "ACC 200"; host = "studentreg.jsu.edu"; term = "202710"
+    def _eligible(self, r):
+        m = (r.get("instructionalMethodDescription") or "").lower()
+        return "dual enroll" not in m and "high school" not in m
+
+class OaklandU(Banner):
+    # Use bstreg (JSON) NOT mysail (login SPA). auto_term OFF: getTerms lists a bogus
+    # "Continuing Education 2027-2028" (202733) as the highest code, and Oakland's real
+    # next primary term is a WINTER term the auto-picker won't adopt anyway — so pin Fall
+    # and hand-roll to 202710 when it closes. openSection is unreliable (True on
+    # waitlist-open full sections); seatsAvailable keeps it honest.
+    id = "oaklandu"; name = "Oakland University"       # != Oakland CC (Colleague)
+    example = "BIO 1200"; host = "bstreg.oakland.edu"; term = "202640"; auto_term = False
 
 class AngeloState(Banner):
     # 202710 IS Fall 2026 — ASU numbers by ACADEMIC year (AY 2026-27, term 10), so the code
@@ -9136,7 +9162,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),
     PascoHernando(), USI(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
-    SamHoustonState(), ClevelandState(),
+    SamHoustonState(), ClevelandState(), JacksonvilleState(), OaklandU(), ETSU(),
     AshlandCTC(), BigSandyCTC(), BluegrassCTC(), ElizabethtownCTC(), GatewayKY(),
     HazardCTC(), HendersonCC(), HopkinsvilleCC(), JeffersonCTC(), MadisonvilleCC(),
     MaysvilleCTC(), OwensboroCTC(), SomersetCC(), SouthcentralKY(), SoutheastKY(),
