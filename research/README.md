@@ -6606,3 +6606,24 @@ returned empty; the correct domain is `alcorn.edu`).
 No candidate cleared the gate. No `schools.py` edit.
 
 Zero gated, zero holds worth tracking.
+
+### Daily scheduled CT-log run — July 23, 2026 — nothing actionable (775 live)
+
+**HOLD recheck:** Aurora University, Colorado Mountain, American Samoa CC, Columbus State — all still
+`FALL-LIVE=no`. No change.
+
+**CT-log discovery (certspotter, 14 domains queried before 429s):** July-22 rate-limited retries cleared:
+`hssu.edu` (Harris-Stowe) and `alcorn.edu` (Alcorn State) both returned zero registration-looking subdomains;
+`usao.edu` (Science & Arts of Oklahoma) surfaced `selfservice.usao.edu` but USAO is already in schools.py.
+Fresh 4-year batch: `wossman.edu`, `chowan.edu`, `wilson.edu` returned NONE; `nvcc.edu` (pressbooks hosts only)
+and `ollusa.edu` (execed + unrelated cross-domain SANs) were junk keyword matches. Three surfaced live
+self-service hosts that are ALL already covered: `framingham.edu` (`selfservice.framingham.edu`,
+`banner9wkly.framingham.edu`) and `worcester.edu` (`selfservice.worcester.edu` — confirmed live Colleague,
+`/Student/Courses` HTTP 200) are both already in schools.py. Only genuinely-fresh candidate probed was
+`register.keene.edu` (Keene State) — 404 on the Banner classSearch path and root redirects to `www.keene.edu`;
+a marketing redirect, not a live guest class search. Dead.
+**Rate-limited before probing (retry next run):** `fitchburgstate.edu`, `salemstate.edu`, `bridgew.edu`
+(Bridgewater State).
+No candidate cleared the gate. No `schools.py` edit.
+
+Zero gated, zero holds worth tracking.
