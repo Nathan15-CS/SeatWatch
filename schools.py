@@ -1926,6 +1926,14 @@ class ETSU(ListcrseBanner8):
     example = "BIOL 1010"; term = "202680"     # Fall 2026; pro-school 202681/202682 pinned out
     base = "https://selfserv.etsu.edu/pls/prod"
 
+class IndianaState(ListcrseBanner8):
+    # Guest class-search returns "No classes found" -> the catalog route is required, not
+    # plain Purdue. base needs /pls/prod (bare /bwckschd 403s). 202605 = Fall 2026 (ISU
+    # YYYYMM, 05=Fall); pinned (Summer 202603 also live), family pins anyway.
+    id = "indianastate"; name = "Indiana State University"
+    example = "MATH 131"; term = "202605"
+    base = "https://prodinteract.indstate.edu/pls/prod"
+
 class Framingham(ListcrseBanner8):
     id = "framingham"; name = "Framingham State University"
     example = "PSYC 101"; term = "202690"      # Fall 2026 HERE (per-host codes differ)
@@ -3719,6 +3727,28 @@ class OaklandU(Banner):
     # waitlist-open full sections); seatsAvailable keeps it honest.
     id = "oaklandu"; name = "Oakland University"       # != Oakland CC (Colleague)
     example = "BIO 1200"; host = "bstreg.oakland.edu"; term = "202640"; auto_term = False
+
+class CentralArkansas(Banner):
+    # AY-numbered: 202710 = Fall 2026 (like Angelo State). Description-picker reads
+    # "Fall 2026" and all 7 prior terms are View-Only, so auto_term is safe.
+    id = "uca"; name = "University of Central Arkansas"
+    example = "ACCT 2310"; host = "banssprod.uca.edu"; term = "202710"
+
+class UTRGV(Banner):
+    # auto_term=False is LOAD-BEARING. UTRGV runs School-of-Medicine terms (SOM/SOPM
+    # Y1-Y4) whose codes (202749/202739/...) are HIGHER than the general Fall 2026
+    # (202710) and tie it on delta, so the forward-only picker selects 202749 — 56
+    # all-open clinical rotations, ZERO general courses, silently starving every
+    # ENGL/MATH watcher (live-verified: resolve_term returns 202749). Pin the general
+    # term; hand-roll to Spring 2027 (~202720) later. seatsAvailable authoritative.
+    id = "utrgv"; name = "University of Texas Rio Grande Valley"
+    example = "ACCT 2301"; host = "assist.utrgv.edu"; term = "202710"; auto_term = False
+
+class Nicholls(Banner):
+    # HOST TRAP: the public link advertises :8444, which is FIREWALLED (times out).
+    # Use the bare 443 host — verified reachable. Self-hosted behind Imperva.
+    id = "nicholls"; name = "Nicholls State University"
+    example = "MATH 100"; host = "ssop.nicholls.edu"; term = "202680"
 
 class AngeloState(Banner):
     # 202710 IS Fall 2026 — ASU numbers by ACADEMIC year (AY 2026-27, term 10), so the code
@@ -6984,6 +7014,10 @@ class LoyolaNO(Colleague):
     id = "loyno"; name = "Loyola University New Orleans"
     example = "COSC A211"; host = "loyno-ss.colleague.elluciancloud.com"
 
+class CoastalCarolina(Colleague):
+    id = "ccu"; name = "Coastal Carolina University"
+    example = "ENGL 101"; host = "sservice.coastal.edu"   # single college, campus=""
+
 class UnionNY(Colleague):
     id = "union-ny"; name = "Union College (NY)"
     example = "CEE 301"; host = "selfservice.union.edu"
@@ -9252,7 +9286,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     PascoHernando(), USI(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
     SamHoustonState(), ClevelandState(), JacksonvilleState(), OaklandU(), ETSU(),
-    TennesseeTech(),
+    TennesseeTech(), CentralArkansas(), UTRGV(), Nicholls(), CoastalCarolina(),
+    IndianaState(),
     AshlandCTC(), BigSandyCTC(), BluegrassCTC(), ElizabethtownCTC(), GatewayKY(),
     HazardCTC(), HendersonCC(), HopkinsvilleCC(), JeffersonCTC(), MadisonvilleCC(),
     MaysvilleCTC(), OwensboroCTC(), SomersetCC(), SouthcentralKY(), SoutheastKY(),
