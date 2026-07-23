@@ -2449,6 +2449,124 @@ class TennesseeTech:
         return out
 
 
+class TAMUCorpusChristi:
+    """Texas A&M University-Corpus Christi — bespoke Banner-backed schedule app (standard
+    Banner SSB paths 404). Form at GET /schedule/, results at POST /schedule/BPROD.php.
+    Reachable only from some TLS stacks — the production poller handshakes it fine; some
+    dev environments get SSLV3_ALERT_HANDSHAKE_FAILURE, so this is gated on the prod box.
+
+    frmPrefix needs the full 'CODE-Description' option string (e.g. 'ACCT-Accounting'),
+    scraped once from the form and cached {SUBJ: 'SUBJ-Desc'}; the description is truncated
+    in the option so we keep the exact option string, never reconstruct it. frmCampus=M is
+    required (blank/R return zero rows). Fall 2026 = 202609 (full term); the Fall mini-terms
+    202610/202611 are empty for guests -> full-term only, no coverage loss.
+
+    A section row's cells: [0]=CRN (unique key), [1]='SUBJ-NUM.SEC' (scope by NUM between
+    '-' and '.'), [6]='Available / Capacity / WL'. open iff Available (1st int) > 0; the
+    display clamps at 0, so an over-enrolled section shows 0 available = FULL (fail-closed).
+    Term pinned; hand-bump."""
+    id = "tamucc"; name = "Texas A&M University-Corpus Christi"
+    example = "MATH 1314"
+    base = "https://banner.tamucc.edu/schedule"
+    term = "202609"                        # Fall 2026 full term (minis empty for guests)
+    campus = "M"
+    _TTL = 300
+    _MAP_TTL = 21600
+    _lock = threading.Lock()
+    _cache = {}                            # (term, prefix_opt) -> (ts, {crn: {open,seats,num}})
+    _prefixes = None                       # (ts, {SUBJ: "SUBJ-Description"})
+    _RE = re.compile(r"^([A-Za-z]{2,4})\s*(\d{3,4}[A-Za-z]?)$")
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
+
+    def valid_course(self, course):
+        return self._norm(course)[0] is not None
+
+    def cur_term(self):
+        return self.term
+
+    def reg_url(self, course):
+        return f"{self.base}/"
+
+    def _get(self, url, data=None):
+        headers = {"User-Agent": UA}
+        if data is not None:
+            headers["Content-Type"] = "application/x-www-form-urlencoded"
+        req = urllib.request.Request(url, data=(data.encode() if data else None), headers=headers)
+        with urllib.request.urlopen(req, timeout=30) as r:
+            body = r.read()
+            if r.headers.get("Content-Encoding") == "gzip":
+                body = gzip.decompress(body)
+            return body.decode("utf-8", "replace")
+
+    def _prefix_map(self):
+        with TAMUCorpusChristi._lock:
+            c = TAMUCorpusChristi._prefixes
+            if c and time.time() - c[0] < self._MAP_TTL:
+                return c[1]
+        try:
+            page = self._get(f"{self.base}/")
+        except Exception:
+            return c[1] if c else {}
+        m = {}
+        # the form uses SINGLE-quoted option values (value='ACCT-Accounting'); match both
+        for opt in re.findall(r"<option[^>]*value=['\"]([A-Z]{2,4}-[^'\"]+)['\"]", page):
+            m.setdefault(opt.split("-", 1)[0], opt)      # SUBJ -> exact "SUBJ-Desc"; codes unique
+        if m:
+            with TAMUCorpusChristi._lock:
+                TAMUCorpusChristi._prefixes = (time.time(), m)
+        return m or (c[1] if c else {})
+
+    def _subject(self, prefix_opt):
+        key = (self.term, prefix_opt)
+        with TAMUCorpusChristi._lock:
+            c = TAMUCorpusChristi._cache.get(key)
+            if c and time.time() - c[0] < self._TTL:
+                return c[1]
+        body = (f"frmTerm={self.term}&frmGroup=one&frmCampus={self.campus}"
+                f"&frmPrefix={urllib.parse.quote(prefix_opt)}&frmSelectSchedule=View ")
+        try:
+            page = self._get(f"{self.base}/BPROD.php", data=body)
+        except Exception:
+            return c[1] if c else {}        # transient -> last-known-good, never fabricate
+        out = {}
+        for row in re.findall(r"<tr[^>]*>(.*?)</tr>", page, re.S):
+            cells = [html.unescape(re.sub(r"<[^>]+>", "", x)).strip()
+                     for x in re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)]
+            if len(cells) < 7 or not re.match(r"^\d{5}$", cells[0] or ""):
+                continue
+            cm = re.match(r"^[A-Za-z]{2,4}-(\w+)\.", cells[1] or "")       # SUBJ-NUM.SEC
+            am = re.match(r"^\s*(\d+)\s*/", cells[6] or "")                # Available / Cap / WL
+            if not (cm and am):
+                continue                    # no course-scope or no seat cell -> skip, never guess
+            avail = int(am.group(1))
+            out[cells[0]] = {"open": avail > 0, "seats": avail, "num": cm.group(1).upper()}
+        if out:
+            with TAMUCorpusChristi._lock:
+                TAMUCorpusChristi._cache[key] = (time.time(), out)
+        return out
+
+    def fetch(self, courses):
+        out = {}
+        pmap = None
+        for course in courses:
+            subj, num = self._norm(course)
+            if not subj:
+                continue
+            if pmap is None:
+                pmap = self._prefix_map()
+            opt = pmap.get(subj)
+            if not opt:
+                continue
+            secs = {crn: {"open": v["open"], "seats": v["seats"]}
+                    for crn, v in self._subject(opt).items() if v["num"] == num}
+            if secs:
+                out[course] = secs
+        return out
+
+
 class Fairfield:
     """Fairfield University — public course-search API (course-search-net.fairfield.edu)
     returns the WHOLE catalog (~2,250 rows, ~1.7MB) with NO server-side term/course filter,
@@ -9287,7 +9405,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
     SamHoustonState(), ClevelandState(), JacksonvilleState(), OaklandU(), ETSU(),
     TennesseeTech(), CentralArkansas(), UTRGV(), Nicholls(), CoastalCarolina(),
-    IndianaState(),
+    IndianaState(), TAMUCorpusChristi(),
     AshlandCTC(), BigSandyCTC(), BluegrassCTC(), ElizabethtownCTC(), GatewayKY(),
     HazardCTC(), HendersonCC(), HopkinsvilleCC(), JeffersonCTC(), MadisonvilleCC(),
     MaysvilleCTC(), OwensboroCTC(), SomersetCC(), SouthcentralKY(), SoutheastKY(),
