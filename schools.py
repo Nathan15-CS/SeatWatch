@@ -2457,19 +2457,30 @@ class TAMUCorpusChristi:
 
     frmPrefix needs the full 'CODE-Description' option string (e.g. 'ACCT-Accounting'),
     scraped once from the form and cached {SUBJ: 'SUBJ-Desc'}; the description is truncated
-    in the option so we keep the exact option string, never reconstruct it. frmCampus=M is
-    required (blank/R return zero rows). Fall 2026 = 202609 (full term); the Fall mini-terms
-    202610/202611 are empty for guests -> full-term only, no coverage loss.
+    in the option so we keep the exact option string, never reconstruct it.
+
+    ⚠️ ADDRESSABILITY — we must UNION the {term} x {campus} matrix or silently miss
+    sections. Fall 2026 is THREE codes: 202609 (full term, ~2232 sections) + 202610
+    (Fall-1 8-week mini) + 202611 (Fall-2 mini) — the minis carry accelerated graduate
+    business courses (MGMT 5330, ACCT 5341, BAIS 5310…) that live in NO full-term code.
+    And campus R (Firelands branch) carries ~50 general sections campus M lacks. A single
+    202609/M query silently misses ~48 course-sections (live-verified). So fetch unions
+    all _TERMS x campuses; CRNs are globally unique across the matrix (0 collisions
+    verified), so the merge-by-CRN needs no special dedup. (Sub-terms 202610/202611 are
+    empty on campus R, but we query the full matrix anyway — cheap insurance against a
+    future term shuffling sections into a now-empty combo.)
 
     A section row's cells: [0]=CRN (unique key), [1]='SUBJ-NUM.SEC' (scope by NUM between
     '-' and '.'), [6]='Available / Capacity / WL'. open iff Available (1st int) > 0; the
     display clamps at 0, so an over-enrolled section shows 0 available = FULL (fail-closed).
-    Term pinned; hand-bump."""
+    Terms pinned; hand-bump. Reachable only from some TLS stacks (prod poller handshakes it;
+    some dev envs get SSLV3_ALERT_HANDSHAKE_FAILURE) — gate on the prod box."""
     id = "tamucc"; name = "Texas A&M University-Corpus Christi"
     example = "MATH 1314"
     base = "https://banner.tamucc.edu/schedule"
-    term = "202609"                        # Fall 2026 full term (minis empty for guests)
-    campus = "M"
+    term = "202609"                        # primary Fall term (cur_term / stale-guard)
+    _TERMS = ("202609", "202610", "202611")   # full + Fall-1 + Fall-2 minis; union to avoid miss
+    campuses = ("M", "R")                     # main + Firelands; both carry sections
     _TTL = 300
     _MAP_TTL = 21600
     _lock = threading.Lock()
@@ -2519,19 +2530,8 @@ class TAMUCorpusChristi:
                 TAMUCorpusChristi._prefixes = (time.time(), m)
         return m or (c[1] if c else {})
 
-    def _subject(self, prefix_opt):
-        key = (self.term, prefix_opt)
-        with TAMUCorpusChristi._lock:
-            c = TAMUCorpusChristi._cache.get(key)
-            if c and time.time() - c[0] < self._TTL:
-                return c[1]
-        body = (f"frmTerm={self.term}&frmGroup=one&frmCampus={self.campus}"
-                f"&frmPrefix={urllib.parse.quote(prefix_opt)}&frmSelectSchedule=View ")
-        try:
-            page = self._get(f"{self.base}/BPROD.php", data=body)
-        except Exception:
-            return c[1] if c else {}        # transient -> last-known-good, never fabricate
-        out = {}
+    def _parse(self, page, out):
+        """Merge one BPROD.php result page's section rows into `out` (keyed by CRN)."""
         for row in re.findall(r"<tr[^>]*>(.*?)</tr>", page, re.S):
             cells = [html.unescape(re.sub(r"<[^>]+>", "", x)).strip()
                      for x in re.findall(r"<td[^>]*>(.*?)</td>", row, re.S)]
@@ -2543,6 +2543,25 @@ class TAMUCorpusChristi:
                 continue                    # no course-scope or no seat cell -> skip, never guess
             avail = int(am.group(1))
             out[cells[0]] = {"open": avail > 0, "seats": avail, "num": cm.group(1).upper()}
+
+    def _subject(self, prefix_opt):
+        """UNION every (term, campus) in the matrix — a section can live in a mini-term or
+        the Firelands campus and nowhere else. Cached per subject."""
+        key = prefix_opt
+        with TAMUCorpusChristi._lock:
+            c = TAMUCorpusChristi._cache.get(key)
+            if c and time.time() - c[0] < self._TTL:
+                return c[1]
+        out = {}
+        for term in self._TERMS:
+            for campus in self.campuses:
+                body = (f"frmTerm={term}&frmGroup=one&frmCampus={campus}"
+                        f"&frmPrefix={urllib.parse.quote(prefix_opt)}&frmSelectSchedule=View ")
+                try:
+                    self._parse(self._get(f"{self.base}/BPROD.php", data=body), out)
+                except Exception:
+                    return c[1] if c else {}   # any leg failing -> last-known-good, never a
+                                               # PARTIAL union (which would silent-miss)
         if out:
             with TAMUCorpusChristi._lock:
                 TAMUCorpusChristi._cache[key] = (time.time(), out)
