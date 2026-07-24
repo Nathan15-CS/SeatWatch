@@ -1,5 +1,8 @@
 # SeatWatch — Agent Onboarding Brief
 
+## PHASE-1 FREEZE (2026-07-24, CEO-ordered — lift only by CEO)
+app.py may be changed only by the Phase-1 Run session. schools.py lane commits may continue. No deployment is permitted unless an approved stage packet explicitly authorizes it and the deployment uses the Stage-2 deploy script. Deploying from a dirty tree is prohibited. Automated repository-writing tasks remain disabled unless separately re-approved after their staging and push behavior is reviewed.
+
 You are a coding agent joining the SeatWatch project. Read this fully before writing any code.
 Everything below is hard-won — most of it comes from real bugs already caught and fixed.
 
