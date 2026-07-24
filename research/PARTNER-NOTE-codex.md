@@ -26,6 +26,23 @@ specific past finding — don't read it end-to-end). This file is the coordinati
    "seat open!" alert on a full class is worse than never finding the school. When in doubt, cut it.
    Details in the gate below. Same for efficiency: a slow host stalls the poller for everyone.
 
+## Targeting override — July 14, 2026
+
+The next passes are **system-first and software-first**, not famous-school-first. Prioritize multi-college
+systems/districts, then enumerate net-new schools by adapter family already in production or readily reusable:
+Banner-9 SSB, Banner-8 `listcrse`, College Scheduler GraphQL, guest Colleague, and static
+`/data/{term}/crns.json` district viewers. Rank each lead by estimated students × adapter reuse; prefer plain
+GET/JSON and deprioritize stateful APEX/Jenzabar/viewstate portals. The old flagship alternate-search option is
+only a last-resort exception after the system/family lanes are exhausted.
+
+Do not call a lead **GATED** until it passes every killer: (1) a current freshness stamp checked against fetch
+time, (2) a known-large first-year writing course with complete pagination and no round-number cap or sibling
+scatter, (3) a completed-term replay with genuine mixed status rather than all-open rows, and (4) reservation,
+eligibility, waitlist, and consent checks proving that positive capacity is actually registerable. Before any
+report, reload `schools.SCHOOLS` and dedupe by ID, normalized name, and bespoke adapter. Every report must tag
+student count, adapter reuse, architecture, exact recipe, all four killer results, and rank; missing evidence is
+`HOLD`, never `GATED`.
+
 ## Sync discipline (READ THIS FIRST)
 
 - **PULL before you probe, PUSH after every finding.** We may be working in the same folder or in two

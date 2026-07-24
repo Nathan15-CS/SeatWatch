@@ -4,7 +4,15 @@
 Codex: claim your vein here BEFORE you start probing, then commit + push. Update when you start/finish.
 
 ## NOW (active claims — Fable will not touch these)
-- **CLAIMED July 11, 2026: production newer-Colleague gate + fresh official-public-schedule discovery.**
+- **CLAIMED July 14, 2026: system-first reusable-family discovery.** Claude's targeting correction is adopted:
+  stop spending passes on famous flagships and stateful/login-gated PeopleSoft surfaces. Start every pass with
+  multi-college systems/districts, then enumerate net-new schools by existing adapter family: Banner-9 SSB,
+  Banner-8 `listcrse`, College Scheduler GraphQL, guest Colleague, and static `/data/{term}/crns.json` viewers.
+  Rank by students × adapter reuse and architecture quality; plain GET/JSON is preferred over APEX/Jenzabar/
+  viewstate. No lead is reported as GATED until freshness, huge-course completeness, completed-term mixed-status,
+  and reserved/eligibility/registerability checks all pass. Every candidate is ID/name/bespoke-adapter deduped
+  against the live registry before it is mentioned.
+- **Prior July 11 claim: production newer-Colleague gate + fresh official-public-schedule discovery.**
   Production `NewColleague` fetches now pass for Lebanon Valley, Augustana, Camden County, and Walsh;
   their complete handoff blocks are in README under `AWAITING GO-AHEAD`. Fairfield remains conditional
   on a bespoke adapter; UC Davis and Johns Hopkins are blocked. A new SDCCD public JSON feed yielded
@@ -34,6 +42,127 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   Nathan's explicit approval.
 
 ## DONE this partnership
+- **July 15, 2026 — Batch 85 system-first screen finished.** Reloaded the live 720-school registry and found no
+  duplicate IDs/names. Los Angeles Community College District's nine-college anonymous PeopleSoft surface is a
+  high-priority (~200k annual students) HOLD: indexed exact `ENGL C1000` pages expose native keys and mixed
+  Open/Wait List/Closed status, but freshness, live JSON compatibility, completed Spring replay, and reserved-seat
+  semantics are not proven; one indexed LASC completed replay is all-open after the term ended. The old-Colleague
+  follow-up yielded four current-only holds (Nash, Southwest Texas, Northeast Iowa, Wilkes), two migration/empty
+  holds (Highland, Bay), Garden City empty, and Berkshire plus an unidentified `ssc-ss` host cut for completed
+  all-open status. The separate three-college Contra Costa CCD course-search endpoint was also held for stateful
+  ViewState pagination (`1–25 of 1,704`) and no subject filter. README Batch 85 records exact hosts, recipes,
+  student-scale tags, and resume gates. No `schools.py`, builder contact, commit, or deployment change.
+- **July 15, 2026 — Wake/Schoolcraft/NC old-Colleague five-school batch finished.** Reloaded all 720 live schools
+  and exact-ID/normalized-name deduped Wake Technical, Schoolcraft, Alamance, Central Carolina, and Brunswick.
+  Their identical anonymous old-Colleague feeds returned every advertised first-year-writing ID: 468/468,
+  135/135, 81/81, 134/134, and 36/36. Live no-store responses, unique exact-term keys, and genuinely mixed
+  completed Spring controls passed the four killers. Seven current positive-but-Waitlisted rows are withheld,
+  yielding 55/46/9/24/14 safe opens across 389 current sections; Central Carolina and Schoolcraft also prove
+  seat arithmetic cannot be reconstructed. README Batch 84 marks all five **GATED, AWAITING GO-AHEAD** and
+  provides Batch-82-dependent subclasses, all-ID/term/key guardrails, exact anomaly fixtures, smoke counts, and
+  strict cuts. Tagged annual-scale reach exceeds 121,690; expected isolated registry 720->725. Johnston and
+  Halifax were cut for completed all-open replay; six no-history peers were held. I did not edit `schools.py`,
+  contact the builder, commit, or deploy.
+- **July 15, 2026 — DuPage/Elgin/Kellogg old-Colleague reuse batch finished.** Reloaded all 720 live schools and
+  exact-ID/normalized-name deduped College of DuPage, Elgin Community College, and Kellogg Community College.
+  Their public old-Colleague feeds returned every advertised first-year-writing ID: 361/361, 139/139, and 96/96,
+  with live no-store dates, exact current terms, and unique within-term native section numbers. Completed Spring
+  was genuinely mixed at 105 Open/14 Waitlisted, 46/1 Closed, and 24/1 Closed. Batch 82's strict registerability
+  base removes 24/10/4 positive eligibility-bound current rows, yielding 157/38/22 safe opens across 326 current
+  sections. README Batch 83 marks all three **GATED, AWAITING GO-AHEAD** and provides exact subclasses, all-ID/
+  term/key guardrails, anomaly fixtures, and production smoke counts. Tagged student scale is 50,082; expected
+  isolated registry 720->723. Hawkeye was cut for completed 17/17 all-open replay; Chaffey, Northeast Iowa,
+  Prairie State, and newly migrated Highland were held for lacking same-feed completed terms. I did not edit
+  `schools.py`, contact the builder, commit, or deploy.
+- **July 15, 2026 — California old-Colleague three-school reuse batch finished.** Re-deduped against the live
+  720-school registry after concurrent UVI/Cayuga additions and found Coalinga College, Southwestern College
+  (CA), and Victor Valley College net-new. Their anonymous old-Colleague feeds returned every advertised exact
+  `ENGL C1000` ID: 30/30, 208/208, and 190/190, with live no-store response dates, unique native CRNs, and
+  completed mixed-status controls. Conservative eligibility/status hooks yield 9/51/17 current safe opens and
+  catch Southwestern requisite/override rows plus positive-but-Waitlisted traps at all three. README Batch 82
+  marks the three **GATED, AWAITING GO-AHEAD**, gives the builder the Batch-80-dependent multi-model/all-ID hooks,
+  reusable strict base, exact classes, and fixtures, and ranks at least 56,874 annual-scale students. Lemoore is
+  CUT for completed 23/23 all-open replay; Ohlone is held because no completed term is exposed; live `sjeccd`
+  duplicates were skipped. Expected isolated registry 720->723. I did not edit `schools.py`, contact the builder,
+  commit, or deploy.
+- **July 15, 2026 — Illinois Eastern CC district three-campus Banner batch finished.** Reloaded all 718 live
+  schools and exact-ID/normalized-name deduped Lincoln Trail, Olney Central, and Wabash Valley Colleges. Their
+  shared official guest Banner host returned 17/17 current `ENG 1111` rows and 34/34 full-subject rows with
+  unique CRNs and live response dates. Lincoln/Olney/Wabash passed completed mixed-status controls; Batch 76's
+  projected safe hook produced 3/2/5 opens and caught one positive-section/cross-list-full trap. README Batch 81
+  marks exactly those three **GATED, AWAITING GO-AHEAD**, provides the shared exact-campus/CRN-keyed base and
+  tests, and tags official AY2022 annual headcounts totaling 3,533. Frontier was strictly CUT after 18/18
+  completed exact-writing rows remained positive; Contra Costa's stateful non-GraphQL VSB was deprioritized.
+  Expected isolated registry 718→721. No `schools.py`, builder-contact, commit, or deployment change.
+- **July 15, 2026 — Rancho Santiago CCD two-college Colleague batch finished.** Reloaded all 718 live schools
+  and exact-ID/normalized-name deduped Santa Ana College and Santiago Canyon College. Their shared anonymous
+  Colleague host returned every advertised `ENGL C1000` section: 183/183 SAC and 82/82 SCC across terms, with
+  88/48 exact Fall rows and 265 unique CRNs. Live no-cache HTTP dates passed freshness; completed Spring was
+  mixed at 26 Open/36 Waitlisted and 10/14; five current SCC rows had positive aggregate seats while waitlisted,
+  and SAC exposed two authoritative-availability/arithmetic mismatches. README Batch 80 marks both **GATED,
+  AWAITING GO-AHEAD** and gives the builder reusable model/campus/term/open hooks, exact subclasses, fixtures,
+  and regression steps. Combined comparable credit scale is 30,223; expected registry 718→720. SBCCD's
+  count-disabled Colleague response and three dead UW College Scheduler shells were CUT. No `schools.py`,
+  builder-contact, commit, or deployment change.
+- **July 15, 2026 — University of Hawaiʻi ten-campus replacement Banner batch finished.** Reloaded all 718
+  live schools and exact-ID/normalized-name deduped all ten UH campuses. The retired Banner 8 availability
+  service is cut; the official replacement on port 9234 is anonymous Banner 9 JSON and fully paged current,
+  Spring, and Fall English at 505/418/508 unique CRNs. Every campus passed a completed mixed/full writing
+  control, all 1,431 rows passed seat arithmetic, and seven live waitlist/cross-list aggregate traps are
+  covered by Batch 76's shared safe-open hook. README Batch 79 marks all ten **GATED, AWAITING GO-AHEAD** and
+  gives the builder the required catalog-number-to-campus-suffix translation, exact campus guards, CRN keys,
+  parallel-term pin, classes, and tests. Tagged Fall 2025 scale is 51,411; expected registry 718→728. No
+  `schools.py`, builder-contact, commit, or deployment change.
+- **July 15, 2026 — existing-family LCTCS/NMSU completion batch finished.** Reloaded all 718 live schools and
+  deduped four net-new identities: Fletcher Technical CC, Doña Ana CC, NMSU–Alamogordo, and NMSU–Grants.
+  Fletcher is one missing `mepCode` on the shipped LCTCS host; the other three are exact-campus subclasses on
+  the shipped NMSU host. All passed fresh current writing, complete pagination, unique-key, seat-arithmetic,
+  completed Spring 2026 mixed-status, and reservation/waitlist/linked/cross-list gates through production
+  Banner code. README Batch 78 marks all four **GATED, AWAITING GO-AHEAD**, depends on Batch 76's reusable
+  waitlist-safe hook, and gives exact classes/tests; expected registry 718→722. Central Louisiana, Louisiana
+  Delta, Northshore, and Northwest Louisiana Technical were CUT because every completed writing row retained
+  positive capacity. No `schools.py`, builder-contact, commit, or deployment change.
+- **July 15, 2026 — NOCCCD two-college static-JSON promotion completed.** Reloaded all 718 live schools and
+  exact-ID/normalized-name deduped Cypress College and Fullerton College. The shared anonymous static feed is
+  about four minutes fresh, complete at 3,914 current rows, and maps `ENGL C1000` to 59/102 unique campus rows.
+  A conservative enrollment-cutoff + waitlist + restriction + reservation + cross-list rule turns completed
+  Spring/Fall files with 3,450/3,433 misleading positive balances into exactly zero opens and catches four
+  live aggregate-seat traps. README Batch 77 supersedes the July 11 HOLD, marks both colleges **GATED,
+  AWAITING GO-AHEAD**, and gives the builder exact shared-cache, alias, campus, freshness, fail-closed, fixture,
+  and registration instructions. Alamo's five-college feed was cut for historical false opens; SOCCCD remains
+  HOLD because its stateful bearer architecture has not cleared all four gates. Expected registry 718→720;
+  no `schools.py`, builder-contact, commit, or deployment change.
+- **July 15, 2026 — remaining public USG Banner 9 gaps completed.** Reloaded all 718 live schools and
+  exact-ID/normalized-name deduped University of North Georgia, Georgia Highlands College, and Savannah
+  State University. All three official guest Banner hosts passed current Fall 2026 plus completed Spring 2026
+  ENGL 1101 pagination, unique-key, mixed-status, seat-arithmetic, waitlist/reservation, linked/cross-list, and
+  live HTTP-date gates. Combined Fall 2025 enrollment is 29,391; existing `Banner` returned 184/85/80 current
+  sections in 2.05–2.59s. README Batch 76 marks all three `GATED, AWAITING GO-AHEAD` and gives the builder an
+  exact reusable `_row_is_open` hook so future waitlist-reserved seats are never treated as registerable.
+  Peralta and Los Rios were explicitly cut for stale/conflicting or miscounted/non-addressable feeds. No
+  `schools.py`, registry, builder-contact, commit, or deployment change.
+- **July 14, 2026 — system/software-first district screen completed.** Reloaded the 718-school registry
+  and deduped before reporting. Yuba Community College District (Yuba + Woodland, ~13k) is a reusable
+  guest-Colleague lead but its public search renders “Unlimited Seat Counts Unavailable”; Dallas College
+  (seven campuses, ~103k credit + ~25k non-credit FY2023-24) has public browse/self-service surfaces but
+  no reproducible current numeric guest rows, with live-seat information routed through Workday. Both are
+  explicit `HOLD`, not `GATED`; freshness, first-year-writing completeness, completed-term mixed status,
+  and registerability/reserve semantics are unproven. State Center, Grossmont/Cuyamaca, and North Orange
+  were skipped as already registered or already documented. No `schools.py` or builder handoff change.
+- **July 14, 2026 — IU iGPS regional-campus family audit completed.** Reloaded the 718-school registry and
+  deduped IU South Bend, Southeast, East, Kokomo, and Northwest before reporting. The shared public JSON host
+  is live, fully pageable, and shows genuine current/completed mixed status, but non-Bloomington `inst` values
+  leak sibling-campus rows; positive seats also carry department-consent, reservation, or eligibility fields.
+  All five are explicit `HOLD`, not `GATED`, pending a production family variant with `(inst, term)` cache
+  scope, campus-row filtering, and conservative registerability guards. No `schools.py` or builder handoff
+  change; registry remains 718.
+- **July 14, 2026 — San Mateo County CCD shared Banner 9 feed completed.** Reloaded and deduped Cañada,
+  College of San Mateo, and Skyline; all three are net-new on one official `phx-ban-apps.smccd.edu` host.
+  Exact Fall ENGL 110 returned 39 mixed rows and completed Spring returned 80 mixed rows; campus-filtered
+  CRNs were unique, seat arithmetic held 119/119, and the host exposed waitlist/reserved/cross-list fields.
+  `openSection` was falsely true on zero-seat rows, so the README handoff mandates `seatsAvailable > 0` and
+  exact campus filtering. Existing `Banner` reuse passed end-to-end in 2.33–2.61s per campus. Three
+  builder-ready entries are `GATED, AWAITING GO-AHEAD`; no `schools.py` change or builder contact.
 - **July 11, 2026 — fresh public-schedule pass (Fairfield + UC Davis + Johns Hopkins).**
   - **Fairfield University (CT; `course-search-net.fairfield.edu`): SOURCE-GATED, conditional on
     production adapter.** Official Angular app's lazy module identifies `GET /api/course/courses`.
@@ -266,13 +395,15 @@ Codex: claim your vein here BEFORE you start probing, then commit + push. Update
   describes `NumEnrolled`, `MaxSize`, and `EnrollmentStatus` (`O`/`C`), but the documented JSON URL
   now redirects to Columbia CAS authentication and the docs host is Cloudflare-challenged here. No
   live rows accepted; no proposal.
-- **July 11, 2026 — North Orange County CCD public JSON pass (status blocked).** Official
+- **July 11, 2026 — North Orange County CCD public JSON pass (status blocked then; SUPERSEDED July 15 by
+  README Batch 77).** Official
   `schedule.nocccd.edu` exposes unauthenticated Fall 2026 `courses.json`/`sections.json`: 3,908 unique
   CRNs across Cypress (1,694) and Fullerton (2,170), with exact `sectSeatsAvail == sectMaxEnrl -
   sectEnrl` arithmetic. Summer 2026 provides a mixed historical comparison (349/458 sections), but
   the feed has no status enum; the client treats positive seats as open even though Cypress documents
-  seats that remain visible after a class is closed for a waitlist/add-code condition. No handoff or
-  adapter spec until a trustworthy status/reservation signal is found.
+  seats that remain visible after a class is closed for a waitlist/add-code condition. This was the correct
+  July 11 result; Batch 77 later found the cutoff/restriction/reservation/cross-list signals and supplies the
+  fail-closed builder contract.
 - **July 11, 2026 — Ventura County Community College District triage deferred.** Official
   `schedule.vcccd.edu` is server-rendered Banner-style HTML. Summer 2026 exposed `OPEN/FULL` and
   Cap/Act/Rem fields, but the response was tens of megabytes and the Fall 2026, Spring 2026, and
