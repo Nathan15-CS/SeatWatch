@@ -24,6 +24,7 @@ import threading
 import smtplib
 import ssl
 import time
+import urllib.error
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 from email.message import EmailMessage
@@ -140,7 +141,11 @@ TWILIO_SID = os.environ.get("TWILIO_ACCOUNT_SID", "")
 TWILIO_TOKEN = os.environ.get("TWILIO_AUTH_TOKEN", "")
 TWILIO_FROM = os.environ.get("TWILIO_FROM", "")          # E.164 number or Messaging Service SID
 SMS_LIVE = bool(SMS_ENABLED and TWILIO_SID and TWILIO_TOKEN and TWILIO_FROM)
-SMS_COST_CENTS = int(os.environ.get("SMS_COST_CENTS", "1"))          # ledger estimate/segment
+# DRY-RUN: exercise the full detection -> gate -> message pipeline on REAL seat openings and
+# LOG the exact text that WOULD send (recipient, body, segment count) without calling Twilio.
+# Proves the pipeline pre-approval so go-live is confirmation, not discovery. Never sends.
+SMS_DRYRUN = os.environ.get("SMS_DRYRUN") == "1"
+SMS_COST_CENTS = int(os.environ.get("SMS_COST_CENTS", "1"))          # cost PER SEGMENT (¢)
 # Cost-safety knobs — env vars, not constants: they are stage-appropriate catastrophe
 # floors Nathan raises in seconds as real volume grows, never permanent growth ceilings.
 SMS_DAILY_CAP_CENTS = int(os.environ.get("SMS_DAILY_CAP_CENTS", "2000"))   # $20/day site-wide
@@ -2116,21 +2121,30 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send_json({"ok": False}, 500)   # let Stripe retry
             return self._send_json({"ok": True})
         if path == "/sms/inbound":
-            # Twilio calls this server-to-server for student replies (STOP/YES/HELP).
-            # No session; authenticity = X-Twilio-Signature HMAC over url+params. 404
-            # while dormant so the surface doesn't exist until SMS does.
-            if not SMS_ENABLED:
+            # Twilio calls this server-to-server for replies (STOP/HELP/YES). Authenticity
+            # is the X-Twilio-Signature HMAC over url+params, checked with the auth token.
+            # Gate on the TOKEN, not SMS_ENABLED: inbound texts work WITHOUT campaign
+            # approval, so once Nathan sets TWILIO_AUTH_TOKEN we can validate a REAL
+            # Twilio-signed request and close the signature gap before go-live. The outbound
+            # TwiML reply stays gated behind SMS_LIVE, so this prep path records but sends
+            # nothing.
+            if not TWILIO_TOKEN:
                 return self._send(page("<p>Not found.</p>"), 404)
             length = max(0, min(int(self.headers.get("Content-Length", 0) or 0), 8192))
             form = {k: v[0] for k, v in parse_qs(
                 self.rfile.read(length).decode("utf-8", "replace")).items()}
-            if not _twilio_verify(BASE_URL + "/sms/inbound", form,
-                                  self.headers.get("X-Twilio-Signature", "")):
+            valid = _twilio_verify(BASE_URL + "/sms/inbound", form,
+                                   self.headers.get("X-Twilio-Signature", ""))
+            frm = form.get("From", "")
+            sw.log(f"  [sms] inbound from {('*' * 6 + frm[-4:]) if frm else '?'} "
+                   f"body={form.get('Body', '')!r} signature={'VALID' if valid else 'INVALID'}")
+            if not valid:
                 return self._send_json({"ok": False}, 403)
-            reply = sms_apply_inbound(form.get("From", ""), form.get("Body", ""))
-            twiml = ("<?xml version='1.0' encoding='UTF-8'?><Response>"
-                     + (f"<Message>{html.escape(reply)}</Message>" if reply else "")
-                     + "</Response>")
+            reply = sms_apply_inbound(frm, form.get("Body", ""))
+            # Emit an outbound reply only once SMS is fully live; during the pre-approval
+            # signature test we validate + record (e.g. STOP revocation) and send nothing.
+            msg = f"<Message>{html.escape(reply)}</Message>" if (reply and SMS_LIVE) else ""
+            twiml = f"<?xml version='1.0' encoding='UTF-8'?><Response>{msg}</Response>"
             return self._send_bytes(twiml.encode(), "text/xml; charset=utf-8",
                                     cache="no-store")
         if path not in ("/watch", "/unwatch", "/push/subscribe", "/auth/apple",
@@ -2710,21 +2724,53 @@ def _sms_phone(user_id):
     return row["phone"] if row else None
 
 
+def _sms_segments(text):
+    """Billable Twilio segments for `text`. GSM-7 fits 160 chars (153 when concatenated);
+    any non-GSM character forces UCS-2 at 70 (67 concatenated). We bill PER SEGMENT, so a
+    two-part alert must count as two — otherwise the ledger under-counts real spend and the
+    daily $ cap is wrong (the alert body with a course URL routinely runs to 2 segments)."""
+    gsm = set("@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡"
+              "ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà"
+              "€^{}\\[~]|")
+    n = len(text)
+    single, multi = (160, 153) if all(ch in gsm for ch in text) else (70, 67)
+    return 1 if n <= single else -(-n // multi)          # ceil division
+
+
+# Terminal Twilio error codes worth acting on rather than blind-retrying.
+_TWILIO_STOP_CODES = {21610}          # recipient has unsubscribed (carrier-level STOP)
+
+
 def _twilio_post(to, body):
-    """One SMS via Twilio's REST API, stdlib only. Returns True on 2xx accept."""
+    """Send one SMS via Twilio's REST API (stdlib only). Returns (ok, err_code):
+    (True, None) on 2xx; (False, <int code>) on a Twilio API error (e.g. 21610 recipient
+    unsubscribed, 30034 A2P number unregistered, 21211 invalid 'To'); (False, None) on a
+    transport error. Never raises — the caller decides what to do with the code."""
     url = f"https://api.twilio.com/2010-04-01/Accounts/{TWILIO_SID}/Messages.json"
     field = "MessagingServiceSid" if TWILIO_FROM.startswith("MG") else "From"
     data = urllib.parse.urlencode({"To": to, field: TWILIO_FROM, "Body": body}).encode()
     auth = base64.b64encode(f"{TWILIO_SID}:{TWILIO_TOKEN}".encode()).decode()
     req = urllib.request.Request(url, data=data,
-                                 headers={"Authorization": f"Basic {auth}",
-                                          "User-Agent": UA})
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        return 200 <= resp.status < 300
+                                 headers={"Authorization": f"Basic {auth}", "User-Agent": sw.UA})
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            return (200 <= resp.status < 300, None)
+    except urllib.error.HTTPError as e:
+        code = None
+        try:
+            code = int(json.loads(e.read().decode("utf-8", "replace")).get("code"))
+        except Exception:
+            pass
+        sw.log(f"  [sms] Twilio API error HTTP {e.code} code={code}")
+        return (False, code)
+    except Exception as e:
+        sw.log(f"  [sms] Twilio transport error: {type(e).__name__}: {str(e)[:80]}")
+        return (False, None)
 
 
 _sms_paged = set()   # which cap trips were already operator-paged today (page once, not
                      # per cycle; cosmetic only — the CAPS themselves are ledger-derived)
+_dryrun_logged = set()   # watch_ids already dry-run-logged this process (log once, not per cycle)
 
 
 def send_sms(user_id, r, message, url):
@@ -2744,7 +2790,7 @@ def send_sms(user_id, r, message, url):
       (retry storms) -> per-course cap -> per-user daily -> daily $ ceiling -> velocity
       breaker (a loop is a vertical spike; growth is a slope — the floor keeps tiny
       legitimate volume from ever tripping it)."""
-    if not SMS_LIVE:
+    if not (SMS_LIVE or SMS_DRYRUN):       # dormant, or dry-run for pipeline proving
         return False
     if not user_id:
         return False
@@ -2755,6 +2801,8 @@ def send_sms(user_id, r, message, url):
     phone = _sms_phone(user_id)
     if not phone:
         return False
+    body = f"SeatWatch: {message} Register now: {url} (Reply STOP to opt out)"
+    cost = SMS_COST_CENTS * _sms_segments(body)   # PER-SEGMENT — a 2-part alert costs 2
     now = time.time()
     day0 = _day_start(now)
     wid = r["id"]
@@ -2788,7 +2836,7 @@ def send_sms(user_id, r, message, url):
         # site-wide daily $ ceiling (env-tunable catastrophe floor, not a growth cap)
         spent = c.execute("SELECT COALESCE(SUM(cost_cents),0) FROM alert_log WHERE "
                           "channel='sms' AND sent_at>?", (day0,)).fetchone()[0]
-        if spent + SMS_COST_CENTS > SMS_DAILY_CAP_CENTS:
+        if spent + cost > SMS_DAILY_CAP_CENTS:        # accurate: cost is per-segment
             if "dailycap" not in _sms_paged:
                 _sms_paged.add("dailycap")
                 operator_alert(f"💸 SMS daily cap ${SMS_DAILY_CAP_CENTS/100:.2f} reached — "
@@ -2814,13 +2862,28 @@ def send_sms(user_id, r, message, url):
                            "today — looks like a loop, not growth. SMS paused until "
                            "midnight; alerts falling back to push/email.")
             return False
-    try:
-        ok = _twilio_post(phone, f"SeatWatch: {message} Register now: {url} (Reply STOP to opt out)")
-    except Exception as e:
-        sw.log(f"  [sms] send failed to user {user_id}: {type(e).__name__}: {str(e)[:80]}")
+    if not SMS_LIVE:
+        # DRY-RUN (SMS_DRYRUN, not live): prove detection -> gate -> message on real data
+        # without sending. Log the exact would-send ONCE per watch; record a distinct
+        # 'sms_dryrun' ledger row (never counted by the caps or the real send-latch, so it
+        # can't interfere with them or pollute real spend). Returns False so _alert still
+        # fires the free channels.
+        if wid not in _dryrun_logged:
+            _dryrun_logged.add(wid)
+            sw.log(f"  [sms DRY-RUN] would text ••••{phone[-4:]}  "
+                   f"segs={_sms_segments(body)} cost={cost}¢  body={body!r}")
+            _log_alert(r, "sms_dryrun", 0)
         return False
+    ok, code = _twilio_post(phone, body)
+    if not ok and code in _TWILIO_STOP_CODES:
+        # a carrier-level STOP that never reached our webhook — record the revocation so
+        # we stop attempting this number (keeps our consent records authoritative)
+        with db() as c:
+            c.execute("UPDATE sms_consent SET revoked_at=? WHERE user_id=? AND phone=? "
+                      "AND revoked_at IS NULL", (time.time(), user_id, phone))
+        sw.log(f"  [sms] user {user_id} unsubscribed at carrier (Twilio {code}) — consent revoked")
     if ok:
-        _log_alert(r, "sms", SMS_COST_CENTS)
+        _log_alert(r, "sms", cost)
     return ok
 
 
