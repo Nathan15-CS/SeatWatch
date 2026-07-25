@@ -133,6 +133,13 @@ Set in `/etc/seatwatch.env` on the server (root-only, read by systemd):
 - `SEATWATCH_BASE_URL` — e.g. https://seatwatchapp.com
 - `SEATWATCH_ADMIN_TOPIC`, `SEATWATCH_ADMIN_USER` — operator alert routing
 - `PORT`, `SEATWATCH_DB`, `POLL_SECONDS` — runtime config
+- `GUARDIAN_MODE` — reliability guardian: `off` | `shadow` (default) | `enforce`.
+  Shadow records evidence and changes nothing; enforce activates the alert gates.
+- `AUTO_ROLL_TERMS` — `1` re-arms the daily term auto-roll. Default (unset) = DISARMED:
+  terms hold at last-known-good and semester boundaries need a manual pin bump.
+- `MAX_ALERTS_PER_CYCLE` — guardian mass-alert tripwire threshold (default 10)
+- `SEATWATCH_DEPLOY_SHA` — deployed git SHA (optional; feeds the confidence engine's
+  deploy-identity factor once deploy tooling stamps it)
 - `SEATWATCH_DEV` — **local only**; enables the dev-login backdoor. NEVER set in prod.
 
 ## 10. Current features
