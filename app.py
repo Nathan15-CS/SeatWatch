@@ -2877,7 +2877,13 @@ def _twilio_post(to, body):
             code = int(json.loads(e.read().decode("utf-8", "replace")).get("code"))
         except Exception:
             pass
-        sw.log(f"  [sms] Twilio API error HTTP {e.code} code={code}")
+        if code in (30032, 30034):        # the premature-enable foot-gun, made obvious
+            kind = "verified (toll-free)" if code == 30032 else "registered (10DLC)"
+            sw.log(f"  [sms] ⚠️ Twilio {code}: sender number NOT {kind} — SMS_ENABLED was flipped "
+                   "on before the number's verification/registration cleared. NO texts will "
+                   "send until it's approved; alerts are falling back to push/email.")
+        else:
+            sw.log(f"  [sms] Twilio API error HTTP {e.code} code={code}")
         return (False, code)
     except Exception as e:
         sw.log(f"  [sms] Twilio transport error: {type(e).__name__}: {str(e)[:80]}")
