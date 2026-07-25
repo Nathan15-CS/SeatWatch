@@ -252,6 +252,9 @@ def init_db():
             c.execute("ALTER TABLE users ADD COLUMN plan_term TEXT")
         if "stripe_customer_id" not in ucols:
             c.execute("ALTER TABLE users ADD COLUMN stripe_customer_id TEXT")
+        if "plan_payment_intent" not in ucols:   # the charge that granted the CURRENT plan —
+            c.execute("ALTER TABLE users ADD COLUMN plan_payment_intent TEXT")  # lets a refund
+                                                 # downgrade ONLY that charge, never a newer one
         # webhook idempotency — a Stripe event unlocks a tier AT MOST once, even on retries
         c.execute("""CREATE TABLE IF NOT EXISTS stripe_events(
             event_id  TEXT PRIMARY KEY,
@@ -524,9 +527,20 @@ def stripe_verify_webhook(payload_bytes, sig_header):
 
 
 def stripe_apply_event(event):
-    """Unlock a tier from a VERIFIED checkout.session.completed event, idempotently."""
-    if not event or event.get("type") != "checkout.session.completed":
+    """Process a VERIFIED Stripe event, idempotently. Purchase -> unlock; a FULL refund or a
+    dispute/chargeback of the CURRENT entitlement's charge -> downgrade to free."""
+    if not event:
         return
+    etype = event.get("type")
+    if etype == "checkout.session.completed":
+        _stripe_unlock(event)
+    elif etype in ("charge.refunded", "charge.dispute.created"):
+        _stripe_downgrade(event)
+
+
+def _stripe_unlock(event):
+    """Unlock a tier from a checkout.session.completed event. Records the session's
+    payment_intent so a later refund of THIS charge can be matched precisely."""
     eid = event.get("id") or ""
     sess = (event.get("data") or {}).get("object") or {}
     meta = sess.get("metadata") or {}
@@ -546,13 +560,47 @@ def stripe_apply_event(event):
             return
         new_tier = max(int(row["plan_tier"] or 0), tier)
         c.execute("UPDATE users SET plan_tier=?, plan_purchased_at=?, plan_term=?, "
-                  "stripe_customer_id=COALESCE(?,stripe_customer_id) WHERE id=?",
+                  "stripe_customer_id=COALESCE(?,stripe_customer_id), plan_payment_intent=? "
+                  "WHERE id=?",
                   (new_tier, time.time(), meta.get("season") or current_season(),
-                   sess.get("customer"), uid))
+                   sess.get("customer"), sess.get("payment_intent"), uid))
         if eid:
             c.execute("INSERT OR IGNORE INTO stripe_events(event_id,kind,user_id,processed) "
                       "VALUES(?,?,?,?)", (eid, "checkout.session.completed", uid, time.time()))
     sw.log(f"  [stripe] user {uid} unlocked tier {new_tier}")
+
+
+def _stripe_downgrade(event):
+    """A FULL refund or a dispute/chargeback -> revert the account to free.
+
+    ORDERED by payment_intent: we downgrade only the user whose CURRENT entitlement was
+    granted by the exact refunded/disputed charge — so refunding a SUPERSEDED charge (an
+    old plan the user already re-purchased past) can never strip their newer valid plan.
+    Idempotent by event id. Partial refunds are ignored — the user still holds the plan
+    they mostly paid for. Conservative by construction: no PI match -> no change."""
+    eid = event.get("id") or ""
+    etype = event.get("type")
+    obj = (event.get("data") or {}).get("object") or {}
+    pi = obj.get("payment_intent")
+    if etype == "charge.dispute.created":
+        full = True                              # a chargeback reverses the whole payment
+    else:                                        # charge.refunded — only a FULL refund downgrades
+        amt, refunded = int(obj.get("amount") or 0), int(obj.get("amount_refunded") or 0)
+        full = bool(obj.get("refunded")) or (amt > 0 and refunded >= amt)
+    if not pi or not full:
+        return
+    with db() as c:
+        if eid and c.execute("SELECT 1 FROM stripe_events WHERE event_id=?", (eid,)).fetchone():
+            return
+        row = c.execute("SELECT id, plan_tier FROM users WHERE plan_payment_intent=?",
+                        (pi,)).fetchone()
+        if row and int(row["plan_tier"] or 0) > 0:
+            c.execute("UPDATE users SET plan_tier=0, plan_purchased_at=NULL, plan_term=NULL, "
+                      "plan_payment_intent=NULL WHERE id=?", (row["id"],))
+            sw.log(f"  [stripe] user {row['id']} {etype} (full) -> downgraded to free")
+        if eid:
+            c.execute("INSERT OR IGNORE INTO stripe_events(event_id,kind,user_id,processed) "
+                      "VALUES(?,?,?,?)", (eid, etype, row["id"] if row else None, time.time()))
 
 
 def google_auth_url(state):
