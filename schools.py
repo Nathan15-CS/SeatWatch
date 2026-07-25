@@ -1926,6 +1926,12 @@ class ETSU(ListcrseBanner8):
     example = "BIOL 1010"; term = "202680"     # Fall 2026; pro-school 202681/202682 pinned out
     base = "https://selfserv.etsu.edu/pls/prod"
 
+class SEMO(ListcrseBanner8):
+    # base MUST stay lowercase /prod (ETSU-style). EN 100 is heavy (67 sections, ~35s cold
+    # then 10-min cache) but valid; kept as the canary. term 202710 = Fall 2026.
+    id = "semo"; name = "Southeast Missouri State University"
+    example = "EN 100"; term = "202710"; base = "https://banssb.semo.edu/prod"
+
 class IndianaState(ListcrseBanner8):
     # Guest class-search returns "No classes found" -> the catalog route is required, not
     # plain Purdue. base needs /pls/prod (bare /bwckschd 403s). 202605 = Fall 2026 (ISU
@@ -7151,6 +7157,10 @@ class LoyolaNO(Colleague):
     id = "loyno"; name = "Loyola University New Orleans"
     example = "COSC A211"; host = "loyno-ss.colleague.elluciancloud.com"
 
+class WestTexasAM(Colleague):
+    id = "wtamu"; name = "West Texas A&M University"      # != TAMU / TAMU-CC / TAMUC
+    example = "MATH 1314"; host = "sss.wtamu.edu"         # single college, campus=""
+
 class CoastalCarolina(Colleague):
     id = "ccu"; name = "Coastal Carolina University"
     example = "ENGL 101"; host = "sservice.coastal.edu"   # single college, campus=""
@@ -9424,7 +9434,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
     SamHoustonState(), ClevelandState(), JacksonvilleState(), OaklandU(), ETSU(),
     TennesseeTech(), CentralArkansas(), UTRGV(), Nicholls(), CoastalCarolina(),
-    IndianaState(), TAMUCorpusChristi(),
+    IndianaState(), TAMUCorpusChristi(), WestTexasAM(), SEMO(),
     AshlandCTC(), BigSandyCTC(), BluegrassCTC(), ElizabethtownCTC(), GatewayKY(),
     HazardCTC(), HendersonCC(), HopkinsvilleCC(), JeffersonCTC(), MadisonvilleCC(),
     MaysvilleCTC(), OwensboroCTC(), SomersetCC(), SouthcentralKY(), SoutheastKY(),
