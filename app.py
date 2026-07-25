@@ -34,6 +34,7 @@ from urllib.parse import parse_qs, urlencode, urlparse
 
 import seatwatch as sw  # reuse: notify, log
 import schools          # multi-school registry (UMD, Rutgers, ...)
+import guardian         # reliability guardian: off | shadow (default) | enforce
 
 try:                    # real Web Push (VAPID) — installed on the server; optional locally
     from pywebpush import webpush, WebPushException
@@ -307,6 +308,7 @@ def init_db():
             revoked_at   REAL)""")
         c.execute("CREATE INDEX IF NOT EXISTS ix_smsc_user ON sms_consent(user_id, requested_at)")
         c.execute("CREATE INDEX IF NOT EXISTS ix_smsc_phone ON sms_consent(phone)")
+        guardian.init_schema(c)   # additive guardian_* evidence tables
 
 
 # ------------------------------------------------------------------- auth
@@ -396,6 +398,19 @@ def current_season():
     t = time.localtime()   # app.py imports `time`, not `datetime` — use what's here
     season = "spring" if t.tm_mon <= 5 else "summer" if t.tm_mon <= 7 else "fall"
     return f"{t.tm_year}-{season}"
+
+
+def stamp_term(school):
+    """Term recorded on a NEW watch. Must be the same value run_cycle will later
+    compare against (cur_term(), falling back to the static pin): stamping the
+    pin while the school's active term has rolled makes the watch dead on
+    arrival — skipped as stale from its first cycle, silently."""
+    try:
+        if callable(getattr(school, "cur_term", None)):
+            return school.cur_term() or getattr(school, "term", "")
+    except Exception:
+        pass
+    return getattr(school, "term", "")
 
 
 def effective_tier(user):
@@ -1992,6 +2007,7 @@ class Handler(BaseHTTPRequestHandler):
                     "users": c.execute("SELECT COUNT(*) FROM users").fetchone()[0],
                     "watches": c.execute("SELECT COUNT(*) FROM watches").fetchone()[0],
                     "push_devices": c.execute("SELECT COUNT(*) FROM push_subs").fetchone()[0],
+                    "guardian": guardian.report_block(),
                     "signups_by_day": {r[0]: r[1] for r in c.execute(
                         "SELECT date(created,'unixepoch') d, COUNT(*) FROM users "
                         "GROUP BY d ORDER BY d")},
@@ -2251,6 +2267,11 @@ class Handler(BaseHTTPRequestHandler):
                                  "SeatWatch alerts are ON 🎉",
                                  "This is exactly how we'll buzz you the second a seat opens.",
                                  BASE_URL)
+            if sent:
+                # ledger the test push: durable proof this account has a WORKING
+                # human-reaching channel (the confidence engine's W6 evidence)
+                _log_alert({"id": None, "user_id": user["id"], "school": "",
+                            "course": "", "section": ""}, "webpush_test")
             sw.log(f"  [push] user {user['id']} subscribed via {urlparse(endpoint).netloc} "
                    f"(test push confirmed to {sent} device)")
             return self._send_json({"ok": True, "test_sent": sent})
@@ -2351,7 +2372,7 @@ class Handler(BaseHTTPRequestHandler):
                     c.execute("INSERT INTO watches(school,topic,course,section,term,created,user_id) "
                               "VALUES(?,?,?,?,?,?,?)",
                               (school.id, user["topic"], course, "",
-                               getattr(school, "term", ""), time.time(), user["id"]))
+                               stamp_term(school), time.time(), user["id"]))
                 what = course + " (unlimited sections)"
             else:
                 new = [s for s in sections if s not in have]
@@ -2369,7 +2390,7 @@ class Handler(BaseHTTPRequestHandler):
                         c.execute("INSERT INTO watches(school,topic,course,section,term,created,user_id) "
                                   "VALUES(?,?,?,?,?,?,?)",
                                   (school.id, user["topic"], course, sec,
-                                   getattr(school, "term", ""), time.time(), user["id"]))
+                                   stamp_term(school), time.time(), user["id"]))
                 what = course + " " + ", ".join(new)
         self._send(done_page(f"{what} @ {school.name}", user))
         return
@@ -2464,7 +2485,9 @@ def maybe_daily_summary():
         n_users = c.execute("SELECT COUNT(DISTINCT topic) FROM watches").fetchone()[0]
     broken = [crs for crs, h in health.items() if h.get("alerted")]
     status = "all healthy ✅" if not broken else "NEEDS ATTENTION ⚠️: " + ", ".join(broken)
-    operator_alert(f"Daily check — watching {n_watches} class(es) for {n_users} user(s). {status}")
+    gline = guardian.summary_line()
+    operator_alert(f"Daily check — watching {n_watches} class(es) for {n_users} user(s). "
+                   f"{status}" + (f" — {gline}" if gline else ""))
 
 
 def run_fire_drill():
@@ -2525,37 +2548,48 @@ def _school_fetch(school_id, items):
     """Network I/O for one school. Never raises — returns {} so the guard handles it."""
     school = schools.SCHOOLS.get(school_id)
     if not school:
-        return school_id, {}
+        return school_id, {}, 0
+    t0 = time.time()
     try:
-        return school_id, school.fetch({r["course"] for r in items})
+        return (school_id, school.fetch({r["course"] for r in items}),
+                int((time.time() - t0) * 1000))
     except Exception as e:
         sw.log(f"  [warn] {school_id} fetch crashed (treated as no-data): {e}")
-        return school_id, {}
+        return school_id, {}, int((time.time() - t0) * 1000)
 
 
 def run_cycle():
     with db() as c:
         rows = c.execute("SELECT * FROM watches").fetchall()
-    by_school = {}
+    cyc = guardian.begin_cycle(rows)   # expected-identity snapshot; every watch below
+    by_school = {}                     # must end the cycle with a terminal outcome
     for r in rows:
         by_school.setdefault(r["school"], []).append(r)
     if not by_school:
-        return
+        guardian.finalize(cyc)
+        return cyc
 
     # Fetch every school CONCURRENTLY so cycle time stays flat as schools scale
     # (sequential would grow linearly). Alert logic below stays sequential + safe.
-    data_by_school = {}
+    data_by_school, fetch_ms = {}, {}
     with ThreadPoolExecutor(max_workers=min(12, len(by_school))) as ex:
-        for school_id, data in ex.map(lambda kv: _school_fetch(*kv), by_school.items()):
+        for school_id, data, ms in ex.map(lambda kv: _school_fetch(*kv), by_school.items()):
             data_by_school[school_id] = data
+            fetch_ms[school_id] = ms
 
+    cur_terms, fetched_at = {}, {}     # per-school context the alert gate re-checks
     for school_id, items in by_school.items():
         school = schools.SCHOOLS.get(school_id)
         if not school:
+            for r in items:            # registry no longer knows this school: the watch
+                guardian.record(cyc, r["id"], "school_missing")   # must not vanish silently
             continue
         data = data_by_school.get(school_id, {})  # {course: {section: {open(bool), seats}}}
+        guardian.note_fetch(cyc, school_id, bool(data), fetch_ms.get(school_id, 0), data)
+        fetched_at[school_id] = guardian.now()
         cur_term = (school.cur_term() if callable(getattr(school, "cur_term", None))
                     else getattr(school, "term", None))
+        cur_terms[school_id] = cur_term
 
         for r in items:
             course = r["course"]
@@ -2567,12 +2601,18 @@ def run_cycle():
             # Only on a DEFINITE mismatch: if either term is unknown we cannot prove
             # staleness, and skipping would silently kill a working watch.
             if r["term"] and cur_term and r["term"] != cur_term:
+                guardian.record(cyc, r["id"], "blocked_wrong_term",
+                                adapter_term=cur_term, watch_term=r["term"])
                 k = (school_id, r["term"], cur_term)
                 if k not in _stale_logged:
                     _stale_logged.add(k)
                     sw.log(f"  [term] {school_id}: watches created for term {r['term']} are "
                            f"stale (school now on {cur_term}) — they will NOT alert. "
                            f"Students must re-create them for the new term.")
+                    guardian.page(f"term_stale:{school_id}",
+                                  f"⚠️ {school.name}: watches from term {r['term']} are "
+                                  f"STRANDED (school rolled to {cur_term}). They will not "
+                                  "alert until the student re-creates them.")
                 continue
             hkey = f"{school_id}:{course}"
             h = health.setdefault(hkey, {"fails": 0, "alerted": False, "last_count": 0})
@@ -2586,6 +2626,8 @@ def run_cycle():
                                    "— possible block or format change. Paused (NO false "
                                    "alerts go out). I'll report when it recovers.")
                     h["alerted"] = True
+                guardian.record(cyc, r["id"], "adapter_failed",
+                                fails=h["fails"], adapter_term=cur_term)
                 continue
 
             if h["alerted"]:
@@ -2611,22 +2653,48 @@ def run_cycle():
             if want == "":                  # watching ALL sections of the course
                 open_secs = [n for n, i in secs.items() if i["open"]]
                 if open_secs and not r["alerted"]:
-                    if _alert(r, f"Open in {course}: {', '.join(sorted(open_secs))}", url):
-                        _set_alerted(r["id"], 1)   # latch only if it reached the student
+                    guardian.queue_alert(cyc, r, f"Open in {course}: "
+                                         f"{', '.join(sorted(open_secs))}", url)
                 elif not open_secs and r["alerted"]:
                     _set_alerted(r["id"], 0)
+                    guardian.record(cyc, r["id"], "checked_closed_reset",
+                                    adapter_term=cur_term)
+                elif open_secs:
+                    guardian.record(cyc, r["id"], "checked_open_already",
+                                    adapter_term=cur_term)
+                else:
+                    guardian.record(cyc, r["id"], "checked_no_change",
+                                    adapter_term=cur_term)
             else:
                 info = secs.get(want)
                 if not info:
+                    # the COURSE answered but this SECTION vanished from it — a silent
+                    # miss in progress (renumbered/collapsed/filtered); count it.
+                    guardian.record(cyc, r["id"], "section_missing",
+                                    adapter_term=cur_term, sections_seen=len(secs))
                     continue
                 if info["open"] and not r["alerted"]:
                     seats = info.get("seats")
                     msg = (f"{seats} seat(s) open in {course}-{want}!" if seats
                            else f"A seat opened in {course} section {want}!")
-                    if _alert(r, msg, url):
-                        _set_alerted(r["id"], 1)   # latch only if it reached the student
+                    guardian.queue_alert(cyc, r, msg, url)
                 elif not info["open"] and r["alerted"]:
                     _set_alerted(r["id"], 0)
+                    guardian.record(cyc, r["id"], "checked_closed_reset",
+                                    adapter_term=cur_term, seats=info.get("seats"))
+                elif info["open"]:
+                    guardian.record(cyc, r["id"], "checked_open_already",
+                                    adapter_term=cur_term, seats=info.get("seats"))
+                else:
+                    guardian.record(cyc, r["id"], "checked_no_change",
+                                    adapter_term=cur_term, seats=info.get("seats"))
+
+    # Deliver queued alerts through the safety gate + mass-transition tripwire,
+    # then reconcile: every expected watch must now hold a terminal outcome.
+    # off/shadow: sends are exactly what the legacy inline path produced.
+    guardian.flush_alerts(cyc, _alert, _set_alerted, cur_terms, fetched_at)
+    guardian.finalize(cyc)
+    return cyc
 
 
 def send_web_push(user_id, title, body, url):
@@ -2977,7 +3045,10 @@ def _alert(r, message, url):
         _log_alert(r, "webpush")
     if emailed:
         _log_alert(r, "email")
-    delivered = bool(ok) or (pushed > 0) or emailed or texted
+    # off/shadow: legacy rule (any channel, incl. a bare ntfy 200). enforce: honest
+    # rule — an account with push/email enrolled must be reached on one of them;
+    # ntfy alone latches only topic-only legacy accounts. Shadow records divergences.
+    delivered = guardian.latch_decision(r, ok, pushed, emailed, texted)
     sw.log(f"  ALERT {r['course']}-{r['section'] or 'ALL'} -> {r['topic']} "
            f"(ntfy {'sent' if ok else 'FAILED'}; web-push {pushed}; email {'sent' if emailed else 'off'}"
            f"; sms {'sent' if texted else 'off'}"
@@ -3001,31 +3072,40 @@ def _set_alerted(watch_id, val):
 
 def poller():
     sw.log("Poller started (with health guard).")
+    if os.environ.get("AUTO_ROLL_TERMS") != "1":
+        sw.log("[term] daily auto-roll DISARMED (AUTO_ROLL_TERMS != 1): terms hold at "
+               "last-known-good; semester boundaries need a manual pin bump. Fail-closed "
+               "default — a roll against a stale watch stamp silently kills watches.")
     last_term_refresh = 0.0
     while True:
         try:
-            # Self-maintenance: auto-roll Banner schools to the new semester once/day, in
-            # the background so it never blocks polling. Safe: verifies live data before
-            # adopting a new term, else keeps the last-known-good one.
-            if time.time() - last_term_refresh > 86400:
+            # Self-maintenance: auto-roll schools to the new semester once/day, in the
+            # background so it never blocks polling (verify-before-adopt inside). The
+            # WHOLE job is env-gated OFF by default: with stamped watches live, a term
+            # roll must be a deliberate operator act, never a scheduled surprise.
+            if (os.environ.get("AUTO_ROLL_TERMS") == "1"
+                    and time.time() - last_term_refresh > 86400):
                 last_term_refresh = time.time()
                 threading.Thread(target=schools.refresh_all_terms,
                                  kwargs={"log": sw.log}, daemon=True).start()
-            run_cycle()
-            ping_healthcheck()
+            cyc = run_cycle()
+            if guardian.ping_ok(cyc):   # enforce: only a reconciled, non-RED cycle may
+                ping_healthcheck()      # claim success; off/shadow: semantics unchanged
             maybe_daily_summary()
             run_fire_drill()
         except Exception as e:
             sw.log(f"[poller error, recovering] {e}")
-            try:
-                operator_alert(f"Engine hit an error but recovered: {e}")
-            except Exception:
-                pass
+            guardian.poller_recover(e)  # evidence + damped page, not a 20s page storm
         time.sleep(POLL_SECONDS)
 
 
 def main():
     init_db()
+    guardian.TUNING["POLL_S"] = POLL_SECONDS
+    guardian.configure(db, lambda k, d=None: _load_state().get(k, d), _save_state,
+                       sw.log, operator_alert,
+                       mode=os.environ.get("GUARDIAN_MODE", "shadow"),
+                       deploy_sha=os.environ.get("SEATWATCH_DEPLOY_SHA", ""))
     threading.Thread(target=poller, daemon=True).start()
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     sw.log(f"SeatWatch web app on http://localhost:{PORT}  (term {sw.TERM})")
