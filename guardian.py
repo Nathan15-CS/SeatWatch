@@ -43,7 +43,8 @@ TUNING = {
     "FRESHNESS_MAX_S": 180,          # data older than this can never justify an alert
     "PAGE_COOLDOWN_S": 6 * 3600,     # damper: 1 operator page per failure class / 6h
     "RATE_WINDOW_S": 6 * 3600,       # adapter success-rate window (~1080 cycles)
-    "REPORT_KEEP": 50,               # rolling per-cycle reports kept on disk
+    "RESULTS_RETENTION_S": 7 * 86400,  # per-watch/cycle evidence kept this long
+    "PRUNE_EVERY_S": 6 * 3600,       # retention sweep cadence (cheap, but not per-cycle)
 }
 
 OUTCOMES = (
@@ -507,6 +508,7 @@ def _finalize_inner(cycle):
                               f"cycle {cycle.id}: {json.dumps(d)[:200]}",
                               contained="alert suppressed by existing fail-closed skip"
                               if oc != "alert_undelivered" else "retrying every cycle")
+        _maybe_prune(c, now)
         conf = _compute_confidence(c, cycle, now)
     if status == "RED":
         page("cycle_red", f"🚨 Guardian cycle RED: {binding}. Evidence in guardian_* "
@@ -515,6 +517,28 @@ def _finalize_inner(cycle):
     cycle.ping = (status != "RED") if _CFG["mode"] == "enforce" else True
     _write_report(cycle, status, binding, outcomes, conf)
     return status
+
+
+def _maybe_prune(c, now):
+    """Bound evidence growth: watch-result and finalized-cycle rows older than
+    RESULTS_RETENTION_S are deleted (at 17 watches the results table grows
+    ~73k rows/day — unbounded would be ~27M rows/yr). Runs at most once per
+    PRUNE_EVERY_S. Kept forever: daily confidence snapshots (7 rows/day),
+    deduped incidents, adapter health (one row/school), and any UNFINALIZED
+    cycle row — the crash-before-finalize detector needs those."""
+    try:
+        last = float(_CFG["state_get"]("guardian_last_prune", 0) or 0)
+        if now - last < TUNING["PRUNE_EVERY_S"]:
+            return
+        cut = now - TUNING["RESULTS_RETENTION_S"]
+        c.execute("DELETE FROM guardian_watch_results WHERE created<?", (cut,))
+        # cycles age from FINISHED, not started: a stale orphan closed as 'aborted'
+        # just now must survive a full retention window from its discovery
+        c.execute("DELETE FROM guardian_cycles WHERE finished IS NOT NULL AND finished<?",
+                  (cut,))
+        _CFG["state_set"](guardian_last_prune=now)
+    except Exception as e:
+        _telemetry_mark(f"prune:{type(e).__name__}")
 
 
 def _update_adapter_health(c, cycle, now):
@@ -558,7 +582,15 @@ def _update_adapter_health(c, cycle, now):
 
 def _compute_confidence(c, cycle, now):
     """Assemble evidence and hand it to the pure engine. Snapshot once/day."""
+    try:                                  # P6 maturity anchor: persisted first-run stamp,
+        started_at = _CFG["state_get"]("guardian_started_at")   # so retention pruning
+        if not started_at:                # can never shrink the operating-age evidence
+            started_at = now
+            _CFG["state_set"](guardian_started_at=now)
+    except Exception:
+        started_at = None
     ev = _conf.gather_evidence(c, cycle, now, TUNING,
+                               started_at=started_at,
                                deploy_sha=_CFG["deploy_sha"],
                                drill_age_s=_drill_age(now),
                                telemetry_faults=len([t for t, _ in _TELEMETRY_FAULTS

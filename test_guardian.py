@@ -646,6 +646,55 @@ class TestBrainOutputs(Base):
         self.assertEqual(rep["expected"], 1)
         self.assertIn("not a probability", rep["note"])
 
+    def test_retention_prunes_old_evidence_keeps_recent_and_unfinalized(self):
+        self.add_user(1)
+        self.add_watch(1, section="0101")
+        self.install(FakeSchool(steps=[{"data": {"TEST101": {"0101": sec(False, 0)}}}]))
+        old = self.clock[0] - 8 * 86400            # older than the 7-day retention
+        with app.db() as c:
+            c.execute("INSERT INTO guardian_watch_results(cycle_id,watch_id,outcome,"
+                      "created) VALUES('cOLD',1,'checked_no_change',?)", (old,))
+            c.execute("INSERT INTO guardian_cycles(cycle_id,started,finished,status) "
+                      "VALUES('cOLD',?,?, 'GREEN')", (old, old))
+            c.execute("INSERT INTO guardian_cycles(cycle_id,started) VALUES('cCRASH',?)",
+                      (old,))                       # unfinalized: crash evidence, kept
+        self.state.pop("guardian_last_prune", None)
+        self.cycle()                               # finalize runs the due sweep
+        with app.db() as c:
+            self.assertIsNone(c.execute("SELECT 1 FROM guardian_watch_results WHERE "
+                                        "cycle_id='cOLD'").fetchone())
+            self.assertIsNone(c.execute("SELECT 1 FROM guardian_cycles WHERE "
+                                        "cycle_id='cOLD'").fetchone())
+            kept = c.execute("SELECT status FROM guardian_cycles WHERE "
+                             "cycle_id='cCRASH'").fetchone()
+            self.assertIsNotNone(kept)             # unfinalized row survived the sweep...
+            self.assertEqual(kept["status"], "aborted")   # ...and was flagged as a crash
+            self.assertEqual(c.execute("SELECT COUNT(*) FROM guardian_watch_results "
+                                       "WHERE watch_id=1 AND outcome='checked_no_change' "
+                                       "AND cycle_id!='cOLD'").fetchone()[0], 1)
+        self.assertEqual(self.state.get("guardian_last_prune"), self.clock[0] - 20)
+        with app.db() as c:                        # within the interval: sweep must not rerun
+            c.execute("INSERT INTO guardian_watch_results(cycle_id,watch_id,outcome,"
+                      "created) VALUES('cOLD2',1,'checked_no_change',?)", (old,))
+        self.cycle()
+        with app.db() as c:
+            self.assertIsNotNone(c.execute("SELECT 1 FROM guardian_watch_results WHERE "
+                                           "cycle_id='cOLD2'").fetchone())
+
+    def test_maturity_anchor_survives_windowing_and_pruning(self):
+        self.add_user(1, push_sub=True)
+        self.add_watch(1, section="0101")
+        self.install(FakeSchool(steps=[{"data": {"TEST101": {"0101": sec(False, 0)}}}]))
+        self.state["guardian_started_at"] = self.clock[0] - 5 * 86400
+        self.cycle()
+        factors = json.loads(self._snapshot_factors("system"))
+        self.assertEqual(factors["P6_maturity"], 70)   # 20 + 5 days * 10, from the anchor
+
+    def _snapshot_factors(self, etype):
+        with app.db() as c:
+            return c.execute("SELECT factors FROM guardian_confidence WHERE entity_type=? "
+                             "ORDER BY date DESC LIMIT 1", (etype,)).fetchone()["factors"]
+
     def test_admin_stats_block_present(self):
         self.add_user(1)
         self.add_watch(1)

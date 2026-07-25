@@ -65,13 +65,16 @@ def compose(factors):
 
 
 # ------------------------------------------------------------ gather (SQL)
-def gather_evidence(c, cycle, now, tuning, deploy_sha="", drill_age_s=None,
-                    telemetry_faults=0, divergences=0):
+def gather_evidence(c, cycle, now, tuning, started_at=None, deploy_sha="",
+                    drill_age_s=None, telemetry_faults=0, divergences=0):
     """Pull everything compute() needs from the guardian tables in one place.
-    Only reads; tolerates missing optional tables (alert_log pre-deploy)."""
+    Only reads; tolerates missing optional tables (alert_log pre-deploy).
+    started_at is the PERSISTED first-run stamp — the maturity anchor must not
+    come from the (windowed, pruned) cycles list, which caps at ~200 rows."""
     poll_s = tuning.get("POLL_S", 20)
     win0 = now - tuning["RATE_WINDOW_S"]
     ev = {"now": now, "poll_s": poll_s, "deploy_sha": deploy_sha,
+          "started_at": started_at,
           "drill_age_s": drill_age_s, "telemetry_faults": telemetry_faults,
           "divergences": divergences, "watches": {}, "adapters": {},
           "cycles": [], "undelivered_24h": 0, "delivered_24h": 0}
@@ -258,7 +261,7 @@ def system_factors(ev, worst_watch_score):
         f["P5_verification"] = 50
     else:
         f["P5_verification"] = 30
-    first = ev["cycles"][-1]["started"] if ev["cycles"] else now
+    first = ev.get("started_at") or (ev["cycles"][-1]["started"] if ev["cycles"] else now)
     days = (now - first) / 86400
     maturity = min(100, int(20 + days * 10))
     f["P6_maturity"] = min(maturity, CAP_DIVERGENCE) if ev["divergences"] else maturity
