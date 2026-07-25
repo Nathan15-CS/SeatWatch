@@ -150,10 +150,16 @@ SMS_DEDUP_SECS = int(os.environ.get("SMS_DEDUP_SECS", "3600"))       # retry-sto
 SMS_VELOCITY_PER_MIN = int(os.environ.get("SMS_VELOCITY_PER_MIN", "30"))
 SMS_VELOCITY_FLOOR = int(os.environ.get("SMS_VELOCITY_FLOOR", "50"))  # breaker can't trip under
                                                                       # this many sends today
-SMS_CONSENT_WORDING = ("I agree to receive automated seat-alert text messages from SeatWatch "
-                       "at the number I provided. Message frequency varies by watched classes. "
-                       "Msg&data rates may apply. Reply STOP to cancel, HELP for help. "
-                       "Consent is not a condition of purchase.")
+# EXACT opt-in disclosure — registered verbatim with the 10DLC campaign, so this string
+# must match the checkbox, the /text-alerts page, and the SMS Terms word-for-word. Any
+# drift between the public site and the registered campaign is the #1 carrier-rejection
+# cause. Stored plain in each consent record as proof of exactly what the user agreed to;
+# _sms_consent_html() renders it with Terms/Privacy hyperlinked for display.
+SMS_CONSENT_WORDING = ("I agree to receive automated SeatWatch course seat-availability "
+                       "alerts at the number provided. Message frequency varies based on the "
+                       "courses I monitor. Message and data rates may apply. Reply STOP to opt "
+                       "out or HELP for help. Consent is not a condition of purchase. See our "
+                       "Terms and Privacy Policy.")
 
 PLAN_MSG = ("Your free plan covers 1 class — up to 2 of its sections. Stop watching "
             "your current class below to switch classes.")
@@ -879,7 +885,7 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 </style></head><body>
 <header><div class="nav"><svg class="mark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><path d="M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z" fill="#fff" stroke="#2563eb" stroke-width="9" stroke-linejoin="round"/><rect x="42" y="32" width="28" height="24" rx="7" fill="url(#b)"/><rect x="38" y="56" width="40" height="11" rx="5.5" fill="url(#b)"/><rect x="42" y="67" width="8" height="15" rx="3" fill="url(#b)"/><rect x="66" y="67" width="8" height="15" rx="3" fill="url(#b)"/><circle cx="100" cy="20" r="11" fill="#10b981" stroke="#fff" stroke-width="5"/><path d="M100 4 V1 M111 9 L114 6 M116 20 H119" stroke="#10b981" stroke-width="4.5" stroke-linecap="round"/></svg><span class="word"><i>Seat</i>Watch</span><span class="spacer"></span><a class="signin" href="/login"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Sign in</a></div></header>
 <main>__BODY__</main>
-<footer><span class="tagline">We watch seats. <em>You get the class.</em></span><br>© 2026 SeatWatch &nbsp;·&nbsp; <a href="/terms">Terms</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a><br>Not affiliated with any university.</footer>
+<footer><span class="tagline">We watch seats. <em>You get the class.</em></span><br>© 2026 SeatWatch &nbsp;·&nbsp; <a href="/terms">Terms</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="/text-alerts">Text Alerts</a> &nbsp;·&nbsp; <a href="/sms-terms">SMS Terms</a><br>Not affiliated with any university.</footer>
 <script>
 (function(){/* durable device marker: cookie + localStorage mirror (soft signal only) */
 try{
@@ -1199,7 +1205,7 @@ TERMS = """<h2 style="font-size:20px;margin:6px 0 2px">Terms of Service</h2>
 <p style="font-size:13px;margin-top:16px"><a href="/">&larr; Back to SeatWatch</a> &nbsp;&middot;&nbsp; <a href="/privacy">Privacy Policy</a></p>""".replace("STYLE", _PSTYLE)
 
 PRIVACY = """<h2 style="font-size:20px;margin:6px 0 2px">Privacy Policy</h2>
-<p class="sub" style="margin-bottom:14px">Last updated: July 13, 2026</p>
+<p class="sub" style="margin-bottom:14px">Last updated: July 23, 2026</p>
 <div style="STYLE">
 <p><b>The short version:</b> we collect the bare minimum needed to run your alerts &mdash; your email (from sign-in) and the classes you watch &mdash; plus a little more only to stop people from abusing the free plan. We never sell your data or use it for ads.</p>
 <p><b>1. What we collect.</b> (a) your email address and account ID, via &ldquo;Sign in with Google&rdquo; or &ldquo;Sign in with Apple&rdquo; (we never see or store your password); (b) the classes and sections you ask us to watch; (c) the private notification &ldquo;topic&rdquo; we assign your account, so we can push alerts to your phone; (d) your IP address, used to keep the service secure &mdash; rate-limiting and helping us spot abuse such as one person creating many accounts to get around free-plan limits; (e) if you turn on phone alerts, the push subscription your browser creates &mdash; a device delivery address used to send you your alerts and, if the same device signs up under several accounts, as an abuse signal; removed when you revoke it; (f) a device identifier &mdash; a random ID we generate and store in your browser (a cookie and local storage) used <b>solely</b> to detect fraud and free-plan abuse (for example, many accounts from one device). It is not an advertising ID and is never used to track you across other websites.</p>
@@ -1209,6 +1215,7 @@ PRIVACY = """<h2 style="font-size:20px;margin:6px 0 2px">Privacy Policy</h2>
 <p><b>5. How we use your data.</b> To run the watch-and-alert service, and to keep it secure and fair (see below). Nothing else.</p>
 <p><b>6. Preventing abuse of the free plan.</b> So we can keep offering a free plan, we look for signs that one person is using multiple accounts to bypass the free limit &mdash; for example accounts that share a device, network/IP address, or email, or that together watch more of a class than one free account is meant to. To do this we use only the data described above (the device identifier, IP address, sign-in email, notification tokens, and your watch activity) &mdash; the minimum needed, and no invasive fingerprinting. This protects our legitimate interest in preventing fraud. If we find likely abuse, we may remove the extra watches or accounts, as permitted by our <a href="/terms">Terms of Service</a>. These checks are reviewed by a person before any action &mdash; <b>if you believe you were flagged by mistake, email <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a> and a human will help sort it out.</b></p>
 <p><b>7. Sharing.</b> We do not sell, rent, or share your data for advertising &mdash; ever.</p>
+<p><b>7a. Text-message (SMS) alerts.</b> If you opt in to text alerts on a paid plan, we collect your mobile number and a record of your consent &mdash; the exact wording you agreed to, the date and time, and the originating IP address &mdash; used <b>solely</b> to send the course seat-availability alerts you requested and to honor your STOP and HELP replies. <b>SeatWatch does not share or sell mobile phone numbers, SMS opt-in, or consent information with third parties or affiliates for marketing or promotional purposes.</b> We disclose your mobile number only to our SMS delivery provider (Twilio), strictly to transmit the alerts you asked for. Message frequency varies based on the courses you monitor; message and data rates may apply. Reply STOP to any alert to unsubscribe, or HELP for help. Opting in is never a condition of purchase &mdash; free plans use web push and email, and paid plans work fully without a phone number. See our <a href="/sms-terms">SMS Terms &amp; Conditions</a>.</p>
 <p><b>Your California privacy rights.</b> If you are a California resident, you have the right to know what personal information we collect and how we use it; to request a copy, correction, or deletion of it; and to not be treated differently for exercising these rights. <b>We do not sell or share your personal information, and have not done so.</b> To exercise any right, email <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a>; we will verify and respond as the law requires.</p>
 <p><b>8. Retention.</b> A watch is kept only while it is active. Stop it (or ask us) and it is removed. Abuse-prevention signals are kept only as long as needed to protect the service.</p>
 <p><b>9. Security.</b> We use reasonable safeguards to protect the service, but no system is 100% secure.</p>
@@ -1218,6 +1225,25 @@ PRIVACY = """<h2 style="font-size:20px;margin:6px 0 2px">Privacy Policy</h2>
 <p><b>12. Contact / data removal.</b> Want your data removed, or have a question? Contact the SeatWatch LLC team at <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a>. You can also reach us by mail at SeatWatch LLC, 2219 York Rd, Ste 400 #1032, Timonium, MD 21093, USA.</p>
 </div>
 <p style="font-size:13px;margin-top:16px"><a href="/">&larr; Back to SeatWatch</a> &nbsp;&middot;&nbsp; <a href="/terms">Terms of Service</a></p>""".replace("STYLE", _PSTYLE)
+
+
+SMS_TERMS = """<h2 style="font-size:20px;margin:6px 0 2px">SMS Terms &amp; Conditions</h2>
+<p class="sub" style="margin-bottom:14px">Last updated: July 23, 2026</p>
+<div style="STYLE">
+<p><b>1. Program description.</b> The SeatWatch text-alert program sends automated text messages notifying you when a seat opens in a full college course or section you have chosen to monitor. Text alerts are an optional feature of SeatWatch&rsquo;s paid plans.</p>
+<p><b>2. How to opt in.</b> On a paid plan, add your U.S. mobile number and check the consent box that reads: &ldquo;<i>I agree to receive automated SeatWatch course seat-availability alerts at the number provided. Message frequency varies based on the courses I monitor. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not a condition of purchase. See our Terms and Privacy Policy.</i>&rdquo; The box is unchecked by default; checking it and submitting is your affirmative opt-in.</p>
+<p><b>3. Consent is not a condition of purchase.</b> You are never required to provide a mobile number or agree to texts to buy or use SeatWatch. Free plans use web push and email, and paid plans work fully without text alerts.</p>
+<p><b>4. Message frequency.</b> Message frequency varies based on how many courses and sections you monitor and how often seats open in them. You may receive multiple messages when seats open, or none when they do not.</p>
+<p><b>5. Cost.</b> <b>Message and data rates may apply.</b> SeatWatch does not charge for the text messages themselves; your mobile carrier&rsquo;s standard messaging and data rates apply, and you are responsible for them.</p>
+<p><b>6. To unsubscribe (STOP).</b> Reply <b>STOP</b> to any SeatWatch text at any time to cancel. After you send STOP, we will stop sending course alerts to that number. You may also receive one final message confirming your opt-out.</p>
+<p><b>7. For help (HELP).</b> Reply <b>HELP</b> to any SeatWatch text for help, or email <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a>.</p>
+<p><b>8. Supported carriers.</b> Text alerts are available on major U.S. mobile carriers. Carriers are not liable for delayed or undelivered messages.</p>
+<p><b>9. No guarantee of delivery.</b> Text messages depend on your carrier and device and may be delayed or fail to arrive for reasons outside our control. SeatWatch also delivers the same alerts by web push and email, and you should not rely on text messages as your only means of notification. Text alerts do not guarantee you a seat &mdash; open seats can fill in seconds.</p>
+<p><b>10. Privacy.</b> Your mobile number and consent record are used only to deliver the alerts you requested and are never sold or shared for marketing. See our <a href="/privacy">Privacy Policy</a> for full details.</p>
+<p><b>11. Changes.</b> We may update these SMS Terms; the &ldquo;last updated&rdquo; date above will change.</p>
+<p><b>12. Contact.</b> SeatWatch LLC, 2219 York Rd, Ste 400 #1032, Timonium, MD 21093, USA &nbsp;&middot;&nbsp; <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a>.</p>
+</div>
+<p style="font-size:13px;margin-top:16px"><a href="/">&larr; Back to SeatWatch</a> &nbsp;&middot;&nbsp; <a href="/privacy">Privacy Policy</a> &nbsp;&middot;&nbsp; <a href="/terms">Terms of Service</a></p>""".replace("STYLE", _PSTYLE)
 
 
 LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
@@ -1655,35 +1681,85 @@ def push_block(tok):
     return PUSH_BLOCK.replace("__CSRF__", tok).replace("__VAPIDPK__", VAPID_PUBLIC_KEY)
 
 
+def _sms_consent_html():
+    """The registered opt-in disclosure, verbatim, with Terms/Privacy hyperlinked. Stays
+    word-for-word identical to SMS_CONSENT_WORDING everywhere it renders (checkbox,
+    /text-alerts, SMS Terms) — that's what the 10DLC campaign registers."""
+    return html.escape(SMS_CONSENT_WORDING).replace(
+        "Terms and Privacy Policy",
+        '<a href="/sms-terms">Terms</a> and <a href="/privacy">Privacy Policy</a>')
+
+
+def _sms_optin_form(tok):
+    """The single web opt-in form: mobile number + an UNCHECKED-by-default consent
+    checkbox carrying the exact disclosure. Both fields are required, so a submission
+    cannot happen without an explicit, affirmative opt-in. Reused by the in-app card and
+    the public /text-alerts page so the two can never drift. Posts to /sms/optin, which
+    requires sign-in (ties consent to an account) — a logged-out visitor still SEES the
+    checkbox and language."""
+    return (f'<form method="post" action="/sms/optin" style="margin:0">'
+            f'<input type="hidden" name="csrf" value="{html.escape(tok or "")}">'
+            f'<label>Mobile number <small>— U.S. mobile, paid plans</small></label>'
+            f'<input name="phone" type="tel" inputmode="tel" placeholder="e.g. 301 555 0123" '
+            f'autocomplete="tel" required>'
+            f'<label style="display:flex;gap:9px;align-items:flex-start;font-weight:400;'
+            f'font-size:12.5px;line-height:1.55;margin-top:9px;text-transform:none;'
+            f'letter-spacing:0"><input type="checkbox" name="sms_consent" value="1" required '
+            f'style="margin-top:2px;flex:none;width:auto">'
+            f'<span>{_sms_consent_html()}</span></label>'
+            f'<button type="submit" style="margin-top:11px">Turn on text alerts</button></form>')
+
+
 def sms_block(user, tok):
-    """Text-alert opt-in for PAID users. Renders nothing while SMS is dormant, for free
-    users, and for anyone already confirmed — so the page is byte-identical to before
-    unless SMS is live AND this user can actually use it."""
+    """In-app text-alert opt-in card for PAID users. Empty for free users and while SMS is
+    dormant (the /text-alerts page is the public opt-in home until launch). Single opt-in:
+    once the box is submitted the alerts are ON — there is no confirm-reply step."""
     if not SMS_ENABLED or not user or effective_tier(user) < 1:
         return ""
     with db() as c:
         row = c.execute("SELECT phone, confirmed_at, revoked_at FROM sms_consent WHERE "
                         "user_id=? ORDER BY id DESC LIMIT 1", (user["id"],)).fetchone()
+    box = ('<div style="margin-top:14px;border-top:1px solid #F3F4F6;padding-top:13px">')
     if row and row["confirmed_at"] and not row["revoked_at"]:
-        return ('<div style="margin-top:14px;border-top:1px solid #F3F4F6;padding-top:13px">'
-                '<p class="note" style="margin:0">📱 Text alerts are ON for '
-                f'<b>••• ••• {html.escape(row["phone"][-4:])}</b>. Reply STOP to any '
-                'alert to turn them off.</p></div>')
-    pending = ('<p class="note" style="margin:0 0 8px">We texted you — reply <b>YES</b> '
-               'to finish turning on SMS alerts.</p>') if row and not row["revoked_at"] else ""
-    return (f'<div style="margin-top:14px;border-top:1px solid #F3F4F6;padding-top:13px">'
-            f'{pending}<form method="post" action="/sms/optin" style="margin:0">'
-            f'<input type="hidden" name="csrf" value="{tok}">'
-            f'<label>Text alerts <small>— fastest channel, paid plans only</small></label>'
-            f'<input name="phone" type="tel" placeholder="e.g. 301 555 0123" '
-            f'autocomplete="tel" required>'
-            f'<label style="display:flex;gap:8px;align-items:flex-start;font-weight:400;'
-            f'font-size:12.5px;line-height:1.5;margin-top:8px;text-transform:none;'
-            f'letter-spacing:0"><input type="checkbox" name="sms_consent" value="1" '
-            f'required style="margin-top:2px;flex:none;width:auto">'
-            f'<span>{html.escape(SMS_CONSENT_WORDING)}</span></label>'
-            f'<button type="submit" style="margin-top:10px">Enable text alerts</button>'
-            f'</form></div>')
+        return (box + '<p class="note" style="margin:0">📱 Text alerts are ON for '
+                f'<b>••• ••• {html.escape(row["phone"][-4:])}</b>. Reply STOP to any alert '
+                'to turn them off.</p></div>')
+    return box + _sms_optin_form(tok) + "</div>"
+
+
+def text_alerts_body(user):
+    """PUBLIC /text-alerts page — the carrier-inspectable opt-in. Shows the program, the
+    UNCHECKED consent checkbox with the exact registered disclosure, and links to the SMS
+    Terms + Privacy Policy. Reachable without an account (a logged-out visitor sees the
+    checkbox and language; submitting prompts sign-in). Everything here is truthful to what
+    the code does today: single web opt-in, no confirmation-reply step, texts sent only
+    once the SMS service is live."""
+    tok = csrf_token(user["id"]) if user else ""
+    gate = ("" if user else
+            '<p class="note" style="margin:0 0 12px"><a href="/login">Sign in</a> and choose '
+            'a paid plan to turn on text alerts.</p>')
+    return (
+        '<h2 style="font-size:20px;margin:6px 0 2px">SeatWatch Text Alerts</h2>'
+        '<p class="sub" style="margin-bottom:14px">Get a text the moment a seat opens.</p>'
+        f'<div style="{_PSTYLE}">'
+        '<p>SeatWatch watches the full college courses you choose and sends an automated text '
+        'message the instant a seat opens, so you can register before it fills again. Text '
+        'alerts are an optional feature of our paid plans.</p>'
+        '<p><b>How it works.</b> On a paid plan, enter your U.S. mobile number below and check '
+        'the consent box &mdash; that is your opt-in. The box is unchecked by default, and a '
+        'phone number is <b>never required</b> to use SeatWatch: free and paid plans both work '
+        'fully with web push and email.</p>'
+        '<div style="background:#F8FAFC;border:1px solid rgba(11,21,38,.08);border-radius:14px;'
+        'padding:16px 16px 18px;margin:15px 0">'
+        f'{gate}{_sms_optin_form(tok)}</div>'
+        '<p style="font-size:12.5px;color:#6b7a92;line-height:1.6"><b>Message frequency varies</b> '
+        'based on the courses you monitor. <b>Message and data rates may apply.</b> Reply '
+        '<b>STOP</b> to any alert to unsubscribe, or <b>HELP</b> for help. Consent is not a '
+        'condition of purchase.</p>'
+        '</div>'
+        '<p style="font-size:13px;margin-top:16px"><a href="/">&larr; Back to SeatWatch</a> '
+        '&nbsp;&middot;&nbsp; <a href="/sms-terms">SMS Terms &amp; Conditions</a> '
+        '&nbsp;&middot;&nbsp; <a href="/privacy">Privacy Policy</a></p>')
 
 
 def form_page(notice="", user=None):
@@ -1810,6 +1886,10 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(page(TERMS))
         if path == "/privacy":
             return self._send(page(PRIVACY))
+        if path == "/sms-terms":
+            return self._send(page(SMS_TERMS))
+        if path == "/text-alerts":            # public opt-in page (carrier-inspectable)
+            return self._send(page(text_alerts_body(self._user())))
         if path == "/sw.js":   # service worker: no-cache so updates roll out fast
             return self._send_bytes(SW_JS.encode(), "application/javascript; charset=utf-8",
                                     cache="no-cache")
@@ -2090,42 +2170,40 @@ class Handler(BaseHTTPRequestHandler):
         # per-account — an anonymous POST can no longer create watches at all.
         user = self._user()
 
-        if path == "/sms/optin":            # form POST from the signed-in card
-            if not SMS_ENABLED:
-                return self._send(page("<p>Not found.</p>"), 404)
+        if path == "/sms/optin":            # SINGLE web opt-in — the checked box IS consent
             if not user:
                 return self._redirect("/login")
             oform = parse_qs(raw_body)
             if not hmac.compare_digest(oform.get("csrf", [""])[0], csrf_token(user["id"])):
                 return self._notice("Session expired — please try again.", user=user)
             if effective_tier(user) < 1:
-                return self._notice("Text alerts are part of the paid plans.", user=user)
+                return self._notice("Text alerts are part of the paid plans. Free plans use "
+                                    "web push and email — no phone number needed.", user=user)
             phone = _norm_phone(oform.get("phone", [""])[0])
             if not phone:
                 return self._notice("That phone number doesn't look right — use a US "
-                                    "10-digit number.", user=user)
+                                    "10-digit mobile number.", user=user)
             if not oform.get("sms_consent"):
-                return self._notice("Please check the consent box to enable text alerts.",
+                return self._notice("Please check the consent box to turn on text alerts.",
                                     user=user)
-            # Durable consent record: who, what wording, when, from where. NOT yet
-            # confirmed — that happens only when they text back YES (double opt-in).
+            # Single web opt-in: checking the (unchecked-by-default) box and submitting IS
+            # the consent, recorded CONFIRMED immediately — no reply required (a
+            # confirmation TEXT can't honestly exist until the 10DLC campaign is approved).
+            # We store exactly what they agreed to, when, from which IP, and the phone, as
+            # durable proof a carrier can inspect on demand.
+            now = time.time()
             with db() as c:
-                c.execute("INSERT INTO sms_consent(user_id,phone,wording,ip,requested_at) "
-                          "VALUES(?,?,?,?,?)",
-                          (user["id"], phone, SMS_CONSENT_WORDING, self._client_ip(),
-                           time.time()))
-            confirm_sent = False
-            if SMS_LIVE:
-                try:
-                    confirm_sent = _twilio_post(
-                        phone, "SeatWatch: reply YES to confirm seat-alert texts. "
-                               "Msg&data rates may apply. Reply STOP to cancel, HELP for help.")
-                except Exception as e:
-                    sw.log(f"  [sms] confirm send failed: {type(e).__name__}")
-            return self._notice("Almost done — reply YES to the text we just sent to "
-                                "turn on SMS alerts." if confirm_sent else
-                                "Number saved. Text alerts will activate once SMS "
-                                "service is live.", user=user)
+                c.execute("UPDATE sms_consent SET revoked_at=? WHERE user_id=? AND "
+                          "revoked_at IS NULL AND phone!=?", (now, user["id"], phone))
+                c.execute("INSERT INTO sms_consent(user_id,phone,wording,ip,requested_at,"
+                          "confirmed_at) VALUES(?,?,?,?,?,?)",
+                          (user["id"], phone, SMS_CONSENT_WORDING, self._client_ip(), now, now))
+            return self._notice(
+                "You're opted in to text alerts. We'll text you the moment a seat opens. "
+                "Reply STOP anytime to turn them off." if SMS_LIVE else
+                "You're opted in — text alerts will begin as soon as our SMS service goes "
+                "live. You can turn them off anytime by replying STOP once they start.",
+                user=user)
 
         if path == "/push/subscribe":       # JSON body, JSON reply
             if not user:
