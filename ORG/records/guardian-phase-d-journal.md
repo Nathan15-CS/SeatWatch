@@ -38,6 +38,38 @@ DEPLOYED-VERIFYING · SHADOW-OBSERVING · ROLLED-BACK · COMPLETE)
 
 ## Entries
 
+## Standing question (CEO-mandated): "Handing this to another engineer and
+## walking away for a year — what would still make me uncomfortable?"
+
+Baseline answer, 2026-07-25 (re-evaluated whenever evidence changes; changes are
+surfaced to the CEO immediately):
+
+1. **Semester-boundary human dependence.** With auto-roll disarmed (the correct
+   near-term trade), every one of ~775 schools now needs a human term bump at
+   each semester boundary or it goes fail-closed-stale. Safe, but on a one-year
+   horizon the product decays to silence without human attention. The exit is
+   the guarded re-arm (ORD-A-class machinery), driven by shadow evidence.
+2. **Unpushed lineage.** Every commit since Stage 0d — SMS prep, the entire
+   Guardian, ops tooling, freeze, this journal — exists only on the CEO's Mac.
+   One laptop failure erases the code lineage while prod keeps running old
+   bits. Engineer recommendation: approve a push to the private GitHub remote
+   (one word; the gate is the CEO's per Stage 0d).
+3. **Backups are still manual.** The dead-man email detects VM death, but
+   nothing restores itself and the newest backup is whenever a human last ran
+   one. C1 (nightly ring + Mac pull, each with its own healthchecks ping) and
+   C2 (rehearsed restore) remain the highest-value non-Guardian reliability
+   work after shadow is stable.
+4. **Evidence-scale ceiling.** All trust the Guardian earns in shadow is earned
+   at 5 accounts / 17 family watches. It proves mechanics, not scale behavior;
+   the trust must be re-earned when real users arrive, and enforcement
+   thresholds re-examined at that time.
+5. **Transitional:** deployed-truth gap (resolves at Step 2) and the fabricated
+   testimonial still live on the pricing page (integrity item, queued for the
+   CEO's one-line go since 07-23).
+
+None of these block Step 1; items 2 and 3 are the cheapest discomfort-reducers
+on the board.
+
 ### 2026-07-25 — Journal opened (pre-deploy)
 - Done: V1 frozen (`e6c518d`); packet delivered; step protocol ratified by CEO; deploy
   deferred to when CEO is fresh (engineer recommendation, CEO accepted).
