@@ -19,7 +19,7 @@ COMPLETE)
 | Repo HEAD at journal open | `e6c518d` (V1 freeze record) — clean tree, all commits LOCAL (push separately gated) |
 | Frozen V1 scope | `d5723fe` + `a9e6777` + `a9678c3` per ORG/records/guardian-v1-freeze.md |
 | Test evidence | 36/36 passing at freeze (unittest test_guardian; includes differential shadow≡off proof) |
-| Deployed prod vintage | UNKNOWN — predates `b6532aa` (evidence: no alert_log table in prod DB, Stage-0a record 2026-07-23). Resolved by Step 2. |
+| Deployed prod vintage | **RESOLVED by Step 2 (2026-07-26):** app.py = `b85c0f6` · schools.py = `0e47cec` (=HEAD content, 777 schools). A deploy occurred ~2026-07-25 evening outside the new tooling (no DEPLOYED.log entry). Baseline's earlier "predates b6532aa" claim was true on 07-23, obsolete now — prod DB has alert_log + sms_consent (tonight's backup `.tables`). |
 | Prod DB last known | users=5, watches=17, push_subs=3 (all CEO/family — "own watches only" satisfied by fact) |
 | Mode going live | GUARDIAN_MODE unset → **shadow** · AUTO_ROLL_TERMS unset → **auto-roll disarmed** (approved C4 flip) |
 | Enforcement | OFF. Phase E is a separate future decision. |
@@ -31,8 +31,8 @@ COMPLETE)
 | # | Step | Type | Status |
 |---|---|---|---|
 | 1 | Fresh `.backup` of prod DB → Vault + integrity check | read-only | ✅ DONE 2026-07-26 |
-| 2 | Skew audit: sha256 of VM app.py/schools.py → map to git history | read-only | IN PROGRESS |
-| 3 | What-goes-live review (engineer-produced inventory) → CEO go | review | PENDING |
+| 2 | Skew audit: sha256 of VM app.py/schools.py → map to git history | read-only | ✅ DONE 2026-07-26 |
+| 3 | What-goes-live review (engineer-produced inventory) → CEO go | review | IN PROGRESS |
 | 4 | `ops/deploy.sh app --app-approved` (clean tree enforced, .prev snapshots, smoke) | mutating | PENDING |
 | 5 | Verification checklist (service, guardian shadow line, disarm line, cycle growth, report file, Healthchecks, test-watch stamp) | read-only | PENDING |
 | 6 | 24h stability check → enter SHADOW-OBSERVING (14-day window, 7 success criteria per Phase D packet) | observe | PENDING |
@@ -70,6 +70,32 @@ surfaced to the CEO immediately):
 
 None of these block Step 1; items 2 and 3 are the cheapest discomfort-reducers
 on the board.
+
+### 2026-07-26 — STEP 2 CLOSED: SAFE TO CONTINUE (major findings)
+- Evidence: `systemctl is-active` = active. VM hashes matched git exactly:
+  app.py→`b85c0f6`, schools.py→`0e47cec`. Tonight's backup contains alert_log +
+  sms_consent tables.
+- FINDING 1 (assumption corrected): production is NEARLY CURRENT, not weeks old.
+  A deploy happened ~07-25 evening (post-freeze, outside ops/deploy.sh, no
+  DEPLOYED.log entry) — coherent with the CEO-authorized SMS-lane work (10DLC
+  needs the consent page live). The feared "weeks of undeployed delta" already
+  shipped then; prod restart also re-armed+ran the daily term auto-roll (as
+  b85c0f6 has no gate) and executed the alert_log/sms_consent migrations.
+- FINDING 2: sibling-lane commits landed on main DURING Phase D prep
+  (0e47cec 777-schools; 183236c Stripe refund→auto-downgrade, dormant;
+  e2d5163 SMS log tweak). None touch guardian files. Test suite re-verified at
+  current HEAD `23f1223`: 36/36 OK. Working registry 777 = prod.
+- FINDING 3 (delta inventory for Step 3): deploying HEAD changes only —
+  guardian shadow start; auto-roll ARMED→DISARMED (C4); stamp fix (C5);
+  damped/added operator pages; end-of-cycle sends; dormant internals
+  (SMS dry-run plumbing, Twilio log clarity, Stripe refund-downgrade,
+  /sms/inbound signature-prep gated on TWILIO_TOKEN). schools.py byte-identical.
+  ZERO public-HTML changes (verified by diff scan).
+- Recommendation logged: all lanes adopt ops/deploy.sh from now on;
+  DEPLOYED.log's first honest line will be our Step 4.
+- Verdict: SAFE TO CONTINUE. Step 3 gates: (a) Healthchecks dashboard glance
+  (asked 3x, now explicitly blocking), (b) CEO's explicit go naming this
+  inventory, (c) fresh re-backup at Step 4 open if the 01:57 backup is >6h old.
 
 ### 2026-07-26 — STEP 1 CLOSED: SAFE TO CONTINUE
 - Evidence complete: `~/SeatWatchVault/pre-guardian-2026-07-25.bak` mtime Jul 26
