@@ -72,6 +72,34 @@ surfaced to the CEO immediately):
 None of these block Step 1; items 2 and 3 are the cheapest discomfort-reducers
 on the board.
 
+### 2026-07-26 — Post-deploy: hourly monitoring stood up (CEO-approved design)
+- CEO approved: hourly scheduled reliability check, QUIET unless a problem is
+  found, weekly Monday heartbeat line (a monitor that is always silent is
+  indistinguishable from a dead one). CEO's auto-fix request DECLINED per his
+  own standing rules (Guardian spec §11, freeze, credential reserve power) and
+  shadow-evidence integrity; adopted compromise: monitor diagnoses + prepares
+  the exact fix and notifies for a one-word go. Revisit-able post-shadow as an
+  earned promotion.
+- SEATWATCH_STATS_KEY provisioned by CEO (planned service restart ~afterward;
+  restart landed between cycles — NO orphaned/aborted cycle, zero incidents).
+  Key value lives in the CEO's env + monitor config ONLY — never in this repo.
+  Post-window rotation queued alongside ping-URL/IP hardening (key transited
+  chat once; read-only PII-free aggregates; rate-limited).
+- Endpoint verified by engineer directly: 200 with key / 404 without; payload:
+  shadow, GREEN 17/17 fresh, incidents [], system RCI 20 (P6 day-one maturity
+  binding — exactly as modeled), adapters earning tenure at 40, backlog 2.
+- Monitor contract: HTTPS read-only fetch of /admin/stats guardian block; no
+  SSH, no repo writes, no fixes applied; alert conditions: fetch failing twice,
+  mode≠shadow, last cycle >10 min stale, RED or accounted≠expected, any red
+  incident, watches<10, system RCI<15 or acute binding (P1/P4/W5/A2); else
+  silent; Monday heartbeat.
+- CREATED: scheduled task `seatwatch-guardian-hourly-monitor`, cron 7 * * * *
+  (hourly, :07 past). Endpoint verified live before creation (GREEN 17/17,
+  incidents [], RCI 20/P6 as modeled). Honest limitation disclosed to CEO:
+  scheduled tasks run only while the Claude app is open — Healthchecks.io
+  remains the sole true 24/7 alarm; the hourly agent is the interpretation
+  layer. First-run tool pre-approval recommended via "Run now".
+
 ### 2026-07-26 ~06:20-06:40Z — STEP 5 EVIDENCE (all but one item)
 - New-code proof: `[guardian] active, mode=shadow` + `auto-roll DISARMED` lines
   at 06:14:32 (only tonight's build prints these). The two process starts 13s
