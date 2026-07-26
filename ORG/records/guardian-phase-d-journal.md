@@ -71,6 +71,20 @@ surfaced to the CEO immediately):
 None of these block Step 1; items 2 and 3 are the cheapest discomfort-reducers
 on the board.
 
+### 2026-07-26 — Step 1 evidence received (partial)
+- Evidence: operator pasted verification only — `pre-guardian-2026-07-25.bak`
+  (note: 07-25 filename, from the first instruction block): integrity `ok`,
+  users=5, watches=17 (exact match to last-known prod). Proves a real, intact
+  backup exists on the Mac.
+- Missing before verdict: (a) file mtime — WHEN the backup was taken (`ls -la
+  ~/SeatWatchVault/` requested); (b) Healthchecks dashboard status after the
+  earlier connection reset. `backup ok` line from the VM was not pasted —
+  accepted per Stage-0a precedent (integrity + coherent counts are the
+  stronger proof), logged as a repeat of that recorded exception.
+- Decision: regardless of mtime, a fresh 2-minute re-backup will run
+  immediately before Step 4 (the first mutating step). Verdict pending the
+  two 10-second checks.
+
 ### 2026-07-26 — Step 1 first attempt: no-op, two anomalies noted
 - Done: nothing reached production. Operator's paste showed (a) an idle SSH
   session dropping with "Connection reset by peer" — assessed as a routine idle
