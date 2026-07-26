@@ -33,8 +33,8 @@ COMPLETE)
 | 1 | Fresh `.backup` of prod DB → Vault + integrity check | read-only | ✅ DONE 2026-07-26 |
 | 2 | Skew audit: sha256 of VM app.py/schools.py → map to git history | read-only | ✅ DONE 2026-07-26 |
 | 3 | What-goes-live review (engineer-produced inventory) → CEO go | review | ✅ DONE 2026-07-26 |
-| 4 | `ops/deploy.sh app --app-approved` (clean tree enforced, .prev snapshots, smoke) | mutating | IN PROGRESS |
-| 5 | Verification checklist (service, guardian shadow line, disarm line, cycle growth, report file, Healthchecks, test-watch stamp) | read-only | PENDING |
+| 4 | `ops/deploy.sh app --app-approved` (clean tree enforced, .prev snapshots, smoke) | mutating | ✅ DONE 2026-07-26 06:14Z |
+| 5 | Verification checklist (service, guardian shadow line, disarm line, cycle growth, report file, Healthchecks, test-watch stamp) | read-only | IN PROGRESS |
 | 6 | 24h stability check → enter SHADOW-OBSERVING (14-day window, 7 success criteria per Phase D packet) | observe | PENDING |
 
 ## Entries
@@ -70,6 +70,26 @@ surfaced to the CEO immediately):
 
 None of these block Step 1; items 2 and 3 are the cheapest discomfort-reducers
 on the board.
+
+### 2026-07-26 06:14Z — STEP 4 EXECUTED: deploy mechanically successful (status → DEPLOYED-VERIFYING)
+- Evidence: sha `1ee417f` (confirmed = intended HEAD) shipped app.py+guardian.py+
+  confidence.py+schools.py; 4 transfers at expected sizes; `active` post-restart;
+  DEPLOYED.log first line written; `deployed` tag moved; deploy-record commit
+  `29da856`; `.prev` snapshots now exist on VM (rollback is live).
+- Anomaly A (engineer communication defect): operator executed rollback.sh
+  BEFORE deploying (was handed as "keep in your other hand"). No-op (no .prev
+  yet) + one benign restart of old code. Corrective rule adopted: commands not
+  meant for immediate execution are labeled DO-NOT-RUN—SAVE-THIS.
+- Anomaly B (script wart): smoke grep matched a STALE 'Poller started' from
+  Jul 25 02:54 (journalctl -n60 + grep -m1 finds oldest in window). Service
+  `active` is the strong signal; new-code proof deferred to Step 5 by design.
+  Post-shadow backlog: smoke should use --since restart; rollback.sh should
+  skip restart when nothing restored.
+- Timeline refinement: yesterday's untracked deploy = app restart ~02:54 EDT
+  Jul 25; schools.py file updated ~evening likely WITHOUT restart (two newest
+  schools not live-served until tonight's restart).
+- Verdict: proceed to Step 5 — deployment not declared healthy until the
+  running process proves new-code shadow behavior.
 
 ### 2026-07-26 02:12 — STEP 3 CLOSED: CEO GO RECEIVED
 - CEO go, verbatim in chat: "lets goo all six" — covers the full six-item
