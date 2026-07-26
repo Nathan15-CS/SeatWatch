@@ -1940,6 +1940,12 @@ class Cameron(ListcrseBanner8):
     id = "cameron"; name = "Cameron University"
     example = "BIOL 1004"; term = "202710"; base = "https://ssb.cameron.edu/ords/ssb"
 
+class Lamar(ListcrseBanner8):
+    # catalog route on /btdb (parses clean, not the Cameron /ords issue). term 202690
+    # = Fall 2026 (per-host code). Remaining>0 rule.
+    id = "lamar"; name = "Lamar University"   # != Lamar CC (Colorado)
+    example = "ENGL 1301"; term = "202690"; base = "https://ssbprod.lamar.edu/btdb"
+
 class IndianaState(ListcrseBanner8):
     # Guest class-search returns "No classes found" -> the catalog route is required, not
     # plain Purdue. base needs /pls/prod (bare /bwckschd 403s). 202605 = Fall 2026 (ISU
@@ -3865,6 +3871,26 @@ class FerrisState(Banner):
     # 202608 = Fall 2026 (only non-View-Only). seatsAvailable authoritative.
     id = "ferris"; name = "Ferris State University"
     example = "ACCT 201"; host = "banner.ferris.edu:4020"; term = "202608"
+
+class MidwesternState(Banner):
+    # Non-standard port :1808 — verified reachable from the prod poller. seatsAvailable rule.
+    id = "msutexas"; name = "Midwestern State University"
+    example = "ACCT 2143"; host = "bannerxefe4.msutexas.edu:1808"; term = "202710"
+
+class UNCPembroke(Banner):
+    # Port :9639 + non-default base_path (uncecs.edu:9xxx family). Verified reachable from
+    # the poller. openSection is UNRELIABLE (True on seats=0 rows) — seatsAvailable rule
+    # is load-bearing, as always.
+    id = "uncp"; name = "UNC Pembroke"
+    example = "ACC 2280"; host = "banxp-uncp.uncecs.edu:9639"
+    base_path = "uncpprodStudentRegistrationSsb"; term = "202710"
+
+class WesternCarolina(Banner):
+    # Port :9939 + non-default base_path — same uncecs.edu:9xxx family as UNCP. Verified
+    # reachable from the poller. seatsAvailable authoritative.
+    id = "wcu"; name = "Western Carolina University"
+    example = "BIOL 103"; host = "banxp-wcu.uncecs.edu:9939"
+    base_path = "wcuprodStudentRegistrationSsb"; term = "202680"
 
 class JacksonvilleState(Banner):
     # Dual-enrollment / high-school sections (instructionalMethodDescription) carry open
@@ -7184,6 +7210,12 @@ class Valparaiso(Colleague):
     id = "valpo"; name = "Valparaiso University"
     example = "MATH 131"; host = "datavu1.valpo.edu"
 
+class Troy(Colleague):
+    # textual Colleague guest catalog at sss.troy.edu (the registration side is ADFS-walled,
+    # but this catalog is open). Multi-campus shares one catalog, all Troy, no leak.
+    id = "troy"; name = "Troy University"
+    example = "ENG 1101"; host = "sss.troy.edu"
+
 class UnionNY(Colleague):
     id = "union-ny"; name = "Union College (NY)"
     example = "CEE 301"; host = "selfservice.union.edu"
@@ -9452,6 +9484,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     PascoHernando(), USI(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
     SamHoustonState(), FerrisState(), Valparaiso(), Cameron(),
+    MidwesternState(), UNCPembroke(), WesternCarolina(), Lamar(), Troy(),
     ClevelandState(), JacksonvilleState(), OaklandU(), ETSU(),
     TennesseeTech(), CentralArkansas(), UTRGV(), Nicholls(), CoastalCarolina(),
     IndianaState(), TAMUCorpusChristi(), WestTexasAM(), SEMO(),
