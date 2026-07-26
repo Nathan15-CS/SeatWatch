@@ -6,8 +6,9 @@ credentials) · Protocol: one step at a time; per step: purpose → expected suc
 expected failure → CEO-pasted evidence → explicit SAFE TO CONTINUE or STOP.
 No step is skipped. Evidence over optimism. Rollback over unnecessary risk.
 
-**CURRENT STATUS: PRE-DEPLOY** (allowed values: PRE-DEPLOY · IN-PROGRESS ·
-DEPLOYED-VERIFYING · SHADOW-OBSERVING · ROLLED-BACK · COMPLETE)
+**CURRENT STATUS: IN-PROGRESS — Step 1 issued to operator** (allowed values:
+PRE-DEPLOY · IN-PROGRESS · DEPLOYED-VERIFYING · SHADOW-OBSERVING · ROLLED-BACK ·
+COMPLETE)
 
 ---
 
@@ -29,7 +30,7 @@ DEPLOYED-VERIFYING · SHADOW-OBSERVING · ROLLED-BACK · COMPLETE)
 
 | # | Step | Type | Status |
 |---|---|---|---|
-| 1 | Fresh `.backup` of prod DB → Vault + integrity check | read-only | PENDING |
+| 1 | Fresh `.backup` of prod DB → Vault + integrity check | read-only | IN PROGRESS |
 | 2 | Skew audit: sha256 of VM app.py/schools.py → map to git history | read-only | PENDING |
 | 3 | What-goes-live review (engineer-produced inventory) → CEO go | review | PENDING |
 | 4 | `ops/deploy.sh app --app-approved` (clean tree enforced, .prev snapshots, smoke) | mutating | PENDING |
