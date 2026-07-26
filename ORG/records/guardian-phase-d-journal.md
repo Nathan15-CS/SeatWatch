@@ -71,6 +71,21 @@ surfaced to the CEO immediately):
 None of these block Step 1; items 2 and 3 are the cheapest discomfort-reducers
 on the board.
 
+### 2026-07-26 ~06:20-06:40Z — STEP 5 EVIDENCE (all but one item)
+- New-code proof: `[guardian] active, mode=shadow` + `auto-roll DISARMED` lines
+  at 06:14:32 (only tonight's build prints these). The two process starts 13s
+  apart = operator's pre-deploy rollback restart (old code, 06:14:19) followed
+  by the deploy restart (new code, 06:14:32) — closes Anomaly A's loop.
+- Recording: cycles 9 → 13 across ~80s (correct ~20s cadence). Report JSON
+  fresh (06:17, mode 600). **latest cycle: GREEN, expected=17, accounted=17 —
+  first full identity-reconciled cycle in production history.**
+- C5 stamp fix proven live: operator-created UMD CMSC216 watch stamped
+  `202608` (non-empty, = comparator). Exercises the pin-fallback path; the
+  cur_term() path rests on unit tests.
+- OUTSTANDING before Step 5 closes: one Healthchecks dashboard glance
+  (post-deploy ping continuity — the dead-man signal is the one watcher that
+  runs when nobody is looking; it gets its checkbox).
+
 ### 2026-07-26 06:14Z — STEP 4 EXECUTED: deploy mechanically successful (status → DEPLOYED-VERIFYING)
 - Evidence: sha `1ee417f` (confirmed = intended HEAD) shipped app.py+guardian.py+
   confidence.py+schools.py; 4 transfers at expected sizes; `active` post-restart;
