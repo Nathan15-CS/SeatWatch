@@ -104,6 +104,15 @@ on the board.
   of the shadow window (explained, for SC1 accounting). Old key to be verified
   DEAD (expect 404) by engineer post-rotation. No key material appears in this
   journal, the repo, or chat from this point on.
+- ROTATION VERIFIED CLOSED (2026-07-26 ~02:40 EDT): operator rotated twice
+  (own variant + engineer's replace-not-append) — final state `entries: 1`
+  verified at source; key transported VM→Mac via SSH pipe into
+  ~/.seatwatch-stats-key (600, 49 bytes) — never displayed. Engineer verified
+  without seeing the key: new key 200 (read from file), OLD EXPOSED KEY 404
+  (dead), post-rotation service shadow/GREEN 17/17/11s-fresh, zero open
+  incidents (restarts landed between cycles again). Operator's paste re-showed
+  the old key once — zero new exposure (already-compromised, now-dead).
+  Restarts in this sequence: explained, mapped here for SC1.
 - CREATED: scheduled task `seatwatch-guardian-hourly-monitor`, cron 7 * * * *
   (hourly, :07 past). Endpoint verified live before creation (GREEN 17/17,
   incidents [], RCI 20/P6 as modeled). Honest limitation disclosed to CEO:
