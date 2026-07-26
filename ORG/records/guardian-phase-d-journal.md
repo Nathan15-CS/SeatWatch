@@ -6,9 +6,10 @@ credentials) · Protocol: one step at a time; per step: purpose → expected suc
 expected failure → CEO-pasted evidence → explicit SAFE TO CONTINUE or STOP.
 No step is skipped. Evidence over optimism. Rollback over unnecessary risk.
 
-**CURRENT STATUS: IN-PROGRESS — Step 1 issued to operator** (allowed values:
-PRE-DEPLOY · IN-PROGRESS · DEPLOYED-VERIFYING · SHADOW-OBSERVING · ROLLED-BACK ·
-COMPLETE)
+**CURRENT STATUS: SHADOW-OBSERVING — since 2026-07-26 06:14:32Z, sha `1ee417f`.
+14-day window through ~2026-08-09; final report: `guardian-phase-d-deployment-report.md`.**
+(allowed values: PRE-DEPLOY · IN-PROGRESS · DEPLOYED-VERIFYING · SHADOW-OBSERVING ·
+ROLLED-BACK · COMPLETE)
 
 ---
 
@@ -34,8 +35,8 @@ COMPLETE)
 | 2 | Skew audit: sha256 of VM app.py/schools.py → map to git history | read-only | ✅ DONE 2026-07-26 |
 | 3 | What-goes-live review (engineer-produced inventory) → CEO go | review | ✅ DONE 2026-07-26 |
 | 4 | `ops/deploy.sh app --app-approved` (clean tree enforced, .prev snapshots, smoke) | mutating | ✅ DONE 2026-07-26 06:14Z |
-| 5 | Verification checklist (service, guardian shadow line, disarm line, cycle growth, report file, Healthchecks, test-watch stamp) | read-only | IN PROGRESS |
-| 6 | 24h stability check → enter SHADOW-OBSERVING (14-day window, 7 success criteria per Phase D packet) | observe | PENDING |
+| 5 | Verification checklist (service, guardian shadow line, disarm line, cycle growth, report file, Healthchecks, test-watch stamp) | read-only | ✅ DONE 2026-07-26 (all 8 checks PASS) |
+| 6 | 24h stability check → SHADOW-OBSERVING (14-day window, 7 success criteria per Phase D packet) | observe | IN PROGRESS — day-1 checkpoint due ~2026-07-27 |
 
 ## Entries
 
