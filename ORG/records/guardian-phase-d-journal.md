@@ -32,8 +32,8 @@ COMPLETE)
 |---|---|---|---|
 | 1 | Fresh `.backup` of prod DB → Vault + integrity check | read-only | ✅ DONE 2026-07-26 |
 | 2 | Skew audit: sha256 of VM app.py/schools.py → map to git history | read-only | ✅ DONE 2026-07-26 |
-| 3 | What-goes-live review (engineer-produced inventory) → CEO go | review | IN PROGRESS |
-| 4 | `ops/deploy.sh app --app-approved` (clean tree enforced, .prev snapshots, smoke) | mutating | PENDING |
+| 3 | What-goes-live review (engineer-produced inventory) → CEO go | review | ✅ DONE 2026-07-26 |
+| 4 | `ops/deploy.sh app --app-approved` (clean tree enforced, .prev snapshots, smoke) | mutating | IN PROGRESS |
 | 5 | Verification checklist (service, guardian shadow line, disarm line, cycle growth, report file, Healthchecks, test-watch stamp) | read-only | PENDING |
 | 6 | 24h stability check → enter SHADOW-OBSERVING (14-day window, 7 success criteria per Phase D packet) | observe | PENDING |
 
@@ -70,6 +70,15 @@ surfaced to the CEO immediately):
 
 None of these block Step 1; items 2 and 3 are the cheapest discomfort-reducers
 on the board.
+
+### 2026-07-26 02:12 — STEP 3 CLOSED: CEO GO RECEIVED
+- CEO go, verbatim in chat: "lets goo all six" — covers the full six-item
+  inventory (guardian shadow · auto-roll disarm · stamp fix · damped paging ·
+  end-of-cycle sends · dormant internals). Nothing held back.
+- Backup freshness at Step 4 open: 0.3h old (rule: <6h) — no re-backup needed.
+- Tree clean at `f6d88d8`; 36/36 tests green at this HEAD (verified Step 2).
+- Step 4 issued: single command via ops/deploy.sh (app mode, --app-approved);
+  rollback command placed in operator's hands in the same message.
 
 ### 2026-07-26 — Step 3 gate (a) satisfied: service-health baseline
 - Evidence: operator observed Healthchecks last ping **8 seconds ago** (cadence
