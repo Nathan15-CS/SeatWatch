@@ -71,6 +71,19 @@ surfaced to the CEO immediately):
 None of these block Step 1; items 2 and 3 are the cheapest discomfort-reducers
 on the board.
 
+### 2026-07-26 — Step 1 first attempt: no-op, two anomalies noted
+- Done: nothing reached production. Operator's paste showed (a) an idle SSH
+  session dropping with "Connection reset by peer" — assessed as a routine idle
+  timeout, to be confirmed via Healthchecks dashboard glance before retry; and
+  (b) the backup command aborted by the shell because the `<VM-HOST>`
+  placeholder was pasted literally (zsh redirect) — command never executed.
+- Anomaly (recorded): the VM origin IP entered the chat transcript via the
+  operator's paste, contrary to the operator's own ground rule. Assessed
+  non-blocking (Cloudflare fronting + firewall unchanged); follow-up queued
+  post-shadow: tighten/rotate decision.
+- Decision: reissue Step 1 with fully literal commands (IP filled in, backup
+  filename dated 2026-07-26); Healthchecks glance added as pre-check.
+
 ### 2026-07-25 — Journal opened (pre-deploy)
 - Done: V1 frozen (`e6c518d`); packet delivered; step protocol ratified by CEO; deploy
   deferred to when CEO is fresh (engineer recommendation, CEO accepted).
