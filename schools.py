@@ -3852,6 +3852,12 @@ class SamHoustonState(Banner):
     id = "shsu"; name = "Sam Houston State University"
     example = "MATH 1314"; host = "banxeappx.shsu.edu"; term = "202680"
 
+class FerrisState(Banner):
+    # Non-standard port :4020 (443 refuses) — verified reachable from the prod poller.
+    # 202608 = Fall 2026 (only non-View-Only). seatsAvailable authoritative.
+    id = "ferris"; name = "Ferris State University"
+    example = "ACCT 201"; host = "banner.ferris.edu:4020"; term = "202608"
+
 class JacksonvilleState(Banner):
     # Dual-enrollment / high-school sections (instructionalMethodDescription) carry open
     # seats a general student cannot register for — an eligibility false-open, same as the
@@ -7165,6 +7171,11 @@ class CoastalCarolina(Colleague):
     id = "ccu"; name = "Coastal Carolina University"
     example = "ENGL 101"; host = "sservice.coastal.edu"   # single college, campus=""
 
+class Valparaiso(Colleague):
+    # textual Colleague variant (base Colleague, NOT NewColleague). Small private (~2.5k).
+    id = "valpo"; name = "Valparaiso University"
+    example = "MATH 131"; host = "datavu1.valpo.edu"
+
 class UnionNY(Colleague):
     id = "union-ny"; name = "Union College (NY)"
     example = "CEE 301"; host = "selfservice.union.edu"
@@ -9432,7 +9443,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),
     PascoHernando(), USI(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
-    SamHoustonState(), ClevelandState(), JacksonvilleState(), OaklandU(), ETSU(),
+    SamHoustonState(), FerrisState(), Valparaiso(),
+    ClevelandState(), JacksonvilleState(), OaklandU(), ETSU(),
     TennesseeTech(), CentralArkansas(), UTRGV(), Nicholls(), CoastalCarolina(),
     IndianaState(), TAMUCorpusChristi(), WestTexasAM(), SEMO(),
     AshlandCTC(), BigSandyCTC(), BluegrassCTC(), ElizabethtownCTC(), GatewayKY(),
