@@ -30,8 +30,8 @@ COMPLETE)
 
 | # | Step | Type | Status |
 |---|---|---|---|
-| 1 | Fresh `.backup` of prod DB → Vault + integrity check | read-only | IN PROGRESS |
-| 2 | Skew audit: sha256 of VM app.py/schools.py → map to git history | read-only | PENDING |
+| 1 | Fresh `.backup` of prod DB → Vault + integrity check | read-only | ✅ DONE 2026-07-26 |
+| 2 | Skew audit: sha256 of VM app.py/schools.py → map to git history | read-only | IN PROGRESS |
 | 3 | What-goes-live review (engineer-produced inventory) → CEO go | review | PENDING |
 | 4 | `ops/deploy.sh app --app-approved` (clean tree enforced, .prev snapshots, smoke) | mutating | PENDING |
 | 5 | Verification checklist (service, guardian shadow line, disarm line, cycle growth, report file, Healthchecks, test-watch stamp) | read-only | PENDING |
@@ -70,6 +70,19 @@ surfaced to the CEO immediately):
 
 None of these block Step 1; items 2 and 3 are the cheapest discomfort-reducers
 on the board.
+
+### 2026-07-26 — STEP 1 CLOSED: SAFE TO CONTINUE
+- Evidence complete: `~/SeatWatchVault/pre-guardian-2026-07-25.bak` mtime Jul 26
+  01:57 (fresh, taken minutes before verification), integrity `ok`, users=5,
+  watches=17 (exact prod match). Size 81,920B vs 53,248B on 07-23 with identical
+  counts — assessed as normal SQLite page churn from latch updates; counts are
+  the load-bearing check. chmod 600 suggested (optional).
+- Verdict: SAFE TO CONTINUE. Standing commitment: fresh re-backup immediately
+  before Step 4.
+- Step 2 issued: Healthchecks glance (carried over as service-health baseline)
+  + `systemctl is-active` + sha256 of VM app.py/schools.py. Engineer side:
+  per-commit hash tables precomputed for both files (181 + 166 versions) for
+  instant match; STOP condition armed if a pasted hash matches no git blob.
 
 ### 2026-07-26 — Step 1 evidence received (partial)
 - Evidence: operator pasted verification only — `pre-guardian-2026-07-25.bak`
