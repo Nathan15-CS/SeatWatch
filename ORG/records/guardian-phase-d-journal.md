@@ -93,6 +93,17 @@ on the board.
   mode≠shadow, last cycle >10 min stale, RED or accounted≠expected, any red
   incident, watches<10, system RCI<15 or acute binding (P1/P4/W5/A2); else
   silent; Monday heartbeat.
+- KEY COMPROMISE + ROTATION (same night): CEO declared the first STATS_KEY
+  compromised (it transited chat) and ordered rotation with a no-exposure
+  scheme. Handling: monitor task prompt REWRITTEN to read the key at runtime
+  from ~/.seatwatch-stats-key (mode 600, outside the repo) — embedded key
+  removed, verified 0 occurrences in task config. Rotation procedure issued:
+  sed-delete ALL SEATWATCH_STATS_KEY lines then install exactly one (replace,
+  never append), restart, verify `entries: 1`; key transported VM→Mac via SSH
+  pipe directly into the locked file — never displayed. Second planned restart
+  of the shadow window (explained, for SC1 accounting). Old key to be verified
+  DEAD (expect 404) by engineer post-rotation. No key material appears in this
+  journal, the repo, or chat from this point on.
 - CREATED: scheduled task `seatwatch-guardian-hourly-monitor`, cron 7 * * * *
   (hourly, :07 past). Endpoint verified live before creation (GREEN 17/17,
   incidents [], RCI 20/P6 as modeled). Honest limitation disclosed to CEO:
