@@ -71,6 +71,12 @@ surfaced to the CEO immediately):
 None of these block Step 1; items 2 and 3 are the cheapest discomfort-reducers
 on the board.
 
+### 2026-07-26 — Step 3 gate (a) satisfied: service-health baseline
+- Evidence: operator observed Healthchecks last ping **8 seconds ago** (cadence
+  ~20s). Poller confirmed actively completing cycles immediately pre-deploy.
+  Baseline established: any post-deploy ping gap is attributable to the deploy.
+- Remaining Step 3 gate: CEO's explicit go on the six-item inventory.
+
 ### 2026-07-26 — STEP 2 CLOSED: SAFE TO CONTINUE (major findings)
 - Evidence: `systemctl is-active` = active. VM hashes matched git exactly:
   app.py→`b85c0f6`, schools.py→`0e47cec`. Tonight's backup contains alert_log +
