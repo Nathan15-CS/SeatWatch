@@ -1932,6 +1932,14 @@ class SEMO(ListcrseBanner8):
     id = "semo"; name = "Southeast Missouri State University"
     example = "EN 100"; term = "202710"; base = "https://banssb.semo.edu/prod"
 
+class Cameron(ListcrseBanner8):
+    # ORDS-served Banner 8 (base /ords/ssb). The GUEST-SEARCH route (plain Purdue) returns
+    # "No classes found" here, so the CATALOG route (ListcrseBanner8) is required — it
+    # parses cleanly (CRN extraction + Seats/Remaining detail table both standard). 1004 vs
+    # 1004L (lab) are correctly separate. term 202710 = Fall 2026.
+    id = "cameron"; name = "Cameron University"
+    example = "BIOL 1004"; term = "202710"; base = "https://ssb.cameron.edu/ords/ssb"
+
 class IndianaState(ListcrseBanner8):
     # Guest class-search returns "No classes found" -> the catalog route is required, not
     # plain Purdue. base needs /pls/prod (bare /bwckschd 403s). 202605 = Fall 2026 (ISU
@@ -9443,7 +9451,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),
     PascoHernando(), USI(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
-    SamHoustonState(), FerrisState(), Valparaiso(),
+    SamHoustonState(), FerrisState(), Valparaiso(), Cameron(),
     ClevelandState(), JacksonvilleState(), OaklandU(), ETSU(),
     TennesseeTech(), CentralArkansas(), UTRGV(), Nicholls(), CoastalCarolina(),
     IndianaState(), TAMUCorpusChristi(), WestTexasAM(), SEMO(),
