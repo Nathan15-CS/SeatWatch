@@ -1957,6 +1957,12 @@ class CNU(ListcrseBanner8):
     id = "cnu"; name = "Christopher Newport University"
     example = "ENGL 123"; term = "202700"; base = "https://banweb.cnu.edu/banweb"
 
+class FGCU(ListcrseBanner8):
+    # catalog route on /pls/fgpo. Family pins the term — which is what we want (parallel
+    # Summer 202605 + Fall 202608 both registration-open; bias late to Fall).
+    id = "fgcu"; name = "Florida Gulf Coast University"
+    example = "ENC 1101"; term = "202608"; base = "https://gulfline.fgcu.edu/pls/fgpo"
+
 class IndianaState(ListcrseBanner8):
     # Guest class-search returns "No classes found" -> the catalog route is required, not
     # plain Purdue. base needs /pls/prod (bare /bwckschd 403s). 202605 = Fall 2026 (ISU
@@ -9524,7 +9530,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     SamHoustonState(), FerrisState(), Valparaiso(), Cameron(),
     MidwesternState(), UNCPembroke(), WesternCarolina(), Lamar(), Troy(),
     SavannahState(), AlcornState(), FayettevilleState(), MSValleyState(), CNU(),
-    MoreheadState(), NorfolkState(),
+    MoreheadState(), NorfolkState(), FGCU(),
     ClevelandState(), JacksonvilleState(), OaklandU(), ETSU(),
     TennesseeTech(), CentralArkansas(), UTRGV(), Nicholls(), CoastalCarolina(),
     IndianaState(), TAMUCorpusChristi(), WestTexasAM(), SEMO(),
