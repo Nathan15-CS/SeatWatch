@@ -2385,8 +2385,12 @@ class Handler(BaseHTTPRequestHandler):
                 _conv_signal("simultaneous_course_need", user["id"])   # wants >1 class
             return self._notice(self._plan_upsell(tier), user=user)
 
-        # (4) validate it ACTUALLY EXISTS — blocks fake-course flooding
-        secs = school.fetch({course}).get(course, {})
+        # (4) validate it ACTUALLY EXISTS — blocks fake-course flooding. Drop the "none"
+        # sentinel some catalog adapters (ListcrseBanner8) return for a nonexistent course:
+        # to run_cycle's health guard it correctly means "fetch succeeded, no sections" (so
+        # it must stay in fetch()), but HERE it means "no such course" — without dropping it,
+        # an all-sections watch on a typo'd code would slip past this check as a phantom.
+        secs = {k: v for k, v in school.fetch({course}).get(course, {}).items() if k != "none"}
         if not secs:
             return self._notice(f"Couldn't find {course} at {school.name} this term — check the code?",
                                 user=user)
