@@ -1946,6 +1946,17 @@ class Lamar(ListcrseBanner8):
     id = "lamar"; name = "Lamar University"   # != Lamar CC (Colorado)
     example = "ENGL 1301"; term = "202690"; base = "https://ssbprod.lamar.edu/btdb"
 
+class MSValleyState(ListcrseBanner8):
+    # Catalog route required (class-search dead), port :9001. Verified reachable from poller.
+    id = "mvsu"; name = "Mississippi Valley State University"
+    example = "EN 101"; term = "202710"; base = "https://bannerssb.mvsu.edu:9001/prod"
+
+class CNU(ListcrseBanner8):
+    # Standard banweb catalog route. Family pins the term anyway (no auto-roll), which is
+    # what we want here — a parallel Extended-Summer term would make auto-roll unsafe.
+    id = "cnu"; name = "Christopher Newport University"
+    example = "ENGL 123"; term = "202700"; base = "https://banweb.cnu.edu/banweb"
+
 class IndianaState(ListcrseBanner8):
     # Guest class-search returns "No classes found" -> the catalog route is required, not
     # plain Purdue. base needs /pls/prod (bare /bwckschd 403s). 202605 = Fall 2026 (ISU
@@ -3891,6 +3902,23 @@ class WesternCarolina(Banner):
     id = "wcu"; name = "Western Carolina University"
     example = "BIOL 103"; host = "banxp-wcu.uncecs.edu:9939"
     base_path = "wcuprodStudentRegistrationSsb"; term = "202680"
+
+class SavannahState(Banner):
+    # USG gabest cluster (same as Georgia Southern/Valdosta), standard host, no port quirk.
+    id = "savstate"; name = "Savannah State University"
+    example = "ACCT 2101"; host = "savstate.gabest.usg.edu"; term = "202608"
+
+class AlcornState(Banner):
+    # Non-standard port :8101 — verified reachable from the prod poller. seatsAvailable rule.
+    id = "alcornstate"; name = "Alcorn State University"
+    example = "AC 213"; host = "ssbreg.alcorn.edu:8101"; term = "202604"
+
+class FayettevilleState(Banner):
+    # Port :9239 + non-default base_path — uncecs.edu:9xxx family (UNCP/WCU siblings).
+    # Verified reachable from the poller. seatsAvailable authoritative.
+    id = "uncfsu"; name = "Fayetteville State University"   # != SFSU ("fsu")
+    example = "BIOL 111"; host = "banxp-fsu.uncecs.edu:9239"
+    base_path = "fsuprodStudentRegistrationSsb"; term = "202660"
 
 class JacksonvilleState(Banner):
     # Dual-enrollment / high-school sections (instructionalMethodDescription) carry open
@@ -7216,6 +7244,16 @@ class Troy(Colleague):
     id = "troy"; name = "Troy University"
     example = "ENG 1101"; host = "sss.troy.edu"
 
+class MoreheadState(Colleague):
+    # base textual Colleague (NewColleague /SearchAsync 404s here). elluciancloud host.
+    id = "moreheadstate"; name = "Morehead State University"
+    example = "ENG 280"; host = "colss-prod.moreheadstate.elluciancloud.com"
+
+class NorfolkState(Colleague):
+    # base textual Colleague. AvailabilityStatus=='Open' rule.
+    id = "norfolkst"; name = "Norfolk State University"   # != Northern State SD
+    example = "CSC 150"; host = "colss-prod.ec.nsu.edu"
+
 class UnionNY(Colleague):
     id = "union-ny"; name = "Union College (NY)"
     example = "CEE 301"; host = "selfservice.union.edu"
@@ -9485,6 +9523,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
     SamHoustonState(), FerrisState(), Valparaiso(), Cameron(),
     MidwesternState(), UNCPembroke(), WesternCarolina(), Lamar(), Troy(),
+    SavannahState(), AlcornState(), FayettevilleState(), MSValleyState(), CNU(),
+    MoreheadState(), NorfolkState(),
     ClevelandState(), JacksonvilleState(), OaklandU(), ETSU(),
     TennesseeTech(), CentralArkansas(), UTRGV(), Nicholls(), CoastalCarolina(),
     IndianaState(), TAMUCorpusChristi(), WestTexasAM(), SEMO(),
