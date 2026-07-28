@@ -34,6 +34,8 @@ SUITES = [
      "no double-alert from a second instance; a crash never stops polling"),
     ("Synthetic canary (content + fallback)", "test_canary",
      "right course/section/seats/link; fallback chain; delivered-to-nobody pages"),
+    ("Beta instrumentation (reachability/action)", "test_instrumentation",
+     "silent failures COUNTED; click + time-to-action per channel; price probe dormant"),
     ("Pinned-term schools still live", "test_pinned_terms",
      "schools that can't auto-roll haven't silently gone dead (hits real hosts)"),
 ]

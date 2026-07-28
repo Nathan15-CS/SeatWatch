@@ -311,6 +311,40 @@ def init_db():
             revoked_at   REAL)""")
         c.execute("CREATE INDEX IF NOT EXISTS ix_smsc_user ON sms_consent(user_id, requested_at)")
         c.execute("CREATE INDEX IF NOT EXISTS ix_smsc_phone ON sms_consent(phone)")
+        # --- beta instrumentation ---------------------------------------------------
+        # alert_log records only SUCCESSES, which makes delivery look like a perfect 100%:
+        # a student whose seat opened while they had NO reachable channel leaves no trace.
+        # alert_attempt logs EVERY intended notification, so the denominator exists and the
+        # silent failures are countable ('no_channel' is the one we hunt). It also carries
+        # the click token, so ONE table answers all three open questions:
+        #   reachability     = sent / attempts
+        #   action rate      = clicked / sent, per channel   (delivery != value)
+        #   time-to-action   = clicked_at - attempted_at     (the real SMS-vs-push test)
+        c.execute("""CREATE TABLE IF NOT EXISTS alert_attempt(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            token        TEXT UNIQUE,          -- /r/<token> click attribution, per channel
+            user_id      INTEGER,
+            watch_id     INTEGER,
+            school       TEXT,
+            course       TEXT,
+            section      TEXT,
+            channel      TEXT,                 -- NULL when nothing was reachable
+            outcome      TEXT NOT NULL,        -- sent | no_channel | provider_error
+            attempted_at REAL NOT NULL,
+            clicked_at   REAL)""")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_att_outcome ON alert_attempt(outcome, attempted_at)")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_att_chan ON alert_attempt(channel, attempted_at)")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_att_user ON alert_attempt(user_id, attempted_at)")
+        # Revealed willingness-to-pay for the end-of-beta price probe. Comping the beta
+        # measures USAGE, not whether anyone will PAY — and shipping on a usage signal alone
+        # is how you build something people love and nobody buys. Dormant until the paid
+        # path is switched on AND Nathan explicitly says go.
+        c.execute("""CREATE TABLE IF NOT EXISTS price_probe(
+            user_id            INTEGER PRIMARY KEY,
+            shown_at           REAL NOT NULL,
+            clicked_checkout_at REAL,
+            purchased_at       REAL,
+            decline_reason     TEXT)""")
         guardian.init_schema(c)   # additive guardian_* evidence tables
 
 
@@ -1954,6 +1988,26 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(page(TERMS))
         if path == "/privacy":
             return self._send(page(PRIVACY))
+        if path.startswith("/r/"):
+            # Alert click -> record ACTION (once), then bounce to the registrar.
+            # A student mid-registration must never be stranded: any failure here still
+            # redirects, falling back to the homepage only if the token is unknown.
+            token = path[3:][:64]
+            dest = BASE_URL or "https://seatwatchapp.com/"
+            try:
+                with db() as c:
+                    row = c.execute("SELECT id, school, course, clicked_at FROM alert_attempt "
+                                    "WHERE token=?", (token,)).fetchone()
+                    if row:
+                        if row["clicked_at"] is None:      # first click only = true action
+                            c.execute("UPDATE alert_attempt SET clicked_at=? WHERE id=?",
+                                      (time.time(), row["id"]))
+                        s = schools.SCHOOLS.get(row["school"])
+                        if s:
+                            dest = s.reg_url(row["course"])
+            except Exception as e:
+                sw.log(f"  [click] {type(e).__name__} — redirecting anyway")
+            return self._redirect(dest)
         if path == "/sms-terms":
             return self._send(page(SMS_TERMS))
         if path == "/text-alerts":            # public opt-in page (carrier-inspectable)
@@ -2834,6 +2888,28 @@ def _log_alert(r, channel, cost=0):
         sw.log(f"  [ledger] write failed ({channel}): {type(e).__name__}")
 
 
+def _log_attempt(r, channel, outcome, token=None):
+    """Record ONE intended notification (success or not). Never raises — instrumentation
+    must never break a real alert."""
+    try:
+        with db() as c:
+            c.execute("INSERT INTO alert_attempt(token,user_id,watch_id,school,course,"
+                      "section,channel,outcome,attempted_at) VALUES(?,?,?,?,?,?,?,?,?)",
+                      (token, r["user_id"] if "user_id" in r.keys() else None, r["id"],
+                       r["school"], r["course"], r["section"], channel, outcome, time.time()))
+    except Exception as e:
+        sw.log(f"  [attempt] log failed ({channel}/{outcome}): {type(e).__name__}")
+
+
+def _click_url(token, fallback):
+    """The link a student taps. Routes through /r/<token> so we can measure whether an
+    alert produced ACTION (and how fast, per channel) — delivery is not value.
+
+    Falls back to the registrar URL directly if BASE_URL isn't configured, so a
+    misconfiguration can never leave a student without a working link."""
+    return f"{BASE_URL}/r/{token}" if BASE_URL else fallback
+
+
 def _sms_phone(user_id):
     """The user's consented phone: newest consent row that is CONFIRMED (they texted
     back YES) and not revoked (no STOP). Anything else -> None, no SMS."""
@@ -3080,19 +3156,25 @@ def _alert(r, message, url):
     actually delivered. On total failure the caller must NOT latch the watch, so it
     retries next cycle instead of silently losing the seat — and the operator is paged
     once (a real alert reached nobody)."""
+    # One token per CHANNEL so a click attributes to the channel that produced it — that's
+    # what makes "is SMS actually faster than push?" answerable with data instead of priors.
+    tok = {ch: secrets.token_urlsafe(9) for ch in ("ntfy", "webpush", "email", "sms")}
     ok = sw.notify(f"Seat open: {r['course']}",
                    message + " Tap to register — go now.",
-                   click_url=url, topic=r["topic"])
+                   click_url=_click_url(tok["ntfy"], url), topic=r["topic"])
     uid = r["user_id"] if "user_id" in r.keys() else None
     pushed = send_web_push(uid, f"Seat open: {r['course']}",
-                           message + " Tap to register — go now.", url)
+                           message + " Tap to register — go now.", _click_url(tok["webpush"], url))
     emailed = False
     if EMAIL_ENABLED and uid:
         with db() as c:
             row = c.execute("SELECT email FROM users WHERE id=?", (uid,)).fetchone()
         if row and row["email"]:
             emailed = send_email(row["email"], f"Seat open: {r['course']} — go register",
-                                 message + " Register now before it fills again.", url)
+                                 message + " Register now before it fills again.",
+                                 _click_url(tok["email"], url))
+    # SMS keeps the DIRECT registrar link: texts are billed per 160-char segment and a
+    # student must be able to reach the registrar even if our box is down mid-registration.
     texted = send_sms(uid, r, message, url)     # no-op unless SMS_LIVE + paid + consented
     # Ledger: one row per channel that reported success. ntfy is logged but is NOT
     # proof a human was reached (a publish to a topic with no subscribers still returns
@@ -3103,6 +3185,15 @@ def _alert(r, message, url):
         _log_alert(r, "webpush")
     if emailed:
         _log_alert(r, "email")
+    # Attempt ledger: the DENOMINATOR. Every channel that delivered gets a click token;
+    # if NOTHING reached the student we record one 'no_channel' row, so silent failures are
+    # counted instead of being invisible (alert_log holds successes only).
+    for ch, sent_ok in (("ntfy", ok), ("webpush", bool(pushed)),
+                        ("email", emailed), ("sms", texted)):
+        if sent_ok:
+            _log_attempt(r, ch, "sent", tok[ch] if ch != "sms" else None)
+    if not (ok or pushed or emailed or texted):
+        _log_attempt(r, None, "no_channel")
     # off/shadow: legacy rule (any channel, incl. a bare ntfy 200). enforce: honest
     # rule — an account with push/email enrolled must be reached on one of them;
     # ntfy alone latches only topic-only legacy accounts. Shadow records divergences.

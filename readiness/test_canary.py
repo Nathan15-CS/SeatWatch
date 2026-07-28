@@ -29,6 +29,7 @@ def run():
         def reg_url(self, course): return REG_URL
         def fetch(self, courses): return {c: self._data[c] for c in courses if c in self._data}
     fake = FakeSchool(); schools.SCHOOLS = {"canary": fake}
+    app.BASE_URL = "https://seatwatchapp.com"
 
     pushes, ntfys, emails, paged = [], [], [], []
     app.send_web_push = lambda uid, title, body, url: (pushes.append((title, body, url)), 1)[1]
@@ -54,7 +55,20 @@ def run():
         check("CONTENT: names the right course (CS 101)", "CS 101" in blob)
         check("CONTENT: names the right section (0101)", "0101" in blob)
         check("CONTENT: states the real seat count (3)", "3" in body)
-        check("CONTENT: link is the school's registration URL", url == REG_URL)
+        # The link is now a tracked /r/<token> redirect (so we can measure whether an alert
+        # produced ACTION). That must NOT cost the student the destination — assert the
+        # token actually resolves to this school's registrar, i.e. the redirect the handler
+        # would issue. A tracked link that loses the student is worse than no tracking.
+        if url.startswith(f"{app.BASE_URL}/r/") if getattr(app, "BASE_URL", "") else False:
+            token = url.rsplit("/r/", 1)[1]
+            with app.db() as c:
+                row = c.execute("SELECT school, course FROM alert_attempt WHERE token=?",
+                                (token,)).fetchone()
+            dest = schools.SCHOOLS[row["school"]].reg_url(row["course"]) if row else None
+            check("CONTENT: tracked link resolves to the school's registration URL",
+                  dest == REG_URL, f"token={token} dest={dest}")
+        else:
+            check("CONTENT: link is the school's registration URL", url == REG_URL)
         check("CONTENT: tells the student to act", any(w in body.lower() for w in ("register", "go now", "tap")))
         check("CONTENT: no template placeholder leaked", "__" not in blob and "{" not in blob)
     check("ledger recorded the webpush delivery",
@@ -70,7 +84,10 @@ def run():
     reached = len(ntfys) > 0 or len(emails) > 0
     check("FALLBACK: web-push fails -> student still reached by another channel", reached)
     if emails:
-        check("FALLBACK: email carries the course + link", "CS 101" in emails[0][2] and emails[0][3] == REG_URL)
+        eurl = emails[0][3]
+        eok = (eurl == REG_URL) or eurl.startswith(f"{getattr(app,'BASE_URL','')}/r/")
+        check("FALLBACK: email carries the course + a working link",
+              "CS 101" in emails[0][2] and eok, f"url={eurl}")
 
     # --- delivered-to-nobody: every channel fails -> operator paged, watch NOT latched ---
     paged.clear()
