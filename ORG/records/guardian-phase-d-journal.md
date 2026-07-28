@@ -113,6 +113,15 @@ on the board.
   incidents (restarts landed between cycles again). Operator's paste re-showed
   the old key once — zero new exposure (already-compromised, now-dead).
   Restarts in this sequence: explained, mapped here for SC1.
+- HOSTING DECISION (CEO asked; engineer recommended, CEO informed): monitor
+  STAYS local through the shadow window. Rationale: all fast-failure detection
+  is already server-side 24/7 (Healthchecks + Guardian pages); monitor's unique
+  catches are slow-burn (tolerate Mac-asleep gaps); cloud hosting would move
+  the stats key off-Mac right after it was locked down. POST-WINDOW BACKLOG
+  ITEM: promote quiet conditions (watch-count collapse, confidence-floor) into
+  server-side Guardian paging — makes the full breach list server-native and
+  the hourly agent purely interpretive; revisit hosting then (likely moot).
+  First autonomous-run proof expected 07:09Z (3:09 AM) — verify in morning.
 - CREATED: scheduled task `seatwatch-guardian-hourly-monitor`, cron 7 * * * *
   (hourly, :07 past). Endpoint verified live before creation (GREEN 17/17,
   incidents [], RCI 20/P6 as modeled). Honest limitation disclosed to CEO:
