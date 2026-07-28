@@ -3128,6 +3128,44 @@ def _set_alerted(watch_id, val):
         c.execute("UPDATE watches SET alerted=? WHERE id=?", (val, watch_id))
 
 
+POLL_LEASE_TTL = int(os.environ.get("POLL_LEASE_TTL", "180"))   # ~9 poll cycles
+_LEASE_ID = f"{os.getpid()}-{secrets.token_hex(4)}"             # unique per process
+_stood_down = [False]        # log the stand-down once, not every cycle
+
+
+def acquire_poll_lease():
+    """Single-poller guarantee: only the lease holder may run a cycle.
+
+    The poller alerts INLINE, so two live processes (a double-start, a failover, or a
+    deploy overlap) would each fetch and each alert — a duplicate text/push for the same
+    seat, which reads as spam and costs trust (and money on SMS). One row in the DB is the
+    token; SQLite's write lock makes the claim atomic.
+
+    Crash-safe by construction: the lease carries an EXPIRY, so a process that dies holding
+    it is automatically reclaimed after POLL_LEASE_TTL — a crash can never permanently stop
+    polling (the failure mode worse than a duplicate). Returns True if we hold it.
+    """
+    now = time.time()
+    with db() as c:
+        c.execute("""CREATE TABLE IF NOT EXISTS poll_lease(
+            id INTEGER PRIMARY KEY CHECK (id = 1),
+            holder TEXT NOT NULL,
+            expires_at REAL NOT NULL)""")
+        row = c.execute("SELECT holder, expires_at FROM poll_lease WHERE id=1").fetchone()
+        if row is None:
+            c.execute("INSERT INTO poll_lease(id,holder,expires_at) VALUES(1,?,?)",
+                      (_LEASE_ID, now + POLL_LEASE_TTL))
+            return True
+        # Renew ours, or reclaim an EXPIRED one. Both are guarded in the WHERE clause so the
+        # claim is atomic under SQLite's write lock — a simultaneous second process either
+        # sees a live lease (and stands down) or loses this UPDATE race and re-reads.
+        c.execute("UPDATE poll_lease SET holder=?, expires_at=? "
+                  "WHERE id=1 AND (holder=? OR expires_at<=?)",
+                  (_LEASE_ID, now + POLL_LEASE_TTL, _LEASE_ID, now))
+        got = c.execute("SELECT holder FROM poll_lease WHERE id=1").fetchone()["holder"]
+        return got == _LEASE_ID         # False => another LIVE process holds it; stand down
+
+
 def poller():
     sw.log("Poller started (with health guard).")
     if os.environ.get("AUTO_ROLL_TERMS") != "1":
@@ -3146,6 +3184,17 @@ def poller():
                 last_term_refresh = time.time()
                 threading.Thread(target=schools.refresh_all_terms,
                                  kwargs={"log": sw.log}, daemon=True).start()
+            if not acquire_poll_lease():
+                # Another live process is polling. Standing down prevents DUPLICATE alerts
+                # (we alert inline). Logged once per stand-down so it's diagnosable, and we
+                # keep looping: if that holder dies, its lease expires and we take over.
+                if not _stood_down[0]:
+                    _stood_down[0] = True
+                    sw.log("[lease] another poller holds the lease — standing down to avoid "
+                           "duplicate alerts (will take over if it stops)")
+                time.sleep(POLL_SECONDS)
+                continue
+            _stood_down[0] = False
             cyc = run_cycle()
             if guardian.ping_ok(cyc):   # enforce: only a reconciled, non-RED cycle may
                 ping_healthcheck()      # claim success; off/shadow: semantics unchanged

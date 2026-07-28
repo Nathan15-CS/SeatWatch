@@ -1,0 +1,99 @@
+"""READINESS #1 — Alert state-transition correctness, driven through the REAL run_cycle.
+
+No mocks of the alert engine: we register a synthetic school whose fetch() we control,
+seed a real watch, capture the delivery channels (send nothing), and drive the actual
+app.run_cycle() cycle by cycle. Asserts the core promise:
+
+  closed->closed : silent
+  closed->open   : EXACTLY ONE alert
+  open->open     : silent (latched)
+  open->closed   : silent, re-arms
+  closed->open   : re-alerts (one more)
+
+Plus the term-roll case (a stale-term watch must NOT fire — the stamping guard).
+Returns (passed, failed, details) so readiness.py can aggregate.
+"""
+import os, tempfile, sys
+
+def run():
+    os.environ["SEATWATCH_DB"] = os.path.join(tempfile.mkdtemp(), "t.db")
+    sys.path.insert(0, os.path.expanduser("~/seatwatch"))
+    import app, schools
+    app.init_db()
+
+    results = []
+    def check(name, cond, detail=""):
+        results.append((name, bool(cond), detail))
+
+    # --- controllable synthetic school ---
+    class FakeSchool:
+        id = "canary"; name = "Canary University"; example = "CS 101"
+        def __init__(self): self._data = {}
+        def cur_term(self): return "202608"
+        def reg_url(self, course): return "https://example.edu/"
+        def fetch(self, courses):
+            # returns whatever set_state configured, filtered to requested courses
+            return {c: self._data[c] for c in courses if c in self._data}
+    fake = FakeSchool()
+    schools.SCHOOLS = {"canary": fake}
+
+    # capture every channel — deliver nothing, count alerts
+    sent = []
+    app.sw.notify = lambda *a, **k: True                    # ntfy "accepts" (but see below)
+    app.send_web_push = lambda uid, t, b, u: (sent.append(("webpush", t, b)), 1)[1]
+    app.send_email = lambda *a, **k: False
+    app.send_sms = lambda *a, **k: False
+    app.operator_alert = lambda *a, **k: None
+
+    with app.db() as c:
+        c.execute("INSERT INTO users(google_sub,email,topic,created) VALUES('g','a@b.com','t',?)",
+                  (0,))
+        c.execute("INSERT INTO watches(id,school,topic,course,section,term,alerted,created,user_id)"
+                  " VALUES(1,'canary','t','CS 101','0101','202608',0,?,1)", (0,))
+
+    def set_state(open_):
+        fake._data = {"CS 101": {"0101": {"open": open_, "seats": 5 if open_ else 0}}}
+    def cycle():
+        before = len(sent)
+        app.run_cycle()
+        return len(sent) - before
+
+    # closed -> closed : silent
+    set_state(False); cycle()
+    check("closed->closed silent", cycle() == 0)
+    # closed -> open : exactly ONE alert
+    set_state(True)
+    n = cycle()
+    check("closed->open = exactly ONE alert", n == 1, f"got {n}")
+    # open -> open : silent (latched)
+    check("open->open silent (latched)", cycle() == 0)
+    check("open->open silent again", cycle() == 0)
+    # open -> closed : silent, re-arms
+    set_state(False)
+    check("open->closed silent", cycle() == 0)
+    # closed -> open again : re-alerts (exactly one more)
+    set_state(True)
+    n = cycle()
+    check("re-open re-alerts (exactly one)", n == 1, f"got {n}")
+
+    # --- TERM-ROLL: a stale-term watch must NOT fire (stamping guard) ---
+    with app.db() as c:
+        c.execute("UPDATE watches SET alerted=0, term='202601' WHERE id=1")  # watch now stale
+    fake.cur_term = lambda: "202608"          # school rolled to a different term
+    set_state(True)                            # section is OPEN in the new term
+    before = len(sent)
+    app.run_cycle()
+    check("stale-term watch does NOT false-alert on roll", len(sent) == before,
+          f"fired {len(sent)-before}")
+
+    passed = sum(1 for _, ok, _ in results if ok)
+    failed = sum(1 for _, ok, _ in results if not ok)
+    return passed, failed, results
+
+
+if __name__ == "__main__":
+    p, f, details = run()
+    for name, ok, detail in details:
+        print(f"  [{'PASS' if ok else '*** FAIL'}] {name}" + (f"  ({detail})" if detail and not ok else ""))
+    print(f"\n  {p} passed, {f} failed")
+    sys.exit(1 if f else 0)
