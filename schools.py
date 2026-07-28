@@ -3912,19 +3912,41 @@ class WesternWashington(Banner):
     example = "ACCT 240"; host = "registration.banner.wwu.edu"; term = "202640"
     auto_term = False
 
-class UHManoa(Banner):
-    # Pooled UH-system Banner (port :9234, verified from the poller). The base's first-word
-    # campus guard would LEAK Hilo ("University of Hawaii at Hilo" shares "University"), so
-    # this overrides with an EXACT campusDescription match. openSection lies here —
-    # seatsAvailable is authoritative, as always.
-    # ⚠️ auto_term OFF is LOAD-BEARING: the picker selects 202713 "Fall 2026 Extension"
-    # (a continuing-ed sub-population) over the real Fall 2026 (202710) — same shape as the
-    # UTRGV School-of-Medicine trap. Auto-rolling would starve every main-campus watcher.
-    id = "uhmanoa"; name = "University of Hawaii at Manoa"
-    example = "ENG 1000"; host = "www.sis.hawaii.edu:9234"; term = "202710"
-    campus = "University of Hawaii at Manoa"; auto_term = False
+class UHBanner(Banner):
+    """University of Hawaii system — all campuses share ONE pooled Banner 9 host
+    (www.sis.hawaii.edu:9234, verified reachable from the prod poller).
+
+    Two guards are LOAD-BEARING for every campus on this host:
+
+    1. EXACT campusDescription match. The base's default first-word guard is useless here
+       because every campus starts "University of Hawaii" — Manoa would swallow Hilo's
+       sections. Each subclass sets its campus string verbatim as the host reports it
+       (note West Oahu's is abbreviated differently: "Univ of Hawaii - West Oahu").
+
+    2. auto_term = False. The term picker selects 202713 "Fall 2026 EXTENSION" (a
+       continuing-ed sub-population) over the real Fall 2026 (202710) — same shape as the
+       UTRGV School-of-Medicine trap. Auto-rolling would silently starve every
+       main-campus watcher. Terms are pinned and hand-bumped.
+
+    openSection LIES on this host (True on 0-seat rows), so the base's seatsAvailable rule
+    is what keeps it honest — as everywhere."""
+    host = "www.sis.hawaii.edu:9234"; term = "202710"      # Fall 2026; pinned
+    auto_term = False
+
     def _campus_ok(self, r):
         return (r.get("campusDescription") or "").strip() == self.campus
+
+class UHManoa(UHBanner):
+    id = "uhmanoa"; name = "University of Hawaii at Manoa"
+    example = "ENG 1000"; campus = "University of Hawaii at Manoa"
+
+class UHHilo(UHBanner):
+    id = "uhhilo"; name = "University of Hawaii at Hilo"
+    example = "ENG 1001"; campus = "University of Hawaii at Hilo"
+
+class UHWestOahu(UHBanner):
+    id = "uhwestoahu"; name = "University of Hawaii - West Oahu"
+    example = "ENG 1002"; campus = "Univ of Hawaii - West Oahu"   # host abbreviates this one
 
 class UNCPembroke(Banner):
     # Port :9639 + non-default base_path (uncecs.edu:9xxx family). Verified reachable from
@@ -9565,7 +9587,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     PascoHernando(), USI(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
     SamHoustonState(), FerrisState(), Valparaiso(), Cameron(),
-    IdahoState(), WesternWashington(), UHManoa(), KeeneState(),
+    IdahoState(), WesternWashington(), UHManoa(), UHHilo(), UHWestOahu(), KeeneState(),
     MidwesternState(), UNCPembroke(), WesternCarolina(), Lamar(), Troy(),
     SavannahState(), AlcornState(), FayettevilleState(), MSValleyState(), CNU(),
     MoreheadState(), NorfolkState(), FGCU(),
