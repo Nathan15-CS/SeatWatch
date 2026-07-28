@@ -1976,6 +1976,12 @@ class Framingham(ListcrseBanner8):
     example = "PSYC 101"; term = "202690"      # Fall 2026 HERE (per-host codes differ)
     base = "https://selfservice.framingham.edu/PROD"
 
+# Fitchburg State — HELD, not shipped. Its guest catalog never reports a FULL section:
+# 30 sections across 14 courses in the live term were all open, and a COMPLETED term
+# (Spring 2026) still shows open seats. Until it can be shown to report full correctly,
+# shipping it risks a false "open" — the one thing we never do. Revisit with a broader
+# disproof sweep (base "https://web4.fitchburgstate.edu/prodssb", term 202710).
+
 class UNM(ListcrseBanner8):
     # UNM Albuquerque flagship (≠ Central/Highlands/Western NM). NM 4-DIGIT common-course
     # numbers (ENGL 1110, not 110). ENGL 1110 = 122 sections -> ~74s cold N+1 build then
@@ -3893,6 +3899,32 @@ class MidwesternState(Banner):
     # Non-standard port :1808 — verified reachable from the prod poller. seatsAvailable rule.
     id = "msutexas"; name = "Midwestern State University"
     example = "ACCT 2143"; host = "bannerxefe4.msutexas.edu:1808"; term = "202710"
+
+class IdahoState(Banner):
+    # Port :7781 — verified reachable from the prod poller.
+    id = "isu"; name = "Idaho State University"
+    example = "ACCT 2201"; host = "ban9ss1.isos.isu.edu:7781"; term = "202710"
+
+class WesternWashington(Banner):
+    # auto_term OFF: the picker grabs a View-Only FUTURE term (202720) here, which would
+    # starve every current watcher. Pinned to Fall 2026; hand-bump at rollover.
+    id = "wwu"; name = "Western Washington University"
+    example = "ACCT 240"; host = "registration.banner.wwu.edu"; term = "202640"
+    auto_term = False
+
+class UHManoa(Banner):
+    # Pooled UH-system Banner (port :9234, verified from the poller). The base's first-word
+    # campus guard would LEAK Hilo ("University of Hawaii at Hilo" shares "University"), so
+    # this overrides with an EXACT campusDescription match. openSection lies here —
+    # seatsAvailable is authoritative, as always.
+    # ⚠️ auto_term OFF is LOAD-BEARING: the picker selects 202713 "Fall 2026 Extension"
+    # (a continuing-ed sub-population) over the real Fall 2026 (202710) — same shape as the
+    # UTRGV School-of-Medicine trap. Auto-rolling would starve every main-campus watcher.
+    id = "uhmanoa"; name = "University of Hawaii at Manoa"
+    example = "ENG 1000"; host = "www.sis.hawaii.edu:9234"; term = "202710"
+    campus = "University of Hawaii at Manoa"; auto_term = False
+    def _campus_ok(self, r):
+        return (r.get("campusDescription") or "").strip() == self.campus
 
 class UNCPembroke(Banner):
     # Port :9639 + non-default base_path (uncecs.edu:9xxx family). Verified reachable from
@@ -7244,6 +7276,11 @@ class Valparaiso(Colleague):
     id = "valpo"; name = "Valparaiso University"
     example = "MATH 131"; host = "datavu1.valpo.edu"
 
+class KeeneState(Colleague):
+    # base Colleague, NOT NewColleague (its /SearchAsync 404s).
+    id = "keene"; name = "Keene State College"
+    example = "BIO 230"; host = "stuplan.keene.edu"
+
 class Troy(Colleague):
     # textual Colleague guest catalog at sss.troy.edu (the registration side is ADFS-walled,
     # but this catalog is open). Multi-campus shares one catalog, all Troy, no leak.
@@ -9528,6 +9565,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     PascoHernando(), USI(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
     SamHoustonState(), FerrisState(), Valparaiso(), Cameron(),
+    IdahoState(), WesternWashington(), UHManoa(), KeeneState(),
     MidwesternState(), UNCPembroke(), WesternCarolina(), Lamar(), Troy(),
     SavannahState(), AlcornState(), FayettevilleState(), MSValleyState(), CNU(),
     MoreheadState(), NorfolkState(), FGCU(),
