@@ -41,3 +41,8 @@ research/ctlog_sweep_results_v1_garbage.json
 research/needs_retry.json
 research/ctlog_secondpass_results.json
 research/colleague_leads_for_codex.json
+
+# never commit database backups (contain real user emails/watch history)
+backups/
+*.db
+*.db.part

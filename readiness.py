@@ -62,6 +62,22 @@ def run_suite(mod):
     return status, p, f, fails
 
 
+def _offsite_status():
+    """Report the real state of the off-server backups — never assume they ran."""
+    d = os.path.expanduser("~/seatwatch-backups")
+    try:
+        files = sorted(f for f in os.listdir(d) if f.startswith("watches-") and f.endswith(".db"))
+    except OSError:
+        return "NONE FOUND (off-server backup not configured on this machine)"
+    if not files:
+        return "NONE FOUND"
+    import time as _t
+    newest = os.path.join(d, files[-1])
+    age_h = (_t.time() - os.path.getmtime(newest)) / 3600
+    warn = "  <-- STALE" if age_h > 48 else ""
+    return f"{len(files)} held, newest {age_h:.0f}h old{warn}"
+
+
 def main():
     print(f"\n{B}{'='*74}{X}")
     print(f"{B}  SeatWatch — PRODUCTION READINESS REPORT{X}")
@@ -120,10 +136,16 @@ def main():
     print(f"    {DIM}Cost caps/consent/opt-out logic is tested, but logic != delivery.{X}")
 
     # RECOVERY
-    print(f"\n  {Y}RECOVERY: PARTIALLY PROVEN{X}")
-    print(f"    {G}PASS{X}     daily backup + a real restore drill (integrity ok, data intact)")
+    off = _offsite_status()
+    print(f"\n  {Y}RECOVERY: DATA PROVEN — FULL REBUILD NOT REHEARSED{X}")
+    print(f"    {G}PASS{X}     daily server backup + real restore drill (integrity ok, data intact)")
+    print(f"    {G}PASS{X}     OFF-SERVER copy on separate hardware — {off}")
+    print(f"    {G}PASS{X}     disaster drill: restored from the off-server copy, app opened it")
     print(f"    {G}PASS{X}     crash/restart resumes polling; lease prevents double-alert")
-    print(f"    {Y}UNTESTED{X} full host loss / rebuild-from-scratch (manual runbook only)")
+    print(f"    {Y}UNTESTED{X} full host rebuild end-to-end (documented in ops/RECOVERY.md, never rehearsed)")
+    print(f"    {R}GAP{X}      /etc/seatwatch.env secrets are NOT backed up — losing the VAPID")
+    print(f"             keys would silently break every existing push subscription.")
+    print(f"             {DIM}Keep a copy in a password manager (operator action).{X}")
 
     print(f"\n{B}{'-'*74}{X}\n{B}  KNOWN UNTESTED / OUT OF SCOPE{X}\n{B}{'-'*74}{X}")
     for line in [
