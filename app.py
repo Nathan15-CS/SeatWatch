@@ -1260,7 +1260,7 @@ if(a2hs)a2hs.onclick=async function(){
 };
 // iPhone-in-Safari: push physically can't turn on until the site is added to the Home Screen
 // (an Apple rule we can't change). So show the steps upfront and hide the button that would
-// only dead-end here — no guessing, nothing to discover, nobody gets stuck.
+// only dead-end here, no guessing, nothing to discover, nobody gets stuck.
 if(isIOS&&!standalone){
   ios.style.display='block';
   btn.style.display='none';
@@ -1274,15 +1274,15 @@ btn.onclick=async function(){
   try{
     var reg=await navigator.serviceWorker.register('/sw.js');
     var perm=await Notification.requestPermission();
-    if(perm!=='granted'){s('Notifications are blocked — allow them for seatwatchapp.com in settings, then retry.');return;}
+    if(perm!=='granted'){s('Notifications are blocked, allow them for seatwatchapp.com in settings, then retry.');return;}
     var sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(VAPID_PK)});
     var r=await fetch('/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csrf:PUSH_CSRF,sub:sub.toJSON()})});
     var j=await r.json().catch(function(){return {};});
     if(r.ok&&j.ok){
-      if(j.test_sent>0){btn.style.display='none';s('✅ Alerts are ON for this device — check for a test notification now!');}
-      else{s('Saved for this device, but the test alert didn\\'t go through — this browser may not support push here. Try Chrome, or use the app option below.');}
+      if(j.test_sent>0){btn.style.display='none';s('✅ Alerts are ON for this device, check for a test notification now!');}
+      else{s('Saved for this device, but the test alert didn\\'t go through, this browser may not support push here. Try Chrome, or use the app option below.');}
     }
-    else{s('Could not save your subscription — please try again.');}
+    else{s('Could not save your subscription, please try again.');}
   }catch(e){s('Could not enable: '+(e.message||e));}
 };
 })();
@@ -1762,7 +1762,7 @@ def watches_html(user_id, csrf):
         sch = schools.SCHOOLS.get(r["school"])
         name = sch.name if sch else r["school"]
         items += (f"<li><span>{html.escape(r['course'])} §{html.escape(r['section'])}"
-                  f" — {html.escape(name)}</span>"
+                  f", {html.escape(name)}</span>"
                   f"<form method='post' action='/unwatch'>"
                   f"<input type='hidden' name='id' value='{r['id']}'>"
                   f"<input type='hidden' name='csrf' value='{csrf}'>"
@@ -1833,7 +1833,7 @@ def feedback_block(tok):
     """Click-to-open feedback box, rendered at the BOTTOM of the page under the tagline.
 
     Sized to actually get noticed (the previous version was a small line buried inside the
-    watch card). Still plain <details> + a form — no JS, so it works everywhere and can't
+    watch card). Still plain <details> + a form, no JS, so it works everywhere and can't
     break the page. The textarea is left EMPTY on purpose: a long placeholder reads as
     instructions and narrows what people think they're allowed to say.
 
@@ -1943,11 +1943,11 @@ def alert_intro(user):
                 "stroke='currentColor' stroke-width='2' stroke-linecap='round' "
                 "stroke-linejoin='round'><rect x='2' y='4' width='20' height='16' rx='2'/>"
                 "<path d='m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7'/></svg><span>We'll email "
-                f"you at <b>{html.escape(user['email'])}</b> the second a seat opens — nothing "
+                f"you at <b>{html.escape(user['email'])}</b> the second a seat opens, nothing "
                 "else to do.</span></div>"
                 "<p style='font-weight:700;margin:18px 0 4px'>Want an instant buzz on your "
                 "phone too? <span style='font-weight:500;color:var(--dim)'>(optional)</span></p>")
-    return "<p style='font-weight:700;margin:18px 0 4px'>Last step — get the alert on your phone:</p>"
+    return "<p style='font-weight:700;margin:18px 0 4px'>Last step, get the alert on your phone:</p>"
 
 
 def done_page(what, user):
@@ -1956,7 +1956,7 @@ def done_page(what, user):
                 .replace("__ALERTINTRO__", alert_intro(user))
                 .replace("__PUSHBLOCK__", push_block(tok) or
                          "<p class='note' style='text-align:left'>Phone alerts are being "
-                         "set up — check back shortly.</p>"))
+                         "set up, check back shortly.</p>"))
     return page(body)
 
 
@@ -2081,7 +2081,7 @@ class Handler(BaseHTTPRequestHandler):
         if path in ("/login", "/login/google"):
             if not GOOGLE_CLIENT_ID:
                 return self._send(form_page(
-                    "<div class='ok'>Sign-in is being switched on — check back shortly!</div>"))
+                    "<div class='ok'>Sign-in is being switched on, check back shortly!</div>"))
             if path == "/login" and APPLE_ENABLED:
                 # two providers exist -> /login becomes the chooser card; the direct
                 # /login/google and /login/apple links on it skip straight through.
@@ -2101,11 +2101,11 @@ class Handler(BaseHTTPRequestHandler):
             clear = "sw_state=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
             if not (state and want and code) or not hmac.compare_digest(state, want):
                 return self._send(form_page(
-                    "<div class='ok'>Sign-in didn't complete — please try again.</div>"))
+                    "<div class='ok'>Sign-in didn't complete, please try again.</div>"))
             info = google_exchange(code)
             if not info:
                 return self._send(form_page(
-                    "<div class='ok'>Google sign-in failed — please try again.</div>"))
+                    "<div class='ok'>Google sign-in failed, please try again.</div>"))
             user = get_or_create_user(info["sub"], info["email"],
                                       ip=self._client_ip(), device_id=self._device_id())
             return self._redirect("/", cookies=[session_cookie(user["id"]), clear])
@@ -2132,7 +2132,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(page(
                 "<div class='card reveal d2' style='text-align:center'>"
                 "<h2 class='ct'>You're upgraded 🎉</h2>"
-                "<p class='cs'>Your plan is active. It may take a moment to reflect — "
+                "<p class='cs'>Your plan is active. It may take a moment to reflect, "
                 "add your classes below.</p>"
                 "<a href='/' style='display:block;margin-top:14px;font-weight:700'>"
                 "← Go watch your classes</a></div>"))
@@ -2255,7 +2255,7 @@ class Handler(BaseHTTPRequestHandler):
                          f"<p style='font-weight:700;margin:6px 0'>{html.escape(TIER_NAME[t])}</p>"
                          f"{btn}</div>")
         return ("<div class='card reveal d2'><h2 class='ct'>Watch more classes</h2>"
-                "<p class='cs'>One-time for the term — no subscription. Upgrade anytime "
+                "<p class='cs'>One-time for the term, no subscription. Upgrade anytime "
                 "and pay only the difference.</p><div class='prices'>"
                 + "".join(cards) + "</div>"
                 "<a href='/' style='display:block;margin-top:16px;font-weight:700'>← Back</a></div>")
@@ -2309,7 +2309,7 @@ class Handler(BaseHTTPRequestHandler):
 
         # (1) rate limit FIRST — blocks form-flooding before any work is done
         if not rate_ok(self._client_ip()):
-            return self._notice("Too many requests — wait a minute and try again.", 429)
+            return self._notice("Too many requests, wait a minute and try again.", 429)
 
         try:
             length = int(self.headers.get("Content-Length", 0) or 0)
@@ -2327,11 +2327,11 @@ class Handler(BaseHTTPRequestHandler):
             clear = "sw_astate=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=None"
             if not (state and want and code) or not hmac.compare_digest(state, want):
                 return self._send(form_page(
-                    "<div class='ok'>Sign-in didn't complete — please try again.</div>"))
+                    "<div class='ok'>Sign-in didn't complete, please try again.</div>"))
             info = apple_exchange(code)
             if not info:
                 return self._send(form_page(
-                    "<div class='ok'>Apple sign-in failed — please try again.</div>"))
+                    "<div class='ok'>Apple sign-in failed, please try again.</div>"))
             user = get_or_create_user(info["sub"], info["email"],
                                       ip=self._client_ip(), device_id=self._device_id())
             return self._redirect("/", cookies=[session_cookie(user["id"]), clear])
@@ -2345,7 +2345,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._redirect("/login")
             fform = parse_qs(raw_body)
             if not hmac.compare_digest(fform.get("csrf", [""])[0], csrf_token(user["id"])):
-                return self._notice("That form expired — please try again.", user=user)
+                return self._notice("That form expired, please try again.", user=user)
             msg = (fform.get("message", [""])[0] or "").strip()[:4000]
             if not msg:
                 return self._notice("Please write a message first.", user=user)
@@ -2372,7 +2372,7 @@ class Handler(BaseHTTPRequestHandler):
                 # Not lost — just not delivered yet. Page the operator so it's not silent.
                 sw.log(f"  [feedback] #{fid} stored but NOT emailed (EMAIL_ENABLED="
                        f"{EMAIL_ENABLED}) — read it from the feedback table")
-            return self._notice("Thank you — that went straight to us. We read every message.",
+            return self._notice("Thank you, that went straight to us. We read every message.",
                                 user=user)
 
         if path == "/sms/optin":            # SINGLE web opt-in — the checked box IS consent
@@ -2380,13 +2380,13 @@ class Handler(BaseHTTPRequestHandler):
                 return self._redirect("/login")
             oform = parse_qs(raw_body)
             if not hmac.compare_digest(oform.get("csrf", [""])[0], csrf_token(user["id"])):
-                return self._notice("Session expired — please try again.", user=user)
+                return self._notice("Session expired, please try again.", user=user)
             if effective_tier(user) < 1:
                 return self._notice("Text alerts are part of the paid plans. Free plans use "
                                     "web push and email — no phone number needed.", user=user)
             phone = _norm_phone(oform.get("phone", [""])[0])
             if not phone:
-                return self._notice("That phone number doesn't look right — use a US "
+                return self._notice("That phone number doesn't look right, use a US "
                                     "10-digit mobile number.", user=user)
             if not oform.get("sms_consent"):
                 return self._notice("Please check the consent box to turn on text alerts.",
@@ -2453,9 +2453,9 @@ class Handler(BaseHTTPRequestHandler):
 
         form = parse_qs(raw_body)
         if not user:
-            return self._notice("Please sign in first — it takes one click, no password.")
+            return self._notice("Please sign in first, it takes one click, no password.")
         if not hmac.compare_digest(form.get("csrf", [""])[0], csrf_token(user["id"])):
-            return self._notice("That form expired — please try again.", user=user)
+            return self._notice("That form expired, please try again.", user=user)
 
         if path == "/unwatch":
             wid = form.get("id", ["0"])[0]
@@ -2468,7 +2468,7 @@ class Handler(BaseHTTPRequestHandler):
         # the ONE hard abuse rule: a normalized email that already claimed its free
         # class on another account doesn't mint a fresh allotment (sign-in still works)
         if not user["free_eligible"]:
-            return self._notice("Your free class is already in use on your other account — "
+            return self._notice("Your free class is already in use on your other account, "
                                 "sign in there to manage it.", user=user)
 
         school = schools.SCHOOLS.get(form.get("school", [""])[0].strip())
@@ -2484,7 +2484,7 @@ class Handler(BaseHTTPRequestHandler):
         sections = list(dict.fromkeys(s.strip().upper() for s in raw.split(",") if s.strip()))
         if not all_sections:
             if not sections:
-                return self._notice("Please add the section number(s) you want to watch — e.g. 0101.",
+                return self._notice("Please add the section number(s) you want to watch, e.g. 0101.",
                                     user=user)
             if len(sections) > FREE_SECTIONS_PER_COURSE:
                 _conv_signal("wall_hit", user["id"])   # tried >2 sections on free
@@ -2519,7 +2519,7 @@ class Handler(BaseHTTPRequestHandler):
         # an all-sections watch on a typo'd code would slip past this check as a phantom.
         secs = {k: v for k, v in school.fetch({course}).get(course, {}).items() if k != "none"}
         if not secs:
-            return self._notice(f"Couldn't find {course} at {school.name} this term — check the code?",
+            return self._notice(f"Couldn't find {course} at {school.name} this term, check the code?",
                                 user=user)
         bad = [s for s in sections if s and s not in secs]
         if bad:
