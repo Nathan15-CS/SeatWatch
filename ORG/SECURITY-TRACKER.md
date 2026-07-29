@@ -32,11 +32,12 @@ Audited: 2026-07-28 · Gate 0 + Gate 1 rows first (beta-blockers).
 | # | Control | Sev | Gate | Finding & fix |
 |---|---|---|---|---|
 | F1 | **No `Cache-Control` on authenticated HTML** | **HIGH** | 1 | `_send()` sets CSP/HSTS/XFO but **no cache directive**, so the signed-in dashboard (email, watched courses, phone last-4) ships with none. Not leaking today (prod shows `cf-cache-status: DYNAMIC`) — but that is Cloudflare's *default*, not an assertion we control. Realistic path: **shared campus/library machine**, back-button after logout serving the previous user's page. Also any future "Cache Everything" rule. **Fix: one line** — `Cache-Control: private, no-store, max-age=0` (+ `Pragma`/`Expires` for old proxies) in `_send`. ~2 min. Deploy **isolated**. |
-| F2 | **SPF record missing** | **HIGH** | 1 | `dig TXT seatwatchapp.com` → no SPF. Mail from this domain is unauthenticated for SPF, hurting inbox placement **with any provider**. **Fix (DNS, operator):** `v=spf1 include:_spf.google.com ~all`. |
-| F3 | **DMARC record missing** | MED-HIGH | 1 | `dig TXT _dmarc.seatwatchapp.com` → none. **Fix (DNS, operator):** start `v=DMARC1; p=none; rua=mailto:support@seatwatchapp.com`, tighten later. |
+| ~~F2~~ | ~~SPF record missing~~ **RESOLVED 2026-07-28** | HIGH | 1 | Operator added it. Verified from 8.8.8.8: `v=spf1 include:_spf.google.com ~all`. |
+| ~~F3~~ | ~~DMARC record missing~~ **RESOLVED 2026-07-28** | MED-HIGH | 1 | Operator added it. Verified from 8.8.8.8: `v=DMARC1; p=none; rua=mailto:support@seatwatchapp.com; fo=1` (fo=1 adds failure reporting — a good addition). |
+| F5 | **`www.seatwatchapp.com` does not resolve** | LOW | 2 | No DNS record; anyone typing `www.` gets an error page, and a carrier reviewer visiting it sees nothing. **Fix (DNS, operator):** CNAME `www` → `seatwatchapp.com`, proxied. |
 | F4 | **`/r/<token>` GET writes to DB, unrate-limited** | LOW | 2 | The click-tracking redirect stamps `clicked_at` on a GET and is not covered by `rate_ok` (that guards POSTs). Worst case is inflated click metrics / minor DB churn — no PII exposure, no auth bypass. Consider rate-limiting or making it idempotent-cheap. |
 
-**Note (F2/F3):** DKIM **is** present (Google selector, valid key). Evidence-based recommendation
+**Note (F2/F3 — now RESOLVED):** all three of SPF, DKIM and DMARC are live and verified. DKIM was already present (Google selector, valid key). Evidence-based recommendation
 of record: SPF+DMARC are the load-bearing, provider-independent fix; Google Workspace SMTP is
 adequate for Gate 0–1 beta volume; a dedicated provider (SES/Postmark/Resend) is deferred to
 Gate 2–3 when bounce/complaint webhooks and volume justify it.
