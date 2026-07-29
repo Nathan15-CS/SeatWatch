@@ -36,8 +36,9 @@ Bash/Browser READ and PROBE only — no `>`, `sed -i`, or git writes; scratch in
 Name the EXACT status + seat field; don't guess.
 
 ## Research = the 8 gates (do all on a NON-dup; reuse `research/gate_*.py`)
-1 production path · 2 **mixed status** — a COMPLETED term must show real FULL sections; all-"open"
-there = fake = SCRAP · 3 unique key (CRN/classNumber) · 4 exact scoping, no sibling leak · 5 no
+1 production path · 2 **current-term mixed status** — the CURRENT registration term must return sections AND show
+BOTH a genuinely OPEN and a genuinely FULL one (a completed term proves only the PARSER, never
+that the school can alert: no current sections = silent-miss; all-"open" = fake-open → SCRAP/HOLD) · 3 unique key (CRN/classNumber) · 4 exact scoping, no sibling leak · 5 no
 hidden sections (no time/open-only filter) · 6 latency <30s · 7 term freshness (reject
 archive/View-Only; flag parallel-term) · 8 dedup.
 
