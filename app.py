@@ -1690,21 +1690,21 @@ def pricing_section():
  <div class="pw-head">
   <div class="pw-eyebrow">PRICING</div>
   <h2 class="pw-h2">Get into every class you need.</h2>
-  <p class="pw-sub">Start free. Pay once per term if you need more — never a subscription. Less than a textbook to not lose a semester.</p>
+  <p class="pw-sub">Start free. Pay once per term if you need more. Never a subscription. Less than a textbook to not lose a semester.</p>
  </div>
  <div class="pw-grid">
   <div class="pw-card free">
    <span class="pw-tag pw-free-tag">Start free</span>
    <div class="pw-amt">$0</div>
    <div class="pw-name">1 class · 2 sections</div>
-   <div class="pw-list">{feat("Instant phone alerts")}{feat("Real seats only — never fake")}{feat("No card to start")}</div>
+   <div class="pw-list">{feat("Instant phone alerts")}{feat("Real seats only, never fake")}{feat("No card to start")}</div>
    <a href="/login" class="pw-cta dark">Start free</a>
   </div>
   <div class="pw-card">
    {tag_soon}
    <div class="pw-amt">$19.95</div>
    <div class="pw-name">One class</div>
-   <div class="pw-list">{feat("<b>Unlimited sections</b> — not just 2")}</div>
+   <div class="pw-list">{feat("<b>Unlimited sections</b>, not just 2")}</div>
    {cta(1, "Choose", False)}
   </div>
   <div class="pw-card">
