@@ -1001,7 +1001,7 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 </style></head><body>
 <header><div class="nav"><svg class="mark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><path d="M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z" fill="#fff" stroke="#2563eb" stroke-width="9" stroke-linejoin="round"/><rect x="42" y="32" width="28" height="24" rx="7" fill="url(#b)"/><rect x="38" y="56" width="40" height="11" rx="5.5" fill="url(#b)"/><rect x="42" y="67" width="8" height="15" rx="3" fill="url(#b)"/><rect x="66" y="67" width="8" height="15" rx="3" fill="url(#b)"/><circle cx="100" cy="20" r="11" fill="#10b981" stroke="#fff" stroke-width="5"/><path d="M100 4 V1 M111 9 L114 6 M116 20 H119" stroke="#10b981" stroke-width="4.5" stroke-linecap="round"/></svg><span class="word"><i>Seat</i>Watch</span><span class="spacer"></span><a class="signin" href="/login"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Sign in</a></div></header>
 <main>__BODY__</main>
-<footer><span class="tagline">We watch seats. <em>You get the class.</em></span><br>© 2026 SeatWatch &nbsp;·&nbsp; <a href="/terms">Terms</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="/text-alerts">Text Alerts</a> &nbsp;·&nbsp; <a href="/sms-terms">SMS Terms</a><br>Not affiliated with any university.</footer>
+<footer><span class="tagline">We watch seats. <em>You get the class.</em></span>__FEEDBACK__<br>© 2026 SeatWatch &nbsp;·&nbsp; <a href="/terms">Terms</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="/text-alerts">Text Alerts</a> &nbsp;·&nbsp; <a href="/sms-terms">SMS Terms</a><br>Not affiliated with any university.</footer>
 <script>
 (function(){/* durable device marker: cookie + localStorage mirror (soft signal only) */
 try{
@@ -1751,12 +1751,15 @@ def landing_page():
     school count; all CTAs route to /login (Google sign-in)."""
     return LANDING.replace("__COUNT__", str(len(schools.SCHOOLS))).replace("__PRICING__", pricing_section())
 
-def page(body):
+def page(body, feedback=""):
     # Substitute __COUNT__ on the ASSEMBLED page so the shell (PAGE) and every body
     # (FORM, DONE, TERMS…) share one source of truth. These used to hardcode the number,
     # so the signed-in view silently drifted stale on every school add while only the
     # logged-out LANDING updated — 743 showing after the registry hit 746.
+    # `feedback` renders in the footer under the tagline; it defaults to "" so every other
+    # page (terms, privacy, notices) strips the placeholder rather than leaking it.
     return (PAGE.replace("__BODY__", body)
+            .replace("__FEEDBACK__", feedback)
             .replace("__COUNT__", str(len(schools.SCHOOLS))))
 
 
@@ -1844,29 +1847,38 @@ def sms_block(user, tok):
 
 
 def feedback_block(tok):
-    """Click-to-open feedback box. Plain <details> + a form — no JS, so it works on every
-    browser and can't break the page. Deliberately low-friction: one textarea, one button,
-    no rating scales or required fields. During the beta this is the main way a student
-    tells us something is wrong, so the cost of writing it must be near zero."""
+    """Click-to-open feedback box, rendered at the BOTTOM of the page under the tagline.
+
+    Sized to actually get noticed (the previous version was a small line buried inside the
+    watch card). Still plain <details> + a form — no JS, so it works everywhere and can't
+    break the page. The textarea is left EMPTY on purpose: a long placeholder reads as
+    instructions and narrows what people think they're allowed to say.
+
+    Footer text is 12px/centered with wide letter-spacing, so this block resets those
+    explicitly rather than inheriting them."""
+    if not tok:
+        return ""
     return (
-        '<details style="margin-top:14px;border-top:1px solid #F3F4F6;padding-top:13px">'
-        '<summary style="cursor:pointer;font-size:13.5px;font-weight:700;color:#2563eb;'
-        'list-style:none;display:flex;align-items:center;gap:7px">'
-        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
-        'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        '<div style="max-width:560px;margin:22px auto 0;text-align:left;letter-spacing:normal;'
+        'line-height:1.5">'
+        '<details style="border:1.5px solid #DBEAFE;border-radius:14px;background:#F8FAFC;'
+        'overflow:hidden">'
+        '<summary style="cursor:pointer;list-style:none;padding:15px 18px;font-size:15px;'
+        'font-weight:700;color:#2563eb;display:flex;align-items:center;gap:9px">'
+        '<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+        'stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex:none">'
         '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
         'Got feedback? Tell us how we can improve</summary>'
-        '<form method="post" action="/feedback" style="margin:11px 0 0">'
-        f'<input type="hidden" name="csrf" value="{html.escape(tok or "")}">'
-        '<textarea name="message" rows="4" required maxlength="4000" '
-        'placeholder="What&#39;s missing, confusing, or broken? Is your school or class not '
-        'showing up? Anything at all — we read every message." '
-        'style="width:100%;box-sizing:border-box;padding:11px 13px;border:1.5px solid #E5E7EB;'
-        'border-radius:11px;font:inherit;font-size:14.5px;line-height:1.5;resize:vertical"></textarea>'
-        '<button type="submit" style="margin-top:9px">Send feedback</button>'
-        '<p class="note" style="margin:8px 0 0;font-size:12px">Goes straight to a human. '
-        'We reply to your account email if it needs an answer.</p>'
-        '</form></details>')
+        '<form method="post" action="/feedback" style="margin:0;padding:0 18px 18px">'
+        f'<input type="hidden" name="csrf" value="{html.escape(tok)}">'
+        '<textarea name="message" rows="5" required maxlength="4000" '
+        'style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid #E5E7EB;'
+        'border-radius:11px;font-family:inherit;font-size:15px;line-height:1.55;color:#0b1526;'
+        'background:#fff;resize:vertical"></textarea>'
+        '<button type="submit" style="margin-top:10px;width:100%;padding:12px;border:0;'
+        'border-radius:11px;background:#2563eb;color:#fff;font-weight:700;font-size:15px;'
+        'font-family:inherit;cursor:pointer">Send feedback</button>'
+        '</form></details></div>')
 
 
 def text_alerts_body(user):
@@ -1929,12 +1941,14 @@ def form_page(notice="", user=None):
                 .replace("__SECFIELD__", secfield)
                 .replace("__PLANNOTE__", plannote)
                 .replace("__EMAIL__", html.escape(user["email"]))
-                .replace("__PUSHBLOCK__", push_block(tok) + sms_block(user, tok)
-                         + feedback_block(tok))
+                .replace("__PUSHBLOCK__", push_block(tok) + sms_block(user, tok))
                 .replace("__CSRF__", tok)
                 .replace("__WATCHES__", watches_html(user["id"], tok))
                 .replace("__SCHOOLS__", SCHOOLS_JS))
-    return page(FORM.replace("__CARD__", card).replace("__PRICING__", pricing_section()))
+    # Feedback lives in the footer, and only for signed-in users (the POST requires auth,
+    # so showing it logged-out would just bounce them to a login screen).
+    fb = feedback_block(csrf_token(user["id"])) if user else ""
+    return page(FORM.replace("__CARD__", card).replace("__PRICING__", pricing_section()), fb)
 
 
 def alert_intro(user):
