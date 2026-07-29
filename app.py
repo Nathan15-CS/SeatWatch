@@ -100,6 +100,7 @@ SMTP_PORT = int(os.environ.get("SMTP_PORT", "587"))
 SMTP_USER = os.environ.get("SMTP_USER", "")
 SMTP_PASS = os.environ.get("SMTP_PASS", "")
 SMTP_FROM = os.environ.get("SMTP_FROM", SMTP_USER)   # the visible "from" address
+SUPPORT_EMAIL = os.environ.get("SUPPORT_EMAIL", "support@seatwatchapp.com")
 EMAIL_ENABLED = bool(SMTP_HOST and SMTP_USER and SMTP_PASS)
 SESSION_DAYS = 90
 FREE_COURSES = 1                # free account: 1 class...
@@ -339,6 +340,19 @@ def init_db():
         # measures USAGE, not whether anyone will PAY — and shipping on a usage signal alone
         # is how you build something people love and nobody buys. Dormant until the paid
         # path is switched on AND Nathan explicitly says go.
+        # --- user feedback ---------------------------------------------------------
+        # Stored FIRST, emailed second. Email is best-effort (and is off entirely until
+        # SMTP is configured), so persisting is what guarantees a student's feedback is
+        # never lost — emailed_at stays NULL until it actually goes out, so unsent notes
+        # are trivially findable and re-sendable.
+        c.execute("""CREATE TABLE IF NOT EXISTS feedback(
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id   INTEGER,
+            email     TEXT,
+            message   TEXT NOT NULL,
+            created   REAL NOT NULL,
+            emailed_at REAL)""")
+        c.execute("CREATE INDEX IF NOT EXISTS ix_fb_created ON feedback(created)")
         c.execute("""CREATE TABLE IF NOT EXISTS price_probe(
             user_id            INTEGER PRIMARY KEY,
             shown_at           REAL NOT NULL,
@@ -1829,6 +1843,32 @@ def sms_block(user, tok):
     return box + _sms_optin_form(tok) + "</div>"
 
 
+def feedback_block(tok):
+    """Click-to-open feedback box. Plain <details> + a form — no JS, so it works on every
+    browser and can't break the page. Deliberately low-friction: one textarea, one button,
+    no rating scales or required fields. During the beta this is the main way a student
+    tells us something is wrong, so the cost of writing it must be near zero."""
+    return (
+        '<details style="margin-top:14px;border-top:1px solid #F3F4F6;padding-top:13px">'
+        '<summary style="cursor:pointer;font-size:13.5px;font-weight:700;color:#2563eb;'
+        'list-style:none;display:flex;align-items:center;gap:7px">'
+        '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" '
+        'stroke-width="2" stroke-linecap="round" stroke-linejoin="round">'
+        '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>'
+        'Got feedback? Tell us how we can improve</summary>'
+        '<form method="post" action="/feedback" style="margin:11px 0 0">'
+        f'<input type="hidden" name="csrf" value="{html.escape(tok or "")}">'
+        '<textarea name="message" rows="4" required maxlength="4000" '
+        'placeholder="What&#39;s missing, confusing, or broken? Is your school or class not '
+        'showing up? Anything at all — we read every message." '
+        'style="width:100%;box-sizing:border-box;padding:11px 13px;border:1.5px solid #E5E7EB;'
+        'border-radius:11px;font:inherit;font-size:14.5px;line-height:1.5;resize:vertical"></textarea>'
+        '<button type="submit" style="margin-top:9px">Send feedback</button>'
+        '<p class="note" style="margin:8px 0 0;font-size:12px">Goes straight to a human. '
+        'We reply to your account email if it needs an answer.</p>'
+        '</form></details>')
+
+
 def text_alerts_body(user):
     """PUBLIC /text-alerts page — the carrier-inspectable opt-in. Shows the program, the
     UNCHECKED consent checkbox with the exact registered disclosure, and links to the SMS
@@ -1889,7 +1929,8 @@ def form_page(notice="", user=None):
                 .replace("__SECFIELD__", secfield)
                 .replace("__PLANNOTE__", plannote)
                 .replace("__EMAIL__", html.escape(user["email"]))
-                .replace("__PUSHBLOCK__", push_block(tok) + sms_block(user, tok))
+                .replace("__PUSHBLOCK__", push_block(tok) + sms_block(user, tok)
+                         + feedback_block(tok))
                 .replace("__CSRF__", tok)
                 .replace("__WATCHES__", watches_html(user["id"], tok))
                 .replace("__SCHOOLS__", SCHOOLS_JS))
@@ -2266,7 +2307,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send_bytes(twiml.encode(), "text/xml; charset=utf-8",
                                     cache="no-store")
         if path not in ("/watch", "/unwatch", "/push/subscribe", "/auth/apple",
-                        "/sms/optin"):
+                        "/sms/optin", "/feedback"):
             return self._send(page("<p>Not found.</p>"), 404)
 
         # (1) rate limit FIRST — blocks form-flooding before any work is done
@@ -2301,6 +2342,41 @@ class Handler(BaseHTTPRequestHandler):
         # (2) WHO IS THIS? Signed session cookie or nothing. Entitlements are
         # per-account — an anonymous POST can no longer create watches at all.
         user = self._user()
+
+        if path == "/feedback":
+            if not user:
+                return self._redirect("/login")
+            fform = parse_qs(raw_body)
+            if not hmac.compare_digest(fform.get("csrf", [""])[0], csrf_token(user["id"])):
+                return self._notice("That form expired — please try again.", user=user)
+            msg = (fform.get("message", [""])[0] or "").strip()[:4000]
+            if not msg:
+                return self._notice("Please write a message first.", user=user)
+            # PERSIST FIRST. Email is best-effort (and off entirely until SMTP is set up),
+            # so the database is what guarantees a student's feedback is never lost.
+            with db() as c:
+                cur = c.execute("INSERT INTO feedback(user_id,email,message,created) "
+                                "VALUES(?,?,?,?)",
+                                (user["id"], user["email"], msg, time.time()))
+                fid = cur.lastrowid
+            sent = False
+            if EMAIL_ENABLED:
+                try:
+                    sent = send_email(
+                        SUPPORT_EMAIL, f"SeatWatch feedback #{fid} from {user['email']}",
+                        f"From: {user['email']} (user {user['id']})\n\n{msg}",
+                        BASE_URL or "https://seatwatchapp.com/")
+                except Exception as e:
+                    sw.log(f"  [feedback] email failed: {type(e).__name__}")
+            if sent:
+                with db() as c:
+                    c.execute("UPDATE feedback SET emailed_at=? WHERE id=?", (time.time(), fid))
+            else:
+                # Not lost — just not delivered yet. Page the operator so it's not silent.
+                sw.log(f"  [feedback] #{fid} stored but NOT emailed (EMAIL_ENABLED="
+                       f"{EMAIL_ENABLED}) — read it from the feedback table")
+            return self._notice("Thank you — that went straight to us. We read every message.",
+                                user=user)
 
         if path == "/sms/optin":            # SINGLE web opt-in — the checked box IS consent
             if not user:

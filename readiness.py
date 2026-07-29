@@ -36,6 +36,8 @@ SUITES = [
      "right course/section/seats/link; fallback chain; delivered-to-nobody pages"),
     ("Beta instrumentation (reachability/action)", "test_instrumentation",
      "silent failures COUNTED; click + time-to-action per channel; price probe dormant"),
+    ("User feedback never lost", "test_feedback",
+     "stored before emailed; survives email being off; unsent backlog queryable"),
     ("Pinned-term schools still live", "test_pinned_terms",
      "schools that can't auto-roll haven't silently gone dead (hits real hosts)"),
 ]
