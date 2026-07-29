@@ -1932,6 +1932,11 @@ class SEMO(ListcrseBanner8):
     id = "semo"; name = "Southeast Missouri State University"
     example = "EN 100"; term = "202710"; base = "https://banssb.semo.edu/prod"
 
+class Truman(ListcrseBanner8):
+    # Port :8443 + non-standard /ADMINssb base — verified reachable from the prod poller.
+    id = "truman"; name = "Truman State University"
+    example = "ENG 190"; term = "202660"; base = "https://shale1.truman.edu:8443/ADMINssb"
+
 class Cameron(ListcrseBanner8):
     # ORDS-served Banner 8 (base /ords/ssb). The GUEST-SEARCH route (plain Purdue) returns
     # "No classes found" here, so the CATALOG route (ListcrseBanner8) is required — it
@@ -3904,6 +3909,29 @@ class IdahoState(Banner):
     # Port :7781 — verified reachable from the prod poller.
     id = "isu"; name = "Idaho State University"
     example = "ACCT 2201"; host = "ban9ss1.isos.isu.edu:7781"; term = "202710"
+
+class HendersonState(Banner):
+    # Shares reg-prod.astate.elluciancloud.com with Arkansas State — the ONLY thing keeping
+    # them apart is the Multi-Entity mepCode, so that isolation is load-bearing.
+    id = "hendersonstate"; name = "Henderson State University"   # != Henderson CC (KY)
+    example = "ACCT 23003"; host = "reg-prod.astate.elluciancloud.com"
+    mep = "HENDSN"; term = "202660"
+
+class ArkansasState(Banner):
+    # Same shared host as Henderson State, different mepCode. Course numbers are
+    # ZERO-PADDED here (ENGL 01153, not 1153) — a naive un-padded code returns nothing.
+    id = "arkansasstate"; name = "Arkansas State University"     # != U of Arkansas (uark)
+    example = "ENGL 01153"; host = "reg-prod.astate.elluciancloud.com"
+    mep = "JBORO"; term = "202660"
+
+class SulRoss(Banner):
+    # Port :8103 — verified reachable from the prod poller.
+    id = "sulross"; name = "Sul Ross State University"
+    example = "ENGL 1301"; host = "reg-prod.srsu.elluciancloud.com:8103"; term = "202710"
+
+class Fredonia(Banner):
+    id = "fredonia"; name = "SUNY Fredonia"
+    example = "ACCT 201"; host = "connect.fredonia.edu"; term = "202630"
 
 class WesternWashington(Banner):
     # auto_term OFF: the picker grabs a View-Only FUTURE term (202720) here, which would
@@ -9588,6 +9616,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     ContraCostaCollege(), DiabloValley(), LosMedanos(), AngeloState(), ECU(),
     SamHoustonState(), FerrisState(), Valparaiso(), Cameron(),
     IdahoState(), WesternWashington(), UHManoa(), UHHilo(), UHWestOahu(), KeeneState(),
+    HendersonState(), ArkansasState(), SulRoss(), Fredonia(), Truman(),
     MidwesternState(), UNCPembroke(), WesternCarolina(), Lamar(), Troy(),
     SavannahState(), AlcornState(), FayettevilleState(), MSValleyState(), CNU(),
     MoreheadState(), NorfolkState(), FGCU(),
