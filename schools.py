@@ -3924,6 +3924,26 @@ class ArkansasState(Banner):
     example = "ENGL 01153"; host = "reg-prod.astate.elluciancloud.com"
     mep = "JBORO"; term = "202660"
 
+# The four ASU-system two-years on the same shared host as Arkansas State / Henderson
+# State, separated ONLY by mepCode (that guard is proven load-bearing — swapping the mep
+# alone returns a different university's catalog). Course numbers here are ZERO-PADDED.
+class ASUBeebe(Banner):
+    id = "asubeebe"; name = "Arkansas State University-Beebe"
+    example = "ENGL 10103"; host = "reg-prod.astate.elluciancloud.com"
+    mep = "BEEBE"; term = "202660"
+class ASUNewport(Banner):
+    id = "asunewport"; name = "Arkansas State University-Newport"   # != Christopher Newport
+    example = "ENGL 00191"; host = "reg-prod.astate.elluciancloud.com"
+    mep = "NEWPRT"; term = "202660"
+class ASUMidSouth(Banner):
+    id = "asumidsouth"; name = "Arkansas State University Mid-South"
+    example = "ENGL 01110"; host = "reg-prod.astate.elluciancloud.com"
+    mep = "MIDSTH"; term = "202660"
+class ASUMountainHome(Banner):
+    id = "asumountainhome"; name = "Arkansas State University-Mountain Home"
+    example = "ENGL 00191"; host = "reg-prod.astate.elluciancloud.com"
+    mep = "MTHOME"; term = "202660"
+
 class SulRoss(Banner):
     # Port :8103 — verified reachable from the prod poller.
     id = "sulross"; name = "Sul Ross State University"
@@ -3957,12 +3977,25 @@ class UHBanner(Banner):
        main-campus watcher. Terms are pinned and hand-bumped.
 
     openSection LIES on this host (True on 0-seat rows), so the base's seatsAvailable rule
-    is what keeps it honest — as everywhere."""
+    is what keeps it honest — as everywhere.
+
+    3. Sections are keyed by CRN, NOT sequenceNumber. Most UH campuses return
+       sequenceNumber='0' on every row, so the default key collapses a whole course into
+       ONE section: Leeward ENG 1007 is 49 sections that became 1, Kapiolani 40 -> 1,
+       Honolulu 28 -> 1, Maui 27 -> 1, Windward 8 -> 1. Hawaii CC is the dangerous one —
+       it collapses only PARTIALLY (25 -> 14), so it still looks plausible while silently
+       dropping 11 sections. Manoa/Hilo/West Oahu/Kauai happen to have usable sequence
+       numbers, but CRN is verified unique per term at ALL ten campuses, so the whole
+       family keys by CRN: uniform, and it removes a per-campus footgun. CRN is also what
+       UH students actually register with."""
     host = "www.sis.hawaii.edu:9234"; term = "202710"      # Fall 2026; pinned
     auto_term = False
 
     def _campus_ok(self, r):
         return (r.get("campusDescription") or "").strip() == self.campus
+
+    def _seckey(self, r):
+        return r.get("courseReferenceNumber")
 
 class UHManoa(UHBanner):
     id = "uhmanoa"; name = "University of Hawaii at Manoa"
@@ -3975,6 +4008,31 @@ class UHHilo(UHBanner):
 class UHWestOahu(UHBanner):
     id = "uhwestoahu"; name = "University of Hawaii - West Oahu"
     example = "ENG 1002"; campus = "Univ of Hawaii - West Oahu"   # host abbreviates this one
+
+# The rest of the UH system on the same pooled host. Each inherits BOTH guards from
+# UHBanner (exact campusDescription match + auto_term=False), so the only per-campus
+# facts are the host's exact campus label and a live example course.
+class UHMaui(UHBanner):
+    id = "uhmaui"; name = "University of Hawaii Maui College"
+    example = "ENG 1008"; campus = "Univ of Hawaii Maui College"
+class HawaiiCC(UHBanner):
+    id = "hawaiicc"; name = "Hawaii Community College"
+    example = "ENG 1003"; campus = "Hawaii Community College"
+class HonoluluCC(UHBanner):
+    id = "honolulucc"; name = "Honolulu Community College"   # != Chaminade Univ of Honolulu
+    example = "ENG 1004"; campus = "Honolulu Community College"
+class KapiolaniCC(UHBanner):
+    id = "kapiolanicc"; name = "Kapiolani Community College"
+    example = "ENG 1005"; campus = "Kapiolani Community College"
+class KauaiCC(UHBanner):
+    id = "kauaicc"; name = "Kauai Community College"
+    example = "ENG 1006"; campus = "Kauai Community College"
+class LeewardCC(UHBanner):
+    id = "leewardcc"; name = "Leeward Community College"
+    example = "ENG 1007"; campus = "Leeward Community College"
+class WindwardCC(UHBanner):
+    id = "windwardcc"; name = "Windward Community College"
+    example = "ENG 1009"; campus = "Windward Community College"
 
 class UNCPembroke(Banner):
     # Port :9639 + non-default base_path (uncecs.edu:9xxx family). Verified reachable from
@@ -9617,6 +9675,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     SamHoustonState(), FerrisState(), Valparaiso(), Cameron(),
     IdahoState(), WesternWashington(), UHManoa(), UHHilo(), UHWestOahu(), KeeneState(),
     HendersonState(), ArkansasState(), SulRoss(), Fredonia(), Truman(),
+    UHMaui(), HawaiiCC(), HonoluluCC(), KapiolaniCC(), KauaiCC(), LeewardCC(), WindwardCC(),
+    ASUBeebe(), ASUNewport(), ASUMidSouth(), ASUMountainHome(),
     MidwesternState(), UNCPembroke(), WesternCarolina(), Lamar(), Troy(),
     SavannahState(), AlcornState(), FayettevilleState(), MSValleyState(), CNU(),
     MoreheadState(), NorfolkState(), FGCU(),
