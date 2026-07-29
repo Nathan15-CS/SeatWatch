@@ -1484,10 +1484,10 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
           
         </div>
         <div id="sw-feed" style="display:flex;flex-direction:column;gap:12px;padding-top:16px;min-height:328px;">
-          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(23,178,106,.25);border-radius:16px;box-shadow:0 6px 18px -6px rgba(11,21,38,.1);"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(23,178,106,.12);display:flex;align-items:center;justify-content:center;font-size:17px;">🔔</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Seat open: ENG101-0101</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">2 seats just opened. · <span style="color:#17b26a;font-weight:600;">now</span></div></div></div>
-          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(37,99,235,.1);display:flex;align-items:center;justify-content:center;font-size:17px;">👀</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Watching CHEM 231 · Sec 03</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">Checked 4 seconds ago · still full</div></div></div>
-          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(37,99,235,.1);display:flex;align-items:center;justify-content:center;font-size:17px;">👀</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Watching MATH 140 · Sec 01</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">Checked 11 seconds ago · still full</div></div></div>
-          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(23,178,106,.12);display:flex;align-items:center;justify-content:center;font-size:17px;">✅</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Maya claimed her seat</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">BIO 1A · alerted → registered in 41s</div></div></div>
+          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(23,178,106,.25);border-radius:16px;box-shadow:0 6px 18px -6px rgba(11,21,38,.1);"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(23,178,106,.12);display:flex;align-items:center;justify-content:center;font-size:17px;">🔔</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Seat open: ENG101-0101</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">2 seats open</div></div></div>
+          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(37,99,235,.1);display:flex;align-items:center;justify-content:center;font-size:17px;">👀</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Watching CHEM 231 · Sec 03</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">Currently full</div></div></div>
+          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(37,99,235,.1);display:flex;align-items:center;justify-content:center;font-size:17px;">👀</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Watching MATH 140 · Sec 01</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">Currently full</div></div></div>
+          <div style="display:flex;gap:13px;padding:15px;background:#fff;border:1px solid rgba(11,21,38,.07);border-radius:16px;"><div style="flex:none;width:40px;height:40px;border-radius:12px;background:rgba(23,178,106,.12);display:flex;align-items:center;justify-content:center;font-size:17px;">👀</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">Watching BIO 1A · Sec 02</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">Currently full</div></div></div>
         </div>
       </div>
       <div style="text-align:center;margin-top:12px;font-family:'IBM Plex Mono',monospace;font-size:10.5px;letter-spacing:.06em;color:#8b98ac;">Illustration — sample activity, not live data.</div>
@@ -1622,23 +1622,6 @@ __PRICING__
  });
  var nav=document.getElementById('sw-nav');
  if(nav)window.addEventListener('scroll',function(){nav.style.boxShadow=window.scrollY>8?'0 8px 24px -12px rgba(11,21,38,.12)':'none';},{passive:true});
- var feed=document.getElementById('sw-feed');
- if(feed){
-   var courses=['BIO 205','PSYC 100','MATH 140','ECON 200','CHEM 231','ENG 101','CS 250','STAT 121','HIST 110','PHYS 212','NURS 210','ACCT 201','SPAN 103','PHIL 140','COMM 107','ANTH 220','GEOG 130','MUSC 115','SOCY 105','KINE 200'];
-   var names=['Maya','Jordan','Priya','Devin','Sam','Alex','Nia','Marcus','Elena','Tyler','Aisha','Chris','Dana','Leo','Grace','Omar'];
-   var pick=function(a){return a[(Math.random()*a.length)|0];};
-   var sec=function(){return '0'+(1+((Math.random()*4)|0))+'0'+(1+((Math.random()*9)|0));};
-   var last='';
-   function ev(){var c=pick(courses);while(c===last)c=pick(courses);last=c;var r=Math.random();
-     if(r<0.34){var s=1+((Math.random()*3)|0);return{icon:'🔔',green:true,title:'Seat open: '+c.replace(' ','')+'-'+sec(),sub:s+(s===1?' seat':' seats')+' just opened. · <span style="color:#17b26a;font-weight:600;">now</span>'};}
-     else if(r<0.72){var ss=2+((Math.random()*17)|0);return{icon:'👀',green:false,title:'Watching '+c+' · Sec 0'+(1+((Math.random()*4)|0)),sub:'Checked '+ss+' seconds ago · still full'};}
-     else{var sp=25+((Math.random()*70)|0);return{icon:'✅',green:true,title:pick(names)+' claimed a seat',sub:c+' · alerted → registered in '+sp+'s'};}}
-   setInterval(function(){var e=ev();var row=document.createElement('div');
-     row.style.cssText='display:flex;gap:13px;padding:15px;background:#fff;border:1px solid '+(e.green?'rgba(23,178,106,.25)':'rgba(11,21,38,.07)')+';border-radius:16px;box-shadow:0 6px 18px -6px rgba(11,21,38,.1);animation:swSlideIn .5s cubic-bezier(.16,1,.3,1);';
-     row.innerHTML='<div style="flex:none;width:40px;height:40px;border-radius:12px;background:'+(e.green?'rgba(23,178,106,.12)':'rgba(37,99,235,.1)')+';display:flex;align-items:center;justify-content:center;font-size:17px;">'+e.icon+'</div><div style="min-width:0;"><div style="font-size:14.5px;font-weight:700;">'+e.title+'</div><div style="font-size:13px;color:#6b7a92;margin-top:2px;">'+e.sub+'</div></div>';
-     feed.prepend(row);while(feed.children.length>4)feed.removeChild(feed.lastChild);
-   },3400);
- }
 })();
 </script>
 </body></html>
@@ -1741,7 +1724,7 @@ def pricing_section():
    {cta(3, "Cover my whole schedule", True)}
   </div>
  </div>
- <div class="pw-trust"><span class="pw-stars">★★★★★</span> &nbsp;"Saved my semester." — real students. You only pay if your free class isn't enough.</div>
+ <div class="pw-trust">You only pay if your free class isn't enough.</div>
 </div>
 </section>"""
 
