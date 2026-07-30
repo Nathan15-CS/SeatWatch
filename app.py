@@ -1970,6 +1970,15 @@ class Handler(BaseHTTPRequestHandler):
         self.send_response(code)
         self.send_header("Content-Type", "text/html; charset=utf-8")
         self.send_header("Content-Length", str(len(data)))
+        # Signed-in HTML must never rest in a shared or browser cache: on a shared campus
+        # machine the next person can press Back and read the previous student's watches.
+        # Keyed on cookie PRESENCE (no DB hit, no session lookup) rather than blanket, so
+        # the anonymous landing page stays edge-cacheable — if a post drives a spike we do
+        # not want every hit landing on the one origin box that also runs the poller.
+        # Errs toward no-store (a stale/expired cookie still suppresses caching), never
+        # toward caching private content.
+        if self._cookie("sw_session"):
+            self.send_header("Cache-Control", "private, no-store, max-age=0")
         self.send_header("X-Content-Type-Options", "nosniff")
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "no-referrer")
@@ -2287,8 +2296,19 @@ class Handler(BaseHTTPRequestHandler):
             if not TWILIO_TOKEN:
                 return self._send(page("<p>Not found.</p>"), 404)
             length = max(0, min(int(self.headers.get("Content-Length", 0) or 0), 8192))
+            # keep_blank_values=True is REQUIRED here and is not a style choice. Twilio
+            # signs over every parameter it sends, and for toll-free numbers it routinely
+            # sends the geo fields (FromCity/FromState/FromZip/ToCity/ToState/ToZip) as
+            # empty strings. parse_qs drops blanks by default, so our signed string omitted
+            # those keys entirely while Twilio's included them -> different HMAC -> every
+            # genuine inbound text failed with 403. That silently breaks STOP, which is how
+            # a student revokes consent, so the opt-out would never be recorded and texts
+            # would keep going. Do NOT copy this flag to the other parse_qs call sites:
+            # /sms/optin checks `not oform.get("sms_consent")`, and keeping blanks there
+            # would turn an empty sms_consent= into accepted consent.
             form = {k: v[0] for k, v in parse_qs(
-                self.rfile.read(length).decode("utf-8", "replace")).items()}
+                self.rfile.read(length).decode("utf-8", "replace"),
+                keep_blank_values=True).items()}
             valid = _twilio_verify(BASE_URL + "/sms/inbound", form,
                                    self.headers.get("X-Twilio-Signature", ""))
             frm = form.get("From", "")
@@ -2928,9 +2948,17 @@ def send_email(to, subject, body_text, url):
         msg["Subject"] = subject
         msg["From"] = formataddr(("SeatWatch", SMTP_FROM))
         msg["To"] = to
+        # One-click unsubscribe. Since Gmail's 2024 sender rules this is the single
+        # highest-weighted signal separating wanted mail from bulk, and its absence is one
+        # of the few content signals a correctly-authenticated transactional alert can
+        # still trip. Routed to support@, which is monitored.
+        msg["List-Unsubscribe"] = f"<mailto:{SUPPORT_EMAIL}?subject=unsubscribe>"
+        msg["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click"
+        # No "STOP" wording here: that is bulk-SMS marketing boilerplate, it was going out
+        # on every alert, and it reads to a filter exactly like the mail we are not.
         msg.set_content(f"{body_text}\n\nRegister now: {url}\n\n"
                         f"— SeatWatch\nYou're getting this because you asked us to watch this class. "
-                        f"Reply STOP-style requests to support@seatwatchapp.com.")
+                        f"You can turn off alerts for this class any time at seatwatchapp.com.")
         with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as s:
             s.starttls(context=ssl.create_default_context())
             s.login(SMTP_USER, SMTP_PASS)

@@ -38,6 +38,8 @@ SUITES = [
      "silent failures COUNTED; click + time-to-action per channel; price probe dormant"),
     ("User feedback never lost", "test_feedback",
      "stored before emailed; survives email being off; unsent backlog queryable"),
+    ("Twilio inbound signature (STOP path)", "test_sms_signature",
+     "genuine signed request with BLANK params validates; STOP really revokes consent"),
     ("Section-collapse detector", "test_section_collapse",
      "distinct section keys == real rows; catches PARTIAL collapse that looks plausible"),
     ("Pinned-term schools still live", "test_pinned_terms",
