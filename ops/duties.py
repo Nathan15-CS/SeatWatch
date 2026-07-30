@@ -17,6 +17,7 @@ Every duty is R0 (internal, reversible, read-only). Nothing here changes anythin
 import os
 import re
 import sqlite3
+import sys
 import time
 
 from operator_engine import duty
@@ -265,8 +266,11 @@ def _local_school_count(ctx):
     """Import the registry in a SUBPROCESS. schools.py's import-time guard raises on a
     duplicate id or name, and that failure must be reported as a finding — not crash
     the Operator that is supposed to be reporting it."""
+    # sys.executable, not "python3": under launchd the PATH is minimal and may not be
+    # the interpreter this process is running under. A scheduled run must not silently
+    # import a different Python's schools.py than an interactive run does.
     rc, out, err = ctx.run(
-        ["python3", "-c", "import schools; print(len(schools.SCHOOLS))"], timeout=90)
+        [sys.executable, "-c", "import schools; print(len(schools.SCHOOLS))"], timeout=90)
     if rc != 0:
         ctx.finding("registry_import", "red",
                     "schools.py fails to import — the duplicate-registry guard is "

@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  SeatWatch Operator — scheduled off-server duty runner.
+
+  Canonical copy lives HERE, in the repo, and ~/Library/LaunchAgents/ holds a symlink
+  to it. The existing com.seatwatch.backup.plist exists only on one laptop with no
+  committed copy, which is the "single laptop holds parts of the lineage" risk in
+  DECISIONS-AND-RISKS.md. A symlink (not a copy) means the installed job and the
+  reviewed job cannot drift apart.
+
+  Install / status / logs / disable: see ops/OPERATOR.md.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.seatwatch.operator</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/bin/python3</string>
+        <string>/Users/nathananapolsky/seatwatch/ops/operator_engine.py</string>
+        <string>once</string>
+    </array>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/nathananapolsky/seatwatch</string>
+
+    <!-- 900s = the shortest duty cadence (site_health). Chosen from the duties, not
+         by taste: waking more often than the tightest interval only produces no-ops,
+         and waking less often would let the scheduler, rather than the duty, decide
+         how fresh a check is. Every wake re-reads next_due and runs ONLY what is
+         actually due — measured cost is 0.07s idle, 1.1s when all six run. -->
+    <key>StartInterval</key>
+    <integer>900</integer>
+
+    <!-- Starts at login (LaunchAgents are per-user). Deliberately NOT a LaunchDaemon:
+         a root job is a bigger blast radius than a read-only checker warrants. -->
+    <key>RunAtLoad</key>
+    <true/>
+
+    <!-- Single instance, belt and braces: launchd will not start a second copy of a
+         label while one is running, and the engine's DB lease refuses a concurrent
+         run even if it were started by hand. -->
+    <key>ThrottleInterval</key>
+    <integer>60</integer>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <!-- launchd hands a job a minimal PATH; git must still be findable. -->
+        <key>PATH</key>
+        <string>/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    </dict>
+
+    <!-- Logs live with the state, outside the git tree. -->
+    <key>StandardOutPath</key>
+    <string>/Users/nathananapolsky/.seatwatch-operator/operator.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/nathananapolsky/.seatwatch-operator/operator.log</string>
+
+    <key>LowPriorityIO</key>
+    <true/>
+    <key>Nice</key>
+    <integer>5</integer>
+</dict>
+</plist>
