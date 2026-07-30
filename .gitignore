@@ -46,3 +46,6 @@ research/colleague_leads_for_codex.json
 backups/
 *.db
 *.db.part
+
+# Ad/media build artifacts — large binaries, not application code (Build lane, 2026-07-30)
+marketing/

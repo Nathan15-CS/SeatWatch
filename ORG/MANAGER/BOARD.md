@@ -58,6 +58,49 @@ registered to the LLC or to the CEO personally (feeds M-23; must be settled befo
 Also noted: Cloudflare and GPTZero charges are business expenses on a personal wallet — commingling,
 feeds M-23.
 
+## ✅ CREDENTIAL ROTATION 2026-07-30 — COMPLETE, ALL 6 ROTATED AND VERIFIED
+`GOOGLE_CLIENT_SECRET` rotated (new secret added alongside old, then installed) — **verified by a
+real sign-out/sign-in cycle**. `SMTP_PASS` rotated — **verified by `EMAIL_ENABLED: True`,
+`send -> True`, and the message arriving**. Final backup `/root/seatwatch.env.bak.20260730T154112Z`.
+Remaining cleanup: delete the old Google client secret (created Jul 1) and the old app password;
+Stripe's old key + webhook secret auto-expire on their 24h timers.
+(historical detail below)
+### CREDENTIAL ROTATION — first 4 of 6
+Cause: `/etc/seatwatch.env` screenshotted into chat twice (all secrets, then the first replacement
+Stripe key). Remediation = rotation; the leaked values become meaningless once replaced.
+| Credential | Status | Evidence |
+|---|---|---|
+| `STRIPE_SECRET_KEY` | ✅ rotated | new key installed (107 chars); old set to expire 24h |
+| `STRIPE_WEBHOOK_SECRET` | ✅ rotated | new signing secret (38 chars); old expires 24h |
+| `SEATWATCH_SECRET` | ✅ rotated | generated server-side (64) — never touched clipboard or screen |
+| `SEATWATCH_STATS_KEY` | ✅ rotated | generated server-side (64); Mac monitor file synced over SSH (64 bytes). **Old key verified DEAD: `/admin/stats` returns 404; site 200; www 200** |
+| `GOOGLE_CLIENT_SECRET` | ⏳ **OUTSTANDING** | still the leaked value |
+| `SMTP_PASS` | ⏳ **OUTSTANDING** | still the leaked value |
+Backups: `/root/seatwatch.env.bak.20260730T151417Z`, `…T152809Z`.
+**Lesson recorded:** any secret the *server alone* needs should be generated ON the server
+(`openssl rand -hex 32` piped straight into the env file). Only secrets a second machine needs —
+like the stats key the Mac monitor reads — should ever travel, and then via `ssh … > file`, never
+via clipboard or screen. Every error in this rotation came from a value being visible.
+
+## 🔴 M-31 (P1, OPEN) — `/sms/inbound` REJECTS GENUINE TWILIO REQUESTS
+Found 2026-07-30 by the pre-approval signature test. Real text from the CEO's phone to the
+toll-free number logged `signature=INVALID`; endpoint returns 403.
+**Ruled out with evidence:** auth token (authenticated directly against Twilio's API — 200,
+`friendly_name: SeatWatch LLC`, active, Full); URL (`BASE_URL + "/sms/inbound"` = the configured
+webhook exactly; `SEATWATCH_BASE_URL` not set in prod); algorithm (`_twilio_verify` app.py:3192 is
+correct).
+**Root cause (high confidence, unproven until retested):** `app.py:2299` uses `parse_qs` **without
+`keep_blank_values=True`**. Twilio signs over every POST param including empty ones and routinely
+sends `FromCity`/`FromState`/`FromZip`/`ToCity`/`ToState`/`ToZip` blank on toll-free numbers, so the
+rebuilt param set omits keys the signature includes → deterministic mismatch.
+**Why P1, not cosmetic:** inbound is how **STOP** arrives. With this bug a student's opt-out returns
+403, `sms_apply_inbound` never runs, the revocation is never recorded, and texts keep coming — a
+TCPA exposure with per-message statutory damages. It would have shipped silently at `SMS_ENABLED=1`.
+**Assigned to Build** with the email-content fixes as ONE release; regression test must fail on old
+code and pass on new; `parse_qs` sweep required for the same bug class elsewhere.
+**Definition of done: a real text from the CEO's phone logs `signature=VALID`.** Not before.
+**SMS go-live (runbook step D) is BLOCKED on this.**
+
 ## PROJECT 9 — RISK TRANSFER & LEGAL (opened 2026-07-29, from Grab's handoff)
 **All CEO-owned and non-delegable. No agent may be author of record for legal text.**
 | ID | Item | Owner | Priority |
@@ -71,12 +114,31 @@ M-25 routing note: Grab offered to own these. **Declined — outside Grab's char
 `REGISTRY.md` §3) and the CEO has just refocused Grab on colleges. Manager drafts; attorney approves.
 Timing: none of these blocks the demand sprint at ~10 students; all of them precede *broad* launch.
 
+**M-20 NARROWED 2026-07-30:** the untracked `marketing/` directory is **Build's**, created at the
+CEO's direct request (ad video for YouTube/Reddit — two cuts, original synthesised score, thumbnail,
+build sources). Touches no application code, imported by nothing, cannot affect a deploy. Not a third
+writer. What remains genuinely unattributed is only commits `594c88c` and `4f2f7f1` (em-dash work),
+which shared git identity still makes unprovable — the argument for per-lane identities stands.
+**Landing-page baseline, corrected and now agreed by both lanes:** `landing_page()` =
+**42,587 chars / 42,665 bytes**, sha256 `27cb522a305bb01f694ac332`. The 78-byte delta is 45 multibyte
+UTF-8 characters, verified. Discard the earlier 59,708 figure — it came from `page(LANDING)`, which
+wraps the signed-in shell around an already-complete document and is never served.
+**Narrow M-1 data point:** local HEAD's `landing_page()` is byte-identical to what prod serves now.
+
 ## ⚠️ M-20 LEAD (2026-07-29): Grab names the likely third writer as the **"Agent Research"** lane
 and its "parallel-chip template". Two sessions match the window: `Agent Research` (local_3ad9fc5d)
 and `Internet Problem Discovery Agent` (local_f1169c34). **Unconfirmed** — shared git identity still
 prevents attribution. Fixing identity (Manager's recommendation 1) would have made this a lookup.
 
-## ⚠️ M-26 (P1) — LANE CONFLICT, CEO MUST RESOLVE
+## ✅ M-26 CLOSED 2026-07-29 — sprint pause holds
+CEO delegated the call to Grab's judgment ("use your critical thinking"). Grab chose **not** to
+resume broad discovery — 0 external users means coverage isn't the constraint — matching D-5 and the
+board independently. Build has agreed to route net-new batches past Manager during the sprint; seven
+batches are held (Western Colorado, Central Michigan, TAMU-Commerce, TWU, Marshall, Fitchburg,
+Broward). Grab stays sprint-aligned on reactive work: accuracy-gating any school a real student
+requests, plus a late-August wedge re-scan. Original conflict, for the record:
+
+## ~~M-26 (P1) — LANE CONFLICT, CEO MUST RESOLVE~~
 CEO told Grab to **resume college hunting**; D-5 (CEO-approved 2026-07-29) **pauses broad discovery**
 for the 14-day demand sprint, permitting targeted work only for a real student request, a clear
 high-value opportunity, or production maintenance. Grab surfaced the conflict rather than picking a
@@ -101,7 +163,7 @@ maintenance. Grab's research and state preserved, nothing dismantled.
 |---|---|---|---|---|
 | S-1 | Pick 3–5 genuinely impacted UMD Fall courses (CMSC216-class demand) as the wedge | CEO | P1 | Named list, each verified full or near-full in the live registry |
 | S-2 | One channel, done well: post where those students already are (course GroupMe/Discord, r/UMD) — competitive-FOMO framing, not feature copy | CEO | P1 | Posted; link is instrumented so signups are attributable |
-| S-3 | Watch the first real alert end-to-end and confirm the human received it | Guardian | P1 | Human-confirmed receipt logged in the journal (also closes Guardian SC3) |
+| S-3 | ✅ **DONE 2026-07-29.** Real alert delivered end-to-end and **landed in the INBOX**: "Seat open: ASTR100 — go register / 32 seat(s) open in ASTR100-0103" from support@seatwatchapp.com, human-confirmed by CEO. Full path exercised: `run_cycle` → `queue_alert` → `flush_alerts` → `send_email`, including the tracked redirect (`/r/QFyu-8xVu1ox`), so beta click instrumentation is live too. **Key finding: the generic test message went to spam; the real transactional alert did not.** The spam risk was the test copy, not the product. Closes Guardian SC3's email leg (push leg still unproven). | Guardian | P1 | done |
 | S-4 | Log every request for an unsupported school, verbatim, with the requester | CEO | P2 | A simple running list — this is the metric that decides D-5's successor |
 
 **Restart-expansion decision rule (evaluated 2026-08-12, minimum metric set)**
@@ -168,7 +230,7 @@ Priority: **P1** · Status: blocked on CEO fact.
 | ID | Task | Owner | Status | Output | Definition of done |
 |---|---|---|---|---|---|
 | M-1 | **ROOT CAUSE CONFIRMED 2026-07-29 (no CEO input needed):** `ops/deploy.sh:43-44` writes `DEPLOYED.log` **locally**, commits it, and moves the `deployed` tag. Exactly one such commit exists (`29da856`) and the `deployed` tag still points at it. Therefore **every deploy since 2026-07-26 bypassed `ops/deploy.sh`.** Remaining work: reconstruct the record. | Build | ready | Reconstructed `DEPLOYED.log` | Each post-07-26 deploy has a line with its sha + date, marked `reconstructed`; `deployed` tag moved to the true live sha |
-| M-2 | Mandate `ops/deploy.sh` for ALL lanes (schools lane included) and record it in `CONTRIBUTING_AGENT.md` | Build | ready | Enforced discipline | Rule committed; next schools deploy produces a DEPLOYED.log line |
+| M-2 | ✅ **MET 2026-07-29 21:51 UTC — acceptance criterion satisfied with evidence.** The 11-school batch shipped via `ops/deploy.sh schools`; `DEPLOYED.log` gained `sha=dddc161 mode=schools files=[schools.py]`; `deployed` tag moved `91f32b2 → d4e3474`. Manager verified independently: prod `schools.py` = `0d30b35b…` = `bbfd45f`, live site serves **815**. First tool-produced deploy record since 07-26. ~~Mandate `ops/deploy.sh` for ALL lanes~~ (schools lane included) and record it in `CONTRIBUTING_AGENT.md` | Build | ready | Enforced discipline | Rule committed; next schools deploy produces a DEPLOYED.log line |
 
 **Why this is P1:** the Guardian's confidence model applies a structural **P0 deployed-code-identity cap** — if we can't prove what's live, system confidence is capped regardless of everything else. This gap silently invalidates shadow-window evidence.
 
