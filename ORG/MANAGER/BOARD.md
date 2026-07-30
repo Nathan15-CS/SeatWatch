@@ -82,7 +82,81 @@ Backups: `/root/seatwatch.env.bak.20260730T151417Z`, `…T152809Z`.
 like the stats key the Mac monitor reads — should ever travel, and then via `ssh … > file`, never
 via clipboard or screen. Every error in this rotation came from a value being visible.
 
-## 🔴 M-31 (P1, OPEN) — `/sms/inbound` REJECTS GENUINE TWILIO REQUESTS
+## ✅ M-31 CLOSED 2026-07-30 19:07 — PROVEN AGAINST REAL TWILIO TRAFFIC
+`[sms] inbound from ******9791 body='TEST' signature=VALID`. Deployed as `d8191b9` (all four VM
+hashes verified against the commit; `app.py` = `f2a39b7b…`). Diagnosis confirmed end to end:
+`parse_qs` was dropping the blank geo params Twilio signs over.
+
+## ✅ M-32 RESOLVED 2026-07-30 — option C, and it was already built
+The self-heal already existed and shipped dormant: `_TWILIO_STOP_CODES = {21610}` (app.py:3038) and
+the revocation write at app.py:3181-3188 — Manager verified both directly. **The real gap was that it
+had zero test coverage and had never executed**, since SMS is dormant; untested code that only runs
+during a compliance event is exactly the code that turns out broken. Build added 5 checks to
+readiness suite #11 (13 total). Manager re-ran the gates independently: `test_guardian` 36/36,
+`readiness.py` **149 passed / 0 failed**. Diff is test-only; app.py untouched.
+**The check that matters most is the negative one:** Twilio error 30034 must NOT revoke, 21610 must.
+A blunt implementation revokes on any send failure and would silently destroy valid consent records
+every time Twilio had a bad minute. Now pinned by test.
+**Option A rejected on a better argument than mine:** `SMS_CONSENT_WORDING` is byte-locked and
+registered with the carrier, promising *"Reply STOP to opt out or HELP for help."* Twilio's
+interception is what currently keeps that promise. Taking it in-house means any bug in our handler
+makes a carrier-registered disclosure false — and we just found a signature bug in that exact path.
+Highest risk, smallest benefit. **Option B rejected:** Twilio's opt-out management hangs off
+Messaging Services; we send from a bare number (`_twilio_post:3047`), so B needs config we don't have
+to solve what C already solves.
+**Residual gap, documented not engineered away:** between a student texting STOP and our next
+attempted send, the `sms_consent` row is stale. The student is fully protected throughout — Twilio
+refuses delivery — we simply haven't written it down yet. For an alerting product that window closes
+on the first seat opening. Reconciliation lag, not compliance failure. Belongs in the runbook.
+
+## ✅ SMS RUNBOOK STEP C — COMPLETE 2026-07-30, with zero production risk
+Step C as written is **impossible** while `PAID_ENABLED=0`: `effective_tier` (app.py:472) returns 0
+for everyone, and `send_sms` refuses at `effective_tier < 1` (app.py:3101), so no account can reach
+the opt-in form. Ran it instead against an **isolated copy** of the production DB
+(`SEATWATCH_DB=/tmp/dryrun.db`, `PAID_ENABLED=1`, `SMS_DRYRUN=1` in one process; copy deleted after).
+Production DB, config and service untouched.
+Result — full chain proven on real code:
+```
+[sms DRY-RUN] would text ••••9791  segs=1 cost=1¢
+body='SeatWatch: 2 seats open in ASTR100-0103! Register now: https://…/r/QFyu-8xVu1ox (Reply STOP to opt out)'
+returned: False        sms_dryrun ledger rows written: 1
+```
+Proven: gate chain passes with tier+consent · body formed with the required STOP disclosure · phone
+masked in logs · ledger/cost accounting writes · returns False so free channels still fire.
+Call site confirmed at app.py:3279 (`texted = send_sms(uid, r, message, url)`).
+
+### 💰 COST FINDING — 17% of schools cost double
+SMS deliberately sends the **direct registrar link**, not the `/r/` redirect (app.py:3277 — a student
+must reach the registrar even if our box is down). Registrar URLs are long, and the median message
+lands at **153 chars against a 160-char segment limit** — right on the boundary.
+Across all 823 schools: **682 (83%) = 1 segment / 1¢ · 141 (17%) = 2 segments / 2¢** (worst: coppin
+195, towson 193, bu 193, illinoiscentral 191).
+**Trimming ~14 characters from the message template would cut the 2-segment schools from 141 to ~44** —
+a 69% reduction in double-cost alerts for one line of copy. Queue with the other small app.py items.
+**Set `SMS_COST_CENTS` to the real Twilio per-segment rate before go-live** so the daily cap is accurate.
+
+## ⚠️ M-33 (P2, NEW) — uncommitted net-new schools in `schools.py` during the sprint pause
+~34 added lines: Morgan State, Elizabeth City State, UNF, Shepherd, West Liberty (+ possibly more).
+Well-annotated and consistent with the accuracy discipline (openSection-unreliable notes present), so
+this is competent work — but net-new batches were to route past Manager during the demand sprint, and
+this did not. Uncommitted, so the next `deploy.sh app` would carry it silently. Owner: identify the
+lane, then either commit deliberately or hold to 08-12.
+
+## ~~M-32 (P1) — TWILIO INTERCEPTS `STOP`/`HELP`/`START`~~
+Discovered while closing M-31. Evidence: `HELP\nSTOP\nSTART` (not an exact keyword match) WAS
+forwarded → our 403 → Twilio alert 11200. A later message of exactly `HELP` produced **no webhook
+call, no alert, no log line** — Twilio answered it itself. Confirmed by contrast when `TEST` (not a
+keyword) forwarded normally.
+**Consequence:** a student texting STOP is protected — Twilio enforces the opt-out at their end and
+will refuse to deliver — but **our `sms_consent` table never records the revocation**, so our own
+records would show consent that no longer exists. Severity is record-keeping and reconciliation, not
+"we text people who opted out"; Twilio blocks that regardless.
+**Must be resolved before go-live (runbook step D).** Options: disable Twilio's default keyword
+handling so STOP reaches our handler, or reconcile against Twilio's opt-out list before/at send.
+Owner: Build, spec from Manager. **Do NOT test by texting STOP** — it opts the tester out of the
+toll-free number until they text START.
+
+## ~~M-31 (P1) — `/sms/inbound` REJECTS GENUINE TWILIO REQUESTS~~
 Found 2026-07-30 by the pre-approval signature test. Real text from the CEO's phone to the
 toll-free number logged `signature=INVALID`; endpoint returns 403.
 **Ruled out with evidence:** auth token (authenticated directly against Twilio's API — 200,

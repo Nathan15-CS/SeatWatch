@@ -2408,7 +2408,13 @@ class Handler(BaseHTTPRequestHandler):
             if not phone:
                 return self._notice("That phone number doesn't look right, use a US "
                                     "10-digit mobile number.", user=user)
-            if not oform.get("sms_consent"):
+            # Test the VALUE, not the key. `oform.get("sms_consent")` returns a list, so a
+            # crafted `sms_consent=` would be ['']  -- truthy -- and read as consent the
+            # moment anyone adds keep_blank_values here (as the Twilio parse now needs).
+            # Today the blank is dropped so this is safe; this makes it safe by construction
+            # rather than by a side effect of parsing. A consent record with no consent
+            # behind it is the one TCPA record we can never defend.
+            if not oform.get("sms_consent", [""])[0].strip():
                 return self._notice("Please check the consent box to turn on text alerts.",
                                     user=user)
             # Single web opt-in: checking the (unchecked-by-default) box and submitting IS
@@ -3358,6 +3364,47 @@ def acquire_poll_lease():
         return got == _LEASE_ID         # False => another LIVE process holds it; stand down
 
 
+FEEDBACK_RETRY_SECS = 600          # sweep the unsent-feedback backlog at most every 10 min
+_feedback_retry_at = [0.0]
+
+
+def retry_unsent_feedback():
+    """Deliver feedback that was stored but never emailed.
+
+    Feedback is PERSISTED before it is emailed, so a student's message is never lost — but
+    nothing retried a failed send, so a message could sit unread indefinitely. That is not
+    hypothetical: feedback #1-#3 sat in the table for a day because SMTP had not been
+    configured yet, and only a manual sweep surfaced them. Two of the three were people
+    asking how to pay. This drains the backlog on its own the moment mail starts working.
+
+    Throttled, capped, and it stops at the first failure rather than hammering a mail
+    server that is still down. Never raises: a mail problem must not slow or stop polling.
+    """
+    if not EMAIL_ENABLED:
+        return
+    now = time.time()
+    if now < _feedback_retry_at[0]:
+        return
+    _feedback_retry_at[0] = now + FEEDBACK_RETRY_SECS
+    try:
+        with db() as c:
+            rows = c.execute("SELECT id, user_id, email, message FROM feedback "
+                             "WHERE emailed_at IS NULL ORDER BY id LIMIT 20").fetchall()
+        for r in rows:
+            ok = send_email(SUPPORT_EMAIL,
+                            f"SeatWatch feedback #{r['id']} from {r['email']}",
+                            f"From: {r['email']} (user {r['user_id']})\n\n{r['message']}",
+                            BASE_URL or "https://seatwatchapp.com/")
+            if not ok:
+                break              # still down: leave the rest queued for the next sweep
+            with db() as c:
+                c.execute("UPDATE feedback SET emailed_at=? WHERE id=?",
+                          (time.time(), r["id"]))
+            sw.log(f"  [feedback] #{r['id']} delivered on retry")
+    except Exception as e:
+        sw.log(f"  [feedback] retry sweep failed: {type(e).__name__}")
+
+
 def poller():
     sw.log("Poller started (with health guard).")
     if os.environ.get("AUTO_ROLL_TERMS") != "1":
@@ -3386,11 +3433,16 @@ def poller():
                            "duplicate alerts (will take over if it stops)")
                 time.sleep(POLL_SECONDS)
                 continue
+            if _stood_down[0]:
+                # Taking over was silent, so a stood-down log line with nothing after it
+                # read as "the poller is dead" during an incident. Say when we take over.
+                sw.log("[lease] took over the lease — this process is now polling")
             _stood_down[0] = False
             cyc = run_cycle()
             if guardian.ping_ok(cyc):   # enforce: only a reconciled, non-RED cycle may
                 ping_healthcheck()      # claim success; off/shadow: semantics unchanged
             maybe_daily_summary()
+            retry_unsent_feedback()     # drain any feedback that failed to email
             run_fire_drill()
         except Exception as e:
             sw.log(f"[poller error, recovering] {e}")

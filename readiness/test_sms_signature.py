@@ -119,6 +119,105 @@ def run():
     code, _ = post(pu, sign(pu))
     check("unknown number STOP handled without error", code == 200, f"got HTTP {code}")
 
+    # ---- 4. CARRIER-LEVEL STOP self-heal (the path Twilio never forwards) -------------
+    # Twilio intercepts the reserved keywords on toll-free: an exact "STOP" is answered by
+    # Twilio itself and NEVER reaches our webhook, so section 3 above can't fire for it.
+    # The student is genuinely protected (Twilio refuses delivery), but our sms_consent
+    # row would still claim active consent. The send path is the only place reality gets
+    # back to us: Twilio returns 21610 "attempt to send to unsubscribed recipient", and
+    # send_sms writes the revocation at that moment. That code exists but had never been
+    # executed — SMS is dormant — so this proves it actually works rather than merely
+    # being present.
+    app.PAID_ENABLED = True                       # effective_tier gates on this
+    app.SMS_LIVE = True                           # exercise the real send path
+    with app.db() as c:
+        c.execute("INSERT INTO users(google_sub,email,topic,created,plan_tier,"
+                  "plan_purchased_at) VALUES('g_stop','stop@umd.edu','t_stop',0,1,?)",
+                  (time.time(),))
+        u2 = c.execute("SELECT id FROM users WHERE google_sub='g_stop'").fetchone()["id"]
+        c.execute("INSERT INTO sms_consent(user_id,phone,wording,ip,requested_at,"
+                  "confirmed_at,revoked_at) VALUES(?,?,?,?,?,?,NULL)",
+                  (u2, "+15557654321", "w", "127.0.0.1", time.time(), time.time()))
+        c.execute("INSERT INTO watches(school,topic,course,section,term,alerted,created) "
+                  "VALUES('umd','t_stop','CHEM231','0101','202608',0,?)", (time.time(),))
+        w = c.execute("SELECT * FROM watches WHERE topic='t_stop'").fetchone()
+
+    row = dict(w); row["user_id"] = u2
+    class R(dict):                                 # sqlite3.Row-alike for send_sms
+        def keys(self): return list(super().keys())
+    r = R(row)
+
+    check("consent active before any send", app._sms_phone(u2) == "+15557654321")
+
+    sent_box = []
+    app._twilio_post = lambda to, body: (sent_box.append(to), (False, 21610))[1]
+    accepted = app.send_sms(u2, r, "CHEM231-0101 has 2 seats open.", "https://x.test/reg")
+
+    with app.db() as c:
+        rev = c.execute("SELECT revoked_at FROM sms_consent WHERE user_id=?",
+                        (u2,)).fetchone()["revoked_at"]
+    check("21610 send is reported as NOT delivered", accepted is False)
+    check("carrier-level STOP revokes consent in our DB", rev is not None,
+          "our records would keep claiming consent the student already withdrew")
+    check("revoked number no longer resolves for sending", app._sms_phone(u2) is None,
+          "we would keep attempting a number Twilio refuses")
+
+    # a normal failure must NOT be mistaken for an opt-out
+    with app.db() as c:
+        c.execute("UPDATE sms_consent SET revoked_at=NULL WHERE user_id=?", (u2,))
+        c.execute("DELETE FROM alert_log WHERE user_id=?", (u2,))
+    app._twilio_post = lambda to, body: (False, 30034)      # unregistered sender
+    app.send_sms(u2, r, "CHEM231-0101 has 2 seats open.", "https://x.test/reg")
+    with app.db() as c:
+        rev2 = c.execute("SELECT revoked_at FROM sms_consent WHERE user_id=?",
+                         (u2,)).fetchone()["revoked_at"]
+    check("a non-optout Twilio error does NOT revoke consent", rev2 is None,
+          "an unrelated send failure would silently destroy a valid consent record")
+
+    # ---- 5. CONSENT must come from a real ticked box, not a present-but-empty field ----
+    # /sms/optin used to test `not oform.get("sms_consent")`, which inspects the LIST that
+    # parse_qs returns. An empty `sms_consent=` is dropped today, so it was safe by side
+    # effect of parsing -- but the Twilio fix above needs keep_blank_values, and the moment
+    # anyone applies that flag here `['']` becomes truthy and an empty field reads as
+    # consent. These assert the OUTCOME, so they keep holding either way. A consent record
+    # with no consent behind it is the one TCPA record we could never defend.
+    # paid tier: /sms/optin gates on effective_tier >= 1 BEFORE it reaches the consent check
+    with app.db() as c:
+        c.execute("INSERT INTO users(google_sub,email,topic,created,plan_tier,"
+                  "plan_purchased_at) VALUES('g_opt','opt@umd.edu','t_opt',0,1,?)",
+                  (time.time(),))
+        uid3 = c.execute("SELECT id FROM users WHERE google_sub='g_opt'").fetchone()["id"]
+    cookie = app.session_cookie(uid3).split(";")[0]
+    csrf = app.csrf_token(uid3)
+
+    def optin(consent_field):
+        body = urlencode([("csrf", csrf), ("phone", "+15551112222")] + consent_field)
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/sms/optin", data=body.encode(),
+            headers={"Content-Type": "application/x-www-form-urlencoded", "Cookie": cookie})
+        try:
+            with urllib.request.urlopen(req, timeout=10) as r:
+                return r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            return e.read().decode("utf-8", "replace")
+
+    def consented():
+        with app.db() as c:
+            return c.execute("SELECT COUNT(*) FROM sms_consent WHERE user_id=?",
+                             (uid3,)).fetchone()[0]
+
+    html_ = optin([("sms_consent", "")])
+    check("empty sms_consent= is refused", "consent box" in html_ and consented() == 0,
+          "an empty field was accepted as consent")
+    html_ = optin([("sms_consent", "   ")])
+    check("whitespace-only consent is refused", "consent box" in html_ and consented() == 0,
+          "whitespace was accepted as consent")
+    html_ = optin([])
+    check("missing consent field is refused", "consent box" in html_ and consented() == 0)
+    html_ = optin([("sms_consent", "on")])
+    check("a genuinely ticked box IS accepted", consented() == 1,
+          "the real opt-in path broke")
+
     srv.shutdown()
     p_ = sum(ok for _, ok, _ in results)
     f_ = sum(not ok for _, ok, _ in results)

@@ -79,6 +79,70 @@ def run():
     check("html.escape neutralises script tags for display",
           "<script>" not in _h.escape(evil))
 
+    # --- the backlog DRAINS BY ITSELF once mail works (retry_unsent_feedback) ----------
+    # Storing a message nobody ever reads is only half a guarantee. Feedback #1-#3 on prod
+    # sat unread for a day because SMTP wasn't configured at the time they arrived, and
+    # nothing retried them. These pin the retry sweep that closes that.
+    with app.db() as c:
+        backlog = [r["id"] for r in c.execute(
+            "SELECT id FROM feedback WHERE emailed_at IS NULL ORDER BY id")]
+    check("backlog exists to drain", len(backlog) >= 1, f"got {len(backlog)}")
+
+    # mail still down: nothing may be marked delivered, and it must not raise
+    app.EMAIL_ENABLED = True
+    app.send_email = lambda to, s, b, u: False
+    app._feedback_retry_at[0] = 0
+    app.retry_unsent_feedback()
+    with app.db() as c:
+        still = c.execute("SELECT COUNT(*) FROM feedback WHERE emailed_at IS NULL").fetchone()[0]
+    check("failed retry leaves the backlog intact (never marks a lie)",
+          still == len(backlog), f"{still} vs {len(backlog)}")
+
+    # mail comes back: the whole backlog is delivered and stamped
+    sent = []
+    app.send_email = lambda to, s, b, u: (sent.append((to, s, b)), True)[1]
+    app._feedback_retry_at[0] = 0
+    app.retry_unsent_feedback()
+    with app.db() as c:
+        left = c.execute("SELECT COUNT(*) FROM feedback WHERE emailed_at IS NULL").fetchone()[0]
+    check("backlog delivered once email works", left == 0, f"{left} still unsent")
+    check("every backlogged message was actually sent", len(sent) == len(backlog),
+          f"sent {len(sent)} of {len(backlog)}")
+    check("retry mail goes to support@", all(s[0] == "support@seatwatchapp.com" for s in sent))
+    check("retry mail carries the original text",
+          any("Towson" in s[2] for s in sent), "the stored message never reached the email")
+
+    # throttle: a second immediate sweep must not re-send anything
+    sent.clear()
+    app.retry_unsent_feedback()
+    check("throttled: no duplicate sends on an immediate re-sweep", len(sent) == 0,
+          f"re-sent {len(sent)}")
+
+    # already-delivered rows are never re-sent even when the throttle is clear
+    app._feedback_retry_at[0] = 0
+    sent.clear()
+    app.retry_unsent_feedback()
+    check("delivered feedback is never emailed twice", len(sent) == 0, f"re-sent {len(sent)}")
+
+    # a broken DB/send must not escape into the poll loop
+    app.send_email = lambda *a: (_ for _ in ()).throw(RuntimeError("smtp exploded"))
+    with app.db() as c:
+        c.execute("INSERT INTO feedback(user_id,email,message,created) VALUES(1,'x@y.z','boom',?)",
+                  (time.time(),))
+    app._feedback_retry_at[0] = 0
+    raised = False
+    try:
+        app.retry_unsent_feedback()
+    except Exception:
+        raised = True
+    check("a crashing send never propagates into the poller", not raised,
+          "an exception here would stop seat polling")
+
+    app.EMAIL_ENABLED = False
+    app._feedback_retry_at[0] = 0
+    app.retry_unsent_feedback()          # must be a silent no-op, not a crash
+    check("no-op when email is disabled", True)
+
     p = sum(ok for _, ok, _ in results); f = sum(not ok for _, ok, _ in results)
     return p, f, results
 
