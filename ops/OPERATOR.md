@@ -167,3 +167,90 @@ Rules that keep this honest:
 - Use `ctx.last_detail()` to compare against the previous run — that is how a check
   reports a *trend* rather than a snapshot.
 - Then run `python3 ops/test_operator.py`.
+
+---
+
+# Operator v2 — objectives and typed handoffs
+
+v1 keeps the system healthy. v2 keeps work moving, without you prompting each step.
+
+- **State layer:** `ops/objectives.py` · **Worker CLI:** `ops/opctl.py`
+- **Tick duty:** `objective_tick` (R1, 900s) · **Worker prompt:** `ops/worker-skill/SKILL.md`
+- **Tests:** `ops/test_objectives.py`
+
+## The division of labour
+
+| Who | Decides | How |
+|---|---|---|
+| **Manager** | *What* should happen | writes an Objective |
+| **Operator** | *Whether* work may proceed, and what is TRUE | deterministic: routing table, budget arithmetic, `COUNT` over evidence |
+| **Workers** (Grab/Build) | *How* | judgment — an LLM, and only here |
+| **Critic** | Whether the work is *acceptable* | certification or rejection, citing evidence |
+
+The Operator never calls a model. That is the point: it is the component that answers
+"what is true", and a probabilistic answer to that question is not an answer.
+
+## Authority — creating an objective is not a spending decision
+
+An objective is born `proposed` with a budget of **zero**. Nothing can be queued
+against it and no work can occur. There is deliberately no path that activates one at
+its default budget: *turn it on* and *authorise it to spend* are the same decision,
+made once, by a human.
+
+```bash
+python3 ~/seatwatch/ops/opctl.py status
+python3 ~/seatwatch/ops/opctl.py show --objective fall-school-expansion
+python3 ~/seatwatch/ops/opctl.py objective-activate --id fall-school-expansion --budget 10
+python3 ~/seatwatch/ops/opctl.py enqueue --objective fall-school-expansion --key marshall
+python3 ~/seatwatch/ops/opctl.py objective-stop --id fall-school-expansion --reason "..."
+```
+
+`fall-school-expansion` exists today, parked, target 7 (the seven batches held in
+BOARD.md). It stays parked until you activate it — it does **not** self-activate on
+any date.
+
+## Stop conditions (no open-ended loops)
+
+The tick closes an objective and raises a finding when:
+
+- **target met** — enough certified items;
+- **budget exhausted** — spent its whole allowance short of target. Raising the
+  budget is a human decision, never automatic;
+- **dry well** — N completed items and not one `BUILD` verdict. The measured lesson
+  from BOARD.md: continuous operation does not refill a dry well.
+
+## The typed contract (why workers go through `opctl`)
+
+A worker's result is validated before the system believes any of it. `verdict` is an
+**enum** — text scraped from a university website cannot become one. A `BUILD`
+verdict requires all eight accuracy gates recorded and passing; a `BUILD` that
+contradicts a failed gate is refused. A violation fails **closed**: the item is
+parked as `failed` with the rejected payload kept as evidence, and is not retried.
+
+The Operator does not run the gates and never claims to — Build re-runs them before
+shipping. It only refuses to carry an unevidenced `BUILD`.
+
+## Rejection is not a retry
+
+A Critic rejection is a judgement, recorded as one. The first returns the item for
+one rework. The **second** raises an adjudication request and the item stops — no
+third attempt. Otherwise "retry until the checker agrees" becomes maker-grades-own-
+work through the back door (AI Operating System §5.3).
+
+## Enabling the worker bridge
+
+`ops/worker-skill/SKILL.md` is the worker prompt: claim one item, do the work, return
+a typed result, stop. Install it as a scheduled task to let work flow unattended.
+
+**Do this when you activate the first objective, not before** — with no active
+objective a worker run claims nothing and exits, so scheduling it early is model
+usage bought for no benefit.
+
+## Honest limitation
+
+The Operator runs unattended under launchd. The **workers do not**: a scheduled
+Claude task runs only while the Claude app is open, and this is a laptop that sleeps.
+So this is real unattended automation, but it is **not 24/7**, and it will not be
+until the model-bearing workers run on an always-on cloud runner. Until then, "the
+queue is quiet" and "nothing is claiming" are different statements, and only the
+Operator's heartbeat distinguishes them.

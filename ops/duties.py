@@ -20,6 +20,7 @@ import sqlite3
 import sys
 import time
 
+import objectives as O
 from operator_engine import duty
 
 BACKUP_DIR = os.environ.get("SW_BACKUP_DIR", os.path.expanduser("~/seatwatch-backups"))
@@ -332,3 +333,86 @@ def guardian_journal(ctx):
     if age_d > 3:
         return ctx.attention("journal stale: newest %s (%.0fd)" % (newest, age_d), **detail)
     return ctx.ok("journal current: newest %s" % newest, **detail)
+
+
+# --------------------------------------------------------------------------- 7
+@duty("objective_tick", interval_s=900, risk="R1",
+      description="Keep active objectives moving: reclaim, measure, close, escalate.")
+def objective_tick(ctx):
+    """The only duty that WRITES anything (hence R1, not R0) — and it writes only the
+    Operator's own queue. It never calls a model, never dispatches a worker, and never
+    invents work: candidates are enqueued by Manager or Grab. This duty does the
+    arithmetic a model should not be trusted with — leases, budgets, progress, stops.
+
+    An objective that is `proposed` is invisible here. That is what makes creating one
+    safe: the school-expansion objective can exist, fully wired, and do nothing at all
+    until a human activates it with an explicit budget."""
+    O.init_schema(ctx._c)
+    reports, returned, exhausted = [], [], []
+    now = time.time()
+
+    returned, exhausted = O.reclaim_expired(ctx._c, now)
+    for iid in exhausted:
+        # A worker kept dying on this item. That is not something to improvise around.
+        ctx.finding("item_exhausted:%d" % iid, "yellow",
+                    "work item %d was claimed %d times without ever completing — it is "
+                    "parked as failed for a human to look at, not retried again"
+                    % (iid, O.MAX_CLAIM_ATTEMPTS), item_id=iid)
+
+    for rep in O.all_objectives(ctx._c):
+        reports.append(rep)
+        oid = rep["id"]
+        if rep["adjudications"]:
+            ctx.finding("adjudication:%s" % oid, "yellow",
+                        "%d item(s) under objective %r were rejected twice and need "
+                        "adjudication — a third resubmission is not permitted, because "
+                        "retrying until the checker agrees is maker-grades-own-work"
+                        % (rep["adjudications"], oid), objective=oid)
+        if rep["state"] != "active":
+            continue
+        if rep["progress"] >= rep["target"]:
+            O.stop_objective(ctx._c, oid, "target met: %d/%d certified"
+                             % (rep["progress"], rep["target"]), state="met", now=now)
+            ctx.finding("met:%s" % oid, "info",
+                        "objective %r met its target: %d certified item(s) ready for "
+                        "Build" % (oid, rep["progress"]), objective=oid)
+            continue
+        if rep["spent_items"] >= rep["budget_items"] and rep["items"]["queued"] == 0 \
+                and rep["items"]["claimed"] == 0:
+            # Budget gone with the target unmet. Stop and say so plainly rather than
+            # quietly idling, which would read as "still working" forever.
+            O.stop_objective(ctx._c, oid, "budget exhausted at %d/%d target"
+                             % (rep["progress"], rep["target"]), now=now)
+            ctx.finding("budget:%s" % oid, "yellow",
+                        "objective %r spent its whole %d-item budget and reached %d of "
+                        "%d — it is stopped, and raising the budget is a human decision"
+                        % (oid, rep["budget_items"], rep["progress"], rep["target"]),
+                        objective=oid)
+            continue
+        done_no_yield = ctx._c.execute(
+            "SELECT COUNT(*) FROM work_items WHERE objective_id=? AND state='done' "
+            "AND verdict!='BUILD'", (oid,)).fetchone()[0]
+        if done_no_yield >= rep["dry_well_limit"] and rep["progress"] == 0:
+            # The measured lesson from the board: continuous operation does not refill
+            # a dry well. Keep spending only while something is coming out.
+            O.stop_objective(ctx._c, oid, "dry well: %d completed item(s), 0 BUILD verdicts"
+                             % done_no_yield, now=now)
+            ctx.finding("dry_well:%s" % oid, "yellow",
+                        "objective %r produced %d completed item(s) and not one BUILD "
+                        "verdict — stopped rather than spending further against a pool "
+                        "that is not yielding" % (oid, done_no_yield), objective=oid)
+
+    ctx._c.commit()
+    active = [r for r in reports if r["state"] == "active"]
+    detail = {"objectives": len(reports), "active": len(active),
+              "reclaimed": len(returned), "exhausted": len(exhausted),
+              "reports": reports}
+    if not reports:
+        return ctx.ok("no objectives defined", **detail)
+    if not active:
+        return ctx.ok("%d objective(s), none active — nothing may be queued or spent"
+                      % len(reports), **detail)
+    line = "; ".join("%s %d/%d (%d/%d budget)"
+                     % (r["id"], r["progress"], r["target"], r["spent_items"],
+                        r["budget_items"]) for r in active)
+    return ctx.ok("%d active: %s" % (len(active), line), **detail)
