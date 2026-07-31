@@ -464,8 +464,13 @@ def _finalize_inner(cycle):
         outcomes[oc] = outcomes.get(oc, 0) + 1
     # status rules — deterministic, ordered worst-first
     status, binding = "GREEN", ""
+    # school_missing was in NEITHER list, so a watch pointing at a school that no longer
+    # exists in the registry finalized the cycle GREEN while raising a RED orphan_watch
+    # incident. Measured, not inferred: driving one school_missing through finalize()
+    # produced status=GREEN. That watch is permanently dead and the dashboard said fine.
     yellow_ocs = ("adapter_failed", "section_missing", "alert_undelivered",
-                  "blocked_wrong_term", "blocked_stale_data", "blocked_gate")
+                  "blocked_wrong_term", "blocked_stale_data", "blocked_gate",
+                  "school_missing")
     if unaccounted:
         status, binding = "RED", f"{len(unaccounted)} watch(es) unaccounted"
     elif outcomes.get("write_failed"):
@@ -513,6 +518,48 @@ def _finalize_inner(cycle):
     if status == "RED":
         page("cycle_red", f"🚨 Guardian cycle RED: {binding}. Evidence in guardian_* "
              "tables, cycle " + cycle.id, "red")
+
+    # ---- surfacing: which recorded conditions actually reach a human --------------
+    # Until now ONLY a RED cycle paged, so every condition below recorded faultless
+    # evidence that nobody ever read. Each of these is a state where a student's watch
+    # has silently stopped working -- the watch still exists, the cycle still looks
+    # healthy, and no alert will ever fire again for it.
+    #
+    # These page at "warn", NOT by promotion to RED: in enforce mode RED suppresses the
+    # ping and fails the dead-man, which is far too aggressive for conditions that are
+    # the fail-closed guards behaving exactly as designed.
+    #
+    # page() dedupes per class_key on PAGE_COOLDOWN_S, and the key carries the school so
+    # one rolled school cannot page every 20 seconds and a second school is not muted by
+    # the first.
+    for oc, key, why in (
+            ("blocked_wrong_term", "term_stale",
+             "watches are stamped for a term the school has rolled past. They are "
+             "blocked (correctly, no false alerts) but will NEVER fire again until the "
+             "stamps are bumped. This is the semester-boundary cliff"),
+            ("school_missing", "orphan_watch",
+             "watches point at a school id no longer in the registry. Permanently dead"),
+            ("section_missing", "section_gone",
+             "the exact section a student is watching is no longer in the catalogue. "
+             "That watch can never fire again"),
+    ):
+        n = outcomes.get(oc)
+        if n:
+            schools_hit = sorted({(cycle.expected.get(w) or {}).get("school", "?")
+                                  for w, (o, _d) in cycle.results.items() if o == oc})
+            page(f"{key}:{','.join(schools_hit)[:60]}",
+                 f"⚠️ {n} watch(es) at {', '.join(schools_hit) or '?'}: {why}. "
+                 f"Cycle {cycle.id}.", "warn")
+
+    # DELIBERATE non-pagers, so the next person does not have to rediscover the reasoning:
+    #   alert_undelivered — app.py already pages per-watch via operator_alert() the first
+    #       time a seat reaches NOBODY, and retries every cycle. Paging here too would
+    #       double-page the single most urgent condition we have.
+    #   blocked_stale_data / blocked_gate — these ARE the fail-closed guards working. They
+    #       fire during ordinary operation (a slow adapter, a gate refusing thin data) and
+    #       suppress nothing a student would have received. Paging them is alert fatigue.
+    #   adapter_failed — rolls up into adapter_down below, which pages on persistence
+    #       rather than on a single bad fetch.
     cycle.finalized = True
     cycle.ping = (status != "RED") if _CFG["mode"] == "enforce" else True
     _write_report(cycle, status, binding, outcomes, conf)
@@ -574,6 +621,18 @@ def _update_adapter_health(c, cycle, now):
                       f"{consec} consecutive failed/empty fetches; last ok "
                       f"{'never' if not last_ok else '%.0fs ago' % (now - last_ok)}",
                       contained="fail-closed: no data -> no alerts from this school")
+            # ...and it now also TELLS someone. This raised an incident at 5 consecutive
+            # failures and a red one at 15, and paged at neither: a school could be
+            # unreachable for hours with every watch on it silently dead, while the cycle
+            # read YELLOW and nobody was notified. Keyed per school so one dead host
+            # cannot mute the others, and damped by PAGE_COOLDOWN_S.
+            page(f"adapter_down:{school}",
+                 f"{'🚨' if consec >= 15 else '⚠️'} {school}: {consec} consecutive failed "
+                 f"or empty fetches (last good "
+                 f"{'never' if not last_ok else '%.0f min ago' % ((now - last_ok) / 60)}). "
+                 "Fail-closed, so no false alerts — but NO seat alerts will fire for any "
+                 "watch at this school until it recovers.",
+                 "red" if consec >= 15 else "warn")
         elif row and row["consec_fail"] >= 5:
             c.execute("UPDATE guardian_incidents SET status='resolved', last_seen=? "
                       "WHERE kind='adapter_down' AND school=? AND status='open'",

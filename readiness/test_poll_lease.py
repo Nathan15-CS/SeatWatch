@@ -58,6 +58,33 @@ def run():
     check("lease TTL is finite and > one poll interval",
           0 < app.POLL_LEASE_TTL < 3600 and app.POLL_LEASE_TTL > app.POLL_SECONDS)
 
+    # 8. a clean shutdown HANDS THE LEASE BACK. Without this the lease only cleared by
+    #    expiry, so every deploy blinded the poller for the full TTL (~181s measured) with
+    #    no seat alert able to fire in that window. Restarts are the one moment we fully
+    #    control, so paying for them is waste.
+    def held_by():
+        with app.db() as c:
+            r = c.execute("SELECT holder FROM poll_lease WHERE id=1").fetchone()
+        return r["holder"] if r else None
+
+    # earlier steps leave the lease owned by a SIMULATED process id, so expire it first
+    # or this real process can never take it and the release is a no-op by construction
+    with app.db() as c:
+        c.execute("UPDATE poll_lease SET expires_at=? WHERE id=1", (time.time() - 1,))
+    app.acquire_poll_lease()
+    check("lease is held before shutdown", held_by() is not None)
+    app.release_poll_lease()
+    check("shutdown releases the lease", held_by() is None,
+          "successor would stand down for the whole TTL after every deploy")
+    check("successor acquires immediately after a release", app.acquire_poll_lease() is True)
+
+    # ...but releasing must never evict a DIFFERENT process that already took over.
+    with app.db() as c:
+        c.execute("UPDATE poll_lease SET holder='someone-else' WHERE id=1")
+    app.release_poll_lease()
+    check("release never evicts another process's lease", held_by() == "someone-else",
+          "a dying process would knock the live poller off and cause double-polling")
+
     p = sum(ok for _, ok, _ in results); f = sum(not ok for _, ok, _ in results)
     return p, f, results
 

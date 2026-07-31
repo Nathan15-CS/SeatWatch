@@ -189,6 +189,35 @@ field that contradicts itself. Accuracy is not tradeable, so it does not ship.
 and proves those seats are genuinely unavailable. Until then TWU stays out.
 The other 7 parked schools remain **ungated** in stash `7e4550ac`.
 
+## 🔍 SILENT-FAILURE AUDIT 2026-07-30 — Build found worse than M-10, staged not deployed
+Manager asked Build to audit which Guardian conditions are recorded but never surfaced. Build
+measured it by driving every outcome through the real `finalize()` rather than reading the code —
+correct method, since "code that looks like it reports and doesn't" cannot be audited by reading.
+**Worst finding, and it is not M-10: `school_missing` finalized the cycle GREEN.** It was in neither
+the RED list nor `yellow_ocs`, so a watch pointing at a school id no longer in the registry raised a
+**red** `orphan_watch` incident while the dashboard read perfectly healthy and nothing paged. That
+watch is permanently dead and nobody would ever know.
+**Second: `adapter_down` never paged at all** — incident at 5 consecutive failed fetches, red at 15,
+paged at neither. A school unreachable for hours = every watch on it silently dead, cycle YELLOW.
+**Manager's suspicion corrected:** `alert_undelivered` IS covered (app.py:3315 pages per-watch via
+`operator_alert()` and retries every cycle). Build checked before assuming and deliberately left it
+quiet so the most urgent condition we have isn't double-paged.
+**Now pages (warn, not RED — RED suppresses the ping and fails the dead-man):** `blocked_wrong_term`
+· `school_missing` (+ GREEN→YELLOW fix) · `section_missing` · `adapter_down`. Page keys carry the
+school so one rolled school can't mute another; verified 5 cycles → 1 page, second school still gets
+through, re-pages after cooldown.
+**Deliberately quiet, each with the reason inline in source:** `alert_undelivered` (already paged) ·
+`blocked_stale_data`/`blocked_gate` (these ARE the fail-closed guards working; paging them is alert
+fatigue) · `adapter_failed` (rolls into `adapter_down`).
+**M-34 bundled:** `release_poll_lease()` + SIGTERM/SIGINT handler, guarded on holder — a dying
+process must never knock the live poller off. Closes the 181-second blind window per deploy.
+**Readiness suite #12 pins the DECISION, not just behaviour** — MUST_PAGE / MUST_NOT_PAGE lists with
+reasons; moving a condition between them requires editing that file. That is the anti-recurrence
+mechanism the CEO asked for.
+**Manager verified independently on the repaired tree: guardian 36/36, readiness 193/0 across 12
+suites.** Grab's `schools.py` NameError (subclasses defined before `CrnKeyedBanner`) is already
+fixed; registry now 831. **Staged, not committed, not deployed — awaiting CEO.**
+
 ## ⚠️ M-33 (P2, NEW) — uncommitted net-new schools in `schools.py` during the sprint pause
 ~34 added lines: Morgan State, Elizabeth City State, UNF, Shepherd, West Liberty (+ possibly more).
 Well-annotated and consistent with the accuracy discipline (openSection-unreliable notes present), so

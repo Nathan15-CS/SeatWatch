@@ -19,6 +19,7 @@ import os
 import re
 import secrets
 import shutil
+import signal
 import sqlite3
 import threading
 import smtplib
@@ -3364,6 +3365,26 @@ def acquire_poll_lease():
         return got == _LEASE_ID         # False => another LIVE process holds it; stand down
 
 
+def release_poll_lease():
+    """Hand the poll lease back on a clean shutdown.
+
+    Without this the lease is only freed by EXPIRY, so every deploy leaves the dying
+    process's claim sitting in the table and the incoming process stands down until it
+    times out — a measured ~181 seconds of no polling on each deploy, during which no
+    seat alert can fire for anyone. Restarts are the one moment we control completely,
+    so paying 181s of blindness for them is pure waste.
+
+    Guarded on holder: if another process already took the lease (ours expired first),
+    this must delete nothing rather than evicting the live poller.
+    """
+    try:
+        with db() as c:
+            c.execute("DELETE FROM poll_lease WHERE id=1 AND holder=?", (_LEASE_ID,))
+        sw.log("[lease] released on shutdown — successor can poll immediately")
+    except Exception as e:
+        sw.log(f"[lease] release on shutdown failed: {type(e).__name__}")
+
+
 FEEDBACK_RETRY_SECS = 600          # sweep the unsent-feedback backlog at most every 10 min
 _feedback_retry_at = [0.0]
 
@@ -3457,6 +3478,17 @@ def main():
                        sw.log, operator_alert,
                        mode=os.environ.get("GUARDIAN_MODE", "shadow"),
                        deploy_sha=os.environ.get("SEATWATCH_DEPLOY_SHA", ""))
+    # systemd sends SIGTERM on restart/stop. Release the lease so the successor polls
+    # straight away instead of standing down for the full TTL.
+    def _shutdown(signum, _frame):
+        sw.log(f"[shutdown] signal {signum} — releasing poll lease")
+        release_poll_lease()
+        raise SystemExit(0)
+    for _sig in (signal.SIGTERM, signal.SIGINT):
+        try:
+            signal.signal(_sig, _shutdown)
+        except (ValueError, OSError):
+            pass                     # not the main thread / unsupported: expiry still frees it
     threading.Thread(target=poller, daemon=True).start()
     server = ThreadingHTTPServer(("0.0.0.0", PORT), Handler)
     sw.log(f"SeatWatch web app on http://localhost:{PORT}  (term {sw.TERM})")

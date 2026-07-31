@@ -32,6 +32,11 @@ SAMPLE = [
     # ordinary Banner spread
     "umd", "utk", "fau", "angelostate", "shsu", "isu", "wwu", "uncp", "wcu",
     "msutexas", "ferris", "jsu", "oaklandu", "sulross", "fredonia", "ecu",
+    # 2026-07-30 batch. unf and ucmo shipped COLLAPSING (1 of 9 and 1 of 4 sections
+    # respectively, both from repeated sequenceNumbers) and were caught here, not by the
+    # open+full disproof, which they passed while broken. Both now key by CRN. Pinned so a
+    # future edit to either cannot quietly reintroduce it.
+    "unf", "ucmo", "elizcity", "shepherd", "westliberty", "xula", "onu", "lander",
 ]
 
 
