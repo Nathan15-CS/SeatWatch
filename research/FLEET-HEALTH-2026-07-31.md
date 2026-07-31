@@ -1,55 +1,61 @@
-# Fleet health sweep — 2026-07-31
+# Fleet health sweep — 2026-07-31 (CORRECTED)
 
-First live regression across the WHOLE registry. Readiness covers adapter *families* and
-samples ~38 hosts; this hit all 838, one example course each. Tool: `ops/fleet-health.py`.
+⚠️ **The first version of this document said "20 schools are dead — a student signing up
+receives nothing." That was WRONG, and the error was in the tool, not the fleet.**
 
-## Headline
+## What the first run actually measured
+
+`ops/fleet-health.py` probed each school with its `example` course. But `example` is only a UI
+placeholder and a gate fixture. It goes stale without the adapter being broken at all —
+**Columbus State's example says `CSCI 1301K`; the school uses `CPSC`.** So the sweep measured
+*"is the example course still valid"*, not *"does the adapter work."*
+
+**Crucially, a stale example does not affect a single student.** Students type their own course
+code. The example is placeholder text in a form field.
+
+## Corrected findings
 
 | | |
 |---|---|
 | schools swept | 838 |
-| reachable | **815 (97.3%)** |
-| **confirmed dead** | **20 (2.4%)** — confirmed by a SECOND probe against 6 common courses |
-| section collapse | **0** — Build's CRN fixes hold fleet-wide |
-| open-with-0-seats | **0** — no false-alert risk anywhere in the registry |
+| section collapse | **0** — Build's CRN fixes hold fleet-wide ✅ |
+| open-with-0-seats | **0** — no false-alert risk anywhere ✅ |
+| originally flagged "dead" | 23 |
+| **of those, adapter demonstrably WORKS** | **11** |
+| still returning nothing after 26 courses | 12 |
 
-**A student signing up for one of the 20 receives nothing, silently, forever.** No error, no
-empty state they'd recognise as broken — the watch is simply created and never fires.
+**Adapters proven working after the mis-flagging:**
+`abac` (66 sections) · `columbusst` (86) · `daltonstate` (100) · `fvsu` (52) · `gordonstate` (98)
+· `gsw` (88) · `jewell` (3) · `mga` (144) · `midway` (7) · `va-nova` (35) · `vincennes` (69)
 
-## The 20
+**The USG Georgia "cluster" was not a cluster.** Verified directly: the dead and working
+siblings all resolve the same host, all offer term `202608`, and all return a full subject list
+for it. Host fine, term fine, content present. The only difference was our placeholder course.
 
-`asu-ga` `augusta` `brookdale` `columbusst` `cuboulder` `daemen` `daltonstate` `fvsu`
-`gordonstate` `gsw` `jewell` `mga` `midway` `mitchellcc` `northgatech` `southwesterncc`
-`tamucc` `va-nova` `vincennes` `walshcollege`
+**`va-nova` was not a VCCS problem either** — 35 sections for `HIS 101`.
 
-**Cluster worth one investigation, not twenty:** nine are USG Georgia schools on the shared
-`*.gabest.usg.edu` host (`asu-ga` `augusta` `columbusst` `daltonstate` `fvsu` `gordonstate`
-`gsw` `mga` `northgatech`). **But 8 other USG siblings on the same host and same term 202608
-work fine** (`gasou` `westga` `valdosta` `ggc` `gcsu` `clayton` `atlm` `ccga`), so this is
-NOT a host-wide or term-wide outage. Per-school cause. `va-nova` is VCCS, another shared system.
+## Still unexplained — 12
 
-## Method caveat — read before acting
+`asu-ga` `augusta` `brookdale` `chaminade` `cuboulder` `daemen` `kellogg` `mitchellcc`
+`northgatech` `southwesterncc` `tamucc` `walshcollege`
 
-**A single failed probe is not proof of death.** `abac` returned nothing in the sweep and 66
-sections for the same course minutes later. Two other schools (`chaminade`, `kellogg`) had
-merely stale example courses and work fine.
+**Not proven dead.** `chaminade` and `kellogg` returned data on an earlier probe and nothing on a
+later one — they flake. Others may simply use course conventions none of the 26 test codes match.
+Each needs per-school investigation: adapter class, endpoint, term, exact failure, and a verdict
+of stale-config / outage / parse failure / course mismatch / unsupported.
 
-The 20 above failed **twice**: once in the sweep, once against 6 common course codes matched to
-their numbering convention. That is strong evidence, not proof. Some may be temporary outages.
-**Re-run before deleting anything from the registry.**
+## Tool fixed
 
-## Not alarming, but worth knowing
+`ops/fleet-health.py` now tries up to 20 real courses in two numbering conventions before
+declaring anything unreachable, and reports `STALE EXAMPLE` separately from `DEAD`. A stale
+placeholder is a UI nit; an unreachable adapter is an outage. Conflating them produced this
+document's first version.
 
-**351 schools showed no mixed status** — all sections open, or all full, for the probed course.
-That is usually a quiet term or a small course, not a fault. It only matters if a school is
-*always* all-open, which is the fake-open pattern the gates already screen for at add time.
+## Standing rules for anyone acting on this
 
-## Recommended
-
-1. Investigate the nine USG Georgia schools as one cause. Eight working siblings on the same
-   host is the strongest available clue.
-2. Re-run `ops/fleet-health.py` before treating any single school as permanently dead.
-3. Run this sweep on a schedule — monthly, and always before a public launch. It is the only
-   check that touches every host.
-4. Consider surfacing dead adapters to the student at watch-creation time. Today the app accepts
-   a watch on a dead school and says nothing.
+1. **Never delete a school on one failed probe.** `abac` returned nothing and 66 sections minutes
+   apart. `gsw` failed twice and then answered its own example course.
+2. **A failed example course is not a broken adapter.** Check with real courses first.
+3. **Re-run before acting.** Schools flake; two runs disagreeing is normal, not alarming.
+4. Worth doing separately: refresh stale `example` values so the placeholder a student sees is a
+   course their school actually offers. Cosmetic, but it is what caused this whole detour.
