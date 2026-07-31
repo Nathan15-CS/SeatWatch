@@ -59,3 +59,23 @@ document's first version.
 3. **Re-run before acting.** Schools flake; two runs disagreeing is normal, not alarming.
 4. Worth doing separately: refresh stale `example` values so the placeholder a student sees is a
    course their school actually offers. Cosmetic, but it is what caused this whole detour.
+
+## The 12 — taxonomy started 2026-07-31
+
+Profiled, and three have confirmed causes. Note they are **not** one cluster:
+
+| school | adapter | term | endpoint | confirmed cause |
+|---|---|---|---|---|
+| `asu-ga` | AlbanyStateGA | 202608 | banner.asurams.edu | **DNS does not resolve** — stale hostname, permanent until fixed |
+| `augusta` | AugustaUniversity | 202608 | pounce.augusta.edu | **HTTP 503** — outage or blocking us |
+| `northgatech` | NorthGATech | **202712** | banner.northgatech.edu | **HTTP 503**, and pinned to a term far ahead of the 202608 everyone else uses — two suspects |
+| `tamucc` | TAMUCorpusChristi | 202609 | banner.tamucc.edu | unknown; own host, unusual term |
+| `cuboulder` | CUBoulder | None | *(no host/base attribute)* | unknown; endpoint not visible on the class |
+| `brookdale` `chaminade` `daemen` `mitchellcc` `southwesterncc` `walshcollege` | Colleague family | None | selfservice.\*.edu | unknown; all have specialised example courses (`ED 405`, `LIT 147`, `ACC 316`, `CSC 151`) that the generic fallback list would not match |
+
+**Key correction to the earlier "Georgia cluster" theory:** `asu-ga` and `augusta` are NOT on the
+shared `gabest.usg.edu` host — they run their own Banner instances. That is why they did not
+recover when the nine gabest schools turned out fine. Different infrastructure, different causes.
+
+**`chaminade` and `kellogg` returned data on an earlier probe and nothing later — they flake.**
+Neither should be touched without a third observation.
