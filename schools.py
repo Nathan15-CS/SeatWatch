@@ -378,6 +378,7 @@ class Fose:
     hardcoded srcdb is just the seed / last-known-good."""
     # subclass sets: id, name, example, api, srcdb
     _active_srcdb = None
+    _extra_criteria = ()
 
     def cur_srcdb(self):
         return self._active_srcdb or self.srcdb
@@ -449,8 +450,9 @@ class Fose:
             if not code:
                 continue
             try:
+                criteria = list(self._extra_criteria) + [{"field": "keyword", "value": code}]
                 body = json.dumps({"other": {"srcdb": self.cur_srcdb()},
-                                   "criteria": [{"field": "keyword", "value": code}]}).encode()
+                                   "criteria": criteria}).encode()
                 req = urllib.request.Request(self.api, data=body,
                                              headers={"User-Agent": UA,
                                                       "Content-Type": "application/json"})
@@ -1715,6 +1717,7 @@ class Purdue:
     Sections keyed by CRN (unique). Term auto-rolls from the dyn-sched OPTION list,
     skipping '(View only)' archive terms."""
     id = "purdue"; name = "Purdue University"
+    _sel_levl = None                    # see _listing: some hosts need sel_levl='%'
     example = "CS 18000"
     term = "202710"                     # Fall 2026 (auto-rolls)
     _TTL = 600                          # 10 min between per-course seat rebuilds
@@ -1801,6 +1804,13 @@ class Purdue:
                 ("sel_ptrm", "%"), ("sel_instr", "%"), ("sel_attr", "%"),
                 ("begin_hh", "0"), ("begin_mi", "0"), ("begin_ap", "a"),
                 ("end_hh", "0"), ("end_mi", "0"), ("end_ap", "a")]
+        # Some Banner 8 hosts answer "No classes were found" for EVERY query unless the
+        # level filter is explicitly widened — the 'dummy' placeholder above is not enough
+        # for them. LSSU returned an empty 7,278-byte page for every subject in every term,
+        # including completed ones, until sel_levl='%' was added; then 48 CRNs for one
+        # subject. Opt-in per school so the other 32 Purdue-family adapters are untouched.
+        if self._sel_levl:
+            form.append(("sel_levl", self._sel_levl))
         return op.open(urllib.request.Request(
             self.base + "/bwckschd.p_get_crse_unsec",
             data=urllib.parse.urlencode(form).encode()), timeout=45).read().decode("utf-8", "replace")
@@ -1890,6 +1900,43 @@ class Clovis(Purdue):
     example = "ENGL 1110"; term = "202630"     # Fall 2026; 6 sec, Rem==Cap-Act verified
     base = "https://prodssb.clovis.edu/PROD"
 
+class LakeSuperiorState(Purdue):
+    # Guest search returns an EMPTY page for every subject and every term (including
+    # completed ones) without this. With it, one subject alone returns 48 CRNs.
+    _sel_levl = "%"
+    id = "lssu"; name = "Lake Superior State University"
+    example = "BIOL 121"; term = "202710"
+    base = "https://bssmain.lssu.edu:9060/pls/PROD8"
+
+class FairmontState(Purdue):
+    id = "fairmont"; name = "Fairmont State University"
+    example = "ENGL 1101"; term = "202710"
+    base = "https://felix.fairmontstate.edu:8444/prod"
+    def _listing(self, op, term, subj, num):
+        form = [("term_in", term), ("sel_subj", "dummy"), ("sel_day", "dummy"),
+                ("sel_schd", "dummy"), ("sel_insm", "dummy"), ("sel_camp", "dummy"),
+                ("sel_levl", "dummy"), ("sel_sess", "dummy"), ("sel_instr", "dummy"),
+                ("sel_ptrm", "dummy"), ("sel_attr", "dummy"), ("sel_subj", subj),
+                ("sel_crse", num), ("sel_title", ""), ("sel_schd", "%"),
+                ("sel_from_cred", ""), ("sel_to_cred", ""), ("sel_camp", "%"),
+                ("sel_levl", "%"), ("sel_ptrm", "%"), ("sel_instr", "%"), ("sel_attr", "%"),
+                ("begin_hh", "0"), ("begin_mi", "0"), ("begin_ap", "a"),
+                ("end_hh", "0"), ("end_mi", "0"), ("end_ap", "a")]
+        return op.open(urllib.request.Request(
+            self.base + "/bwckschd.p_get_crse_unsec",
+            data=urllib.parse.urlencode(form).encode()), timeout=45).read().decode("utf-8", "replace")
+
+class SCState(Purdue):
+    id = "scstate"; name = "South Carolina State University"
+    example = "BSC 150"; term = "202710"
+    base = "https://bannerapps.scsu.edu/prod"
+
+
+class DelawareState(Purdue):
+    id = "delawarestate"; name = "Delaware State University"
+    example = "BIOL 101"; term = "202701"
+    base = "https://bnrhvprod-ssb.desu.edu/PROD"
+
 
 class ListcrseBanner8(Purdue):
     """Banner-8 hosts whose guest CLASS-SEARCH form answers 'No classes were found' for
@@ -1968,6 +2015,12 @@ class FGCU(ListcrseBanner8):
     id = "fgcu"; name = "Florida Gulf Coast University"
     example = "ENC 1101"; term = "202608"; base = "https://gulfline.fgcu.edu/pls/fgpo"
 
+class MorganState(ListcrseBanner8):
+    # Guest class-search (p_get_crse_unsec) returns Internal Server Error — catalog route
+    # required. Fall 2026 = 202670. CRN-keyed, standard Cap/Act/Rem detail pages.
+    id = "morganstate"; name = "Morgan State University"
+    example = "BIOL 101"; term = "202670"; base = "https://lbssbnprod.morgan.edu/nprod"
+
 class IndianaState(ListcrseBanner8):
     # Guest class-search returns "No classes found" -> the catalog route is required, not
     # plain Purdue. base needs /pls/prod (bare /bwckschd 403s). 202605 = Fall 2026 (ISU
@@ -1975,6 +2028,11 @@ class IndianaState(ListcrseBanner8):
     id = "indianastate"; name = "Indiana State University"
     example = "MATH 131"; term = "202605"
     base = "https://prodinteract.indstate.edu/pls/prod"
+
+class NSULA(ListcrseBanner8):
+    # p_get_crse_unsec returns empty — catalog route required.
+    id = "nsula"; name = "Northwestern State University of Louisiana"
+    example = "BIOL 1010"; term = "202710"; base = "https://connect.nsula.edu/prod"
 
 class Framingham(ListcrseBanner8):
     id = "framingham"; name = "Framingham State University"
@@ -4066,6 +4124,94 @@ class FayettevilleState(Banner):
     example = "BIOL 111"; host = "banxp-fsu.uncecs.edu:9239"
     base_path = "fsuprodStudentRegistrationSsb"; term = "202660"
 
+class ECSU(Banner):
+    # Port :9839 + non-default base_path — uncecs.edu:9xxx family (UNCP/WCU/FSU siblings).
+    # openSection UNRELIABLE (True on seats=0 rows) — seatsAvailable rule is load-bearing.
+    id = "elizcity"; name = "Elizabeth City State University"
+    example = "BIOL 100"; host = "banxp-ecsu.uncecs.edu:9839"
+    base_path = "ecsuprodStudentRegistrationSsb"; term = "202710"
+
+class UNF(Banner):
+    # openSection UNRELIABLE (same ECU pattern) — seatsAvailable rule is load-bearing.
+    id = "unf"; name = "University of North Florida"
+    example = "PSY 2012"; host = "banregister.unf.edu"; term = "202680"
+
+    def _seckey(self, r):
+        # CRN, not sequenceNumber. This host repeats one sequenceNumber across a course:
+        # PSY 2012 returns 9 rows under 1 distinct sequence, so the default key collapsed
+        # the course to a SINGLE section and silently dropped the other 8. A student
+        # watching any of those 8 would never be told a seat opened. Same failure as the
+        # UH family. CRN is unique per term on every Banner host we have measured.
+        return r.get("courseReferenceNumber")
+
+class Shepherd(Banner):
+    id = "shepherd"; name = "Shepherd University"
+    example = "ENGL 101"; host = "oas4.shepherd.edu"; term = "202630"
+
+class WestLiberty(Banner):
+    # WVNET shared infra. openSection UNRELIABLE (always True even at 0 seats) —
+    # seatsAvailable rule is load-bearing.
+    id = "westliberty"; name = "West Liberty University"
+    example = "COM 101"; host = "xewluprod.wvnet.edu"; term = "202608"
+
+class UCentralMO(Banner):
+    # Port :8444. openSection UNRELIABLE (True at seats=0). Zeroed sequenceNumber.
+    id = "ucmo"; name = "University of Central Missouri"
+    example = "ACCT 1101"; host = "banstu.ucmo.edu:8444"; term = "202710"
+
+    def _seckey(self, r):
+        # The zeroed sequenceNumber noted above is not cosmetic: with the default key,
+        # ACCT 1101's 4 rows collapsed to 1 section and 3 were silently dropped. Key by
+        # CRN so every section stays addressable and watchable.
+        return r.get("courseReferenceNumber")
+
+class XULA(Banner):
+    id = "xula"; name = "Xavier University of Louisiana"
+    example = "BIOL 1210L"; host = "banner.ban.xula.edu"; term = "202608"
+
+class OhioNorthern(Banner):
+    # Non-default base_path (StudentRegistration, not StudentRegistrationSsb).
+    id = "onu"; name = "Ohio Northern University"
+    example = "ACCT 2201"; host = "ssb3.onu.edu"
+    base_path = "StudentRegistration"; term = "202720"
+
+class Lander(Banner):
+    id = "lander"; name = "Lander University"
+    example = "BIOL 101"; host = "lb-xepreg.lander.edu"; term = "202710"
+
+class Montevallo(Banner):
+    id = "montevallo"; name = "University of Montevallo"
+    example = "AC 221"; host = "umbanssapp2.montevallo.edu:8557"; term = "202680"
+
+class GlenvilleState(Banner):
+    id = "glenville"; name = "Glenville State University"
+    example = "ENGL 101"; host = "xegscwv.wvnet.edu"; term = "202701"
+
+class WVState(Banner):
+    id = "wvstate"; name = "West Virginia State University"
+    example = "ENGL 102"; host = "mystate.wvstateu.edu"; term = "202701"
+
+class SnowCollege(Banner):
+    id = "snow"; name = "Snow College"
+    example = "ENGL 1010"; host = "prod.snow.edu"
+    base_path = "StudentRegistrationSelfService"; term = "202640"
+
+class OldWestbury(Banner):
+    id = "oldwestbury"; name = "SUNY Old Westbury"
+    example = "PY 2010"; host = "owsis.oldwestbury.edu"; term = "202609"
+
+class SUNYPotsdam(Banner):
+    id = "potsdam"; name = "SUNY Potsdam"
+    example = "ANTH 106"; host = "bearpaws.potsdam.edu"; term = "202609"
+
+class Citadel(Banner):
+    id = "citadel"; name = "The Citadel"
+    example = "ACCT 201"; host = "ban9prdssb02.citadel.edu:8103"; term = "202650"
+
+class LoyolaMarymount(Banner):
+    id = "lmu"; name = "Loyola Marymount University"
+    example = "ENGL 2105"; host = "bannerxe.sis.lmu.edu"; term = "202630"
+
 class JacksonvilleState(Banner):
     # Dual-enrollment / high-school sections (instructionalMethodDescription) carry open
     # seats a general student cannot register for — an eligibility false-open, same as the
@@ -5852,6 +5998,7 @@ class OklahomaState(Banner):
     id = "okstate"; name = "Oklahoma State University"
     example = "CS 1113"; host = "studentregistrationssb.okstate.edu"; term = "202660"; mep = "OSU"
 
+
 class WeberState(Banner):
     id = "weber"; name = "Weber State University"
     example = "CS 1030"; host = "selfservice.weber.edu"; term = "202720"
@@ -6754,6 +6901,14 @@ class DeVry(CrnKeyedBanner):
 class ConcordiaMoorhead(CrnKeyedBanner):
     id = "concordiamn"; name = "Concordia College (Moorhead)"
     example = "ANUR 425"; host = "banner.cord.edu"; term = "202609"
+
+class Langston(CrnKeyedBanner):
+    id = "langston"; name = "Langston University"
+    example = "AC 2103"; host = "studentregistrationssb.okstate.edu"; term = "202660"; mep = "LU"
+
+class AthensState(CrnKeyedBanner):
+    id = "athensstate"; name = "Athens State University"
+    example = "CS 305"; host = "bear-den.athens.edu"; term = "202710"
 
 
 # July 8 handoff batch 2 (gated: accuracy AND latency, both hard):
@@ -8326,7 +8481,7 @@ class NewColleague(Colleague):
                         continue
                     for wrap in tm.get("Sections") or []:
                         s = wrap.get("Section") or wrap
-                        if not s.get("AreSeatCountsAvailable"):      # counts not published -> skip
+                        if not getattr(self, '_no_seat_guard', False) and not s.get("AreSeatCountsAvailable"):
                             continue
                         try:
                             av = int(s.get("Available"))            # true count; no count -> skip
@@ -8382,6 +8537,29 @@ class WorcesterState(NewColleague):        # ≠ Worcester Polytechnic; subject 
     id = "worcesterstate"; name = "Worcester State University"
     example = "EN 101"; host = "selfservice.worcester.edu"
 
+
+class TWU(NewColleague):
+    # AreSeatCountsAvailable is None here (not True), but Available/Enrolled/Capacity are
+    # all present and accurate — skip the guard.
+    id = "twu"; name = "Texas Woman's University"
+    example = "HIST 1013"; host = "selfservice.twu.edu"
+    _no_seat_guard = True
+
+class Shenandoah(Colleague):
+    id = "shenandoah"; name = "Shenandoah University"
+    example = "BIOL 231"; host = "colss-prod.ec.su.edu"
+
+class Lynchburg(Colleague):
+    id = "lynchburg"; name = "University of Lynchburg"
+    example = "BIOL 113"; host = "lyn-ss.colleague.elluciancloud.com"
+
+class VMI(Colleague):
+    id = "vmi"; name = "Virginia Military Institute"
+    example = "CH 111"; host = "postview.vmi.edu"
+
+class SaginawValley(Colleague):
+    id = "svsu"; name = "Saginaw Valley State University"
+    example = "MATH 110"; host = "colss-prod.ec.svsu.edu"
 
 class Mercer(Colleague):
     id = "mercer"; name = "Mercer University"
@@ -8764,7 +8942,7 @@ class SCF(Banner):
 # counts, and enrollmentStatus varies reliably (1081 Open / 319 Closed across popular
 # courses). Status-only (seats=None), open = enrollmentStatus=="Open". Fixed the stale
 # section-field name ('number' -> 'section') that had left it returning 0 sections.
-# Loyola Marymount (bannerxe.lmu.edu) tested but CUT — host times out repeatedly.
+# Loyola Marymount: old host bannerxe.lmu.edu was dead; correct host is bannerxe.sis.lmu.edu (added above).
 # Drake (registrationssb.drake.edu) tested but CUT — every fetch takes ~137s (host
 # throttles or cold-starts per session); would stall a poller worker each cycle.
 # Drexel(): class works (base_path="registration"), but the only published 2026 term
@@ -9686,7 +9864,23 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     AshlandCTC(), BigSandyCTC(), BluegrassCTC(), ElizabethtownCTC(), GatewayKY(),
     HazardCTC(), HendersonCC(), HopkinsvilleCC(), JeffersonCTC(), MadisonvilleCC(),
     MaysvilleCTC(), OwensboroCTC(), SomersetCC(), SouthcentralKY(), SoutheastKY(),
-    WestKentuckyCTC()])
+    WestKentuckyCTC(),
+    ECSU(), UNF(), Shepherd(), WestLiberty(), MorganState(), UCentralMO(),
+    # HELD, deliberately not registered. Both classes are kept so the work survives:
+    #   XULA()  — banner.ban.xula.edu was timing out at gate time. It passed earlier
+    #             (10 sections, 9 open, 1 full); a host I cannot reach is a school I
+    #             cannot verify, so it waits for the next batch rather than shipping
+    #             on a stale result.
+    #   TWU()   — accuracy VERIFIED (the FULL-with-seats sections are waitlist-held,
+    #             5/5 backed by a real queue, and Available+Enrolled==Capacity on
+    #             107/108 rows). Held only because it is a shared-base override on
+    #             the CEO's explicit sign-off list.
+    OhioNorthern(), NSULA(),
+    Shenandoah(), Lynchburg(), Lander(),
+    Langston(), Montevallo(), AthensState(),
+    GlenvilleState(), WVState(), SnowCollege(), LakeSuperiorState(), FairmontState(),
+    Citadel(), SCState(), VMI(), SaginawValley(), OldWestbury(), SUNYPotsdam(),
+    DelawareState(), LoyolaMarymount()])
 
 
 def refresh_all_terms(log=None):

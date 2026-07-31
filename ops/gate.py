@@ -49,12 +49,25 @@ def _clean(res):
     return {k: v for k, v in (res or {}).items() if k != "none"}
 
 
-def probe(a, extra_codes=()):
-    """Collect sections until BOTH states are seen, or the probe list is exhausted."""
+def probe(a, extra_codes=(), budget_s=75):
+    """Collect sections until BOTH states are seen, the probe list is exhausted, or the
+    per-school time budget runs out.
+
+    The budget is not a nicety. Without it, a school that answers nothing walks the whole
+    probe list at the adapter's own socket timeout (up to 45s each), so ONE dead host can
+    hold a worker for ~18 minutes and a 27-school run never finishes. Better to report
+    "inconclusive within budget" for that school than to stall the batch.
+    """
+    import time as _t
+    deadline = _t.time() + budget_s
     tot = op = fu = 0
+    timed_out = False
     lies_full, lies_open, hits, non_int = [], [], [], []
     for code in dict.fromkeys([a.example] + list(extra_codes) + PROBE):
         if op and fu:
+            break
+        if _t.time() > deadline:
+            timed_out = True
             break
         try:
             r = _clean(a.fetch([code]).get(code, {}))
@@ -77,7 +90,7 @@ def probe(a, extra_codes=()):
                 fu += 1
                 if s > 0:
                     lies_full.append(f"{code}/{k}={s}")
-    return tot, op, fu, lies_full, lies_open, non_int, hits
+    return tot, op, fu, lies_full, lies_open, non_int, hits, timed_out
 
 
 def collapse(a):
@@ -124,7 +137,7 @@ def gate(sid, S):
     if a is None:
         return sid, "?", False, ["not in the registry"]
     notes, ok = [], True
-    tot, op, fu, lf, lo, non_int, hits = probe(a)
+    tot, op, fu, lf, lo, non_int, hits, timed_out = probe(a)
 
     if not tot:
         return sid, a.name, False, ["returned NOTHING for any probed course"]
@@ -135,9 +148,13 @@ def gate(sid, S):
     if lo:
         ok = False; notes.append(f"FALSE OPEN — OPEN with no seats: {lo[:3]}")
     if not op:
-        ok = False; notes.append("no OPEN section found: cannot disprove an always-closed parser")
+        ok = False
+        notes.append("no OPEN section found: cannot disprove an always-closed parser"
+                     + (" (probe hit its time budget - rerun this one alone)" if timed_out else ""))
     if not fu:
-        ok = False; notes.append("no FULL section found: cannot disprove an always-open parser")
+        ok = False
+        notes.append("no FULL section found: cannot disprove an always-open parser"
+                     + (" (probe hit its time budget - rerun this one alone)" if timed_out else ""))
 
     c = collapse(a)
     if c:
