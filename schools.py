@@ -9871,10 +9871,13 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     #             (10 sections, 9 open, 1 full); a host I cannot reach is a school I
     #             cannot verify, so it waits for the next batch rather than shipping
     #             on a stale result.
-    #   TWU()   — accuracy VERIFIED (the FULL-with-seats sections are waitlist-held,
-    #             5/5 backed by a real queue, and Available+Enrolled==Capacity on
-    #             107/108 rows). Held only because it is a shared-base override on
-    #             the CEO's explicit sign-off list.
+    TWU(),   # CEO-cleared 2026-07-31. Accuracy verified independently: the sections
+             # reporting FULL while holding seats are waitlist-held (5/5 backed by a real
+             # queue), so refusing to call them open is correct and calling them open
+             # would be a false alert. Its _no_seat_guard override is justified because
+             # Available+Enrolled==Capacity holds on 107/108 rows, i.e. the seat counts
+             # are real even though AreSeatCountsAvailable is None. Scoped to this class,
+             # so the base guard still protects every other Colleague school.
     OhioNorthern(), NSULA(),
     Shenandoah(), Lynchburg(), Lander(),
     Langston(), Montevallo(), AthensState(),

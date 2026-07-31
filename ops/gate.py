@@ -44,6 +44,19 @@ PROBE = ["ENG 101", "ENGL 101", "ENGL 1010", "ENGL 1101", "ENG 111", "MATH 101",
          "ART 101", "COMM 101", "ECON 201", "POLS 101", "NURS 101", "EDUC 101"]
 
 
+# VERIFIED EXCEPTIONS. A section reporting FULL while holding seats is normally a silent
+# miss, but not always: some hosts hold the remaining seats for a waitlist queue, and
+# refusing to call those "open" is CORRECT — announcing them would send a student running
+# at a seat they cannot take. Each entry needs evidence, not a hunch, and stays listed so
+# the exception is reviewable instead of hidden inside an adapter.
+FULL_WITH_SEATS_OK = {
+    "twu": ("Texas Woman's University, verified 2026-07-31: every FULL-with-seats section "
+            "has a non-zero Waitlisted count (5/5 sampled), and Available+Enrolled==Capacity "
+            "holds on 107/108 rows, so the counts are real. Re-verify by pulling "
+            "AvailabilityStatus and Waitlisted from /Student/Courses/SectionsAsync."),
+}
+
+
 def _clean(res):
     """Drop the 'none' sentinel — it means no sections, not one full section."""
     return {k: v for k, v in (res or {}).items() if k != "none"}
@@ -144,7 +157,12 @@ def gate(sid, S):
     if non_int:
         ok = False; notes.append(f"seats not an int (parse failed): {non_int[:3]}")
     if lf:
-        ok = False; notes.append(f"SILENT MISS — FULL while holding seats: {lf[:3]}")
+        why = FULL_WITH_SEATS_OK.get(sid)
+        if why:
+            notes.append(f"FULL-with-seats present but ALLOWED — {why}")
+        else:
+            ok = False
+            notes.append(f"SILENT MISS — FULL while holding seats: {lf[:3]}")
     if lo:
         ok = False; notes.append(f"FALSE OPEN — OPEN with no seats: {lo[:3]}")
     if not op:
