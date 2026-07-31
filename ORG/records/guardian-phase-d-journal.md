@@ -252,3 +252,47 @@ on the board.
 - Anomalies: none.
 - Decisions: journal lives in this file, updated at every step; final deployment
   report will be produced when Step 6 completes.
+
+### 2026-07-31 — SHADOW CHECKPOINT (day 5 of 14) — first checkpoint of the window
+Written by the Manager lane. Day-1/2/3 checkpoints were never recorded; this is the
+catch-up, and the window is now evidenced rather than empty.
+
+**Evidence, queried directly from the production guardian_* tables:**
+- Window open 2026-07-26 06:14Z → 2026-07-31 00:41Z = **4.8 days elapsed of 14**
+- **18,983 cycles.** Status: **18,947 GREEN · 36 YELLOW · 0 RED**
+- **Zero incidents** of any kind or severity recorded in the window
+- Latest confidence: **score 40, tier LOW**, binding constraint **P0_deploy_identity**
+  factors: P0_deploy_identity 40 · P1_reconciliation 100 · P2_pipeline 100 ·
+  P3_continuity 100 · P4_telemetry 100 · P5_verification 70 · P6_maturity 67 · P7_watches 40
+
+**Reading.** Zero RED across nearly 19,000 cycles, no incidents, and four of eight confidence
+factors at 100. The Guardian is not finding problems because there are not many to find at this
+scale — which is itself the honest limitation: 15 watches is a small sample, and P7_watches=40
+says so.
+
+**The binding constraint is P0_deploy_identity at 40, and it is now closable.** That cap exists
+because the app cannot prove which code it is running — the freeze record lists it as "capped 40
+until SHA stamping." DEPLOYED.log and the `deployed` tag were restored on 07-29/30, but those are
+*repo-side* records; the running process still cannot self-report. **Recommendation: have the app
+expose its build SHA (read from a file written at deploy time) and surface it in /admin/stats.**
+That lifts the single largest drag on system confidence and permanently closes the question that
+cost this lane an hour of hash archaeology on 07-29.
+
+**Cycle coverage: 92.1%** against a theoretical 20s cadence. Stated as a question, not a defect —
+real cycles take longer than 20s when fetches are slow, so "expected" is likely overstated. Four
+service restarts in the window each cost ~181s of lease wait (M-34), but that accounts for ~12
+minutes, not the ~9 hours the naive arithmetic implies. **Someone should establish the true
+cadence before this number is cited as a gap.**
+
+⚠️ **GOVERNANCE FINDING — the 7 success criteria are not in the repository.** The freeze record
+(`guardian-v1-freeze.md`) says to judge against "the 7 success criteria in the Phase D packet
+(chat, 2026-07-25)". They exist only in a chat transcript. **The standard the Phase E enforcement
+decision will be judged against is not durable**, and no lane can currently produce it. This is the
+same class of problem as the deploy-truth gap: the fact existed, but only in a place that decays.
+**Recommendation: reconstruct the 7 criteria into this repository before the window closes on
+2026-08-09**, or the decision gets made against remembered goalposts — which the AI Operating
+System's own honesty law forbids ("pre-declared success criteria; no post-hoc goalposts").
+
+**Verdict: SAFE TO CONTINUE.** No evidence argues for early termination or for early enforcement.
+Next checkpoint due ~2026-08-03. Remaining SC3 gap unchanged: the push leg of end-to-end delivery
+is still unproven (the email leg was proven live on 07-29).

@@ -135,6 +135,60 @@ Across all 823 schools: **682 (83%) = 1 segment / 1¢ · 141 (17%) = 2 segments 
 a 69% reduction in double-cost alerts for one line of copy. Queue with the other small app.py items.
 **Set `SMS_COST_CENTS` to the real Twilio per-segment rate before go-live** so the daily cap is accurate.
 
+## ⚠️ M-34 (P2, NEW) — EVERY DEPLOY BLINDS THE POLLER FOR ~3 MINUTES
+Measured on the `7e95a24` deploy: last cycle before restart, then **181 seconds with no polling**,
+then `[lease] took over the lease — this process is now polling` at 21:46:35 and cycles resumed.
+Cause: `POLL_LEASE_TTL = 180` (app.py:3329) and **no graceful release** — `grep -c
+"SIGTERM|release_poll_lease|atexit"` returns **0**. The old process dies still holding the lease, so
+the new one must wait the full TTL. The retry loop itself is correct (app.py:3426, retried every
+cycle); the gap is purely the missing handoff.
+**Why it matters:** the product promises alerts within ~20 seconds. Every deploy is a 3-minute blind
+window; today's two deploys cost ~6 minutes. During add/drop, when seats move in seconds, that is a
+seat a student could have had. It also means the more we ship, the blinder we are.
+**Fix:** release the lease on SIGTERM/atexit so takeover is immediate. Small, self-contained.
+Queue with the other app.py items. Until then: **prefer deploying outside peak registration hours.**
+
+## ✅ TWU — REJECTION REVERSED 2026-07-30. **Manager was wrong.**
+Build re-gated and overturned it; Manager verified directly against the live host rather than
+accepting the reversal:
+```
+sec   Avail  Enrol  Cap  Status  Waitlisted   A+E==C
+06        1     55   56       1           2    True
+51        1     58   59       1           2    True
+52        2     57   59       1           1    True
+53        1     58   59       1           2    True
+```
+**Every "full with seats" section has students already queued on its waitlist.** Those seats are
+spoken for; `AvailabilityStatus=1` is the school saying "not open to direct registration."
+Reporting them open would be a **false alert** — the student races to the registrar and cannot
+register because the waitlist has priority. `Available + Enrolled == Capacity` on all four is
+independent proof the counts are genuine, which is what justifies the `_no_seat_guard` bypass.
+**Root cause of the bad call:** Manager rejected on a surface contradiction (`open=False, seats>0`)
+without reading the `NewColleague` docstring, which already documents the rule — *"open ONLY when
+status == 0 AND Available > 0"* — and explains why the enum is untrusted. **Lesson: read the
+adapter's own stated accuracy model before calling its output inconsistent.**
+
+## ~~TWU — GATED AND SCRAPPED (superseded)~~
+Live-tested from the parked stash. **Passed** four gates: 20 sections in 3.4s (latency fine);
+**mixed status 12 open / 8 full** (real seat data, not fake-open); **20 unique keys of 20** (no
+section collapse); term freshness structural — `NewColleague` guest search indexes only active plan
+terms, so `term=None` is correct for this family, not an omission.
+**FAILED the seat-integrity gate.** `TWU` sets `_no_seat_guard = True` (schools.py:8428), skipping
+the seat-availability guard on the stated grounds that "Available/Enrolled/Capacity are all present
+and accurate." They are not consistent with the open flag:
+```
+HIST 1013   OPEN seats=[1,7,19,…,50]   FULL seats=[0, 1]      <- "full" with 1 seat
+MATH 1703   OPEN seats=[1,2,5,…,45]    FULL seats=[0, 1, 2]   <- "full" with 2 seats
+ENG  1013   OPEN seats=[1,2,…,35]      FULL seats=[0]         <- clean
+```
+Alerts fire on the `open` flag, so a section reading `open=False, seats=2` **never alerts while
+showing two seats** — the silent-miss class that flagged the UH family. It may be legitimate
+(restricted/reserved seats), but nobody has explained it, and the override's own justification is the
+field that contradicts itself. Accuracy is not tradeable, so it does not ship.
+**Not permanently rejected:** revisit if someone explains why `open=False` coexists with `seats>0`
+and proves those seats are genuinely unavailable. Until then TWU stays out.
+The other 7 parked schools remain **ungated** in stash `7e4550ac`.
+
 ## ⚠️ M-33 (P2, NEW) — uncommitted net-new schools in `schools.py` during the sprint pause
 ~34 added lines: Morgan State, Elizabeth City State, UNF, Shepherd, West Liberty (+ possibly more).
 Well-annotated and consistent with the accuracy discipline (openSection-unreliable notes present), so
@@ -326,7 +380,7 @@ Priority: **P2 now, becomes P0 by late September.**
 
 | ID | Task | Owner | Status | Output | Definition of done |
 |---|---|---|---|---|---|
-| M-10 | Term-bump plan for ~804 schools with auto-roll disarmed (manual bump obligation created 07-26); prior audit flagged an Oct-1 backward-roll false-open detonation | Guardian + Build | proposed | Written procedure + guarded re-arm design (ORD-A) | Procedure exists, rehearsed on ≥5 schools, CEO-approved |
+| M-10 | ✅ **PROCEDURE WRITTEN 2026-07-30** → `ops/TERM-ROLL-PROCEDURE.md`. Verified against deployed code: the audit's false-alert cascade **is mitigated** (app.py:2808 blocks watches whose stamped term ≠ school term). **But the guard trades a false alert for a silent death** — a rolled school strands every existing watch and never tells the student. **Baseline measured: zero `blocked_wrong_term` across the last 20 cycles; all 15 watches stamped 202608/202610, nothing has rolled.** THE REAL GAP: nothing pages on `blocked_wrong_term` — it is recorded and logged once, and the hourly monitor's breach conditions do not include it, so the cliff would arrive unnoticed. Small fix, owner Guardian. Audit's tie-break issue (Roosevelt/Ramapo/UNM/Earlham/Emporia sub-populations) still unfixed and safe only by luck. Risk window opens late September; audit's detonation date 2026-10-01. ~~Term-bump plan for ~804 schools~~ with auto-roll disarmed (manual bump obligation created 07-26); prior audit flagged an Oct-1 backward-roll false-open detonation | Guardian + Build | proposed | Written procedure + guarded re-arm design (ORD-A) | Procedure exists, rehearsed on ≥5 schools, CEO-approved |
 
 ## PROJECT 5 — SURVIVABILITY
 Priority: **P2**
