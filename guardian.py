@@ -407,6 +407,19 @@ def latch_decision(r, ntfy_ok, pushed, emailed, texted):
                                      (uid,)).fetchone() is not None
                 u = c.execute("SELECT email FROM users WHERE id=?", (uid,)).fetchone()
                 has_email = bool(u and u["email"])
+            # ENROLLED means enrolled AND ENABLED. A channel the user switched off is one
+            # we never attempt, so counting it as enrolled makes the honest latch demand
+            # delivery on a channel that was never tried. In shadow that logs divergences
+            # which are not real; once enforcement is on it is worse — a correctly
+            # delivered alert fails to latch and the watch re-fires every single cycle.
+            # Read through app so sender and latch share one definition.
+            try:
+                import app as _app
+                want_push, want_email = _app.notify_prefs(uid)
+                has_push = has_push and want_push
+                has_email = has_email and want_email
+            except Exception:
+                pass          # prefs unreadable: fall back to enrolment alone (today's rule)
         honest = (pushed > 0) or bool(emailed) or bool(texted) or \
                  (bool(ntfy_ok) and not (has_push or has_email))
         if _CFG["mode"] == "enforce":

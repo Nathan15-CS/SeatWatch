@@ -257,6 +257,17 @@ def init_db():
         if "plan_payment_intent" not in ucols:   # the charge that granted the CURRENT plan —
             c.execute("ALTER TABLE users ADD COLUMN plan_payment_intent TEXT")  # lets a refund
                                                  # downgrade ONLY that charge, never a newer one
+        # --- per-user channel preferences -------------------------------------------
+        # DEFAULT 1 on both: every existing row keeps exactly today's behaviour, so this
+        # migration cannot change what any current user receives. A student who is paying
+        # should be able to stop getting the same alert three ways without unsubscribing
+        # from the product. The floor (at least one channel on) is enforced server-side in
+        # the handler, never in the UI — a watch with no reachable channel is a watch that
+        # can never fire, which is the silent-failure class the surfacing work just closed.
+        if "notify_email" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN notify_email INTEGER NOT NULL DEFAULT 1")
+        if "notify_push" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN notify_push INTEGER NOT NULL DEFAULT 1")
         # webhook idempotency — a Stripe event unlocks a tier AT MOST once, even on retries
         c.execute("""CREATE TABLE IF NOT EXISTS stripe_events(
             event_id  TEXT PRIMARY KEY,
@@ -1830,6 +1841,36 @@ def sms_block(user, tok):
     return box + _sms_optin_form(tok) + "</div>"
 
 
+def notify_prefs_block(user, tok):
+    """Two checkboxes letting a student choose how they are alerted.
+
+    Deliberately shown to everyone (not just paid): a free user with both push and email
+    firing on the same seat is the person most likely to call us spam. There is no
+    checkbox for "all off" — the floor is enforced in the handler, not here, because a
+    UI-only guard is bypassed by anyone who can craft a POST.
+    """
+    if not user:
+        return ""
+    want_push, want_email = notify_prefs(user["id"])
+    ck = ' checked'
+    return (
+        '<div style="margin-top:14px;border-top:1px solid #F3F4F6;padding-top:13px">'
+        '<form method="post" action="/notify-prefs" style="margin:0">'
+        f'<input type="hidden" name="csrf" value="{html.escape(tok or "")}">'
+        '<label style="margin-bottom:7px">How should we alert you?</label>'
+        '<label style="display:flex;gap:9px;align-items:center;font-weight:400;font-size:13px;'
+        'text-transform:none;letter-spacing:0;margin:0 0 6px">'
+        f'<input type="checkbox" name="notify_push" value="1"{ck if want_push else ""} '
+        'style="flex:none;width:auto"><span>Phone / browser notification</span></label>'
+        '<label style="display:flex;gap:9px;align-items:center;font-weight:400;font-size:13px;'
+        'text-transform:none;letter-spacing:0;margin:0">'
+        f'<input type="checkbox" name="notify_email" value="1"{ck if want_email else ""} '
+        'style="flex:none;width:auto"><span>Email</span></label>'
+        '<p class="note" style="margin:8px 0 0;font-size:12px">Keep at least one on, or we '
+        'have no way to tell you a seat opened.</p>'
+        '<button type="submit" style="margin-top:9px">Save</button></form></div>')
+
+
 def feedback_block(tok):
     """Click-to-open feedback box, rendered at the BOTTOM of the page under the tagline.
 
@@ -1925,7 +1966,8 @@ def form_page(notice="", user=None):
                 .replace("__SECFIELD__", secfield)
                 .replace("__PLANNOTE__", plannote)
                 .replace("__EMAIL__", html.escape(user["email"]))
-                .replace("__PUSHBLOCK__", push_block(tok) + sms_block(user, tok))
+                .replace("__PUSHBLOCK__", push_block(tok) + sms_block(user, tok)
+                                            + notify_prefs_block(user, tok))
                 .replace("__CSRF__", tok)
                 .replace("__WATCHES__", watches_html(user["id"], tok))
                 .replace("__SCHOOLS__", SCHOOLS_JS))
@@ -2325,7 +2367,7 @@ class Handler(BaseHTTPRequestHandler):
             return self._send_bytes(twiml.encode(), "text/xml; charset=utf-8",
                                     cache="no-store")
         if path not in ("/watch", "/unwatch", "/push/subscribe", "/auth/apple",
-                        "/sms/optin", "/feedback"):
+                        "/sms/optin", "/feedback", "/notify-prefs"):
             return self._send(page("<p>Not found.</p>"), 404)
 
         # (1) rate limit FIRST — blocks form-flooding before any work is done
@@ -2360,6 +2402,31 @@ class Handler(BaseHTTPRequestHandler):
         # (2) WHO IS THIS? Signed session cookie or nothing. Entitlements are
         # per-account — an anonymous POST can no longer create watches at all.
         user = self._user()
+
+        if path == "/notify-prefs":
+            if not user:
+                return self._redirect("/login")
+            nform = parse_qs(raw_body)
+            if not hmac.compare_digest(nform.get("csrf", [""])[0], csrf_token(user["id"])):
+                return self._notice("That form expired, please try again.", user=user)
+            want_push = bool(nform.get("notify_push"))
+            want_email = bool(nform.get("notify_email"))
+            # THE FLOOR, enforced here and not in the browser. An account with every
+            # channel off is an account whose watches can never fire: the alert would be
+            # generated, delivered nowhere, and nobody — including us — would be told the
+            # student missed their seat. Unchecking both is refused outright rather than
+            # accepted-and-ignored, so the saved state always matches what we will do.
+            if not (want_push or want_email):
+                return self._notice(
+                    "Keep at least one alert method on. With both off we would have no way "
+                    "to tell you a seat opened. To stop alerts entirely, remove the class "
+                    "you are watching.", user=user)
+            with db() as c:
+                c.execute("UPDATE users SET notify_push=?, notify_email=? WHERE id=?",
+                          (int(want_push), int(want_email), user["id"]))
+            on = " and ".join([x for x in ("phone/browser" if want_push else "",
+                                           "email" if want_email else "") if x])
+            return self._notice(f"Saved. We will alert you by {on}.", user=user)
 
         if path == "/feedback":
             if not user:
@@ -3256,6 +3323,28 @@ def sms_apply_inbound(from_phone, body):
     return None
 
 
+def notify_prefs(user_id):
+    """(want_push, want_email) for this account. Fail OPEN: any missing row, missing
+    column or DB error reads as BOTH ENABLED, because the failure mode of guessing wrong
+    is a student who silently stops being alerted. An extra notification is a nuisance; a
+    missing one is the whole product failing.
+
+    Guardian reads this too (via app.notify_prefs) so the sender and the latch can never
+    disagree about which channels an account actually uses.
+    """
+    if not user_id:
+        return True, True
+    try:
+        with db() as c:
+            u = c.execute("SELECT notify_push, notify_email FROM users WHERE id=?",
+                          (user_id,)).fetchone()
+        if not u:
+            return True, True
+        return bool(u["notify_push"]), bool(u["notify_email"])
+    except Exception:
+        return True, True
+
+
 _undelivered = set()   # watch_ids whose last alert reached NOBODY (retrying each cycle)
 
 
@@ -3271,10 +3360,17 @@ def _alert(r, message, url):
                    message + " Tap to register — go now.",
                    click_url=_click_url(tok["ntfy"], url), topic=r["topic"])
     uid = r["user_id"] if "user_id" in r.keys() else None
-    pushed = send_web_push(uid, f"Seat open: {r['course']}",
-                           message + " Tap to register — go now.", _click_url(tok["webpush"], url))
+    # Per-user channel preferences. Read ONCE here and reused for the latch decision, so
+    # the Guardian and the sender can never disagree about which channels this account
+    # actually uses. Missing/legacy rows read as enabled, matching the DEFAULT 1 migration.
+    want_push, want_email = notify_prefs(uid)
+    pushed = 0
+    if want_push:
+        pushed = send_web_push(uid, f"Seat open: {r['course']}",
+                               message + " Tap to register — go now.",
+                               _click_url(tok["webpush"], url))
     emailed = False
-    if EMAIL_ENABLED and uid:
+    if want_email and EMAIL_ENABLED and uid:
         with db() as c:
             row = c.execute("SELECT email FROM users WHERE id=?", (uid,)).fetchone()
         if row and row["email"]:
