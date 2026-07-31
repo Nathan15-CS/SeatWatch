@@ -35,9 +35,33 @@ for f in "${FILES[@]}"; do
   "${SSH[@]}" "cp -f ~/seatwatch/$f ~/seatwatch/$f.prev 2>/dev/null || true"
   scp -i "$KEY" -o IdentitiesOnly=yes "$f" "$VM:~/seatwatch/$f"
 done
-"${SSH[@]}" "sudo systemctl restart seatwatch && sleep 3 && systemctl is-active seatwatch"
-"${SSH[@]}" "sudo journalctl -u seatwatch -n 60 --no-pager | grep -m1 'Poller started'" \
-  || { echo "!! SMOKE FAILED (no 'Poller started') — run ops/rollback.sh NOW"; exit 1; }
+# T0 comes from the VM's own clock, not this Mac's, so clock skew cannot widen the
+# window. Every piece of evidence below must have been generated AFTER this instant.
+T0=$("${SSH[@]}" "date +%s")
+"${SSH[@]}" "sudo systemctl restart seatwatch"
+# Must exceed the unit's RestartSec=5. Type=simple means systemd reports 'active' the
+# moment exec succeeds — before the Python has had a chance to fail — so the old 3s
+# check proved only that the interpreter launched, and a crash-loop still inside its
+# first restart looked identical to a healthy service.
+sleep 12
+"${SSH[@]}" "systemctl is-active seatwatch"
+# Bounded to THIS restart. `journalctl -n 60` spans restarts: a service that dies on
+# startup still shows the PREVIOUS run's 'Poller started' in the tail, so the grep
+# passes on evidence that predates the deploy. Not hypothetical — the 71b9dac deploy
+# matched a line from the day before.
+"${SSH[@]}" "sudo journalctl -u seatwatch --since '@$T0' --no-pager | grep -m1 'Poller started'" \
+  || { echo "!! SMOKE FAILED (no 'Poller started' since restart) — run ops/rollback.sh NOW"; exit 1; }
+# The check that proves the right BYTES are live. The log line proves something started;
+# this proves it was this release. Cheap, and the only one of these that cannot be
+# satisfied by leftover state from a previous run.
+for f in "${FILES[@]}"; do
+  L=$(shasum -a 256 "$f" | cut -d' ' -f1)
+  R=$("${SSH[@]}" "sha256sum ~/seatwatch/$f | cut -d' ' -f1")
+  [ "$L" = "$R" ] || { echo "!! SMOKE FAILED ($f hash mismatch — vm is not running this release)"
+                       echo "   local $L"; echo "   vm    $R"
+                       echo "   run ops/rollback.sh NOW"; exit 1; }
+  echo "   verified $f $L"
+done
 HTTP=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 https://seatwatchapp.com) || HTTP=000
 [ "$HTTP" = "200" ] || { echo "!! SMOKE FAILED (site HTTP $HTTP) — run ops/rollback.sh NOW"; exit 1; }
 echo "$(date -u +%FT%TZ) sha=${SHA} mode=${MODE} files=[${FILES[*]}]" >> DEPLOYED.log
