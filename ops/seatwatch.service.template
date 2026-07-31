@@ -1,0 +1,37 @@
+# /etc/systemd/system/seatwatch.service
+#
+# Captured from the live VM 2026-07-31. This file was NOT in git before — meaning a
+# server loss would have required rebuilding it from memory, including the three
+# Environment= lines. SEATWATCH_ADMIN_TOPIC in particular is a random token nobody
+# would recall; getting it wrong means operator alerts publish to a topic no one is
+# subscribed to, and fail silently.
+#
+# The real SEATWATCH_ADMIN_TOPIC value is NOT stored here on purpose — an ntfy topic
+# name functions as a shared secret (anyone who knows it can publish and subscribe).
+# It lives in the /etc/seatwatch.env copy in the password manager, alongside the other
+# secrets. Restore it from there.
+#
+# Install:
+#   sudo cp seatwatch.service.template /etc/systemd/system/seatwatch.service
+#   sudo nano /etc/systemd/system/seatwatch.service     # fill SEATWATCH_ADMIN_TOPIC
+#   sudo systemctl daemon-reload && sudo systemctl enable --now seatwatch
+
+[Unit]
+Description=SeatWatch course-seat alert service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=ubuntu
+WorkingDirectory=/home/ubuntu/seatwatch
+Environment=PORT=8080
+Environment=SEATWATCH_DB=/home/ubuntu/seatwatch/watches.db
+Environment=SEATWATCH_ADMIN_TOPIC=__FROM_PASSWORD_MANAGER__
+EnvironmentFile=/etc/seatwatch.env
+ExecStart=/usr/bin/python3 /home/ubuntu/seatwatch/app.py
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

@@ -57,11 +57,17 @@ Data loss is bounded by the last off-server pull (≤ ~24h). Steps:
    ```
 5. **Secrets:** recreate `/etc/seatwatch.env` (Google OAuth, VAPID, Stripe, Twilio,
    healthcheck URL). ⚠️ **These are NOT backed up anywhere** — see "Known gap" below.
-6. **Service:** recreate the systemd unit (`Restart=always`, `EnvironmentFile=/etc/seatwatch.env`),
+6. **Service:** install `ops/seatwatch.service.template` from this repo (captured from the
+   live VM 2026-07-31 — it was NOT in git before, so this step previously required rebuilding
+   the unit from memory including the `SEATWATCH_ADMIN_TOPIC` token, which is unrecoverable
+   that way). Fill that token from the env backup, then
    then `sudo systemctl enable --now seatwatch`.
 7. **DNS:** point `seatwatchapp.com` at the new IP (Cloudflare).
 8. **Verify:** `curl -s https://seatwatchapp.com/ | grep -o '[0-9]* universities'` and confirm
    the poller log shows a cycle.
+
+**Drill:** `ops/REBUILD-DRILL.md` rehearses steps 1-2 and 5-8 without touching production
+DNS. Run it before students depend on the service.
 
 **Rehearsed?** The *data* half (steps 3–4) is proven — a drill restored the off-server copy
 and the app opened it cleanly. Steps 1–2 and 5–8 are documented but **never rehearsed
@@ -71,7 +77,11 @@ end-to-end**; expect a few hours, not minutes.
 
 ## Known gap (do this yourself)
 
-**Server secrets are not backed up.** `/etc/seatwatch.env` holds the Google OAuth client,
+**~~Server secrets are not backed up~~ — CLOSED 2026-07-30.** The CEO took a copy of
+`/etc/seatwatch.env` into a password manager after the credential rotation. What follows is
+kept as the standing reason it matters:
+
+**Originally:** `/etc/seatwatch.env` holds the Google OAuth client,
 VAPID push keys, Stripe keys, and Twilio credentials. If the server is lost, they must be
 re-created/re-issued from each provider's console. Losing the **VAPID keys specifically**
 would silently break every existing web-push subscription (students would stop getting
