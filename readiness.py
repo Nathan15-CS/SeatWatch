@@ -40,6 +40,8 @@ SUITES = [
      "stored before emailed; survives email being off; unsent backlog queryable"),
     ("Twilio inbound signature (STOP path)", "test_sms_signature",
      "genuine signed request with BLANK params validates; STOP really revokes consent"),
+    ("SMS for everyone + sample + promo", "test_sms_growth",
+     "consent absolute after the tier gate went; sample once per account; promo once"),
     ("Per-user channel preferences", "test_notify_prefs",
      "a student can never end up with zero reachable channels; latch respects prefs"),
     ("Silent-failure surfacing", "test_surfacing",

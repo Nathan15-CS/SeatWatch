@@ -268,6 +268,16 @@ def init_db():
             c.execute("ALTER TABLE users ADD COLUMN notify_email INTEGER NOT NULL DEFAULT 1")
         if "notify_push" not in ucols:
             c.execute("ALTER TABLE users ADD COLUMN notify_push INTEGER NOT NULL DEFAULT 1")
+        # --- one-time sample text + promo -------------------------------------------
+        # sample_sms_at: stamped the FIRST time a student is shown what an alert looks
+        # like. Once per account, ever — not per watch — so adding five classes does not
+        # send five sample texts.
+        # promo_sent_at: stamped when the 7-day discount email goes out, so a restart or a
+        # double sweep can never mail the same student twice.
+        if "sample_sms_at" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN sample_sms_at REAL")
+        if "promo_sent_at" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN promo_sent_at REAL")
         # webhook idempotency — a Stripe event unlocks a tier AT MOST once, even on retries
         c.execute("""CREATE TABLE IF NOT EXISTS stripe_events(
             event_id  TEXT PRIMARY KEY,
@@ -1828,8 +1838,8 @@ def sms_block(user, tok):
     """In-app text-alert opt-in card for PAID users. Empty for free users and while SMS is
     dormant (the /text-alerts page is the public opt-in home until launch). Single opt-in:
     once the box is submitted the alerts are ON — there is no confirm-reply step."""
-    if not SMS_ENABLED or not user or effective_tier(user) < 1:
-        return ""
+    if not SMS_ENABLED or not user:
+        return ""          # every signed-in user, free included — SMS is consent-gated now
     with db() as c:
         row = c.execute("SELECT phone, confirmed_at, revoked_at FROM sms_consent WHERE "
                         "user_id=? ORDER BY id DESC LIMIT 1", (user["id"],)).fetchone()
@@ -2469,9 +2479,9 @@ class Handler(BaseHTTPRequestHandler):
             oform = parse_qs(raw_body)
             if not hmac.compare_digest(oform.get("csrf", [""])[0], csrf_token(user["id"])):
                 return self._notice("Session expired, please try again.", user=user)
-            if effective_tier(user) < 1:
-                return self._notice("Text alerts are part of the paid plans. Free plans use "
-                                    "web push and email — no phone number needed.", user=user)
+            # No tier check: text alerts are for everyone who consents. A phone number is
+            # still never REQUIRED — push and email work without one — but a student who
+            # gives us one gets the channel that actually wakes them at 2am.
             phone = _norm_phone(oform.get("phone", [""])[0])
             if not phone:
                 return self._notice("That phone number doesn't look right, use a US "
@@ -2665,6 +2675,11 @@ class Handler(BaseHTTPRequestHandler):
                                   (school.id, user["topic"], course, sec,
                                    stamp_term(school), time.time(), user["id"]))
                 what = course + " " + ", ".join(new)
+        # They have just told us the class they are stuck on. If they gave us a consented
+        # number, show them RIGHT NOW what the alert will look like — the single best
+        # moment to demonstrate the product is the moment they start needing it. Once per
+        # account, never per watch, and it can never break watch creation.
+        send_sample_sms(user["id"])
         self._send(done_page(f"{what} @ {school.name}", user))
         return
 
@@ -3150,6 +3165,55 @@ _sms_paged = set()   # which cap trips were already operator-paged today (page o
 _dryrun_logged = set()   # watch_ids already dry-run-logged this process (log once, not per cycle)
 
 
+def send_sample_sms(user_id):
+    """Show a student exactly what a seat alert will look like, once, when they first
+    start watching a class.
+
+    This is the whole pitch delivered in ten seconds: they have just told us which class
+    they are stuck on, and their phone immediately shows the message that will arrive when
+    a seat frees up. Nothing else we can say converts as well as the thing itself.
+
+    Strictly ONCE per account (sample_sms_at), never per watch — adding five classes must
+    not send five texts. Consent-gated like every other send: _sms_phone() returns a number
+    only when it is confirmed and not revoked. Costs about a penny, and never raises: a
+    marketing nicety must not be able to break watch creation.
+    """
+    if not (SMS_LIVE or SMS_DRYRUN) or not user_id:
+        return False
+    try:
+        with db() as c:
+            u = c.execute("SELECT sample_sms_at FROM users WHERE id=?", (user_id,)).fetchone()
+        if not u or u["sample_sms_at"]:
+            return False                      # already shown, or no such user
+        phone = _sms_phone(user_id)
+        if not phone:
+            return False                      # no consented number: nothing to show
+        body = ("SeatWatch: you're all set. This is what an alert looks like — "
+                "\"CHEM231-0101: 2 seats just opened. Register now.\" "
+                "We'll text you the moment a real seat frees up. Reply STOP to opt out.")
+        segs = _sms_segments(body)
+        if SMS_DRYRUN and not SMS_LIVE:
+            sw.log(f"  [sms DRY-RUN] sample to ••••{phone[-4:]} segs={segs} body={body!r}")
+            ok = True
+        else:
+            ok, code = _twilio_post(phone, body)
+            if not ok and code in _TWILIO_STOP_CODES:
+                with db() as c:
+                    c.execute("UPDATE sms_consent SET revoked_at=? WHERE user_id=? AND "
+                              "phone=? AND revoked_at IS NULL", (time.time(), user_id, phone))
+        # Stamp on ATTEMPT, not only on success. A carrier failure is not worth retrying
+        # forever, and a student who signs up during an outage should not be sampled
+        # repeatedly later — the real alerts are what matter.
+        with db() as c:
+            c.execute("UPDATE users SET sample_sms_at=? WHERE id=?", (time.time(), user_id))
+        sw.log(f"  [sms] sample alert {'sent' if ok else 'attempted'} to ••••{phone[-4:]} "
+               f"({segs} seg)")
+        return bool(ok)
+    except Exception as e:
+        sw.log(f"  [sms] sample failed: {type(e).__name__}")
+        return False
+
+
 def send_sms(user_id, r, message, url):
     """Deliver one seat alert by SMS, spending real money — so this function is where
     EVERY cost gate lives, structurally, not at call sites. Returns True only when
@@ -3173,8 +3237,16 @@ def send_sms(user_id, r, message, url):
         return False
     with db() as c:
         u = c.execute("SELECT * FROM users WHERE id=?", (user_id,)).fetchone()
-    if not u or effective_tier(u) < 1:
-        return False                       # PAID ONLY — refused here, not by callers
+    if not u:
+        return False
+    # SMS is CONSENT-gated, not tier-gated. It used to be paid-only, on the reasoning that
+    # texts cost money forever and were the paid tier's headline feature. The tiers actually
+    # sell QUANTITY (free = 1 class / 2 sections; paid = more classes, unlimited sections),
+    # so the ladder survives, and a free tier that texts you is the reason anyone signs up
+    # at all. Spend stays bounded by the per-watch latch, the per-user daily cap, the daily
+    # dollar ceiling and the velocity breaker below — none of which changed.
+    # Consent is still absolute: _sms_phone() returns a number ONLY when it is confirmed
+    # and not revoked, so nobody is texted who did not ask to be.
     phone = _sms_phone(user_id)
     if not phone:
         return False
@@ -3522,6 +3594,60 @@ def retry_unsent_feedback():
         sw.log(f"  [feedback] retry sweep failed: {type(e).__name__}")
 
 
+PROMO_CODE = os.environ.get("PROMO_CODE", "SEATWATCH5")
+PROMO_AFTER_DAYS = int(os.environ.get("PROMO_AFTER_DAYS", "7"))
+PROMO_SWEEP_SECS = 3600            # look for eligible students at most once an hour
+_promo_sweep_at = [0.0]
+
+
+def send_promo_emails():
+    """Offer $5 off to students who have been here a week and have not bought anything.
+
+    Gated on PAID_ENABLED for a reason that is not technical: a discount code that leads
+    to a page saying "Coming soon" is worse than sending nothing at all. It burns the one
+    moment a student is thinking about paying, and it reads as a company that does not
+    have its act together. So this stays silent until there is something to buy.
+
+    promo_sent_at makes it strictly once per student — a restart, a double sweep or two
+    pollers racing can never mail the same person twice. Never raises: a marketing job
+    must not be able to interfere with seat alerts.
+    """
+    if not (PAID_ENABLED and EMAIL_ENABLED):
+        return 0
+    now = time.time()
+    if now < _promo_sweep_at[0]:
+        return 0
+    _promo_sweep_at[0] = now + PROMO_SWEEP_SECS
+    sent = 0
+    try:
+        cutoff = now - PROMO_AFTER_DAYS * 86400
+        with db() as c:
+            rows = c.execute(
+                "SELECT id, email FROM users WHERE promo_sent_at IS NULL AND created < ? "
+                "AND email IS NOT NULL AND email != '' AND COALESCE(plan_tier,0) < 1 "
+                "ORDER BY created LIMIT 50", (cutoff,)).fetchall()
+        for u in rows:
+            body = (
+                f"You have been watching classes with SeatWatch for a week.\n\n"
+                f"If you need more than one class covered, here is {PROMO_CODE} for $5 off "
+                f"any paid plan — the 5-class plan comes to $24.95 instead of $29.95.\n\n"
+                f"Use it at checkout: {BASE_URL or 'https://seatwatchapp.com'}/pricing\n\n"
+                f"If the free plan is doing the job, ignore this. It keeps working either "
+                f"way, and we will keep watching your class.\n\n— SeatWatch")
+            ok = send_email(u["email"], "A code for $5 off, if you need more classes",
+                            body, (BASE_URL or "https://seatwatchapp.com") + "/pricing")
+            # Stamp on ATTEMPT. Retrying a marketing email until it succeeds is how people
+            # end up receiving it four times; one honest attempt each is the right trade.
+            with db() as c:
+                c.execute("UPDATE users SET promo_sent_at=? WHERE id=?", (time.time(), u["id"]))
+            sent += bool(ok)
+        if sent:
+            sw.log(f"  [promo] {PROMO_CODE} offered to {sent} student(s)")
+    except Exception as e:
+        sw.log(f"  [promo] sweep failed: {type(e).__name__}")
+    return sent
+
+
 def poller():
     sw.log("Poller started (with health guard).")
     if os.environ.get("AUTO_ROLL_TERMS") != "1":
@@ -3560,6 +3686,7 @@ def poller():
                 ping_healthcheck()      # claim success; off/shadow: semantics unchanged
             maybe_daily_summary()
             retry_unsent_feedback()     # drain any feedback that failed to email
+            send_promo_emails()         # 7-day $5-off nudge (dormant until paid)
             run_fire_drill()
         except Exception as e:
             sw.log(f"[poller error, recovering] {e}")
