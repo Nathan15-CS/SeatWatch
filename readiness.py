@@ -48,6 +48,8 @@ SUITES = [
      "conditions that kill a watch PAGE a human; fail-closed noise stays quiet"),
     ("Section-collapse detector", "test_section_collapse",
      "distinct section keys == real rows; catches PARTIAL collapse that looks plausible"),
+    ("Full student journey (end to end)", "test_journey",
+     "land -> watch -> sample -> seat opens -> alert -> click -> prefs -> STOP -> feedback"),
     ("Pinned-term schools still live", "test_pinned_terms",
      "schools that can't auto-roll haven't silently gone dead (hits real hosts)"),
 ]
