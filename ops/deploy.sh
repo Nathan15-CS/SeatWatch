@@ -29,6 +29,29 @@ case "$MODE" in
   *) echo "usage: ops/deploy.sh schools | app --app-approved"; exit 1 ;;
 esac
 
+# PRE-FLIGHT: the committed tree must actually IMPORT before anything ships.
+#
+# Byte-verification below proves the file ARRIVED intact. It cannot prove the app can
+# START. On 2026-08-01 a commit reached HEAD carrying two classes with the same school id
+# ("wpcc"): _guard_registry raised on import, so schools.py was a valid file that would
+# have taken the poller down on restart, and every byte would have verified perfectly.
+# Two lanes write schools.py concurrently, so a half-finished edit reaching a commit is a
+# WHEN, not an IF. This is the cheapest possible place to catch it: local, one second,
+# before a single byte moves.
+echo ">> pre-flight: importing the committed tree"
+git stash list >/dev/null 2>&1
+python3 - <<'PREFLIGHT' || { echo "REFUSED: the tree does not import — deploying it would take production DOWN"; exit 1; }
+import sys, os, tempfile
+os.environ.setdefault("SEATWATCH_DB", os.path.join(tempfile.mkdtemp(), "preflight.db"))
+sys.path.insert(0, os.getcwd())
+import schools, guardian, confidence, app          # noqa: F401
+n = len(schools.SCHOOLS)
+assert n > 0, "registry is empty"
+dups = [k for k in schools.SCHOOLS if not k]
+assert not dups, f"blank school ids: {dups}"
+print(f"   import OK — {n} schools, app/guardian/confidence load clean")
+PREFLIGHT
+
 SHA=$(git rev-parse --short HEAD)
 echo ">> deploying ${FILES[*]} @ ${SHA} to ${VM}"
 for f in "${FILES[@]}"; do
