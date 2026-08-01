@@ -1374,7 +1374,7 @@ SMS_TERMS = """<h2 style="font-size:20px;margin:6px 0 2px">SMS Terms &amp; Condi
 <p class="sub" style="margin-bottom:14px">Last updated: July 23, 2026</p>
 <div style="STYLE">
 <p><b>1. Program description.</b> The SeatWatch text-alert program sends automated text messages notifying you when a seat opens in a full college course or section you have chosen to monitor. Text alerts are an optional feature of SeatWatch, available on every plan including the free one.</p>
-<p><b>2. How to opt in.</b> On a paid plan, add your U.S. mobile number and check the consent box that reads: &ldquo;<i>I agree to receive automated SeatWatch course seat-availability alerts at the number provided. Message frequency varies based on the courses I monitor. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not a condition of purchase. See our Terms and Privacy Policy.</i>&rdquo; The box is unchecked by default; checking it and submitting is your affirmative opt-in.</p>
+<p><b>2. How to opt in.</b> Add your U.S. mobile number and check the consent box that reads: &ldquo;<i>I agree to receive automated SeatWatch course seat-availability alerts at the number provided. Message frequency varies based on the courses I monitor. Message and data rates may apply. Reply STOP to opt out or HELP for help. Consent is not a condition of purchase. See our Terms and Privacy Policy.</i>&rdquo; The box is unchecked by default; checking it and submitting is your affirmative opt-in.</p>
 <p><b>3. Consent is not a condition of purchase.</b> You are never required to provide a mobile number or agree to texts to buy or use SeatWatch. SeatWatch works fully without text alerts on every plan &mdash; web push and email are always available.</p>
 <p><b>4. Message frequency.</b> Message frequency varies based on how many courses and sections you monitor and how often seats open in them. You may receive multiple messages when seats open, or none when they do not.</p>
 <p><b>5. Cost.</b> <b>Message and data rates may apply.</b> SeatWatch does not charge for the text messages themselves; your mobile carrier&rsquo;s standard messaging and data rates apply, and you are responsible for them.</p>
@@ -1828,7 +1828,7 @@ def _sms_optin_form(tok):
     checkbox and language."""
     return (f'<form method="post" action="/sms/optin" style="margin:0">'
             f'<input type="hidden" name="csrf" value="{html.escape(tok or "")}">'
-            f'<label>Mobile number <small>(U.S. mobile, paid plans)</small></label>'
+            f'<label>Mobile number <small>(U.S. mobile)</small></label>'
             f'<input name="phone" type="tel" inputmode="tel" placeholder="e.g. 301 555 0123" '
             f'autocomplete="tel" required>'
             f'<label style="display:flex;gap:9px;align-items:flex-start;font-weight:400;'
@@ -1987,10 +1987,11 @@ def text_alerts_body(user):
         f'<div style="{_PSTYLE}">'
         '<p>SeatWatch watches the full college courses you choose and sends an automated text '
         'message the instant a seat opens, so you can register before it fills again. Text '
-        'alerts are an optional feature of our paid plans.</p>'
-        '<p><b>How it works.</b> On a paid plan, enter your U.S. mobile number below and check '
+        'alerts are an optional feature of SeatWatch, available on every plan including the '
+        'free one.</p>'
+        '<p><b>How it works.</b> Enter your U.S. mobile number below and check '
         'the consent box. That is your opt-in. The box is unchecked by default, and a '
-        'phone number is <b>never required</b> to use SeatWatch: free and paid plans both work '
+        'phone number is <b>never required</b> to use SeatWatch: every plan works '
         'fully with web push and email.</p>'
         '<div style="background:#F8FAFC;border:1px solid rgba(11,21,38,.08);border-radius:14px;'
         'padding:16px 16px 18px;margin:15px 0">'
