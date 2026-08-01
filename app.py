@@ -1272,7 +1272,7 @@ __NOTICE__
  </div>
  <label>Course code <small id="ex"></small></label>
  <input name="course" id="course" placeholder="e.g. ENG101" required>
-__PHONEFIELD__ __SECFIELD__
+__SECFIELD__ __PHONEFIELD__
  <button type="submit">Watch this class<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
 </form>
 __PLANNOTE__
@@ -1984,11 +1984,13 @@ def sms_block(user, tok):
 
 
 def inline_phone_field(user):
-    """The phone + consent prompt, INSIDE the watch form, between course and sections.
+    """The phone + consent prompt, INSIDE the watch form, directly after the sections.
 
-    It used to live in its own card below the form, and people never reached it: they
+    It used to live in its own card below the form and people never reached it: they
     arrive wanting to watch a class, fill the first fields they see, and submit. The
-    option has to sit in the path they already walk, not beside it.
+    option has to sit in the path they already walk, not beside it. It briefly sat
+    BEFORE the sections; Nathan moved it after, so the student finishes describing the
+    class they came for before being asked for anything about themselves.
 
     Marked RECOMMENDED, never required — a phone number is not a condition of using
     SeatWatch, and saying so is both true and a TCPA nicety. Empty for anyone who has
@@ -2500,7 +2502,7 @@ class Handler(BaseHTTPRequestHandler):
                 btn = "<a class='cbtn' href='/login'>Sign in to choose</a>"
             else:
                 btn = f"<a class='cbtn' href='/checkout?tier={t}'>Choose — {price}</a>"
-            note = ("<p class='note' style='margin:6px 0 0'>Have a discount code? "
+            note = ("<p class='note' style='margin:6px 0 0'>Have a promotional code? "
                     "Enter it on the payment page.</p>" if t == PROMO_TIER else "")
             cards.append(f"<div class='price'><p class='amt'>{price} "
                          f"<small>one-time, this term</small></p>"
@@ -3932,7 +3934,7 @@ _promo_sweep_at = [0.0]
 def send_promo_emails():
     """Offer $5 off to students who have been here a week and have not bought anything.
 
-    Gated on PAID_ENABLED for a reason that is not technical: a discount code that leads
+    Gated on PAID_ENABLED for a reason that is not technical: a promotional code that leads
     to a page saying "Coming soon" is worse than sending nothing at all. It burns the one
     moment a student is thinking about paying, and it reads as a company that does not
     have its act together. So this stays silent until there is something to buy.

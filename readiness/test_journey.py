@@ -105,10 +105,20 @@ def run():
     check("2. signed-in HTML is never cached (shared campus machine, back button)",
           "no-store" in (hdrs.get("Cache-Control") or ""),
           f"Cache-Control={hdrs.get('Cache-Control')}")
-    check("2. the phone prompt is IN the form, above the section field",
+    # The phone prompt must be INSIDE the form and ABOVE the submit button — that is the
+    # property that matters, and the reason it moved out of its own card in the first
+    # place: anything below the button is never seen. Its exact rank among the fields is
+    # a product call (Nathan put it after the sections, so the student finishes describing
+    # the class before being asked for anything about themselves), so this asserts the
+    # invariant rather than the ordering, which is free to change again.
+    check("2. the phone prompt is IN the form, above the submit button",
           body.find('name="phone"') != -1
-          and body.find('name="phone"') < body.find('name="sections"'),
+          and body.find('name="phone"') < body.find('type="submit"'),
           "students fill the first fields they see; below the button is unseen")
+    check("2. the phone prompt comes AFTER the section field",
+          body.find('name="sections"') != -1
+          and body.find('name="sections"') < body.find('name="phone"'),
+          "the student should finish describing the class before we ask about them")
     check("2. the consent box is unchecked by default",
           re.search(r'name="sms_consent"[^>]*checked', body) is None,
           "a pre-ticked consent box is not consent")
