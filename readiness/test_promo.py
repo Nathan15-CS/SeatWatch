@@ -109,7 +109,7 @@ def run():
         stored = c.execute("SELECT promo_code FROM users WHERE id=?", (uid,)).fetchone()
     check("the code is stored against the student", stored["promo_code"] == code)
 
-    # ---- the FIELD is offered on every plan ----
+    # ---- the FIELD appears ONLY on the $29.95 purchase ----
     app.PAID_LIVE = True
     calls.clear()
     with app.db() as c:
@@ -119,19 +119,41 @@ def run():
     sessions = [f for p, f, _ in calls if p == "/checkout/sessions"]
     check("a checkout session is created for all three plans", len(sessions) == 3,
           f"got {len(sessions)}")
-    check("the promotion-code field is enabled on EVERY plan",
-          all(f.get("allow_promotion_codes") == "true" for f in sessions),
-          "a student holding a code would have nowhere to type it")
+    by_tier = {int(f["metadata[target_tier]"]): f for f in sessions}
+    check("the promotion-code field is ON for the $29.95 plan",
+          by_tier[3].get("allow_promotion_codes") == "true")
+    check("...and OFF for the $19.95 plan",
+          "allow_promotion_codes" not in by_tier[1],
+          "a box that exists only to reject the code is worse than no box")
+    check("...and OFF for the $24.95 plan",
+          "allow_promotion_codes" not in by_tier[2])
     check("tax cannot inflate the total on any plan",
           all(f.get("automatic_tax[enabled]") == "false" for f in sessions),
           "the statement must match the price shown")
     check("quantity cannot be adjusted upward",
           all(f.get("line_items[0][adjustable_quantity][enabled]") == "false"
               for f in sessions))
-    check("each plan charges its own price",
-          [f["line_items[0][price_data][unit_amount]"] for f in sessions]
+    check("each plan charges its own FULL price",
+          [by_tier[t]["line_items[0][price_data][unit_amount]"] for t in (1, 2, 3)]
           == [str(app.TIER_PRICE_CENTS[t]) for t in (1, 2, 3)],
-          str([f["line_items[0][price_data][unit_amount]"] for f in sessions]))
+          str([by_tier[t]["line_items[0][price_data][unit_amount]"] for t in (1, 2, 3)]))
+
+    # ---- NO UPGRADES: a student who already paid buys nothing else ----
+    # PAID_ENABLED and a fresh purchase timestamp both matter: effective_tier fails
+    # closed on a lapsed or dormant entitlement, so without them this student reads as
+    # free and the check would pass for the wrong reason.
+    app.PAID_ENABLED = True
+    with app.db() as c:
+        c.execute("UPDATE users SET plan_tier=1, plan_purchased_at=?, plan_term=? WHERE id=?",
+                  (time.time(), app.current_season(), uid))
+        paid_u = c.execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone()
+    check("...and that student really is entitled (guard against a false pass)",
+          app.effective_tier(paid_u) == 1, f"effective_tier={app.effective_tier(paid_u)}")
+    check("a paying student is offered NO upgrade to any tier",
+          all(app.stripe_checkout_url(paid_u, t) is None for t in (1, 2, 3)),
+          "showing a better plan after purchase manufactures buyer's remorse")
+    with app.db() as c:
+        c.execute("UPDATE users SET plan_tier=0, plan_term=NULL WHERE id=?", (uid,))
 
     # ---- NEVER MAIL A DEAD CODE ----
     app.EMAIL_ENABLED = app.PAID_ENABLED = True
@@ -168,6 +190,9 @@ def run():
     check("the email names the only eligible plan", app.TIER_NAME[app.PROMO_TIER] in body)
     check("the email says WHERE to enter it", "promotion code" in body.lower(),
           "the field is on Stripe's payment page; a student needs telling")
+    check("the email links STRAIGHT to the payment page",
+          f"/checkout?tier={app.PROMO_TIER}" in body,
+          "a link to /pricing makes them navigate again with a code in hand")
 
     # ---- eligibility ----
     mails.clear()

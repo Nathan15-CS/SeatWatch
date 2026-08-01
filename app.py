@@ -645,10 +645,14 @@ def stripe_checkout_url(user, target_tier):
     re-charge). None if paid isn't live or the tier is invalid/not an upgrade."""
     if not PAID_LIVE or target_tier not in TIER_PRICE_CENTS:
         return None
+    # NO UPGRADE PATH, by Nathan's call, and the reason is not technical: showing a
+    # student a better plan minutes after they paid manufactures buyer's remorse. They
+    # chose what they wanted; selling against that choice is a bad trade even when the
+    # $10 is real. A paid student buys nothing else this term.
     cur = effective_tier(user)
-    if target_tier <= cur:
+    if cur:
         return None
-    amount = TIER_PRICE_CENTS[target_tier] - TIER_PRICE_CENTS.get(cur, 0)
+    amount = TIER_PRICE_CENTS[target_tier]
     if amount <= 0:
         return None
     season = current_season()
@@ -674,13 +678,14 @@ def stripe_checkout_url(user, target_tier):
         # if it says $24.95, the statement says $24.95.
         "automatic_tax[enabled]": "false",
         "line_items[0][adjustable_quantity][enabled]": "false",
-        # THE COUPON FIELD, where Nathan wants it: Stripe renders "Add promotion code"
-        # on the payment page beside card and Apple Pay. Enabled on EVERY plan, so the
-        # box is always there — a student holding a code should never have to wonder
-        # where it goes. Stripe then enforces the $29.95 minimum, so it simply will not
-        # apply on the cheaper plans, and it says so itself rather than us guessing.
-        "allow_promotion_codes": "true",
     }
+    if target_tier == PROMO_TIER:
+        # THE COUPON FIELD, and ONLY here. Stripe renders "Add promotion code" on the
+        # payment page beside card and Apple Pay. Showing it on the $19.95 and $24.95
+        # plans would invite a student to type a code that is guaranteed to be refused —
+        # a box that exists only to say no. The $29.95 minimum on the code itself is the
+        # second lock, so even a hand-crafted request cannot discount the cheaper plans.
+        fields["allow_promotion_codes"] = "true"
     if user["stripe_customer_id"] if "stripe_customer_id" in user.keys() else None:
         fields["customer"] = user["stripe_customer_id"]
     sess = _stripe_post("/checkout/sessions", fields,
@@ -2472,32 +2477,39 @@ class Handler(BaseHTTPRequestHandler):
         return f"Your plan covers {tier_courses(tier)} classes — stop one below to switch."
 
     def _pricing_html(self, user):
-        """The upgrade ladder (only rendered when PAID_LIVE). Each button posts to
-        /checkout?tier=N; delta pricing is computed server-side at checkout."""
+        """The plan ladder (only rendered when PAID_LIVE).
+
+        There is no upgrade path. A student who has already paid sees their plan and
+        nothing to buy — showing them a better one after the fact only teaches them they
+        chose wrong. Prices are computed server-side at checkout regardless of what this
+        page renders.
+        """
         cur = effective_tier(user) if user else 0
+        if cur:
+            return ("<div class='card reveal d2'><h2 class='ct'>Your plan</h2>"
+                    f"<p class='cs' style='margin-bottom:4px'><b>"
+                    f"{html.escape(TIER_NAME[cur])}</b></p>"
+                    "<p class='note'>One-time for this term — you're all set. Add your "
+                    "classes and we'll watch them.</p>"
+                    "<a href='/' style='display:block;margin-top:16px;font-weight:700'>"
+                    "← Go watch your classes</a></div>")
         cards = []
         for t in (1, 2, 3):
             price = f"${TIER_PRICE_CENTS[t] / 100:.2f}"
             if not user:
                 btn = "<a class='cbtn' href='/login'>Sign in to choose</a>"
-            elif t == cur:
-                btn = "<span class='note'>Your current plan ✓</span>"
-            elif t < cur:
-                btn = "<span class='note'>Included</span>"
             else:
-                delta = (TIER_PRICE_CENTS[t] - TIER_PRICE_CENTS.get(cur, 0)) / 100
-                label = (f"Upgrade for ${delta:.2f}" if cur else f"Choose — {price}")
-                btn = f"<a class='cbtn' href='/checkout?tier={t}'>{label}</a>"
+                btn = f"<a class='cbtn' href='/checkout?tier={t}'>Choose — {price}</a>"
+            note = ("<p class='note' style='margin:6px 0 0'>Have a discount code? "
+                    "Enter it on the payment page.</p>" if t == PROMO_TIER else "")
             cards.append(f"<div class='price'><p class='amt'>{price} "
                          f"<small>one-time, this term</small></p>"
                          f"<p style='font-weight:700;margin:6px 0'>{html.escape(TIER_NAME[t])}</p>"
-                         f"{btn}</div>")
+                         f"{btn}{note}</div>")
         return ("<div class='card reveal d2'><h2 class='ct'>Watch more classes</h2>"
-                "<p class='cs'>One-time for the term, no subscription. Upgrade anytime "
-                "and pay only the difference.</p><div class='prices'>"
+                "<p class='cs'>One-time for the term, no subscription. Pick the one that "
+                "fits — your first class is always free.</p><div class='prices'>"
                 + "".join(cards) + "</div>"
-                "<p class='note' style='margin:14px 0 0'>Got a discount code? Enter it at "
-                "checkout — the payment page has a promotion-code box.</p>" +
                 "<a href='/' style='display:block;margin-top:16px;font-weight:700'>← Back</a></div>")
 
     def do_POST(self):
@@ -3970,14 +3982,16 @@ def send_promo_emails():
                 f"    {code}\n\n"
                 f"It brings that plan to {price} instead of "
                 f"${TIER_PRICE_CENTS[PROMO_TIER] / 100:.2f}.\n\n"
-                f"To use it: pick the {TIER_NAME[PROMO_TIER]} plan at {base}/pricing, then "
-                f"on the payment page click 'Add promotion code' and enter it.\n\n"
+                f"Go straight to the payment page:\n\n"
+                f"    {base}/checkout?tier={PROMO_TIER}\n\n"
+                f"On that page, click 'Add promotion code', type the 8 digits above, and "
+                f"the total becomes {price}.\n\n"
                 f"The code is yours alone and works once. It applies to the "
                 f"{TIER_NAME[PROMO_TIER]} plan only.\n\n"
                 f"If the free plan is doing the job, ignore this. It keeps working either "
                 f"way, and we will keep watching your class.\n\n— SeatWatch")
             ok = send_email(u["email"], "Your code for $5 off, if you need more classes",
-                            body, f"{base}/pricing")
+                            body, f"{base}/checkout?tier={PROMO_TIER}")
             # Stamp on ATTEMPT. Retrying a marketing email until it succeeds is how people
             # end up receiving it four times; one honest attempt each is the right trade.
             with db() as c:
