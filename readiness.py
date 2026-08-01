@@ -50,6 +50,8 @@ SUITES = [
      "distinct section keys == real rows; catches PARTIAL collapse that looks plausible"),
     ("Full student journey (end to end)", "test_journey",
      "land -> watch -> sample -> seat opens -> alert -> click -> prefs -> STOP -> feedback"),
+    ("7-day coupon: per-student, tier-locked", "test_promo",
+     "numeric per-account code; ONLY the $29.95 plan; single-use; shown price == charged"),
     ("Payments: only a verified webhook pays", "test_payments",
      "forged/replayed/tampered webhooks grant nothing; refunds match the exact charge"),
     ("Pinned-term schools still live", "test_pinned_terms",

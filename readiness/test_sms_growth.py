@@ -141,7 +141,22 @@ def run():
     check("promo skips someone who joined yesterday", "new@umd.edu" not in to)
     check("promo skips someone who already paid", "paid@umd.edu" not in to,
           "discounting a customer who already bought is money thrown away")
-    check("promo carries the code", mails and app.PROMO_CODE in mails[0][2])
+    # The promo used to mail ONE shared code to everybody. It is now per-student and
+    # numeric, so the assertion is no longer "the email contains the constant" but "the
+    # email contains the code this server will actually accept from THIS account".
+    with app.db() as c:
+        issued = {r["email"]: r["promo_code"] for r in
+                  c.execute("SELECT email, promo_code FROM users "
+                            "WHERE promo_code IS NOT NULL")}
+    carried = [(to, body) for to, _subj, body in
+               [(m[0], m[1], m[2]) for m in mails] if to in issued]
+    check("promo carries a code this account can actually redeem",
+          bool(carried) and all(issued[to] in body for to, body in carried),
+          f"issued={list(issued.values())}")
+    check("each student gets a DIFFERENT code",
+          len(set(issued.values())) == len(issued),
+          "one shared code leaks the moment it is screenshotted")
+    check("the code is numeric", all(v.isdigit() for v in issued.values()))
 
     mails.clear(); app._promo_sweep_at[0] = 0
     app.send_promo_emails()
