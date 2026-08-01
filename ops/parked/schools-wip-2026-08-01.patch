@@ -1,0 +1,24 @@
+diff --git a/schools.py b/schools.py
+index 23ae6a9..8fe3464 100644
+--- a/schools.py
++++ b/schools.py
+@@ -8963,10 +8963,6 @@ class JohnstonCC(Colleague):
+     id = "johnstoncc"; name = "Johnston Community College"
+     example = "ENG 111"; host = "selfserv.johnstoncc.edu"
+ 
+-class WesternPiedmontCC(Colleague):
+-    id = "wpcc"; name = "Western Piedmont Community College"
+-    example = "ENG 111"; host = "selfserv.wpcc.edu"
+-
+ class BrunswickCC(Colleague):
+     id = "brunswickcc"; name = "Brunswick Community College"
+     example = "ENG 111"; host = "ss2-prod-cloud.brunswickcc.edu"
+@@ -9974,7 +9970,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
+                              CentralPiedmont(), AlamanceCC(), BlueRidgeCCNC(), IsothermalCC(),
+                              McDowellTech(), MontgomeryCC(), RandolphCC(),
+                              RichmondCC(), WayneCC(),
+-                             FayettevilleTech(), ForsythTech(), JohnstonCC(), WesternPiedmontCC(),
++                             FayettevilleTech(), ForsythTech(), JohnstonCC(),
+                              BrunswickCC(),
+     CollegeOfDuPage(), SouthwesternCA(), VictorValley(), Elgin(), Kellogg(), Coalinga(),
+     SantaAna(), SantiagoCanyon(), WabashValley(), OlneyCentral(), LincolnTrail(),
