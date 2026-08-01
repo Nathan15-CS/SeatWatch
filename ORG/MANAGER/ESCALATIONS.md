@@ -63,6 +63,46 @@ Asked of Manager → routed to Guardian:
 
 Flipping `GUARDIAN_MODE` is a production change — CEO approval, Nathan's hands. Deliver the packet only.
 
+**ADDENDUM 20:15 — the recommendation REVERSED. Do not flip enforce as a single step.**
+Build refuted my sample-size inference (correctly: `would_block` is only evaluated inside
+`flush_alerts` over `cycle.pending`, so "0 across 19,363 cycles" is really "0 across **7 gate
+evaluations**" — an untested branch and a passing branch are indistinguishable from the stored value).
+Chasing their "mass-freeze: 0 real evaluations" line found the reversal:
+
+- guardian.py:337-362 — under **enforce**, `n > MAX_ALERTS_PER_CYCLE` (default **10**) sets
+  `frozen=True`, writes the `guardian_freeze` state key, sends **nothing**, and is **sticky until a
+  human clears the key on the server**. Under **shadow** the same event only appends to `would_block`
+  and pages; **alerts still go out.**
+- This inverts my central argument to Nathan. Enforce is loud but **not quickly recoverable** — it
+  needs someone SSH'd in during a registration surge, which is exactly when it would trip.
+- Reachable at beta scale in a way it never was at 14 watches: ~25 students × ~2 watches ≈ 50, and a
+  registrar block-release can transition 11+ inside one 20s cycle.
+
+**Live watch concentration (Build, from prod):** 14 watches — umd 11 (**79%**), usf 2, ou 1.
+A parse break is *nearly all of one school at once*; a legitimate release is *whatever subset of
+students wanted those courses*. **The two differ in shape, not volume — a global integer cannot see
+shape**, so any constant is either too low (freezes real surges) or too high (misses cascades), and
+it drifts wrong as watch count grows.
+
+**Ordered sequence — step 2 is not one item:**
+1. M-35 ships.
+2. `MAX_ALERTS_PER_CYCLE=25` (Build's number; justified: a UMD parse break at this concentration
+   yields ~40 simultaneous, over the cap; busiest cycle in all history was 1. Good for ~50-150
+   watches, revisit before 200) **AND** resolve the stickiness question.
+3. Only then `GUARDIAN_MODE=enforce`.
+
+**Guardian's design call, two parts:**
+(a) **Stickiness is the worse half.** A wrong threshold costs one cycle; sticky-until-manual costs
+every cycle after it. Build proposes auto-clearing after N cycles once the data looks normal again —
+a freeze that outlives its cause is a silent outage wearing a loud page.
+(b) **Shape over count.** Build proposes reusing the fake-all-open principle: freeze only if
+`n > N` **and** the school's sections read essentially all-open. **Caveat I verified — the existing
+watchdog at app.py:2801 is scoped to STATUS-ONLY schools** (`seats=None`); numeric-seat schools are
+explicitly excluded because the count is real. **UMD is numeric-seat and holds 79% of watches**, so
+that signal as built would not cover the case that matters most. The shape idea is right; a
+numeric-seat parse break needs its own discriminator (implausible seat counts / all-sections-changed
+-at-once), not this one.
+
 ---
 
 ## RESOLVED
