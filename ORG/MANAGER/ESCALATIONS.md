@@ -107,6 +107,38 @@ real seat fanned out (deliver); 50 alerts from 40 transitions = parse break (fre
 cap then becomes correct and stays correct. **Unresolved:** watches with empty/NULL `section` mean
 "any section" and collapse onto one key per course — may under-count a real cascade.
 
+**ADDENDUM 3 — 2026-08-01 — RESOLVED in code; follow-on AUTHORISED by Nathan.**
+`9026db2` deployed 15:30 UTC (deploy.sh byte-verification passed on all four files). The metric now
+counts `len(cycle.transitions)` — distinct `(school, course, section)` — and the freeze self-clears
+after 3 cycles under the cap. **Cap resolved to 10, not 25**: on the corrected metric the observed
+genuine maximum is 1 section per window in every window ever recorded, so 10 is 10× headroom while a
+parse break flips dozens. Build also closed a hole that predated all of this — an any-section watch
+fired once per course regardless of how many sections flipped, so a 30-section parse break behind one
+such watch scored `n=1` and passed the tripwire. `queue_alert` now takes the changed-section list.
+
+**Build's feasibility read, verified by me against live data:**
+- Per-school scoping is ~40 lines; `school` is already in the transition key and already bound at
+  guardian.py:418. **Cheapest right now** — prod `guardian_freeze` is `None`, so reshaping it from a
+  scalar to a school-keyed dict has no migration cost. That window closes on the first real freeze.
+- A **constant survives to 1,000+ watches under per-school scoping**: UMD has 7 distinct watched
+  sections in total, so a cap of 10 already exceeds its entire watched surface. Coverage growth
+  pressures a *global* cap, not a per-school one.
+- **`yield_base` beats my proposed transition-p99 and needs no new accounting.** Verified live:
+  umd=63.99, usf=20, ou=1. A real UMD opening is 1/64 ≈ 1.6%; a parse break approaches 100% — ~60×
+  separation, dimensionless, so it scales identically across school sizes.
+- **The gap neither of us saw (Build's catch):** adapter FAMILIES span hundreds of schools. A
+  vendor-side Banner 9 change breaks many schools at once while each shows only a few transitions —
+  under every per-school threshold, catastrophic in aggregate. **Per-school scoping must therefore
+  ADD a layer beneath the global cap, not replace it.**
+
+**Nathan authorised on 2026-08-01: Build writes the concrete diff and implements (a) + (b).**
+(a) per-school scoping; (b) global backstop retained above it, with the family-event reasoning in a
+comment so it is not later mistaken for vestigial; (c) the `yield_base` fraction is **documented in
+the diff but NOT built** — Build ranked it last and doubts (a) will prove insufficient. Tests must
+fail against the pre-change code, and the cross-contamination case (UMD frozen, USF still delivering)
+must be tested directly. **Deploy stays gated on Nathan.** Recorded here so Guardian's lane sees this
+was authorised, not bypassed — **if Guardian prefers a different design, Guardian's wins.** Still P2.
+
 **Guardian's design call, two parts:**
 (a) **Stickiness is the worse half.** A wrong threshold costs one cycle; sticky-until-manual costs
 every cycle after it. Build proposes auto-clearing after N cycles once the data looks normal again —
