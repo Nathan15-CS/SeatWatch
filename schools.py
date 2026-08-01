@@ -6233,6 +6233,17 @@ class SlipperyRock(PASSHE):
 # --- Louisiana Community & Technical College System: shared host, letter mepCodes.
 # --- Only campuses that pass the section-collapse screen are included.
 class LCTCS(Banner):
+    # SHARED HOST, AND IT FLAPS. Probed repeatedly on 2026-08-01, the same query returns
+    # the right sections most of the time and ZERO the rest — ftcc-la gave 9,9,9,0,9,9
+    # sequentially, nwltc 2 of 5 empty. Adapters fail closed, so a flap costs a delayed
+    # alert rather than a wrong one, but "usually tells you" is not the promise SeatWatch
+    # makes. Nathan's call: avoid it.
+    #   LISTED (stable across 4 probes): brcc, delgado, sowela
+    #   DELISTED (flapping):             ftcc-la, slcc-la, bpcc, rpcc, nunez
+    # The classes stay so the research survives. Before relisting any of them, prove
+    # stability across repeated probes — a single clean probe is what let ftcc-la through.
+    # The host is also slow: ~40s per fetch, two 30s-timeout requests, so it cannot stall
+    # the poller, but it is near the freshness budget.
     host = "reg-prod.ec.lctcs.edu"; term = "202710"
 
 class BatonRougeCC(LCTCS):
@@ -8898,6 +8909,10 @@ class PittCC(Colleague):
     id = "pittcc"; name = "Pitt Community College"
     example = "ENG 111"; host = "selfservice.pittcc.edu"
 
+class CentralPiedmont(Colleague):
+    id = "cpcc"; name = "Central Piedmont Community College"
+    example = "ENG 111"; host = "mycollegess.cpcc.edu"
+
 class AlamanceCC(Colleague):
     id = "alamancecc"; name = "Alamance Community College"
     example = "ENG 111"; host = "ss-prod.cloud.alamancecc.edu"
@@ -8935,6 +8950,22 @@ class VanceGranvilleCC(Colleague):
 class WayneCC(Colleague):
     id = "waynecc"; name = "Wayne Community College"
     example = "ENG 111"; host = "ss-prod.cloud.waynecc.edu"
+
+class FayettevilleTech(Colleague):
+    id = "faytechcc"; name = "Fayetteville Technical Community College"
+    example = "ENG 111"; host = "selfserv.faytechcc.edu"
+
+class ForsythTech(Colleague):
+    id = "forsythtech"; name = "Forsyth Technical Community College"
+    example = "ENG 111"; host = "my.forsythtech.edu"
+
+class JohnstonCC(Colleague):
+    id = "johnstoncc"; name = "Johnston Community College"
+    example = "ENG 111"; host = "selfserv.johnstoncc.edu"
+
+class WesternPiedmontCC(Colleague):
+    id = "wpcc"; name = "Western Piedmont Community College"
+    example = "ENG 111"; host = "selfserv.wpcc.edu"
 
 class BrunswickCC(Colleague):
     id = "brunswickcc"; name = "Brunswick Community College"
@@ -9770,8 +9801,9 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                              NortheasternStateOK(), YoungstownState(), USFSanFrancisco(),
                              IUP(), Bloomsburg(), CaliforniaPA(), Cheyney(), EastStroudsburg(),
                              Kutztown(), Millersville(), Shippensburg(), SlipperyRock(),
-                             BatonRougeCC(), Delgado(), SouthLouisianaCC(), BossierParish(),
-                             RiverParishes(), SOWELA(), Nunez(),
+                             BatonRougeCC(), Delgado(), SOWELA(),
+                             # SouthLouisianaCC/BossierParish/RiverParishes/Nunez DELISTED
+                             # 2026-08-01 — see the LCTCS note above.
                              ChattahoocheeValley(), WallaceDothan(), GadsdenState(),
                              SheltonState(), CalhounCC(), SouthernUnion(), BishopState(),
                              CoastalAlabama(), ReidState(),
@@ -9939,9 +9971,10 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     MassArt(), PortlandCC(), Wabash(), MonroeCC(),
     Moorpark(), OxnardCollege(), VenturaCollege(), UVI(), Cayuga(),
     WakeTech(), Schoolcraft(), CentralCarolinaCC(),
-                             AlamanceCC(), BlueRidgeCCNC(), IsothermalCC(),
+                             CentralPiedmont(), AlamanceCC(), BlueRidgeCCNC(), IsothermalCC(),
                              McDowellTech(), MontgomeryCC(), RandolphCC(),
                              RichmondCC(), WayneCC(),
+                             FayettevilleTech(), ForsythTech(), JohnstonCC(), WesternPiedmontCC(),
                              BrunswickCC(),
     CollegeOfDuPage(), SouthwesternCA(), VictorValley(), Elgin(), Kellogg(), Coalinga(),
     SantaAna(), SantiagoCanyon(), WabashValley(), OlneyCentral(), LincolnTrail(),
@@ -9983,7 +10016,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     Citadel(), SCState(), VMI(), SaginawValley(), OldWestbury(), SUNYPotsdam(),
     DelawareState(), LoyolaMarymount(), PrairieViewAM(), URichmond(),
     UTMartin(), EasternKentucky(), PurdueFortWayne(), Creighton(),
-    FletcherTech(), FrontierCC()])
+    FrontierCC()])   # FletcherTech DELISTED — see the LCTCS note
 
 
 def refresh_all_terms(log=None):
