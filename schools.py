@@ -6259,6 +6259,13 @@ class Nunez(LCTCS):
 class FletcherTech(LCTCS):
     id = "ftcc-la"; name = "Fletcher Technical Community College"; example = "ENGL 1006"; mep = "FTCC"
 
+# NOT REGISTERED — gate BLOCKED 2026-08-01: the LCTCS host answers the SAME query
+# inconsistently (2 of 5 identical sequential probes returned 0 sections, no concurrency).
+# An adapter that intermittently sees nothing produces delayed alerts and section_missing
+# noise. NOTE: ftcc-la is LIVE on this same host and shows the same flapping (9,9,9,0,9,9).
+class NorthwestLATech(LCTCS):
+    id = "nwltc"; name = "Northwest Louisiana Technical Community College"; example = "WELD 1421"; mep = "NWLTC"
+
 # --- Alabama Community College System: shared host, letter mepCodes. Half the campuses
 # --- collapse sections (rejected); only the clean ones are here.
 class ACCS(Banner):
@@ -6596,6 +6603,10 @@ class ColumbiaState(Banner):
 class NortheastState(Banner):
     id = "northeaststate"; name = "Northeast State Community College"
     example = "MATH 1530"; host = "ssb.northeaststate.edu"; term = "202680"
+
+class RoaneState(Banner):
+    id = "roanestate"; name = "Roane State Community College"
+    example = "ACCT 1010"; host = "ssb.roanestate.edu"; term = "202680"
 
 class PiedmontTech(Banner):
     id = "piedmonttech"; name = "Piedmont Technical College"
@@ -8879,6 +8890,52 @@ class CentralCarolinaCC(Colleague):
     id = "centralcarolinacc"; name = "Central Carolina Community College"
     example = "ENG 111"; host = "ss-prod.cloud.cccc.edu"
 
+# NOT REGISTERED — gate BLOCKED 2026-08-01: SILENT MISS. ENG 111/10SY reads FULL while
+# holding 1 seat, so a student watching it would never be alerted. Could be a parser bug
+# or a legitimately restricted/reserved seat (cf. the documented twu waitlist exception) —
+# resolve which before listing. Adapter kept so the research is not lost.
+class PittCC(Colleague):
+    id = "pittcc"; name = "Pitt Community College"
+    example = "ENG 111"; host = "selfservice.pittcc.edu"
+
+class AlamanceCC(Colleague):
+    id = "alamancecc"; name = "Alamance Community College"
+    example = "ENG 111"; host = "ss-prod.cloud.alamancecc.edu"
+
+class BlueRidgeCCNC(Colleague):
+    id = "blueridgenc"; name = "Blue Ridge Community College (NC)"
+    example = "ENG 111"; host = "ss-prod.cloud.blueridge.edu"
+
+class IsothermalCC(Colleague):
+    id = "isothermal"; name = "Isothermal Community College"
+    example = "ENG 111"; host = "ss-prod.cloud.isothermal.edu"
+
+class McDowellTech(Colleague):
+    id = "mcdowelltech"; name = "McDowell Technical Community College"
+    example = "ENG 111"; host = "ss-prod.cloud.mcdowelltech.edu"
+
+class MontgomeryCC(Colleague):
+    id = "montgomerycc"; name = "Montgomery Community College (NC)"
+    example = "ENG 111"; host = "ss-prod.cloud.montgomery.edu"
+
+class RandolphCC(Colleague):
+    id = "randolphcc"; name = "Randolph Community College"
+    example = "ENG 111"; host = "ss-prod.cloud.randolph.edu"
+
+class RichmondCC(Colleague):
+    id = "richmondcc"; name = "Richmond Community College"
+    example = "ENG 111"; host = "ss-prod.cloud.richmondcc.edu"
+
+# NOT REGISTERED — gate BLOCKED 2026-08-01: SILENT MISS on ENG 111/Z192, Z193, Z194 —
+# FULL while holding 1-2 seats. Same question as pittcc: parser bug vs restricted seats.
+class VanceGranvilleCC(Colleague):
+    id = "vgcc"; name = "Vance-Granville Community College"
+    example = "ENG 111"; host = "ss-prod.cloud.vgcc.edu"
+
+class WayneCC(Colleague):
+    id = "waynecc"; name = "Wayne Community College"
+    example = "ENG 111"; host = "ss-prod.cloud.waynecc.edu"
+
 class BrunswickCC(Colleague):
     id = "brunswickcc"; name = "Brunswick Community College"
     example = "ENG 111"; host = "ss2-prod-cloud.brunswickcc.edu"
@@ -9736,7 +9793,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                              RaritanValley(), NassauCC(), MichiganFlint(), Harding(),
                              Spelman(), Ramapo(), Wentworth(), EasternFlorida(), Oakton(),
                              Washtenaw(), Pellissippi(), VolunteerState(), JacksonStateTN(),
-                             ColumbiaState(), NortheastState(), PiedmontTech(),
+                             ColumbiaState(), NortheastState(), RoaneState(), PiedmontTech(),
                              NortheastMississippi(), Itawamba(), MississippiDelta(),
                              LindseyWilson(), BartonCC(), Centenary(), Catawba(),
                              Walsh(), ConcordiaWI(), Curry(),
@@ -9881,7 +9938,11 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     MorenoValley(), NorcoCollege(), RiversideCity(), WestValley(), MissionCollege(),
     MassArt(), PortlandCC(), Wabash(), MonroeCC(),
     Moorpark(), OxnardCollege(), VenturaCollege(), UVI(), Cayuga(),
-    WakeTech(), Schoolcraft(), CentralCarolinaCC(), BrunswickCC(),
+    WakeTech(), Schoolcraft(), CentralCarolinaCC(),
+                             AlamanceCC(), BlueRidgeCCNC(), IsothermalCC(),
+                             McDowellTech(), MontgomeryCC(), RandolphCC(),
+                             RichmondCC(), WayneCC(),
+                             BrunswickCC(),
     CollegeOfDuPage(), SouthwesternCA(), VictorValley(), Elgin(), Kellogg(), Coalinga(),
     SantaAna(), SantiagoCanyon(), WabashValley(), OlneyCentral(), LincolnTrail(),
     SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),
