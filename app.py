@@ -3491,8 +3491,21 @@ def _twilio_candidate_urls(headers, path, base):
     if host:
         hosts.append(host)
         hosts.append(host[4:] if host.startswith("www.") else "www." + host)
-    cands = [f"{p}://{h}{path}" for h in hosts for p in dict.fromkeys((proto, "https"))]
-    cands.append(base.rstrip("/") + path)
+    if base:
+        b = base.split("://")[-1].strip("/")
+        if b and b not in hosts:
+            hosts.append(b)
+    # A reverse proxy normalises the path BEFORE the app sees it, so a trailing slash in
+    # the Twilio console arrives here stripped — while Twilio signed the slash. Same for
+    # the scheme: Caddy terminates TLS and may forward as http, or forward no
+    # X-Forwarded-Proto at all. Both produce a different HMAC and a silent 403, which is
+    # how a STOP disappears. HMAC is microseconds, so cover the space instead of guessing.
+    p0 = path.split("?")[0]
+    paths = [path, p0, p0.rstrip("/"), p0.rstrip("/") + "/"]
+    cands = [f"{p}://{h}{pa}"
+             for h in dict.fromkeys(hosts)
+             for p in dict.fromkeys((proto, "https", "http"))
+             for pa in dict.fromkeys(paths)]
     seen, out = set(), []
     for u in cands:
         if u and u not in seen:
