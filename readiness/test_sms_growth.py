@@ -133,6 +133,14 @@ def run():
           "a coupon landing on 'Coming soon' is worse than no email")
 
     app.PAID_ENABLED = True
+    # The promo now mints a REAL Stripe promotion code before mailing, and refuses to send
+    # if Stripe will not issue one. Stub Stripe so this suite tests the sweep's eligibility
+    # rules rather than network reachability; test_promo covers the Stripe contract itself.
+    app.STRIPE_SECRET_KEY = "sk_test_growth"
+    app._stripe_get = lambda path: {"id": app.STRIPE_COUPON_ID}
+    app._stripe_post = lambda path, fields, idem=None: (
+        {"id": "promo_x", "code": fields["code"]} if path == "/promotion_codes"
+        else {"id": app.STRIPE_COUPON_ID})
     app._promo_sweep_at[0] = 0
     n = app.send_promo_emails()
     to = {m[0] for m in mails}

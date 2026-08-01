@@ -533,6 +533,16 @@ def _conv_signal(kind, user_id):
 
 
 # ------------------------------------------------------------------- Stripe (stdlib)
+def _stripe_get(path):
+    """GET a Stripe object. Returns parsed JSON, or None if absent/unreachable."""
+    req = urllib.request.Request("https://api.stripe.com/v1" + path)
+    req.add_header("Authorization", "Bearer " + STRIPE_SECRET_KEY)
+    try:
+        return json.loads(urllib.request.urlopen(req, timeout=20).read().decode())
+    except Exception:
+        return None
+
+
 def _stripe_post(path, fields, idem=None):
     """Minimal Stripe API call — form-encoded POST with the secret key as Bearer. No SDK
     (keeps the stdlib-only posture). Returns parsed JSON or None on failure."""
@@ -549,57 +559,87 @@ def _stripe_post(path, fields, idem=None):
         return None
 
 
-# --- the 7-day promo ----------------------------------------------------------------
-# Nathan's spec, and every clause of it is a constraint the code has to enforce rather
-# than merely display:
+# --- the 7-day promo -----------------------------------------------------------------
+# Nathan's spec, and every clause is a constraint the code enforces rather than displays:
 #   * only students on FREE for a week are offered it; anyone who already paid is skipped
 #   * the code is NUMERIC and issued PER STUDENT
-#   * it discounts ONLY the top plan: $29.95 -> $24.95
-#   * the $19.95 and $24.95 plans get nothing
+#   * the coupon field appears at the PAYMENT step, beside card and Apple Pay, on every plan
+#   * it discounts ONLY the top plan: $29.95 -> $24.95. The $19.95 and $24.95 plans get nothing
 #   * a student who pays $24.95 is charged EXACTLY $24.95
-PROMO_TIER = 3                     # the ONLY tier the coupon touches
+#
+# The field lives on Stripe's hosted Checkout page (allow_promotion_codes), because that is
+# where "next to credit card and Apple Pay" physically is — we do not render that page and
+# cannot inject into it. So the discount is a real Stripe Promotion Code, and Stripe both
+# displays the field and enforces the rules.
+#
+# The tier restriction rides on restrictions[minimum_amount] rather than a product
+# allow-list. Our line items are ad-hoc price_data, not saved Prices, so there is no
+# product id to restrict against — but a minimum order of $29.95 is exactly equivalent
+# here and needs no catalogue: the $19.95 and $24.95 plans cannot reach it, and neither
+# can an upgrade delta. Stripe rejects the code itself, on its own page, with its own
+# message, so the rule cannot drift away from what we tell students.
+PROMO_TIER = 3                     # the ONLY tier the coupon can reach
 PROMO_PRICE_CENTS = 2495           # what tier 3 costs with a valid code (from 2995)
+PROMO_OFF_CENTS = 500
+STRIPE_COUPON_ID = "seatwatch_5off"
 
 
 def _new_promo_code():
     """8 digits. Numeric because Nathan asked for numeric, and 8 because 6 is guessable:
-    a paid plan is worth $5 to an attacker, and at 6 digits a script finds a live code in
-    a few hundred thousand tries. 8 digits plus single-use plus owner-binding makes
-    guessing pointless. secrets, never random — this decides who pays less."""
+    a plan is worth $5 to an attacker, and at 6 digits a script finds a live code in a few
+    hundred thousand tries. secrets, never random — this decides who pays less."""
     return "".join(str(secrets.randbelow(10)) for _ in range(8))
 
 
-def promo_price(user, target_tier, code):
-    """The price for target_tier given a submitted coupon `code`, and whether it applied.
+def _stripe_ensure_coupon():
+    """The single $5 coupon every student's personal code points at. Created once and
+    reused: a fixed id makes this idempotent, so a restart or a second sweep cannot
+    litter the Stripe account with duplicates."""
+    if not STRIPE_SECRET_KEY:
+        return None
+    got = _stripe_get("/coupons/" + STRIPE_COUPON_ID)
+    if got and got.get("id"):
+        return got["id"]
+    made = _stripe_post("/coupons", {
+        "id": STRIPE_COUPON_ID,
+        "amount_off": str(PROMO_OFF_CENTS),
+        "currency": "usd",
+        "duration": "once",
+        "name": "SeatWatch $5 off",
+    }, idem="coupon-" + STRIPE_COUPON_ID)
+    return (made or {}).get("id")
 
-    Returns (amount_cents, applied_code_or_None). Everything is checked SERVER-SIDE:
-    a coupon box is a text field on a page anyone can edit, so the only question that
-    matters is what this function returns, never what the browser sent.
+
+def issue_promo_code(user_id):
+    """Mint this student's personal promotion code IN STRIPE and return it.
+
+    Returns None if Stripe refuses — and the caller must then NOT send the email. A code
+    in a student's inbox that Stripe will reject is worse than no promo at all: they type
+    it at the moment they have decided to pay, and it tells them the company is broken.
     """
-    base = TIER_PRICE_CENTS.get(target_tier)
-    if base is None:
-        return None, None
-    digits = "".join(ch for ch in (code or "") if ch.isdigit())
-    if not digits:
-        return base, None
-    if target_tier != PROMO_TIER:
-        return base, None          # explicitly NOT valid on the 19.95 / 24.95 plans
-    try:
-        with db() as c:
-            u = c.execute("SELECT promo_code, promo_redeemed_at FROM users WHERE id=?",
-                          (user["id"],)).fetchone()
-    except Exception:
-        return base, None          # fail CLOSED: a DB hiccup charges full price, never free
-    if not u or not u["promo_code"]:
-        return base, None
-    if u["promo_redeemed_at"]:
-        return base, None          # single use, ever
-    if not hmac.compare_digest(str(u["promo_code"]), digits):
-        return base, None          # the code belongs to ONE student; sharing it does nothing
-    return PROMO_PRICE_CENTS, digits
+    if not _stripe_ensure_coupon():
+        return None
+    for _ in range(5):                       # collisions ~1 in 10^8; still, don't assume
+        code = _new_promo_code()
+        res = _stripe_post("/promotion_codes", {
+            "coupon": STRIPE_COUPON_ID,
+            "code": code,
+            "max_redemptions": "1",          # single use, enforced by Stripe
+            # THE TIER LOCK. $19.95 and $24.95 orders never reach this floor, and neither
+            # does an upgrade delta, so the code is inert everywhere except a full-price
+            # $29.95 purchase — which is exactly who the 7-day offer is for.
+            "restrictions[minimum_amount]": str(TIER_PRICE_CENTS[PROMO_TIER]),
+            "restrictions[minimum_amount_currency]": "usd",
+            "metadata[user_id]": str(user_id),
+        }, idem=f"promo-{user_id}-{code}")
+        if res and res.get("id"):
+            with db() as c:
+                c.execute("UPDATE users SET promo_code=? WHERE id=?", (code, user_id))
+            return code
+    return None
 
 
-def stripe_checkout_url(user, target_tier, promo=None):
+def stripe_checkout_url(user, target_tier):
     """Create a one-time hosted Checkout Session for an upgrade to target_tier and return
     its URL. Charges only the DELTA above the user's current effective tier (never a
     re-charge). None if paid isn't live or the tier is invalid/not an upgrade."""
@@ -608,8 +648,7 @@ def stripe_checkout_url(user, target_tier, promo=None):
     cur = effective_tier(user)
     if target_tier <= cur:
         return None
-    full, applied = promo_price(user, target_tier, promo)
-    amount = full - TIER_PRICE_CENTS.get(cur, 0)
+    amount = TIER_PRICE_CENTS[target_tier] - TIER_PRICE_CENTS.get(cur, 0)
     if amount <= 0:
         return None
     season = current_season()
@@ -635,18 +674,17 @@ def stripe_checkout_url(user, target_tier, promo=None):
         # if it says $24.95, the statement says $24.95.
         "automatic_tax[enabled]": "false",
         "line_items[0][adjustable_quantity][enabled]": "false",
+        # THE COUPON FIELD, where Nathan wants it: Stripe renders "Add promotion code"
+        # on the payment page beside card and Apple Pay. Enabled on EVERY plan, so the
+        # box is always there — a student holding a code should never have to wonder
+        # where it goes. Stripe then enforces the $29.95 minimum, so it simply will not
+        # apply on the cheaper plans, and it says so itself rather than us guessing.
+        "allow_promotion_codes": "true",
     }
-    if applied:
-        # Carried so the WEBHOOK burns the code — not here. A student who opens Checkout
-        # and closes the tab has not redeemed anything, and burning it at session-creation
-        # would silently cost them the discount they earned.
-        fields["metadata[promo_code]"] = applied
-        fields["line_items[0][price_data][product_data][name]"] += " — $5 off applied"
     if user["stripe_customer_id"] if "stripe_customer_id" in user.keys() else None:
         fields["customer"] = user["stripe_customer_id"]
     sess = _stripe_post("/checkout/sessions", fields,
-                        idem=f"co-{user['id']}-{target_tier}-{applied or 'x'}-"
-                             f"{int(time.time()//3600)}")
+                        idem=f"co-{user['id']}-{target_tier}-{int(time.time()//3600)}")
     return sess.get("url") if sess else None
 
 
@@ -717,10 +755,11 @@ def _stripe_unlock(event):
         # code we issued to THIS student. Not at checkout-creation (an abandoned tab would
         # eat it) and not on trust of metadata alone (metadata is only as good as the
         # signature that carried it, so re-verify ownership against the row).
-        pcode = "".join(ch for ch in str(meta.get("promo_code") or "") if ch.isdigit())
-        if pcode:
-            c.execute("UPDATE users SET promo_redeemed_at=? WHERE id=? AND promo_code=? "
-                      "AND promo_redeemed_at IS NULL", (time.time(), uid, pcode))
+        # Stripe owns redemption (max_redemptions=1); we mirror it so our own records
+        # can answer "did this student use their code?" without an API round trip.
+        if (sess.get("total_details") or {}).get("amount_discount"):
+            c.execute("UPDATE users SET promo_redeemed_at=? WHERE id=? "
+                      "AND promo_redeemed_at IS NULL", (time.time(), uid))
         if eid:
             c.execute("INSERT OR IGNORE INTO stripe_events(event_id,kind,user_id,processed) "
                       "VALUES(?,?,?,?)", (eid, "checkout.session.completed", uid, time.time()))
@@ -2315,8 +2354,7 @@ class Handler(BaseHTTPRequestHandler):
             if not PAID_LIVE:
                 return self._send(page("<p>Paid plans are coming soon. "
                                        "<a href='/'>Back</a></p>"))
-            return self._send(page(self._pricing_html(self._user(),
-                                                     qs.get("promo", [""])[0])))
+            return self._send(page(self._pricing_html(self._user())))
         if path == "/checkout":
             u = self._user()
             if not u:
@@ -2325,8 +2363,7 @@ class Handler(BaseHTTPRequestHandler):
                 target = int(qs.get("tier", ["0"])[0])
             except ValueError:
                 target = 0
-            promo = qs.get("promo", [""])[0]
-            url = stripe_checkout_url(u, target, promo)  # None if not a valid paid upgrade
+            url = stripe_checkout_url(u, target)   # None if not a valid paid upgrade
             return self._redirect(url or "/pricing")
         if path == "/checkout/success":
             # unlock happens via the webhook, NOT here — this is just a friendly page.
@@ -2434,11 +2471,10 @@ class Handler(BaseHTTPRequestHandler):
                                if not PAID_LIVE else "")
         return f"Your plan covers {tier_courses(tier)} classes — stop one below to switch."
 
-    def _pricing_html(self, user, promo=""):
+    def _pricing_html(self, user):
         """The upgrade ladder (only rendered when PAID_LIVE). Each button posts to
         /checkout?tier=N; delta pricing is computed server-side at checkout."""
         cur = effective_tier(user) if user else 0
-        code = "".join(ch for ch in (promo or "") if ch.isdigit())[:12]
         cards = []
         for t in (1, 2, 3):
             price = f"${TIER_PRICE_CENTS[t] / 100:.2f}"
@@ -2449,22 +2485,10 @@ class Handler(BaseHTTPRequestHandler):
             elif t < cur:
                 btn = "<span class='note'>Included</span>"
             else:
-                promo_amt, _ = promo_price(user, t, code) if code else (None, None)
-                base = promo_amt if promo_amt is not None else TIER_PRICE_CENTS[t]
-                delta = (base - TIER_PRICE_CENTS.get(cur, 0)) / 100
-                label = (f"Upgrade for ${delta:.2f}" if cur
-                         else f"Choose — ${base / 100:.2f}")
-                q = f"&promo={urllib.parse.quote(code)}" if code else ""
-                btn = f"<a class='cbtn' href='/checkout?tier={t}{q}'>{label}</a>"
-            # Show the strike-through ONLY on the tier the coupon actually discounts, and
-            # only when this student's code really validates. A price that looks discounted
-            # and charges full at Stripe is the worst version of this feature.
-            discounted = (code and t == PROMO_TIER
-                          and promo_price(user, t, code)[1] is not None)
-            amt_html = (f"<s style='color:#9aa7ba'>{price}</s> "
-                        f"<span style='color:#16a34a'>${PROMO_PRICE_CENTS / 100:.2f}</span>"
-                        if discounted else price)
-            cards.append(f"<div class='price'><p class='amt'>{amt_html} "
+                delta = (TIER_PRICE_CENTS[t] - TIER_PRICE_CENTS.get(cur, 0)) / 100
+                label = (f"Upgrade for ${delta:.2f}" if cur else f"Choose — {price}")
+                btn = f"<a class='cbtn' href='/checkout?tier={t}'>{label}</a>"
+            cards.append(f"<div class='price'><p class='amt'>{price} "
                          f"<small>one-time, this term</small></p>"
                          f"<p style='font-weight:700;margin:6px 0'>{html.escape(TIER_NAME[t])}</p>"
                          f"{btn}</div>")
@@ -2472,35 +2496,9 @@ class Handler(BaseHTTPRequestHandler):
                 "<p class='cs'>One-time for the term, no subscription. Upgrade anytime "
                 "and pay only the difference.</p><div class='prices'>"
                 + "".join(cards) + "</div>"
-                + self._promo_box(user, code) +
+                "<p class='note' style='margin:14px 0 0'>Got a discount code? Enter it at "
+                "checkout — the payment page has a promotion-code box.</p>" +
                 "<a href='/' style='display:block;margin-top:16px;font-weight:700'>← Back</a></div>")
-
-    def _promo_box(self, user, code):
-        """The coupon field. GET, not POST: nothing here changes state — it only re-renders
-        the ladder with the discounted price shown — so it needs no CSRF and a student can
-        bookmark or re-share the link harmlessly. The real check happens again server-side
-        at /checkout; this box is display only."""
-        if not user:
-            return ""
-        applied = code and promo_price(user, PROMO_TIER, code)[1] is not None
-        if applied:
-            return ("<p class='note' style='margin:14px 0 0;color:#16a34a'>✓ Code applied — "
-                    f"${PROMO_PRICE_CENTS / 100:.2f} on the "
-                    f"{html.escape(TIER_NAME[PROMO_TIER])} plan.</p>")
-        bad = ("<p class='note' style='margin:8px 0 0;color:#b91c1c'>That code is not valid "
-               "for this account, or it has already been used.</p>" if code else "")
-        return (
-            "<form method='get' action='/pricing' style='margin-top:16px'>"
-            "<label style='font-weight:600;font-size:14px'>Have a code?</label>"
-            "<div style='display:flex;gap:8px;margin-top:6px'>"
-            "<input name='promo' inputmode='numeric' pattern='[0-9]*' maxlength='12' "
-            "placeholder='8-digit code' value='" + html.escape(code or "") + "' "
-            "style='flex:1;padding:10px;border:1px solid rgba(11,21,38,.15);border-radius:10px'>"
-            "<button class='cbtn' style='width:auto;padding:10px 18px'>Apply</button>"
-            "</div>"
-            f"<p class='note' style='margin:6px 0 0'>Codes apply to the "
-            f"{html.escape(TIER_NAME[PROMO_TIER])} plan only.</p>"
-            + bad + "</form>")
 
     def do_POST(self):
         path = urlparse(self.path).path
@@ -3955,22 +3953,15 @@ def send_promo_emails():
                     c.execute("UPDATE users SET promo_sent_at=? WHERE id=?",
                               (time.time(), u["id"]))
                 continue
-            # Issue the student their OWN code, and persist it BEFORE the mail goes out:
-            # a code in someone's inbox that this server cannot recognise is worse than no
-            # promo at all. Reuse an existing one on a retry rather than minting a second.
+            # Mint the code IN STRIPE first. If Stripe refuses, send NOTHING: a code that
+            # Stripe will reject reaches the student at the exact moment they have decided
+            # to pay, and tells them the company is broken. Reuse an existing code on a
+            # retry rather than minting a second one for the same person.
             with db() as c:
                 row = c.execute("SELECT promo_code FROM users WHERE id=?", (u["id"],)).fetchone()
-                code = (row["promo_code"] if row and row["promo_code"] else None)
-                if not code:
-                    for _ in range(5):       # collisions are ~1 in 10^8; still, don't assume
-                        cand = _new_promo_code()
-                        if not c.execute("SELECT 1 FROM users WHERE promo_code=?",
-                                         (cand,)).fetchone():
-                            code = cand
-                            break
-                    if not code:
-                        continue
-                    c.execute("UPDATE users SET promo_code=? WHERE id=?", (code, u["id"]))
+            code = row["promo_code"] if row and row["promo_code"] else issue_promo_code(u["id"])
+            if not code:
+                continue                    # leave promo_sent_at NULL: retry next sweep
             base = BASE_URL or "https://seatwatchapp.com"
             price = f"${PROMO_PRICE_CENTS / 100:.2f}"
             body = (
@@ -3978,15 +3969,15 @@ def send_promo_emails():
                 f"Here is your code for $5 off the {TIER_NAME[PROMO_TIER]} plan:\n\n"
                 f"    {code}\n\n"
                 f"It brings that plan to {price} instead of "
-                f"${TIER_PRICE_CENTS[PROMO_TIER] / 100:.2f}. Enter it in the "
-                f"'Have a code?' box here:\n\n"
-                f"    {base}/pricing?promo={code}\n\n"
+                f"${TIER_PRICE_CENTS[PROMO_TIER] / 100:.2f}.\n\n"
+                f"To use it: pick the {TIER_NAME[PROMO_TIER]} plan at {base}/pricing, then "
+                f"on the payment page click 'Add promotion code' and enter it.\n\n"
                 f"The code is yours alone and works once. It applies to the "
                 f"{TIER_NAME[PROMO_TIER]} plan only.\n\n"
                 f"If the free plan is doing the job, ignore this. It keeps working either "
                 f"way, and we will keep watching your class.\n\n— SeatWatch")
             ok = send_email(u["email"], "Your code for $5 off, if you need more classes",
-                            body, f"{base}/pricing?promo={code}")
+                            body, f"{base}/pricing")
             # Stamp on ATTEMPT. Retrying a marketing email until it succeeds is how people
             # end up receiving it four times; one honest attempt each is the right trade.
             with db() as c:
