@@ -171,7 +171,7 @@ def _telemetry_mark(what):
 # ---------------------------------------------------------------- cycle
 class Cycle:
     __slots__ = ("id", "t0", "mode", "expected", "results", "fetches",
-                 "pending", "would_block", "notes", "finalized", "ping")
+                 "pending", "transitions", "would_block", "notes", "finalized", "ping")
 
     def __init__(self, cid, t0, mode_, expected):
         self.id, self.t0, self.mode = cid, t0, mode_
@@ -179,6 +179,7 @@ class Cycle:
         self.results = {}             # watch_id -> (outcome, detail dict)
         self.fetches = {}             # school -> {ok, ms, courses, sections}
         self.pending = []             # queued (row, msg, url) alert candidates
+        self.transitions = set()      # DISTINCT (school, course, section) that flipped open
         self.would_block = []         # shadow divergences this cycle
         self.notes = []
         self.finalized = False
@@ -321,11 +322,19 @@ def gate(cycle, r, cur_term, fetched_at):
         return (True, "guardian_error_failopen")
 
 
-def queue_alert(cycle, r, msg, url):
+def queue_alert(cycle, r, msg, url, sections=None):
     """Defer the send so the mass-alert tripwire can see the WHOLE cycle's
     would-fire count before any message leaves (send-none-on-mass, not
-    send-some)."""
+    send-some).
+
+    `sections` is the section list that ACTUALLY flipped open in the registrar's data.
+    An any-section watch ("" section) alerts once for the whole course but may represent
+    many sections changing at once, and that count is the tripwire's entire signal — so
+    it must be passed in rather than inferred from the watch row, which does not know it.
+    """
     cycle.pending.append((r, msg, url))
+    for sec_ in (sections if sections else [r["section"]]):
+        cycle.transitions.add((r["school"], r["course"], sec_))
 
 
 def flush_alerts(cycle, alert_fn, set_alerted_fn, cur_term_by_school, fetched_at_by_school):
@@ -334,7 +343,24 @@ def flush_alerts(cycle, alert_fn, set_alerted_fn, cur_term_by_school, fetched_at
     are recorded as would-blocks only. enforce: blocks are real.
     Exceptions from alert_fn/set_alerted_fn propagate in off/shadow (legacy
     abort semantics — the differential guarantee) after being recorded."""
-    n = len(cycle.pending)
+    # COUNT SEAT OPENINGS, NOT STUDENTS.
+    #
+    # This was len(cycle.pending) — one entry per WATCH about to fire. That makes the
+    # threshold a function of how many students use the product: one genuine seat opening
+    # in a popular course produces one pending entry per watcher. At today's concentration
+    # (CMSC216 holds 7 of 14 watches) a single real opening would trip a cap of 25 at
+    # roughly 50 students, and a cap of 100 at roughly 200. Under enforcement that is a
+    # platform-wide alert outage caused by the single most valuable event this product can
+    # observe — a seat opening in its most-watched course. The freeze would have fired
+    # first, and hardest, on the best day the product ever had. Raising the number only
+    # picks the user count at which it happens; any watcher-based threshold has that shape.
+    #
+    # Distinct section transitions are bounded by what the REGISTRAR changed, not by how
+    # many people are looking. Measured over all production history: the worst 60s window
+    # was 3 alerts from 1 section, and every window ever recorded was exactly 1 section.
+    # Real openings arrive a section at a time; a parse break flips dozens at once. That
+    # separation is the thing worth gating on, and it does not drift as the userbase grows.
+    n = len(cycle.transitions)
     frozen = False
     if cycle.mode == "enforce":
         try:                          # sticky: a tripped freeze blocks until a human
@@ -412,6 +438,7 @@ def flush_alerts(cycle, alert_fn, set_alerted_fn, cur_term_by_school, fetched_at
                 record(cycle, wid, "write_failed", stage="set_alerted")
                 raise
     cycle.pending = []
+    cycle.transitions = set()
 
 
 def latch_decision(r, ntfy_ok, pushed, emailed, texted):

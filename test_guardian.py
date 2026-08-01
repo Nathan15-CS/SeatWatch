@@ -452,6 +452,46 @@ class TestGates(Base):
         book = {"surge": surge, "calm": calm, "few": few}
         self.install(FakeSchool(steps=[{"data": surge}] + [{"data": book[t]} for t in tail]))
 
+    def test_popularity_is_not_a_cascade(self):
+        """THE BUG THIS GATE WAS BORN WITH: 40 students on ONE section is not an incident.
+
+        The tripwire used to count queued alerts, i.e. WATCHERS. One real seat opening in a
+        popular course produces one queued alert per student watching it, so the threshold
+        was a function of how many people use the product. Under enforcement, the single
+        most valuable event SeatWatch can observe — a seat opening in its most-watched
+        course — would have frozen every alert on the platform. Success, read as failure."""
+        for uid in range(1, 41):                       # 40 students, same section
+            self.add_user(uid, email=f"s{uid}@x.edu", push_sub=True)
+            self.add_watch(uid, course="TEST101", section="0101", term="202608", uid=uid)
+        self.push_devices = 1
+        self.install(FakeSchool(steps=[{"data": {"TEST101": {"0101": sec(True, 3)}}}]))
+        self.configure("enforce")
+        self.cycle()
+
+        self.assertIsNone(self.state.get("guardian_freeze"),
+                          "one seat opening froze the platform because it was POPULAR")
+        self.assertEqual(len(self.user_alerts()), 40,
+                         "all 40 students must be told; the seat is real")
+
+    def test_one_watcher_many_sections_still_freezes(self):
+        """The other direction, and the caveat the watcher metric could never express.
+
+        An any-section watch fires ONCE for the whole course no matter how many sections
+        flipped, so counting watches — or naively keying on the watch's own empty section —
+        collapses a whole-course cascade to a single unit and sails under the cap. The
+        section list that actually changed has to be carried into the tripwire."""
+        self.add_user(1, push_sub=True)
+        self.push_devices = 1
+        self.add_watch(1, course="TEST101", section="", term="202608", uid=1)
+        blown = {f"{i:04d}": sec(True, 5) for i in range(30)}    # parser breaks: all open
+        self.install(FakeSchool(steps=[{"data": {"TEST101": blown}}]))
+        self.configure("enforce")
+        self.cycle()
+
+        self.assertIsNotNone(self.state.get("guardian_freeze"),
+                             "30 sections flipped open at once and the gate did not notice")
+        self.assertEqual(self.user_alerts(), [])
+
     def test_mass_freeze_self_clears_once_the_load_is_normal_again(self):
         """A registrar releasing held seats in one block is not a parse break.
 

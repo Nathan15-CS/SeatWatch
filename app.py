@@ -3049,7 +3049,8 @@ def run_cycle():
                 open_secs = [n for n, i in secs.items() if i["open"]]
                 if open_secs and not r["alerted"]:
                     guardian.queue_alert(cyc, r, f"Open in {course}: "
-                                         f"{', '.join(sorted(open_secs))}", url)
+                                         f"{', '.join(sorted(open_secs))}", url,
+                                         sections=open_secs)
                 elif not open_secs and r["alerted"]:
                     _set_alerted(r["id"], 0)
                     guardian.record(cyc, r["id"], "checked_closed_reset",
