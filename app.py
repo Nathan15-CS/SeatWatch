@@ -133,10 +133,13 @@ PAID_LIVE = bool(PAID_ENABLED and STRIPE_SECRET_KEY and STRIPE_WEBHOOK_SECRET)
 # flag is "1" no SMS is ever sent, the opt-in UI renders nothing and the /sms routes 404.
 # Go-live is a SEPARATE gate from the code existing: A2P 10DLC registration + Twilio
 # prepaid balance with auto-recharge OFF (the only ceiling no code bug can bypass) +
-# Nathan's explicit go. SMS is PAID-TIER ONLY (enforced inside send_sms, not at call
-# sites): every recipient paid ~$20/term and a text costs ~1¢, so volume growth is
-# self-funding by construction — the unbounded-cost case only exists if free users get
-# SMS, so they never do. Every cap below is DERIVED from the alert_log ledger at check
+# Nathan's explicit go. SMS is CONSENT-gated, NOT tier-gated (enforced inside send_sms,
+# not at call sites) — free students are texted too, because a free tier that texts you
+# is the reason anyone signs up. That removes the "every recipient already paid ~$20"
+# argument that used to make volume self-funding by construction, so cost is now bounded
+# by MECHANISM instead: one text per watch ever, a per-user daily cap, a daily dollar
+# ceiling, and a velocity breaker. Those are the real ceiling — do not treat the tier as
+# one. Every cap below is DERIVED from the alert_log ledger at check
 # time, never held in memory: the poller restarts on every deploy, and an in-memory
 # counter would let a crashing runaway loop reset its own circuit breaker. ---
 SMS_ENABLED = os.environ.get("SMS_ENABLED") == "1"
@@ -1837,9 +1840,10 @@ def _sms_optin_form(tok):
 
 
 def sms_block(user, tok):
-    """In-app text-alert opt-in card for PAID users. Empty for free users and while SMS is
-    dormant (the /text-alerts page is the public opt-in home until launch). Single opt-in:
-    once the box is submitted the alerts are ON — there is no confirm-reply step."""
+    """In-app text-alert opt-in card for EVERY signed-in user, free included — SMS is
+    consent-gated, not tier-gated. Empty only while SMS is dormant (the /text-alerts page
+    is the public opt-in home until launch). Single opt-in: once the box is submitted the
+    alerts are ON — there is no confirm-reply step."""
     if not SMS_ENABLED or not user:
         return ""          # every signed-in user, free included — SMS is consent-gated now
     with db() as c:
@@ -3331,8 +3335,8 @@ def send_sms(user_id, r, message, url):
     covers the nobody-reachable case).
 
     Order of gates (cheapest first, all ledger-derived):
-      dormant -> paid tier (HARD: free users never get SMS, that's what makes growth
-      self-funding) -> consent (confirmed double opt-in, no STOP) -> per-watch latch
+      dormant -> channel preference (the student's own notify_sms switch) -> consent
+      (confirmed double opt-in, no STOP) -> per-watch latch
       (ONE text per watch: a flickering section costs exactly one SMS — push/email keep
       re-arming, they're free; another SMS requires the user to re-create the watch,
       and even then the per-(course,section) cap below bounds total spend) -> 1h dedup
