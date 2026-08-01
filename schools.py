@@ -4212,6 +4212,14 @@ class LoyolaMarymount(Banner):
     id = "lmu"; name = "Loyola Marymount University"
     example = "ENGL 2105"; host = "bannerxe.sis.lmu.edu"; term = "202630"
 
+class UTMartin(Banner):
+    id = "utmartin"; name = "University of Tennessee at Martin"
+    example = "BIOL 110"; host = "ban9ssb1.utm.edu"; term = "202640"
+
+class EasternKentucky(Banner):
+    id = "eku"; name = "Eastern Kentucky University"
+    example = "ACC 200"; host = "registrationss.eku.edu"; term = "202710"
+
 class URichmond(Banner):
     id = "richmond"; name = "University of Richmond"
     example = "CMSC 150"; host = "xeregp.richmond.edu"; term = "202610"
@@ -9888,7 +9896,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     Langston(), Montevallo(), AthensState(),
     GlenvilleState(), WVState(), SnowCollege(), LakeSuperiorState(), FairmontState(),
     Citadel(), SCState(), VMI(), SaginawValley(), OldWestbury(), SUNYPotsdam(),
-    DelawareState(), LoyolaMarymount(), PrairieViewAM(), URichmond()])
+    DelawareState(), LoyolaMarymount(), PrairieViewAM(), URichmond(),
+    UTMartin(), EasternKentucky()])
 
 
 def refresh_all_terms(log=None):

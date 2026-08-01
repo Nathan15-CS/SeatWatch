@@ -27,6 +27,7 @@ Invariants (the whole point — do not weaken):
   * Evidence is written before success is claimed: finalize() persists the
     cycle before ping_ok() may say True.
 """
+import collections
 import hashlib
 import json
 import os
@@ -39,7 +40,15 @@ import confidence as _conf
 # Every operational knob in one place. Env-overridable where the operator may
 # need to turn it without a deploy; plain constants otherwise.
 TUNING = {
-    "MAX_ALERTS_PER_CYCLE": int(os.environ.get("MAX_ALERTS_PER_CYCLE", "10")),
+    # TWO TRIPWIRES, AND THE SECOND IS NOT VESTIGIAL — see the long note in flush_alerts.
+    # Per-school is the primary gate: a parse break is a property of ONE school's page
+    # format, so freezing the platform for it punishes schools whose data is fine.
+    "MAX_SCHOOL_TRANSITIONS": int(os.environ.get("MAX_SCHOOL_TRANSITIONS", "10")),
+    # Global backstop, deliberately ABOVE the per-school gate. Hundreds of schools share
+    # one adapter family, so a vendor-side Banner/Colleague change can break many at once
+    # while each school stays individually under its own threshold. Per-school scoping
+    # cannot see that by construction. DO NOT DELETE THIS AS REDUNDANT.
+    "MAX_ALERTS_PER_CYCLE": int(os.environ.get("MAX_ALERTS_PER_CYCLE", "25")),
     "FRESHNESS_MAX_S": 180,          # data older than this can never justify an alert
     "PAGE_COOLDOWN_S": 6 * 3600,     # damper: 1 operator page per failure class / 6h
     "RATE_WINDOW_S": 6 * 3600,       # adapter success-rate window (~1080 cycles)
@@ -361,65 +370,140 @@ def flush_alerts(cycle, alert_fn, set_alerted_fn, cur_term_by_school, fetched_at
     # Real openings arrive a section at a time; a parse break flips dozens at once. That
     # separation is the thing worth gating on, and it does not drift as the userbase grows.
     n = len(cycle.transitions)
-    frozen = False
+    per_school = collections.Counter(sch for sch, _, _ in cycle.transitions)
+
+    # TWO TRIPWIRES, AND THE GLOBAL ONE IS NOT VESTIGIAL.
+    #
+    # PER-SCHOOL is the primary gate. A parse break is a property of ONE school's page
+    # format. A single global freeze meant a UMD break stopped alerting USF and OU
+    # students whose data was perfectly fine — collateral damage with no diagnostic
+    # value. Scoping per school contains the blast radius to the school that is actually
+    # lying, and makes the threshold meaningful: each school is compared against itself
+    # rather than against the sum of everything, so the number stops drifting as coverage
+    # grows. UMD's entire watched surface is 7 sections today; a per-school cap of 10 sits
+    # above it, and stays correct however many schools we add.
+    #
+    # GLOBAL is the backstop, deliberately set ABOVE the per-school gate. Hundreds of
+    # schools share one adapter family, so a vendor-side Banner or Colleague change can
+    # break many at once while each individual school sits comfortably under its own
+    # threshold — catastrophic in aggregate, invisible to per-school scoping BY
+    # CONSTRUCTION. If you are reading this because a global cap above a per-school cap
+    # looks redundant: it is not, and removing it reopens exactly that hole.
+    frozen_schools, frozen_global = set(), False
+
     if cycle.mode == "enforce":
-        try:                          # sticky: a tripped freeze blocks until a human
-            frozen = bool(_CFG["state_get"]("guardian_freeze"))   # clears the state key
+        latched, calm = {}, {}
+        try:
+            latched = _CFG["state_get"]("guardian_freeze") or {}
+            calm = _CFG["state_get"]("guardian_freeze_calm") or {}
+            frozen_global = bool(_CFG["state_get"]("guardian_freeze_global"))
         except Exception as e:
             _telemetry_mark(f"freeze_read:{type(e).__name__}")
-        if frozen:
-            # SELF-CLEARING on evidence, not only on a human. A freeze is right for a parse
-            # break or a term roll — data that is lying keeps lying, so n stays high and the
-            # freeze holds. It is WRONG for a legitimate surge: a registrar releasing held
-            # seats in a block can exceed the cap for one cycle, and the original design then
-            # silenced every alert until someone SSHed in and edited a state file. That is a
-            # registration morning lost, at exactly the hour students need us most.
-            #
-            # So: once the cycle load is back under the cap for FREEZE_CLEAR_CYCLES in a row,
-            # release it. A cascade cannot satisfy that condition; a one-off surge does
-            # immediately. The operator is still told, both on trip and on release.
-            if n <= TUNING["MAX_ALERTS_PER_CYCLE"]:
-                calm = int(_CFG["state_get"]("guardian_freeze_calm", 0) or 0) + 1
-                if calm >= TUNING["FREEZE_CLEAR_CYCLES"]:
-                    _CFG["state_set"](guardian_freeze=None, guardian_freeze_calm=0)
-                    frozen = False
-                    page("mass_freeze_cleared",
-                         f"✅ Mass-alert freeze CLEARED automatically: {calm} consecutive "
-                         f"cycles back under the cap ({TUNING['MAX_ALERTS_PER_CYCLE']}). "
-                         "Alerts are flowing again. If this was a real parse break the load "
-                         "would have stayed high and the freeze would have held.", "warn")
+        # Before scoping, this key held a bare {"at":..,"n":..} meaning "everything is
+        # frozen". Nothing was latched in production when scoping shipped, so this is
+        # belt-and-braces — but read as school ids an old value would "freeze" two
+        # schools named at/n while silently releasing every real one.
+        if isinstance(latched, dict) and "at" in latched:
+            frozen_global, latched = True, {}
+        if not isinstance(latched, dict):
+            latched = {}
+        if not isinstance(calm, dict):
+            calm = {}
+
+        # ---- release, per school, judged on THAT SCHOOL'S own load ----
+        for sch in list(latched):
+            if per_school.get(sch, 0) <= TUNING["MAX_SCHOOL_TRANSITIONS"]:
+                c = int(calm.get(sch, 0) or 0) + 1
+                if c >= TUNING["FREEZE_CLEAR_CYCLES"]:
+                    latched.pop(sch, None)
+                    calm.pop(sch, None)
+                    page(f"freeze_cleared_{sch}",
+                         f"✅ {sch}: alert freeze CLEARED automatically — {c} consecutive "
+                         f"cycles back under {TUNING['MAX_SCHOOL_TRANSITIONS']} section "
+                         "changes. Alerts flowing again for this school. A real parse "
+                         "break would have kept the load high and held the freeze.",
+                         "warn")
                 else:
-                    _CFG["state_set"](guardian_freeze_calm=calm)
+                    calm[sch] = c
             else:
-                _CFG["state_set"](guardian_freeze_calm=0)   # still cascading; restart the count
-            if frozen:
-                page("mass_freeze", "Mass-alert freeze is STILL ACTIVE — alerts held. It "
-                     "clears itself once the load returns to normal; clear guardian_freeze "
-                     "in the state file to release it sooner.", "red")
+                calm[sch] = 0                      # still cascading; restart the count
+                page(f"freeze_{sch}_still",
+                     f"🚨 {sch}: alert freeze STILL ACTIVE — {per_school.get(sch, 0)} "
+                     "sections still changing per cycle. Other schools are unaffected.",
+                     "red")
+
+        # ---- release, global ----
+        if frozen_global:
+            if n <= TUNING["MAX_ALERTS_PER_CYCLE"]:
+                c = int(_CFG["state_get"]("guardian_freeze_calm_global", 0) or 0) + 1
+                if c >= TUNING["FREEZE_CLEAR_CYCLES"]:
+                    frozen_global = False
+                    _CFG["state_set"](guardian_freeze_global=None,
+                                      guardian_freeze_calm_global=0)
+                    page("mass_freeze_cleared",
+                         f"✅ GLOBAL alert freeze CLEARED automatically — {c} consecutive "
+                         f"cycles back under {TUNING['MAX_ALERTS_PER_CYCLE']} total "
+                         "section changes. Alerts flowing again platform-wide.", "warn")
+                else:
+                    _CFG["state_set"](guardian_freeze_calm_global=c)
+            else:
+                _CFG["state_set"](guardian_freeze_calm_global=0)
+
+        # ---- trip, per school ----
+        for sch, cnt in sorted(per_school.items()):
+            if cnt > TUNING["MAX_SCHOOL_TRANSITIONS"] and sch not in latched:
+                latched[sch] = {"at": _now(), "n": cnt}
+                calm[sch] = 0
+                page(f"freeze_{sch}",
+                     f"🚨 {sch}: ALERT FREEZE — {cnt} sections changed state in one cycle "
+                     f"(cap {TUNING['MAX_SCHOOL_TRANSITIONS']}). Likely a parse break or "
+                     "term roll at this school, not real seats. Nothing sent FOR THIS "
+                     "SCHOOL; every other school is unaffected. Clears itself once this "
+                     "school's load returns to normal.", "red")
+        try:
+            _CFG["state_set"](guardian_freeze=latched or None, guardian_freeze_calm=calm or None)
+        except Exception as e:
+            _telemetry_mark(f"freeze:{type(e).__name__}")
+        frozen_schools = set(latched)
+
+    elif cycle.mode == "shadow":
+        for sch, cnt in sorted(per_school.items()):
+            if cnt > TUNING["MAX_SCHOOL_TRANSITIONS"]:
+                d = (f"{sch}: {cnt} section changes in one cycle "
+                     f"(cap {TUNING['MAX_SCHOOL_TRANSITIONS']})")
+                cycle.would_block.append({"kind": "school_freeze", "school": sch, "detail": d})
+                page(f"freeze_{sch}_shadow", "⚠️ [shadow] per-school tripwire WOULD have "
+                     f"frozen {sch}: {d} (alerts still sent — shadow mode)")
+
+    # ---- the global backstop: adapter-family events per-school scoping cannot see ----
     if n > TUNING["MAX_ALERTS_PER_CYCLE"]:
-        detail = (f"{n} simultaneous alert candidates in one cycle "
-                  f"(cap {TUNING['MAX_ALERTS_PER_CYCLE']}) — mass transition: "
-                  "likely a term roll or parse break, not real seats.")
+        detail = (f"{n} section changes across {len(per_school)} schools in one cycle "
+                  f"(global cap {TUNING['MAX_ALERTS_PER_CYCLE']}) — an adapter-FAMILY "
+                  "event: many schools breaking together, each possibly still under its "
+                  "own per-school threshold.")
         if cycle.mode == "enforce":
-            frozen = True
+            frozen_global = True
             try:
-                _CFG["state_set"](guardian_freeze={"at": _now(), "n": n})
+                _CFG["state_set"](guardian_freeze_global={"at": _now(), "n": n},
+                                  guardian_freeze_calm_global=0)
             except Exception as e:
                 _telemetry_mark(f"freeze:{type(e).__name__}")
-            page("mass_freeze", "🚨 MASS-ALERT FREEZE: " + detail +
-                 " NOTHING was sent. Clear guardian_freeze in the state file "
-                 "after a human verifies the data.", "red")
+            page("mass_freeze", "🚨 GLOBAL ALERT FREEZE: " + detail +
+                 " NOTHING was sent, platform-wide. Clears itself once the load returns "
+                 "to normal.", "red")
         elif cycle.mode == "shadow":
             cycle.would_block.append({"kind": "mass_freeze", "detail": detail})
-            page("mass_freeze_shadow", "⚠️ [shadow] mass-alert tripwire WOULD have "
-                 "frozen this cycle: " + detail + " (alerts still sent — shadow mode)")
+            page("mass_freeze_shadow", "⚠️ [shadow] global tripwire WOULD have frozen "
+                 "this cycle: " + detail + " (alerts still sent — shadow mode)")
+
     for r, msg, url in cycle.pending:
         wid = r["id"]
         school = r["school"]
         allow, reason = (True, "off") if cycle.mode == "off" else gate(
             cycle, r, cur_term_by_school.get(school), fetched_at_by_school.get(school))
-        if cycle.mode == "enforce" and (frozen or not allow):
-            record(cycle, wid, "blocked_mass_freeze" if frozen else "blocked_gate",
+        blocked = frozen_global or school in frozen_schools
+        if cycle.mode == "enforce" and (blocked or not allow):
+            record(cycle, wid, "blocked_mass_freeze" if blocked else "blocked_gate",
                    reason=reason)
             continue
         if cycle.mode == "shadow" and (not allow):

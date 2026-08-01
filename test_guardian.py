@@ -112,7 +112,11 @@ class Base(unittest.TestCase):
         guardian._LAST_DIVERGENCE.clear()
         guardian._CUR["cycle"] = None
         guardian.TUNING["POLL_S"] = 20
-        guardian.TUNING["MAX_ALERTS_PER_CYCLE"] = 10
+        # Both tripwires pinned to their PRODUCTION defaults, so these tests exercise the
+        # shipped configuration rather than a test-only one. Per-school is the primary
+        # gate; the global cap sits above it to catch adapter-family events.
+        guardian.TUNING["MAX_SCHOOL_TRANSITIONS"] = 10
+        guardian.TUNING["MAX_ALERTS_PER_CYCLE"] = 25
         self.configure("shadow")
 
     def tearDown(self):
@@ -492,6 +496,73 @@ class TestGates(Base):
                              "30 sections flipped open at once and the gate did not notice")
         self.assertEqual(self.user_alerts(), [])
 
+    def test_a_frozen_school_cannot_silence_a_healthy_one(self):
+        """THE POINT OF PER-SCHOOL SCOPING, and the easiest thing to get subtly wrong.
+
+        A parse break is a property of ONE school's page format. Under a single global
+        freeze, UMD breaking stopped alerting the USF and OU students whose data was
+        perfectly fine — collateral damage with no diagnostic value whatsoever. The
+        student at the healthy school loses their seat because of a bug at a school they
+        have never heard of."""
+        self.add_user(1, push_sub=True)
+        self.push_devices = 1
+        broken, fine, wid = {}, {}, 0
+        for i in range(15):                       # fakeu: parser breaks, 15 sections flip
+            wid += 1
+            self.add_watch(wid, school="fakeu", course=f"C{i:03d}", section="0101",
+                           term="202608")
+            broken[f"C{i:03d}"] = {"0101": sec(True, 4)}
+        wid += 1
+        healthy_wid = wid                          # otheru: ONE genuine seat opening
+        self.add_watch(healthy_wid, school="otheru", course="OK101", section="0101",
+                       term="202608")
+        fine["OK101"] = {"0101": sec(True, 2)}
+        self.install(FakeSchool(sid="fakeu", steps=[{"data": broken}]),
+                     FakeSchool(sid="otheru", steps=[{"data": fine}]))
+        self.configure("enforce")
+        self.cycle()
+
+        self.assertEqual(self.alerted(healthy_wid), 1,
+                         "a healthy school's student was silenced by ANOTHER school's "
+                         "parse break")
+        self.assertEqual(len(self.user_alerts()), 1,
+                         "exactly one alert should survive: the real seat at otheru")
+        for i in range(1, 16):
+            self.assertEqual(self.alerted(i), 0, "the lying school still alerted")
+        latched = self.state.get("guardian_freeze") or {}
+        self.assertIn("fakeu", latched)
+        self.assertNotIn("otheru", latched, "froze a school that never tripped")
+
+    def test_adapter_family_break_trips_the_global_backstop(self):
+        """The hole per-school scoping CANNOT see, by construction.
+
+        Hundreds of schools share one adapter family. A vendor-side Banner or Colleague
+        change breaks many at once, and each school can sit comfortably under its own
+        per-school threshold while the aggregate is catastrophic. This is why the global
+        cap survives above the per-school one and must not be deleted as redundant."""
+        self.add_user(1, push_sub=True)
+        self.push_devices = 1
+        fakes, wid = [], 0
+        for s in range(6):                        # 6 schools x 5 sections = 30 > global 25
+            sid = f"fam{s}"
+            data = {}
+            for i in range(5):                    # 5 each: UNDER the per-school cap of 10
+                wid += 1
+                self.add_watch(wid, school=sid, course=f"C{i}", section="0101",
+                               term="202608")
+                data[f"C{i}"] = {"0101": sec(True, 3)}
+            fakes.append(FakeSchool(sid=sid, steps=[{"data": data}]))
+        self.install(*fakes)
+        self.configure("enforce")
+        self.cycle()
+
+        self.assertEqual(self.user_alerts(), [],
+                         "an adapter-family break slipped through: every school was "
+                         "under its own cap, so only the global backstop could catch it")
+        self.assertIsNotNone(self.state.get("guardian_freeze_global"))
+        self.assertFalse(self.state.get("guardian_freeze") or {},
+                         "no single school exceeded its own threshold")
+
     def test_mass_freeze_self_clears_once_the_load_is_normal_again(self):
         """A registrar releasing held seats in one block is not a parse break.
 
@@ -531,7 +602,11 @@ class TestGates(Base):
         self.assertTrue(ping)
         self.assertTrue(any("WOULD have" in p for p in self.pages))
         row = self.last_cycle_row()
-        self.assertIn("mass_freeze", row["notes"])
+        # 15 sections at ONE school: under the global cap, over that school's. Shadow now
+        # records which school would have been frozen rather than a blanket platform
+        # freeze — a strictly more precise divergence record, same "changes nothing" rule.
+        self.assertIn("school_freeze", row["notes"])
+        self.assertIn("fakeu", row["notes"])
 
     def test_stale_data_gate_blocks_in_enforce(self):
         self.configure("enforce")
