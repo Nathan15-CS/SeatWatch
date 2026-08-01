@@ -50,6 +50,8 @@ SUITES = [
      "distinct section keys == real rows; catches PARTIAL collapse that looks plausible"),
     ("Full student journey (end to end)", "test_journey",
      "land -> watch -> sample -> seat opens -> alert -> click -> prefs -> STOP -> feedback"),
+    ("Payments: only a verified webhook pays", "test_payments",
+     "forged/replayed/tampered webhooks grant nothing; refunds match the exact charge"),
     ("Pinned-term schools still live", "test_pinned_terms",
      "schools that can't auto-roll haven't silently gone dead (hits real hosts)"),
 ]
