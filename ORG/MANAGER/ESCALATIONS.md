@@ -22,14 +22,21 @@ decision but is not actively harming anyone.
 
 ## OPEN
 
-### 2026-07-31 19:40 — GUARDIAN — INVESTIGATE — Phase-E window cannot produce its evidence; bring the enforcement decision forward
-Evidence:
-- `latch_decision` appends divergences to `_LAST_DIVERGENCE` (guardian.py:428) — in-memory list,
-  `del _LAST_DIVERGENCE[:-100]`, reset every process start. Never written to the DB. Only consumer
-  is guardian.py:670 passing `len(...)` into a cycle record.
-- Against the 2026-07-31 03:00 snapshot: `guardian_incidents` = **0 rows, all kinds**.
-  `guardian_cycles` columns are `cycle_id started finished mode expected accounted status binding notes`
-  — **no divergences column**. Multiple restarts since 07-26, so shadow's observations are gone.
+### 2026-07-31 19:40 — GUARDIAN — INVESTIGATE — Phase-E evidence is IN and unanimous; bring the enforcement decision forward
+**CORRECTED 19:58.** My first version of this claimed shadow produced no durable evidence. That was
+wrong and I am glad it was caught before Guardian acted on it. There are TWO shadow signals, and only
+one of them is volatile:
+- **`cycle.would_block` — DURABLE and COMPLETE.** Persisted as JSON in `guardian_cycles.notes`.
+  All **19,363 of 19,363 cycles** carry the field; **every one is `"would_block": []`**. Zero cycles
+  where enforcement would have blocked anything, across the entire 2026-07-26 06:14 → 07-31 02:59 window.
+  This is the primary Phase-E evidence and it exists.
+- **`_LAST_DIVERGENCE` — volatile.** guardian.py:428, in-memory, `del [:-100]`, reset on process start,
+  never written to the DB (only consumer is guardian.py:670). This is the *dishonest-latch* signal.
+  It only fires when an alert fires, so its whole possible population is the 12 alerts below — and
+  that population is fully reconstructible from `alert_log`, which I did. Nothing was actually lost.
+  Worth fixing so it is queryable, but it is not a gap in the decision.
+- `guardian_incidents` = 0 rows, all kinds. `guardian_cycles` has no dedicated divergences column;
+  the evidence lives in `notes`.
 - 19,363 cycles (19,327 GREEN / 36 YELLOW / 0 RED) produced **12 alerts total**:
   ASTR100 uid 5 → ntfy+webpush+email; ASTR100 uid 6 → ntfy+email;
   MUSC205 ×5 → watch 4, `user_id` NULL, ntfy only (topic-only; the honest rule latches these by
