@@ -54,6 +54,8 @@ SUITES = [
      "numeric per-account code; ONLY the $29.95 plan; single-use; shown price == charged"),
     ("Payments: only a verified webhook pays", "test_payments",
      "forged/replayed/tampered webhooks grant nothing; refunds match the exact charge"),
+    ("ADVERSARIAL: hostile visitor", "test_adversarial",
+     "IDOR, forged sessions, CSRF, SQLi, push hijack, consent forgery, floods"),
     ("Pinned-term schools still live", "test_pinned_terms",
      "schools that can't auto-roll haven't silently gone dead (hits real hosts)"),
 ]
