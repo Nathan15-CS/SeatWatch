@@ -5933,6 +5933,10 @@ class LincolnTrail(IECC):
     id = "lincolntrail"; name = "Lincoln Trail College"
     example = "ENG 1111"; campus = "LINCOLN"
 
+class FrontierCC(IECC):
+    id = "frontiercc"; name = "Frontier Community College"
+    example = "ENG 1111"; campus = "FRONTIER"
+
 # --- Codex batches 87/91-94 (Grab-relayed, re-gated live). Stock Banner9 unless noted. ---
 class SUNYDelhi(Banner):
     id = "sunydelhi"; name = "SUNY Delhi"
@@ -6484,6 +6488,14 @@ class UPortland(Banner):
 class AuburnMontgomery(Banner):
     id = "aum"; name = "Auburn University at Montgomery"
     example = "CSCI 2000"; host = "ssb9.aum.edu"; term = "202701"
+
+class BinghamtonU(Banner):
+    id = "binghamton"; name = "Binghamton University"
+    example = "MATH 108"; host = "ssb.cc.binghamton.edu:8484"; term = "202690"
+
+class SUNYOneonta(Banner):
+    id = "suny-oneonta"; name = "SUNY Oneonta"
+    example = "BIOL 1008"; host = "webservices.oneonta.edu"; term = "202609"
 
 class SUNYOswego(Banner):
     id = "suny-oswego"; name = "SUNY Oswego"
@@ -9716,7 +9728,7 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                              SUNYMaritime(), Providence(), Samford(), Belmont(),
                              DetroitMercy(), Kettering(), Andrews(), JohnCarroll(),
                              Otterbein(), StEdwards(), UPortland(),
-                             AuburnMontgomery(), SUNYOswego(), SUNYBrockport(),
+                             AuburnMontgomery(), BinghamtonU(), SUNYOneonta(), SUNYOswego(), SUNYBrockport(),
                              SUNYCobleskill(), SUNYCortland(), SUNYNewPaltz(),
                              MissouriWestern(), WestfieldState(), EasternIllinois(),
                              SUNYBroome(), DutchessCC(), JeffersonCC(), AdirondackCC(),
@@ -9910,7 +9922,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     Citadel(), SCState(), VMI(), SaginawValley(), OldWestbury(), SUNYPotsdam(),
     DelawareState(), LoyolaMarymount(), PrairieViewAM(), URichmond(),
     UTMartin(), EasternKentucky(), PurdueFortWayne(), Creighton(),
-    FletcherTech()])
+    FletcherTech(), FrontierCC()])
 
 
 def refresh_all_terms(log=None):
