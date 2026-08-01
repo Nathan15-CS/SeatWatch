@@ -61,6 +61,28 @@ def run():
         app.send_sample_sms(u_free)
     check("five more watches still send nothing", not sent, f"{len(sent)} extra texts")
 
+    # ORDER INDEPENDENCE — the gap that actually bit in production.
+    # The sample originally fired only on watch creation, so a student who added a class
+    # FIRST and gave their number 86 seconds later got nothing: at watch time they had no
+    # consented phone, and the early return was silent. That order is the common one —
+    # people arrive wanting to watch something, then notice the phone option. The sample
+    # must therefore be reachable from BOTH events, and still fire exactly once.
+    u_late = mkuser("g_late", consented=False)          # watches first, consents later
+    sent.clear()
+    check("no consent yet -> watch creation sends nothing", not app.send_sample_sms(u_late))
+    with app.db() as c:                                  # ...now they opt in
+        c.execute("INSERT INTO sms_consent(user_id,phone,wording,ip,requested_at,"
+                  "confirmed_at,revoked_at) VALUES(?,?,?,?,?,?,NULL)",
+                  (u_late, "+15559990001", "w", "127.0.0.1", time.time(), time.time()))
+    sent.clear()
+    check("consenting AFTER watching still delivers the sample",
+          app.send_sample_sms(u_late) is True and bool(sent),
+          "a student who opts in second would never see what an alert looks like")
+    sent.clear()
+    check("...and still only once across BOTH triggers",
+          app.send_sample_sms(u_late) is False and not sent,
+          "reachable from two events must not mean sent twice")
+
     u_nocon = mkuser("g_nocon", consented=False)
     sent.clear()
     check("no consent -> no sample text", app.send_sample_sms(u_nocon) is False and not sent,

@@ -2507,9 +2507,17 @@ class Handler(BaseHTTPRequestHandler):
                 c.execute("INSERT INTO sms_consent(user_id,phone,wording,ip,requested_at,"
                           "confirmed_at) VALUES(?,?,?,?,?,?)",
                           (user["id"], phone, SMS_CONSENT_WORDING, self._client_ip(), now, now))
+            # Also sample HERE, not only on watch creation. The two natural orders are
+            # "give a number, then add a class" and "add a class, then notice the phone
+            # option" — and the second is more common, because people arrive wanting to
+            # watch something. Firing only on watch creation meant anyone who consented
+            # second never saw what an alert looks like. Safe to call from both places:
+            # sample_sms_at makes it once per ACCOUNT, so this can never double-send.
+            send_sample_sms(user["id"])
             return self._notice(
-                "You're opted in to text alerts. We'll text you the moment a seat opens. "
-                "Reply STOP anytime to turn them off." if SMS_LIVE else
+                "You're opted in to text alerts. Check your phone — we just sent you an "
+                "example of what an alert looks like. Reply STOP anytime to turn them off."
+                if SMS_LIVE else
                 "You're opted in — text alerts will begin as soon as our SMS service goes "
                 "live. You can turn them off anytime by replying STOP once they start.",
                 user=user)
