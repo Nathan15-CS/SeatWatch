@@ -1141,7 +1141,7 @@ __NOTICE__
  </div>
  <label>Course code <small id="ex"></small></label>
  <input name="course" id="course" placeholder="e.g. ENG101" required>
- __SECFIELD__
+__PHONEFIELD__ __SECFIELD__
  <button type="submit">Watch this class<svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
 </form>
 __PLANNOTE__
@@ -1851,6 +1851,42 @@ def sms_block(user, tok):
     return box + _sms_optin_form(tok) + "</div>"
 
 
+def inline_phone_field(user):
+    """The phone + consent prompt, INSIDE the watch form, between course and sections.
+
+    It used to live in its own card below the form, and people never reached it: they
+    arrive wanting to watch a class, fill the first fields they see, and submit. The
+    option has to sit in the path they already walk, not beside it.
+
+    Marked RECOMMENDED, never required — a phone number is not a condition of using
+    SeatWatch, and saying so is both true and a TCPA nicety. Empty for anyone who has
+    already opted in (nothing to ask) and while SMS is dormant.
+
+    The checkbox is unchecked by default and carries the exact registered disclosure, the
+    same wording as the standalone form, because that string is what the carrier approved
+    and what we would show if consent were ever disputed.
+    """
+    if not SMS_ENABLED or not user:
+        return ""
+    with db() as c:
+        row = c.execute("SELECT 1 FROM sms_consent WHERE user_id=? AND confirmed_at "
+                        "IS NOT NULL AND revoked_at IS NULL LIMIT 1",
+                        (user["id"],)).fetchone()
+    if row:
+        return ""                      # already opted in; do not ask twice
+    return (
+        ' <label>Mobile number '
+        '<small style="color:#0F9D74;font-weight:700">RECOMMENDED &mdash; a seat can open '
+        'at 2am and a text is what wakes you</small></label>\n'
+        ' <input name="phone" type="tel" inputmode="tel" autocomplete="tel" '
+        'placeholder="e.g. 301 555 0123 (optional)">\n'
+        ' <label style="display:flex;gap:9px;align-items:flex-start;font-weight:400;'
+        'font-size:12.5px;line-height:1.55;margin:7px 0 2px;text-transform:none;'
+        'letter-spacing:0"><input type="checkbox" name="sms_consent" value="1" '
+        'style="margin-top:2px;flex:none;width:auto">'
+        f'<span>{_sms_consent_html()}</span></label>\n')
+
+
 def notify_prefs_block(user, tok):
     """Two checkboxes letting a student choose how they are alerted.
 
@@ -1973,6 +2009,7 @@ def form_page(notice="", user=None):
                         'seat that opens in a section you\'re <i>not</i> watching won\'t alert you; '
                         'paid plans watch unlimited sections.</p>')
         card = (CARD_FORM.replace("__NOTICE__", notice)
+                .replace("__PHONEFIELD__", inline_phone_field(user))
                 .replace("__SECFIELD__", secfield)
                 .replace("__PLANNOTE__", plannote)
                 .replace("__EMAIL__", html.escape(user["email"]))
@@ -2587,6 +2624,45 @@ class Handler(BaseHTTPRequestHandler):
         if not school:
             return self._notice("Please choose a valid school.", user=user)
         course = form.get("course", [""])[0].strip().upper()
+
+        # Optional phone + consent, collected INSIDE this form so it sits in the path a
+        # student already walks instead of in a card below it. Recorded BEFORE the watch is
+        # created, so the sample text can fire on this same request with a valid number.
+        #
+        # A number WITHOUT a ticked box is refused outright, never quietly stored: it is
+        # the one case where guessing costs $500-$1500 a message. Refusing is also the
+        # honest reading — somebody who typed a number and left the box alone has not
+        # agreed to anything, and silently dropping the number would leave them expecting
+        # texts that never come.
+        inline_phone = _norm_phone(form.get("phone", [""])[0])
+        inline_consent = bool(form.get("sms_consent", [""])[0].strip())
+        if form.get("phone", [""])[0].strip() and not inline_phone:
+            return self._notice("That phone number doesn't look right — use a US 10-digit "
+                                "mobile number, or leave it blank.", user=user)
+        if inline_phone and not inline_consent:
+            return self._notice("Please tick the consent box if you'd like text alerts, or "
+                                "clear the phone number. We can't text you without it.",
+                                user=user)
+        if inline_phone and inline_consent:
+            now_ts = time.time()
+            with db() as c:
+                already = c.execute("SELECT 1 FROM sms_consent WHERE user_id=? AND "
+                                    "confirmed_at IS NOT NULL AND revoked_at IS NULL LIMIT 1",
+                                    (user["id"],)).fetchone()
+                if not already:
+                    c.execute("UPDATE sms_consent SET revoked_at=? WHERE user_id=? AND "
+                              "revoked_at IS NULL AND phone!=?",
+                              (now_ts, user["id"], inline_phone))
+                    c.execute("INSERT INTO sms_consent(user_id,phone,wording,ip,requested_at,"
+                              "confirmed_at) VALUES(?,?,?,?,?,?)",
+                              (user["id"], inline_phone, SMS_CONSENT_WORDING,
+                               self._client_ip(), now_ts, now_ts))
+            # Sample HERE, right after consent lands, not only after the watch succeeds.
+            # The watch can still be rejected below — a mistyped course code, a plan limit —
+            # and a student who just handed over their number and ticked a box should not be
+            # punished for that with silence. Once per account, so this cannot double-send.
+            send_sample_sms(user["id"])
+
         tier = effective_tier(user)             # 0 = free (also the state when paid is off)
         all_sections = tier >= 1                 # paid watches EVERY section of a course
         max_courses = tier_courses(tier)

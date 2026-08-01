@@ -173,6 +173,82 @@ def run():
     check("a crashing promo sweep never escapes into the poll loop", not raised2,
           "an exception here would stop seat polling")
 
+    # ---- INLINE consent inside the watch form, over a real socket ----
+    # The phone prompt now lives between "course code" and "sections" so students in a
+    # hurry cannot miss it. That puts a TCPA decision in the middle of the busiest form on
+    # the site, so the rules are asserted against the real endpoint, not a helper.
+    import threading, urllib.request, urllib.error
+    from urllib.parse import urlencode
+    from http.server import ThreadingHTTPServer
+
+    app.SMS_ENABLED = True
+    # Restore a WORKING sender. The crash-safety block above deliberately leaves
+    # _twilio_post throwing, and these checks run after it — without this the sample
+    # "fails" for a reason that has nothing to do with what is being tested. Test
+    # fixtures leaking state into later assertions is its own class of false result.
+    app._twilio_post = lambda to, body: (sent.append((to, body)), (True, None))[1]
+    srv = ThreadingHTTPServer(("127.0.0.1", 0), app.Handler)
+    threading.Thread(target=srv.serve_forever, daemon=True).start()
+    port = srv.server_address[1]
+
+    u_form = mkuser("g_form", consented=False, email="form@umd.edu")
+    cookie = app.session_cookie(u_form).split(";")[0]
+    csrf = app.csrf_token(u_form)
+
+    def watch_post(fields):
+        req = urllib.request.Request(
+            f"http://127.0.0.1:{port}/watch",
+            data=urlencode([("csrf", csrf), ("school", "umd"), ("course", "CHEM231"),
+                            ("sections", "0101")] + fields).encode(),
+            headers={"Content-Type": "application/x-www-form-urlencoded", "Cookie": cookie})
+        try:
+            with urllib.request.urlopen(req, timeout=15) as r:
+                return r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            return e.read().decode("utf-8", "replace")
+
+    def consented_rows():
+        with app.db() as c:
+            return c.execute("SELECT COUNT(*) FROM sms_consent WHERE user_id=? AND "
+                             "confirmed_at IS NOT NULL AND revoked_at IS NULL",
+                             (u_form,)).fetchone()[0]
+
+    body = watch_post([("phone", "3015550123")])          # number, box NOT ticked
+    check("phone WITHOUT the consent box is refused", "consent box" in body.lower(),
+          "a number typed with no box ticked is not agreement to anything")
+    check("...and no consent row was written", consented_rows() == 0,
+          "silently storing it would be the TCPA failure this guards")
+
+    body = watch_post([("phone", "12"), ("sms_consent", "1")])
+    check("a malformed number is refused", "look right" in body.lower())
+    check("...and still writes nothing", consented_rows() == 0)
+
+    sent.clear()
+    body = watch_post([("phone", "3015550123"), ("sms_consent", "1")])
+    check("number + ticked box records consent", consented_rows() == 1, f"rows={consented_rows()}")
+    check("...and the sample text goes out on that same request", bool(sent),
+          "the whole point is they see an alert seconds after asking for one")
+
+    # the field must disappear once they are opted in, rather than asking forever
+    with app.db() as c:
+        u_row = c.execute("SELECT * FROM users WHERE id=?", (u_form,)).fetchone()
+    check("the prompt is hidden once they have opted in",
+          app.inline_phone_field(u_row) == "",
+          "asking again after they said yes reads as broken")
+
+    u_fresh = mkuser("g_fresh", consented=False, email="fresh@umd.edu")
+    with app.db() as c:
+        fresh_row = c.execute("SELECT * FROM users WHERE id=?", (u_fresh,)).fetchone()
+    fld = app.inline_phone_field(fresh_row)
+    check("a new student IS shown the prompt", 'name="phone"' in fld)
+    check("the box is UNCHECKED by default", "checked" not in fld,
+          "a pre-ticked consent box is not consent")
+    check("it is marked recommended, not required", "RECOMMENDED" in fld and "required" not in fld,
+          "a phone number must never be a condition of using SeatWatch")
+    check("the exact registered disclosure is shown", "Msg" in fld or "STOP" in fld,
+          "the carrier approved specific wording; it has to be the wording shown")
+
+    srv.shutdown()
     p = sum(ok for _, ok, _ in results)
     f = sum(not ok for _, ok, _ in results)
     return p, f, results
