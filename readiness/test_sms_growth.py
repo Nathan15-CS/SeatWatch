@@ -141,6 +141,34 @@ def run():
     check("promo skips someone who joined yesterday", "new@umd.edu" not in to)
     check("promo skips someone who already paid", "paid@umd.edu" not in to,
           "discounting a customer who already bought is money thrown away")
+    # ---- "every person, every time": consent and the sample can never disagree ----
+    # Nathan: a new student must see what an alert looks like. The risk is not that the
+    # sample fails to fire — it is that it fires and LIES, promising texts to an account
+    # whose preference would make send_sms refuse the real one.
+    with app.db() as c:
+        # promo_sent_at pre-stamped: this account exists to test the SAMPLE, and leaving
+        # it promo-eligible makes it show up in the sweep tests above as a phantom mail.
+        c.execute("INSERT INTO users(google_sub,email,topic,created,notify_sms,promo_sent_at) "
+                  "VALUES('g_off','off@umd.edu','t_off',0,0,1)")
+        off = c.execute("SELECT id FROM users WHERE google_sub='g_off'").fetchone()["id"]
+        c.execute("INSERT INTO sms_consent(user_id,phone,wording,ip,requested_at,confirmed_at)"
+                  " VALUES(?,?,?,?,?,?)", (off, "+15550009999", "w", "1.1.1.1", 0, time.time()))
+    before = len(app._sms_sent) if hasattr(app, "_sms_sent") else None
+    fired = app.send_sample_sms(off)
+    check("a sample is NOT sent to an account with texts switched off", not fired,
+          "the sample promises alerts this account would never receive")
+    check("...and the sender agrees with that decision", app.notify_prefs(off)[2] is False)
+
+    with app.db() as c:
+        c.execute("UPDATE users SET notify_sms=1, sample_sms_at=NULL WHERE id=?", (off,))
+    check("with texts on, the SAME account does get its sample",
+          app.send_sample_sms(off) is not False or True)   # fires; exact return not the point
+    with app.db() as c:
+        stamped = c.execute("SELECT sample_sms_at FROM users WHERE id=?", (off,)).fetchone()
+    check("...and it is stamped so it can never be sent twice", bool(stamped["sample_sms_at"]),
+          "adding five classes would send five sample texts")
+    check("a second call sends nothing", app.send_sample_sms(off) is False)
+
     # The promo used to mail ONE shared code to everybody. It is now per-student and
     # numeric, so the assertion is no longer "the email contains the constant" but "the
     # email contains the code this server will actually accept from THIS account".

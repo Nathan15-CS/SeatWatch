@@ -2708,6 +2708,11 @@ class Handler(BaseHTTPRequestHandler):
                 c.execute("INSERT INTO sms_consent(user_id,phone,wording,ip,requested_at,"
                           "confirmed_at) VALUES(?,?,?,?,?,?)",
                           (user["id"], phone, SMS_CONSENT_WORDING, self._client_ip(), now, now))
+                # Handing over a number and ticking the box IS the preference. Without
+                # this, a student who had once switched texts off would consent, receive a
+                # sample promising alerts, and then never get one — the preference and the
+                # consent silently disagreeing. Their most recent explicit act wins.
+                c.execute("UPDATE users SET notify_sms=1 WHERE id=?", (user["id"],))
             # Also sample HERE, not only on watch creation. The two natural orders are
             # "give a number, then add a class" and "add a class, then notice the phone
             # option" — and the second is more common, because people arrive wanting to
@@ -2821,6 +2826,7 @@ class Handler(BaseHTTPRequestHandler):
                               "confirmed_at) VALUES(?,?,?,?,?,?)",
                               (user["id"], inline_phone, SMS_CONSENT_WORDING,
                                self._client_ip(), now_ts, now_ts))
+                    c.execute("UPDATE users SET notify_sms=1 WHERE id=?", (user["id"],))
             # Sample HERE, right after consent lands, not only after the watch succeeds.
             # The watch can still be rejected below — a mistyped course code, a plan limit —
             # and a student who just handed over their number and ticked a box should not be
@@ -3437,6 +3443,13 @@ def send_sample_sms(user_id):
         phone = _sms_phone(user_id)
         if not phone:
             return False                      # no consented number: nothing to show
+        if not notify_prefs(user_id)[2]:
+            # The sample says "we'll text you the moment a real seat frees up". If this
+            # account has texts switched off, send_sms would refuse that alert, so the
+            # sample would be a promise the product does not keep. Consent paths set
+            # notify_sms=1, so reaching here means the student turned it off deliberately
+            # after consenting — and that choice outranks the demo.
+            return False
         body = ("SeatWatch: you're all set. This is what an alert looks like — "
                 "\"CHEM231-0101: 2 seats just opened. Register now.\" "
                 "We'll text you the moment a real seat frees up. Reply STOP to opt out.")
