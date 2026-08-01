@@ -91,6 +91,22 @@ it drifts wrong as watch count grows.
    watches, revisit before 200) **AND** resolve the stickiness question.
 3. Only then `GUARDIAN_MODE=enforce`.
 
+**ADDENDUM 2 — 2026-08-01, from Nathan's question "what if we grow and I hit 10 alerts?"**
+**The threshold metric is wrong, not just its value. Hold `MAX_ALERTS_PER_CYCLE=25`.**
+guardian.py:331 `n = len(cycle.pending)`; `queue_alert` appends one entry per **watch**. So `n`
+counts **watchers, not seat openings** — one genuine seat opening in a popular course produces N
+pending alerts where N is how many students watch it. **The cap trips on popularity.**
+Against live concentration (CMSC216 = 7 of 14 watches, 50%): ~50 students → ~50 pending on one real
+seat (2× over 25); ~150 students → ~150 (6× over). Under enforce that is a sticky total outage
+fired by the most valuable event the product can observe. Raising the number only moves the student
+count at which it happens; every watcher-based threshold has this shape.
+**Proposed:** `n = len({(r["school"], r["course"], r["section"]) for r, _, _ in cycle.pending})`
+— distinct section transitions is bounded by the registrar's data, not by user count, so it stays
+flat as the company grows. It also separates the cases directly: 50 alerts from 1 transition = one
+real seat fanned out (deliver); 50 alerts from 40 transitions = parse break (freeze). A *tighter*
+cap then becomes correct and stays correct. **Unresolved:** watches with empty/NULL `section` mean
+"any section" and collapse onto one key per course — may under-count a real cascade.
+
 **Guardian's design call, two parts:**
 (a) **Stickiness is the worse half.** A wrong threshold costs one cycle; sticky-until-manual costs
 every cycle after it. Build proposes auto-clearing after N cycles once the data looks normal again —
