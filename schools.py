@@ -4212,6 +4212,10 @@ class LoyolaMarymount(Banner):
     id = "lmu"; name = "Loyola Marymount University"
     example = "ENGL 2105"; host = "bannerxe.sis.lmu.edu"; term = "202630"
 
+class URichmond(Banner):
+    id = "richmond"; name = "University of Richmond"
+    example = "CMSC 150"; host = "xeregp.richmond.edu"; term = "202610"
+
 class JacksonvilleState(Banner):
     # Dual-enrollment / high-school sections (instructionalMethodDescription) carry open
     # seats a general student cannot register for — an eligibility false-open, same as the
@@ -6762,8 +6766,9 @@ class Presbyterian(Banner):
     id = "presby"; name = "Presbyterian College"
     example = "ENGL 1001"; host = "banprod.presby.edu"; term = "202601"
 
-# Prairie View A&M (myssb.pvamu.edu) tested and CUT — passed one gate fetch then went
-# consistently empty (0 sections, fast responses): host serves inconsistent data.
+class PrairieViewAM(Banner):
+    id = "pvamu"; name = "Prairie View A&M University"
+    example = "ENGL 0111"; host = "myssb.pvamu.edu"; term = "202710"
 
 class Gonzaga(Banner):
     id = "gonzaga"; name = "Gonzaga University"
@@ -9883,7 +9888,7 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     Langston(), Montevallo(), AthensState(),
     GlenvilleState(), WVState(), SnowCollege(), LakeSuperiorState(), FairmontState(),
     Citadel(), SCState(), VMI(), SaginawValley(), OldWestbury(), SUNYPotsdam(),
-    DelawareState(), LoyolaMarymount()])
+    DelawareState(), LoyolaMarymount(), PrairieViewAM(), URichmond()])
 
 
 def refresh_all_terms(log=None):
