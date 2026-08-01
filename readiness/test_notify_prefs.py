@@ -41,16 +41,16 @@ def run():
 
     # ---- migration is behaviour-neutral for everyone who already exists ----
     check("existing accounts default to BOTH channels on",
-          app.notify_prefs(uid) == (True, True),
+          app.notify_prefs(uid) == (True, True, True),
           "the migration changed what a current user receives")
-    check("an anonymous/absent user reads as both on", app.notify_prefs(None) == (True, True))
-    check("an unknown user id fails OPEN, not closed", app.notify_prefs(999999) == (True, True),
+    check("an anonymous/absent user reads as both on", app.notify_prefs(None) == (True, True, True))
+    check("an unknown user id fails OPEN, not closed", app.notify_prefs(999999) == (True, True, True),
           "failing closed here would silently stop alerting somebody")
 
-    def setprefs(push, email):
+    def setprefs(push, email, sms=1):
         with app.db() as c:
-            c.execute("UPDATE users SET notify_push=?, notify_email=? WHERE id=?",
-                      (int(push), int(email), uid))
+            c.execute("UPDATE users SET notify_push=?, notify_email=?, notify_sms=? WHERE id=?",
+                      (int(push), int(email), int(sms), uid))
 
     # ---- the sender honours the preference ----
     sent = {"push": 0, "email": 0}
@@ -143,20 +143,20 @@ def run():
     body = post([])                                     # both unchecked = both omitted
     check("POST with NO channels is refused", "at least one" in body.lower(),
           "a crafted POST could silence every channel")
-    check("...and the refusal did not persist", app.notify_prefs(uid) == (True, True),
+    check("...and the refusal did not persist", app.notify_prefs(uid) == (True, True, True),
           "the rejected state was written anyway")
 
     body = post([("notify_push", "1")])
-    check("POST with push only is accepted", app.notify_prefs(uid) == (True, False),
+    check("POST with push only is accepted", app.notify_prefs(uid)[:2] == (True, False),
           f"got {app.notify_prefs(uid)}")
     body = post([("notify_email", "1")])
-    check("POST with email only is accepted", app.notify_prefs(uid) == (False, True),
+    check("POST with email only is accepted", app.notify_prefs(uid)[:2] == (False, True),
           f"got {app.notify_prefs(uid)}")
 
     # having already saved a single-channel state, try to remove the last one
     body = post([])
     check("cannot remove the LAST remaining channel", "at least one" in body.lower()
-          and app.notify_prefs(uid) == (False, True),
+          and app.notify_prefs(uid)[:2] == (False, True),
           "a student could end up with no reachable channel at all")
 
     bad = urllib.request.Request(

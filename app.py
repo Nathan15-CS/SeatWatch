@@ -268,6 +268,8 @@ def init_db():
             c.execute("ALTER TABLE users ADD COLUMN notify_email INTEGER NOT NULL DEFAULT 1")
         if "notify_push" not in ucols:
             c.execute("ALTER TABLE users ADD COLUMN notify_push INTEGER NOT NULL DEFAULT 1")
+        if "notify_sms" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN notify_sms INTEGER NOT NULL DEFAULT 1")
         # --- one-time sample text + promo -------------------------------------------
         # sample_sms_at: stamped the FIRST time a student is shown what an alert looks
         # like. Once per account, ever — not per watch — so adding five classes does not
@@ -1897,8 +1899,19 @@ def notify_prefs_block(user, tok):
     """
     if not user:
         return ""
-    want_push, want_email = notify_prefs(user["id"])
+    want_push, want_email, want_sms = notify_prefs(user["id"])
+    # The text option only appears for someone who has actually consented — offering to
+    # switch off a channel they never turned on is noise.
+    with db() as c:
+        has_sms = c.execute("SELECT 1 FROM sms_consent WHERE user_id=? AND confirmed_at "
+                            "IS NOT NULL AND revoked_at IS NULL LIMIT 1",
+                            (user["id"],)).fetchone() is not None
     ck = ' checked'
+    sms_row = ('' if not has_sms else
+               '<label style="display:flex;gap:9px;align-items:center;font-weight:400;'
+               'font-size:13px;text-transform:none;letter-spacing:0;margin:6px 0 0">'
+               f'<input type="checkbox" name="notify_sms" value="1"{ck if want_sms else ""} '
+               'style="flex:none;width:auto"><span>Text message</span></label>')
     return (
         '<div style="margin-top:14px;border-top:1px solid #F3F4F6;padding-top:13px">'
         '<form method="post" action="/notify-prefs" style="margin:0">'
@@ -1912,6 +1925,7 @@ def notify_prefs_block(user, tok):
         'text-transform:none;letter-spacing:0;margin:0">'
         f'<input type="checkbox" name="notify_email" value="1"{ck if want_email else ""} '
         'style="flex:none;width:auto"><span>Email</span></label>'
+        + sms_row +
         '<p class="note" style="margin:8px 0 0;font-size:12px">Keep at least one on, or we '
         'have no way to tell you a seat opened.</p>'
         '<button type="submit" style="margin-top:9px">Save</button></form></div>')
@@ -2013,8 +2027,7 @@ def form_page(notice="", user=None):
                 .replace("__SECFIELD__", secfield)
                 .replace("__PLANNOTE__", plannote)
                 .replace("__EMAIL__", html.escape(user["email"]))
-                .replace("__PUSHBLOCK__", push_block(tok) + sms_block(user, tok)
-                                            + notify_prefs_block(user, tok))
+                .replace("__PUSHBLOCK__", push_block(tok) + notify_prefs_block(user, tok))
                 .replace("__CSRF__", tok)
                 .replace("__WATCHES__", watches_html(user["id"], tok))
                 .replace("__SCHOOLS__", SCHOOLS_JS))
@@ -2458,21 +2471,31 @@ class Handler(BaseHTTPRequestHandler):
                 return self._notice("That form expired, please try again.", user=user)
             want_push = bool(nform.get("notify_push"))
             want_email = bool(nform.get("notify_email"))
+            want_sms = bool(nform.get("notify_sms"))
+            # Someone with a consented number and every box cleared would be unreachable,
+            # so text counts toward the floor for them. For anyone without a number it
+            # cannot count, or they could switch off both real channels and be stranded.
+            with db() as c:
+                has_sms = c.execute("SELECT 1 FROM sms_consent WHERE user_id=? AND "
+                                    "confirmed_at IS NOT NULL AND revoked_at IS NULL LIMIT 1",
+                                    (user["id"],)).fetchone() is not None
             # THE FLOOR, enforced here and not in the browser. An account with every
             # channel off is an account whose watches can never fire: the alert would be
             # generated, delivered nowhere, and nobody — including us — would be told the
             # student missed their seat. Unchecking both is refused outright rather than
             # accepted-and-ignored, so the saved state always matches what we will do.
-            if not (want_push or want_email):
+            if not (want_push or want_email or (want_sms and has_sms)):
                 return self._notice(
                     "Keep at least one alert method on. With both off we would have no way "
                     "to tell you a seat opened. To stop alerts entirely, remove the class "
                     "you are watching.", user=user)
             with db() as c:
-                c.execute("UPDATE users SET notify_push=?, notify_email=? WHERE id=?",
-                          (int(want_push), int(want_email), user["id"]))
+                c.execute("UPDATE users SET notify_push=?, notify_email=?, notify_sms=? "
+                          "WHERE id=?", (int(want_push), int(want_email), int(want_sms),
+                                         user["id"]))
             on = " and ".join([x for x in ("phone/browser" if want_push else "",
-                                           "email" if want_email else "") if x])
+                                           "email" if want_email else "",
+                                           "text" if (want_sms and has_sms) else "") if x])
             return self._notice(f"Saved. We will alert you by {on}.", user=user)
 
         if path == "/feedback":
@@ -3331,6 +3354,8 @@ def send_sms(user_id, r, message, url):
     # dollar ceiling and the velocity breaker below — none of which changed.
     # Consent is still absolute: _sms_phone() returns a number ONLY when it is confirmed
     # and not revoked, so nobody is texted who did not ask to be.
+    if not notify_prefs(user_id)[2]:
+        return False                       # student switched texts off in their preferences
     phone = _sms_phone(user_id)
     if not phone:
         return False
@@ -3480,7 +3505,7 @@ def sms_apply_inbound(from_phone, body):
 
 
 def notify_prefs(user_id):
-    """(want_push, want_email) for this account. Fail OPEN: any missing row, missing
+    """(want_push, want_email, want_sms) for this account. Fail OPEN: any missing row, missing
     column or DB error reads as BOTH ENABLED, because the failure mode of guessing wrong
     is a student who silently stops being alerted. An extra notification is a nuisance; a
     missing one is the whole product failing.
@@ -3489,16 +3514,16 @@ def notify_prefs(user_id):
     disagree about which channels an account actually uses.
     """
     if not user_id:
-        return True, True
+        return True, True, True
     try:
         with db() as c:
-            u = c.execute("SELECT notify_push, notify_email FROM users WHERE id=?",
-                          (user_id,)).fetchone()
+            u = c.execute("SELECT notify_push, notify_email, notify_sms FROM users "
+                          "WHERE id=?", (user_id,)).fetchone()
         if not u:
-            return True, True
-        return bool(u["notify_push"]), bool(u["notify_email"])
+            return True, True, True
+        return bool(u["notify_push"]), bool(u["notify_email"]), bool(u["notify_sms"])
     except Exception:
-        return True, True
+        return True, True, True
 
 
 _undelivered = set()   # watch_ids whose last alert reached NOBODY (retrying each cycle)
@@ -3519,7 +3544,7 @@ def _alert(r, message, url):
     # Per-user channel preferences. Read ONCE here and reused for the latch decision, so
     # the Guardian and the sender can never disagree about which channels this account
     # actually uses. Missing/legacy rows read as enabled, matching the DEFAULT 1 migration.
-    want_push, want_email = notify_prefs(uid)
+    want_push, want_email, want_sms = notify_prefs(uid)
     pushed = 0
     if want_push:
         pushed = send_web_push(uid, f"Seat open: {r['course']}",
@@ -3535,7 +3560,10 @@ def _alert(r, message, url):
                                  _click_url(tok["email"], url))
     # SMS keeps the DIRECT registrar link: texts are billed per 160-char segment and a
     # student must be able to reach the registrar even if our box is down mid-registration.
-    texted = send_sms(uid, r, message, url)     # no-op unless SMS_LIVE + paid + consented
+    # SMS respects the preference too. Consent (via the box, revoked by STOP) is the
+    # LEGAL gate; this is the student's day-to-day "stop texting me, email is fine" switch.
+    # Both must allow it, and either one alone can stop it.
+    texted = send_sms(uid, r, message, url) if want_sms else False
     # Ledger: one row per channel that reported success. ntfy is logged but is NOT
     # proof a human was reached (a publish to a topic with no subscribers still returns
     # 200) — refund/reachability queries should count webpush/email/sms rows only.
@@ -3711,6 +3739,15 @@ def send_promo_emails():
                 "AND email IS NOT NULL AND email != '' AND COALESCE(plan_tier,0) < 1 "
                 "ORDER BY created LIMIT 50", (cutoff,)).fetchall()
         for u in rows:
+            # "If they choose not to get email, are you sure they never get email?" — they
+            # did not, until this line. The promo queried users directly and never consulted
+            # the preference, so someone who unchecked Email would still have received it.
+            # A preference that holds for alerts but not for marketing is not a preference.
+            if not notify_prefs(u["id"])[1]:
+                with db() as c:            # stamp so the sweep does not reconsider them daily
+                    c.execute("UPDATE users SET promo_sent_at=? WHERE id=?",
+                              (time.time(), u["id"]))
+                continue
             body = (
                 f"You have been watching classes with SeatWatch for a week.\n\n"
                 f"If you need more than one class covered, here is {PROMO_CODE} for $5 off "

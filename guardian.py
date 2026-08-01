@@ -415,7 +415,7 @@ def latch_decision(r, ntfy_ok, pushed, emailed, texted):
             # Read through app so sender and latch share one definition.
             try:
                 import app as _app
-                want_push, want_email = _app.notify_prefs(uid)
+                want_push, want_email = _app.notify_prefs(uid)[:2]
                 has_push = has_push and want_push
                 has_email = has_email and want_email
             except Exception:
