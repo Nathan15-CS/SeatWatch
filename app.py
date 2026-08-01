@@ -188,10 +188,24 @@ DRILL_SCHOOLS = ["umd", "gatech", "utsa", "usf", "vcu", "txst", "memphis"]
 COURSE_RE = re.compile(r"^[A-Z]{2,4}\d{3,4}[A-Z]?$")   # e.g. ENG101, MATH140, BIOL2020
 SECTION_RE = re.compile(r"^[A-Z0-9]{1,20}$")            # 0101, FC01, 83510, LEC002LAB324
 _RATE = {}                                             # ip -> [timestamps]
-RATE_MAX, RATE_WINDOW = 15, 3600                       # max 15 submissions / IP / hour
+# 15/hour was sized for an anonymous stranger and was far too tight for a real student:
+# sign in, add a class, add a second section, set preferences, add a phone, fix a typo —
+# a legitimate registration session reaches double figures easily. Signed-in students get
+# a per-ACCOUNT budget generous enough for that; anonymous callers keep a tighter one.
+RATE_MAX, RATE_WINDOW = 40, 3600        # anonymous: 40 submissions / IP / hour
+RATE_MAX_USER = 120                     # signed in: 120 / account / hour
 
 
-def rate_ok(ip):
+def rate_ok(ip, limit=None):
+    """True if this caller may proceed. `ip` is really a KEY, not necessarily an address.
+
+    Rate-limiting a university by IP alone does not work, and the failure is silent and
+    total: a campus puts hundreds of students behind ONE NAT address, so a dorm would
+    burn the shared budget in minutes during add/drop and then lock each other out — every
+    one of them seeing "too many requests" for something they did not do. Callers pass a
+    per-USER key whenever the request is authenticated (see _rate_key), which is both
+    fairer and stricter: it follows the actual person instead of the building.
+    """
     now = time.time()
     if len(_RATE) > 5000:  # prune stale IPs so memory can't grow forever
         for k in [k for k, v in _RATE.items() if not v or now - v[-1] > RATE_WINDOW]:
@@ -199,7 +213,7 @@ def rate_ok(ip):
     keep = [t for t in _RATE.get(ip, []) if now - t < RATE_WINDOW]
     keep.append(now)
     _RATE[ip] = keep
-    return len(keep) <= RATE_MAX
+    return len(keep) <= (limit if limit is not None else RATE_MAX)
 
 
 # --------------------------------------------------------------------------- db
@@ -1088,6 +1102,8 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
  button.stop:hover{background:#FEF2F2;transform:none;box-shadow:none}
  .ok{display:flex;gap:10px;align-items:flex-start;background:#ECFDF5;border:1px solid #A7F3D0;border-radius:13px;padding:15px 16px;margin-bottom:14px;font-size:14.5px;line-height:1.5;color:#065F46}
  .ok svg{flex:none;margin-top:1px}
+ .err{display:flex;gap:10px;align-items:flex-start;background:#FEF2F2;border:1px solid #FECACA;border-radius:13px;padding:15px 16px;margin-bottom:14px;font-size:14.5px;line-height:1.5;color:#991B1B}
+ .err svg{flex:none;margin-top:1px}
  code{background:var(--tint);color:var(--blue2);font-family:var(--mono);padding:3px 9px;border-radius:7px;font-size:13px;font-weight:500;word-break:break-all}
  ol{padding-left:20px;font-size:14.5px;line-height:1.8;color:#334155}
  .sub{color:var(--dim);font-size:13px}
@@ -2201,6 +2217,20 @@ class Handler(BaseHTTPRequestHandler):
     server_version = "SeatWatch"   # don't disclose Python / BaseHTTP version
     sys_version = ""
 
+    # A SOCKET TIMEOUT, and it is load-bearing rather than tidy.
+    #
+    # The body read is capped at 4096 bytes, but a client that DECLARES a large
+    # Content-Length and then sends nothing makes rfile.read() sit waiting for bytes that
+    # never arrive. With no timeout that thread is parked forever; a handful of such
+    # requests exhausts the pool and the site stops answering anyone — the classic
+    # slowloris, costing an attacker almost nothing.
+    #
+    # This was invisible until the rate limit was loosened: at 15/hour the flood tests
+    # were being refused BEFORE they reached the read, so the suite passed for a reason
+    # that had nothing to do with the bug being absent. A tight limit was standing in
+    # front of a real defect and hiding it.
+    timeout = 20
+
     def _send(self, body, code=200):
         data = body.encode("utf-8")
         self.send_response(code)
@@ -2448,6 +2478,13 @@ class Handler(BaseHTTPRequestHandler):
         v = self._cookie("sw_dev") or ""
         return v[:64] if re.fullmatch(r"[A-Za-z0-9-]{8,64}", v) else None
 
+    def _rate_key(self):
+        """Who to charge this request to. A signed session identifies a person, so use it:
+        NAT then cannot make one student's activity throttle another's. Falls back to the
+        address only when we genuinely do not know who is calling."""
+        uid = read_session_value(self._cookie("sw_session"))
+        return (f"u:{uid}", RATE_MAX_USER) if uid else (self._client_ip(), RATE_MAX)
+
     def _client_ip(self):
         # Cloudflare sets CF-Connecting-IP itself and overwrites any value the
         # visitor sends, so it can't be spoofed. X-Forwarded-For's FIRST hop
@@ -2459,8 +2496,22 @@ class Handler(BaseHTTPRequestHandler):
                 "stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' "
                 "cy='12' r='10'/><path d='m9 12 2 2 4-4'/></svg>")
 
+    _ERR_ICON = ("<svg width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='currentColor' "
+                 "stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><circle cx='12' "
+                 "cy='12' r='10'/><path d='M12 8v5'/><path d='M12 16.5h.01'/></svg>")
+
     def _notice(self, msg, code=200, user=None):
-        self._send(form_page(f"<div class='ok'>{self._OK_ICON}<span>{html.escape(msg)}</span></div>",
+        """Style follows the STATUS CODE, not the call site.
+
+        Every notice used to render green with a tick, including "Too many requests" at
+        429 — a failure wearing the costume of a success. A student reads the tick, not
+        the sentence, and walks away believing their class is being watched when nothing
+        was saved. Any 4xx/5xx is now visibly a problem.
+        """
+        err = code >= 400
+        icon = self._ERR_ICON if err else self._OK_ICON
+        cls = "err" if err else "ok"
+        self._send(form_page(f"<div class='{cls}'>{icon}<span>{html.escape(msg)}</span></div>",
                              user=user), code)
 
     @staticmethod
@@ -2584,7 +2635,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(page("<p>Not found.</p>"), 404)
 
         # (1) rate limit FIRST — blocks form-flooding before any work is done
-        if not rate_ok(self._client_ip()):
+        rkey, rmax = self._rate_key()
+        if not rate_ok(rkey, rmax):
             return self._notice("Too many requests, wait a minute and try again.", 429)
 
         try:

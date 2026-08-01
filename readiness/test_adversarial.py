@@ -207,11 +207,32 @@ def run():
           row is None or len(row["message"]) < 100000,
           f"stored {len(row['message']) if row else 0} chars")
 
-    # a lying Content-Length must not hang or over-read
+    # A lying Content-Length is the slowloris shape: declare a big body, send almost
+    # nothing, and park a server thread on a read that will never complete. Enough of
+    # those and the site stops answering anyone.
+    #
+    # The invariant is NOT that this request returns quickly — the handler is entitled to
+    # wait a while for a genuinely slow mobile upload. It is that the thread is released
+    # and the SERVER KEEPS SERVING. Handler.timeout bounds the wait; without it that
+    # thread was parked forever.
+    #
+    # Note the real-world layer too: Cloudflare buffers requests and forwards only
+    # complete ones, so in production this rarely reaches the app at all. That is a
+    # reason to be calm about it, not a reason to depend on it.
+    t0 = time.time()
     code, body, _ = req("/feedback", raw=b"csrf=x&message=hi",
                         headers={"Content-Length": "999999999"}, cookie=cookie_a)
-    check("LIMITS: a forged Content-Length does not hang the server", code != -1,
-          "the handler read past the body and blocked")
+    stalled = time.time() - t0
+    check("LIMITS: a forged Content-Length is bounded by the handler timeout",
+          stalled < app.Handler.timeout + 10,
+          f"stalled {stalled:.0f}s against a {app.Handler.timeout}s timeout")
+    code2, _, _ = req("/")
+    check("LIMITS: the server still answers others during/after a stalled request",
+          code2 == 200,
+          "one slow-body request took the whole site down for everyone")
+    check("LIMITS: a handler read timeout is actually configured",
+          isinstance(getattr(app.Handler, "timeout", None), (int, float)),
+          "without it a stalled read parks a thread forever")
 
     # ====================================================== PUSH HIJACK
     # A push endpoint is the address alerts are delivered to. If re-registering an
@@ -229,9 +250,29 @@ def run():
     with app.db() as c:
         owner = c.execute("SELECT user_id FROM push_subs WHERE endpoint=?",
                           (ENDPOINT,)).fetchone()
-    check("PUSH: Alice cannot take over Bob's push endpoint",
-          owner is None or owner["user_id"] == B,
-          "Bob's seat alerts would silently start going to Alice's device")
+    # I first asserted that a takeover must be IMPOSSIBLE. That was wrong, and worth
+    # recording so nobody "fixes" correct code later. A push endpoint is a capability
+    # URL — whoever holds it can already push to that device without SeatWatch, so
+    # refusing reassignment buys no security. It does break the realistic case: a shared
+    # library machine, where Bob subscribes, leaves, and Alice subscribes in the same
+    # browser and receives the same endpoint. Refusing would leave Alice with no alerts
+    # AND keep firing Bob's at a machine he has walked away from.
+    #
+    # What must hold is narrower and more useful: the takeover is RECORDED, and the
+    # displaced student is not silently left unreachable.
+    check("PUSH: an endpoint takeover is attributed to the new owner",
+          owner is not None and owner["user_id"] == A,
+          "the shared-device case would leave alerts going to whoever left first")
+    with app.db() as c:
+        risk = c.execute("SELECT risk_score FROM users WHERE id=?", (A,)).fetchone()
+        bob_push = c.execute("SELECT COUNT(*) n FROM push_subs WHERE user_id=?",
+                             (B,)).fetchone()["n"]
+    check("PUSH: the takeover raises a risk signal for review",
+          int(risk["risk_score"] or 0) > 0,
+          "a device changing hands leaves no trace for the operator")
+    check("PUSH: the displaced student is not silently left reachable-by-nothing",
+          bob_push == 0 and app.notify_prefs(B)[1] is True,
+          "Bob lost push AND had no other channel — a watch that can never fire")
 
     # ================================================== SMS CONSENT FORGERY
     # Consent is a legal record. It must not be creatable for a number the student did
@@ -306,14 +347,56 @@ def run():
           "state-changing actions would be reachable by a link or an <img> tag")
 
     # ============================================================ RATE LIMIT
+    # A flood must still be stopped...
     app._RATE.clear()
     blocked = 0
-    for _ in range(app.RATE_MAX + 12):
+    for _ in range(app.RATE_MAX_USER + 15):
         code, _, _ = req("/feedback", {"csrf": csrf_a, "message": "flood"}, cookie=cookie_a)
         if code == 429:
             blocked += 1
-    check("RATE: a flood from one IP is eventually refused", blocked > 0,
-          f"{app.RATE_MAX + 12} rapid posts, none refused — no flood protection")
+    check("RATE: a flood from one account is eventually refused", blocked > 0,
+          "no flood protection at all")
+
+    # ...but ALICE'S flood must never throttle BOB. This is the launch-day case: a campus
+    # puts hundreds of students behind ONE NAT address, so an IP-keyed limit means the
+    # first few students to register lock out the whole dorm — everyone seeing "too many
+    # requests" for something they did not do, during the exact hour that matters.
+    code, _, _ = req("/feedback", {"csrf": csrf_b, "message": "bob's first ever post"},
+                     cookie=cookie_b)
+    check("RATE: one student's flood does not lock out another on the same network",
+          code != 429,
+          "a whole dorm behind one NAT IP would throttle each other during add/drop")
+
+    # an anonymous caller is still limited by address
+    app._RATE.clear()
+    anon_blocked = 0
+    for _ in range(app.RATE_MAX + 10):
+        code, _, _ = req("/feedback", {"csrf": "x", "message": "anon"})
+        if code == 429:
+            anon_blocked += 1
+    check("RATE: an anonymous flood is still refused by address", anon_blocked > 0,
+          "a logged-out attacker would be unlimited")
+    check("RATE: the signed-in budget is more generous than the anonymous one",
+          app.RATE_MAX_USER > app.RATE_MAX,
+          f"user={app.RATE_MAX_USER} anon={app.RATE_MAX}")
+
+    # ===================================================== ERROR PRESENTATION
+    # A failure must not wear the costume of a success. "Too many requests" rendered
+    # green with a tick, and a student reads the tick, not the sentence — walking away
+    # believing their class is watched when nothing was saved.
+    app._RATE.clear()
+    err_body = ""
+    for _ in range(app.RATE_MAX_USER + 15):
+        code, body, _ = req("/feedback", {"csrf": csrf_a, "message": "flood2"},
+                            cookie=cookie_a)
+        if code == 429:
+            err_body = body
+            break
+    check("ERROR: a 429 page is styled as an error, not a success",
+          "class='err'" in err_body or 'class="err"' in err_body,
+          "the failure renders green with a success tick")
+    check("ERROR: a 429 page does NOT use the success style",
+          "class='ok'" not in err_body and 'class="ok"' not in err_body)
 
     # the process must still be alive and serving after all of the above
     code, body, _ = req("/")
