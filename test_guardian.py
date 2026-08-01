@@ -439,6 +439,51 @@ class TestGates(Base):
         self.assertFalse(ping)                         # enforce: RED withholds the ping
         self.assertEqual(set(self.outcomes(cyc.id).values()), {"blocked_mass_freeze"})
 
+    def _surge_then(self, tail):
+        """15 watches. Cycle 1 is a mass opening; later cycles are whatever `tail` says."""
+        self.add_user(1, push_sub=True)
+        self.push_devices = 1
+        surge, calm, few = {}, {}, {}
+        for i in range(15):
+            self.add_watch(i + 1, course=f"C{i:03d}", section="0101", term="202608")
+            surge[f"C{i:03d}"] = {"0101": sec(True, 4)}
+            calm[f"C{i:03d}"] = {"0101": sec(False, 0)}
+            few[f"C{i:03d}"] = {"0101": sec(i < 2, 4 if i < 2 else 0)}
+        book = {"surge": surge, "calm": calm, "few": few}
+        self.install(FakeSchool(steps=[{"data": surge}] + [{"data": book[t]} for t in tail]))
+
+    def test_mass_freeze_self_clears_once_the_load_is_normal_again(self):
+        """A registrar releasing held seats in one block is not a parse break.
+
+        The freeze is right to trip, but if clearing it needs a human at a terminal then a
+        legitimate surge costs every student every alert until someone notices — on the one
+        morning of the year they are watching the page. Sustained normal load releases it."""
+        self._surge_then(["calm", "calm", "calm", "few"])
+        self.configure("enforce")
+
+        self.cycle()
+        self.assertIsNotNone(self.state.get("guardian_freeze"))
+        self.assertEqual(self.user_alerts(), [])       # the surge itself is still withheld
+
+        for _ in range(3):
+            self.cycle()
+        self.assertIsNone(self.state.get("guardian_freeze"),
+                          "freeze stayed latched after the load returned to normal")
+
+        self.cycle()                                   # two real openings
+        self.assertTrue(self.user_alerts(),
+                        "alerts were still suppressed after the freeze cleared")
+
+    def test_mass_freeze_holds_while_the_data_is_still_lying(self):
+        """The other half: a parse break keeps producing a cascade, so it must NOT clear."""
+        self._surge_then(["surge", "surge", "surge", "surge"])
+        self.configure("enforce")
+        for _ in range(5):
+            self.cycle()
+        self.assertIsNotNone(self.state.get("guardian_freeze"),
+                             "a sustained cascade released itself — the gate is useless")
+        self.assertEqual(self.user_alerts(), [])
+
     def test_mass_opening_shadow_sends_but_records(self):
         self._mass(15)
         cyc, ping = self.cycle()

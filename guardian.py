@@ -45,6 +45,7 @@ TUNING = {
     "RATE_WINDOW_S": 6 * 3600,       # adapter success-rate window (~1080 cycles)
     "RESULTS_RETENTION_S": 7 * 86400,  # per-watch/cycle evidence kept this long
     "PRUNE_EVERY_S": 6 * 3600,       # retention sweep cadence (cheap, but not per-cycle)
+    "FREEZE_CLEAR_CYCLES": 3,        # calm cycles before a mass-freeze releases itself
 }
 
 OUTCOMES = (
@@ -341,9 +342,34 @@ def flush_alerts(cycle, alert_fn, set_alerted_fn, cur_term_by_school, fetched_at
         except Exception as e:
             _telemetry_mark(f"freeze_read:{type(e).__name__}")
         if frozen:
-            page("mass_freeze", "Mass-alert freeze is STILL ACTIVE — alerts held until "
-                 "guardian_freeze is cleared from the state file after human review.",
-                 "red")
+            # SELF-CLEARING on evidence, not only on a human. A freeze is right for a parse
+            # break or a term roll — data that is lying keeps lying, so n stays high and the
+            # freeze holds. It is WRONG for a legitimate surge: a registrar releasing held
+            # seats in a block can exceed the cap for one cycle, and the original design then
+            # silenced every alert until someone SSHed in and edited a state file. That is a
+            # registration morning lost, at exactly the hour students need us most.
+            #
+            # So: once the cycle load is back under the cap for FREEZE_CLEAR_CYCLES in a row,
+            # release it. A cascade cannot satisfy that condition; a one-off surge does
+            # immediately. The operator is still told, both on trip and on release.
+            if n <= TUNING["MAX_ALERTS_PER_CYCLE"]:
+                calm = int(_CFG["state_get"]("guardian_freeze_calm", 0) or 0) + 1
+                if calm >= TUNING["FREEZE_CLEAR_CYCLES"]:
+                    _CFG["state_set"](guardian_freeze=None, guardian_freeze_calm=0)
+                    frozen = False
+                    page("mass_freeze_cleared",
+                         f"✅ Mass-alert freeze CLEARED automatically: {calm} consecutive "
+                         f"cycles back under the cap ({TUNING['MAX_ALERTS_PER_CYCLE']}). "
+                         "Alerts are flowing again. If this was a real parse break the load "
+                         "would have stayed high and the freeze would have held.", "warn")
+                else:
+                    _CFG["state_set"](guardian_freeze_calm=calm)
+            else:
+                _CFG["state_set"](guardian_freeze_calm=0)   # still cascading; restart the count
+            if frozen:
+                page("mass_freeze", "Mass-alert freeze is STILL ACTIVE — alerts held. It "
+                     "clears itself once the load returns to normal; clear guardian_freeze "
+                     "in the state file to release it sooner.", "red")
     if n > TUNING["MAX_ALERTS_PER_CYCLE"]:
         detail = (f"{n} simultaneous alert candidates in one cycle "
                   f"(cap {TUNING['MAX_ALERTS_PER_CYCLE']}) — mass transition: "
