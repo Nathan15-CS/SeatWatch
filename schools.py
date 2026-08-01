@@ -4220,6 +4220,15 @@ class EasternKentucky(Banner):
     id = "eku"; name = "Eastern Kentucky University"
     example = "ACC 200"; host = "registrationss.eku.edu"; term = "202710"
 
+class PurdueFortWayne(Banner):
+    id = "pfw"; name = "Purdue University Fort Wayne"
+    example = "ENGL 13100"; host = "banssbprod.pfw.edu"; term = "202710"
+
+class Creighton(Banner):
+    id = "creighton"; name = "Creighton University"
+    example = "CSC 121"; host = "thenest1.creighton.edu"; term = "202670"
+
+
 class URichmond(Banner):
     id = "richmond"; name = "University of Richmond"
     example = "CMSC 150"; host = "xeregp.richmond.edu"; term = "202610"
@@ -6033,7 +6042,7 @@ class Longwood(Banner):
 
 class WestChester(Banner):
     id = "wcupa"; name = "West Chester University"
-    example = "CSC 112"; host = "reg-prod.ec.wcupa.edu"; term = "202630"
+    example = "ENG 201"; host = "reg-prod.ec.wcupa.edu"; term = "202630"; mep = "003328"
 
 class SUNYPlattsburgh(Banner):
     id = "plattsburgh"; name = "SUNY Plattsburgh"
@@ -6242,6 +6251,9 @@ class SOWELA(LCTCS):
 
 class Nunez(LCTCS):
     id = "nunez"; name = "Nunez Community College"; example = "MATH 1310"; mep = "NUNEZ"
+
+class FletcherTech(LCTCS):
+    id = "ftcc-la"; name = "Fletcher Technical Community College"; example = "ENGL 1006"; mep = "FTCC"
 
 # --- Alabama Community College System: shared host, letter mepCodes. Half the campuses
 # --- collapse sections (rejected); only the clean ones are here.
@@ -9897,7 +9909,8 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     GlenvilleState(), WVState(), SnowCollege(), LakeSuperiorState(), FairmontState(),
     Citadel(), SCState(), VMI(), SaginawValley(), OldWestbury(), SUNYPotsdam(),
     DelawareState(), LoyolaMarymount(), PrairieViewAM(), URichmond(),
-    UTMartin(), EasternKentucky()])
+    UTMartin(), EasternKentucky(), PurdueFortWayne(), Creighton(),
+    FletcherTech()])
 
 
 def refresh_all_terms(log=None):

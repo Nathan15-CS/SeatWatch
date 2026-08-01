@@ -2416,12 +2416,23 @@ class Handler(BaseHTTPRequestHandler):
             form = {k: v[0] for k, v in parse_qs(
                 self.rfile.read(length).decode("utf-8", "replace"),
                 keep_blank_values=True).items()}
-            valid = _twilio_verify(BASE_URL + "/sms/inbound", form,
-                                   self.headers.get("X-Twilio-Signature", ""))
+            # self.path, not the parsed path: if the console URL carries a query string
+            # Twilio signs over that too, and dropping it reproduces the same 403.
+            cands = _twilio_candidate_urls(self.headers, self.path, BASE_URL)
+            valid, matched = _twilio_verify_any(
+                cands, form, self.headers.get("X-Twilio-Signature", ""))
             frm = form.get("From", "")
             sw.log(f"  [sms] inbound from {('*' * 6 + frm[-4:]) if frm else '?'} "
-                   f"body={form.get('Body', '')!r} signature={'VALID' if valid else 'INVALID'}")
+                   f"body={form.get('Body', '')!r} signature={'VALID' if valid else 'INVALID'}"
+                   + (f" url={matched}" if valid else f" tried={cands}"))
             if not valid:
+                # Log the candidates so a mismatch is diagnosable from the journal alone.
+                # Never log the signature or the token.
+                operator_alert(
+                    "⚠️ Twilio inbound REJECTED (bad signature). A STOP reply may have "
+                    "been dropped, which means someone who opted out can still be texted. "
+                    f"Tried: {cands}. Check the webhook URL in the Twilio console matches "
+                    "one of these exactly.")
                 return self._send_json({"ok": False}, 403)
             reply = sms_apply_inbound(frm, form.get("Body", ""))
             # Emit an outbound reply only once SMS is fully live; during the pre-approval
@@ -3458,6 +3469,45 @@ def _norm_phone(raw):
     if len(d) == 11 and d.startswith("1"):
         return "+" + d
     return None
+
+
+def _twilio_candidate_urls(headers, path, base):
+    """Every URL Twilio might have signed, most-likely first.
+
+    The signature is an HMAC over the EXACT URL Twilio requested. We used to sign one
+    hardcoded guess (BASE_URL + path), which breaks on www-vs-apex, http-vs-https behind
+    a proxy, or a trailing slash in the console — and it breaks SILENTLY, as a 403. That
+    is how STOP stops working: the student texts STOP, we reject the webhook, consent is
+    never revoked, and we keep texting someone who opted out. It cost us a live failure
+    on the first real inbound message ever received.
+
+    Reconstructing from the request is what Twilio's own helper libraries do. Trying
+    several candidates weakens nothing: every one still requires the auth token, so an
+    attacker who can set a Host header still cannot forge a signature.
+    """
+    host = (headers.get("X-Forwarded-Host") or headers.get("Host") or "").split(",")[0].strip()
+    proto = (headers.get("X-Forwarded-Proto") or "https").split(",")[0].strip() or "https"
+    hosts = []
+    if host:
+        hosts.append(host)
+        hosts.append(host[4:] if host.startswith("www.") else "www." + host)
+    cands = [f"{p}://{h}{path}" for h in hosts for p in dict.fromkeys((proto, "https"))]
+    cands.append(base.rstrip("/") + path)
+    seen, out = set(), []
+    for u in cands:
+        if u and u not in seen:
+            seen.add(u)
+            out.append(u)
+    return out
+
+
+def _twilio_verify_any(urls, params, signature):
+    """(valid, matched_url). Returns the URL that validated so the log can record which
+    form Twilio actually uses — the next person should not have to rediscover this."""
+    for u in urls:
+        if _twilio_verify(u, params, signature):
+            return True, u
+    return False, None
 
 
 def _twilio_verify(url, params, signature):
