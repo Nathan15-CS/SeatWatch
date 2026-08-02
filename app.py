@@ -1745,23 +1745,23 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
   </div>
 </header>
 
-<!-- The 36-second tour. Directly after the hero: first thing below the fold on desktop,
-     right under the call to action on mobile. YouTube when it loads, our own copy when it
-     does not — see the player script. Nothing is fetched until someone presses play. -->
+<!-- The 36-second tour. The <video> is STATIC markup with native controls, not built in
+     JavaScript: pressing the browser's own play button is a direct gesture on the media
+     element, which is the most reliable way to start playback that exists. Every layer I
+     put in front of it — a custom overlay, an async probe, a JS-constructed element — was
+     another thing that could fail, and each one did. If playback errors, the handler below
+     SHOWS the reason instead of leaving a silent black rectangle. -->
 <section id="sw-tour" style="background:linear-gradient(180deg,#fff 0%,#F7F9FC 100%);border-top:1px solid rgba(11,21,38,.06);">
   <div style="max-width:1000px;margin:0 auto;padding:78px 28px 84px;text-align:center;">
     <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:#fff;border:1px solid rgba(11,21,38,.08);border-radius:100px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500;letter-spacing:.09em;color:#3d4c63;">36 SECONDS</div>
     <h2 style="margin:20px 0 10px;font-size:40px;line-height:1.1;font-weight:800;letter-spacing:-.03em;">See it happen.</h2>
     <p style="margin:0 auto 34px;max-width:520px;font-size:17px;line-height:1.6;color:#4b5a72;">A full class, a seat opening at 2am, and the text that gets you in.</p>
-    <div id="sw-tour-frame" style="position:relative;width:100%;max-width:380px;margin:0 auto;aspect-ratio:9/16;border-radius:22px;overflow:hidden;background:#0b1526;box-shadow:0 34px 80px -28px rgba(11,21,38,.4),0 2px 10px rgba(11,21,38,.05);border:1px solid rgba(11,21,38,.08);">
-      <img id="sw-poster" src="/ad-poster.jpg?v=__ADPOSTERV__" alt="SeatWatch: a full class, a seat opening, and the text that gets you in" style="display:block;width:100%;height:100%;object-fit:cover;">
-      <button id="sw-play" aria-label="Play the 36-second tour" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(11,21,38,.2);border:0;cursor:pointer;padding:0;">
-        <span style="display:flex;align-items:center;justify-content:center;width:78px;height:78px;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:0 12px 34px -8px rgba(11,21,38,.55);">
-          <svg width="29" height="29" viewBox="0 0 24 24" fill="#2563eb" style="margin-left:5px;"><path d="M8 5v14l11-7z"/></svg>
-        </span>
-      </button>
+    <div id="sw-tour-frame" style="position:relative;width:100%;max-width:380px;margin:0 auto;border-radius:22px;overflow:hidden;background:#0b1526;box-shadow:0 34px 80px -28px rgba(11,21,38,.4);border:1px solid rgba(11,21,38,.08);">
+      <video id="sw-ad" controls preload="metadata" playsinline poster="/ad-poster.jpg?v=__ADPOSTERV__" style="display:block;width:100%;height:auto;aspect-ratio:9/16;background:#0b1526;">
+        <source src="/ad.mp4?v=__ADVIDEOV__" type="video/mp4">
+      </video>
     </div>
-    <p style="margin:22px 0 0;font-size:14px;color:#6b7a92;">Sound on. It is 36 seconds.</p>
+    <p id="sw-tour-note" style="margin:22px 0 0;font-size:14px;color:#6b7a92;">Sound on. It is 36 seconds. &middot; <a href="/ad.mp4" download style="color:#2563eb;font-weight:600;">Download</a> &middot; <a href="https://www.youtube.com/shorts/Orpi5y0Us8U" target="_blank" rel="noopener" style="color:#2563eb;font-weight:600;">Watch on YouTube</a></p>
   </div>
 </section>
 
@@ -1878,55 +1878,20 @@ __PRICING__
  // The custom play overlay makes the poster read as a video rather than a picture.
  // Native controls stay ON underneath for keyboard access and scrubbing; the overlay
  // hides itself the moment playback begins and returns when the ad ends.
- // THE PLAYER. Press play and it plays — that is the entire requirement, and it is
- // harder than it looks for two reasons that both bit us:
- //
- //   NO ASYNC BEFORE play(). A browser only permits sound when play() is called inside
- //   the user's gesture. Awaiting anything first — a fetch to check whether YouTube is
- //   reachable, for instance — spends that permission, and play() is then refused and the
- //   video sits at 0:00 looking broken. So the decision is made BEFORE the click, and the
- //   click handler does nothing but mount and play, synchronously.
- //
- //   ALWAYS SET A POSTER. A freshly created <video> with no poster paints black until it
- //   has decoded a frame, so a slow first byte looks exactly like a failure.
- //
- // YouTube is used when it is reachable — an ad blocker refusing the domain is the common
- // case among the students this is aimed at, and they would see a grey "content blocked"
- // box and simply not watch. The probe runs quietly after load, so by the time anyone
- // clicks we already know which source works.
- var YT_ID='Orpi5y0Us8U', POSTER='/ad-poster.jpg?v=__ADPOSTERV__', ytOk=false;
- (function(){
-   var t=setTimeout(function(){ytOk=false;},3000);
-   fetch('https://www.youtube-nocookie.com/embed/'+YT_ID,{mode:'no-cors',cache:'force-cache'})
-     .then(function(){clearTimeout(t);ytOk=true;})
-     .catch(function(){clearTimeout(t);ytOk=false;});
- })();
- var f=document.getElementById('sw-tour-frame'), b=document.getElementById('sw-play');
- function mount(el){
-   el.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;display:block;object-fit:cover;background:#0b1526;';
-   f.innerHTML=''; f.appendChild(el);
- }
- if(f&&b){
-   b.addEventListener('click',function(){
-     b.style.display='none';
-     if(ytOk){
-       var i=document.createElement('iframe');
-       i.src='https://www.youtube-nocookie.com/embed/'+YT_ID+'?autoplay=1&rel=0&playsinline=1&modestbranding=1';
-       i.title='SeatWatch \u2014 36 second tour';
-       i.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-       i.referrerPolicy='strict-origin-when-cross-origin';
-       i.setAttribute('allowfullscreen','');
-       mount(i);
-       return;
-     }
-     var v=document.createElement('video');
-     v.poster=POSTER;                 // never paint black while the first bytes arrive
-     v.src='/ad.mp4?v=__ADVIDEOV__';
-     v.controls=true; v.playsInline=true; v.preload='auto';
-     mount(v);
-     var p=v.play();                  // synchronous: the gesture is still ours
-     if(p&&p.catch){ p.catch(function(){ v.muted=true; v.play().catch(function(){}); }); }
-   });
+ // If the media element fails, SAY SO. A silent poster sitting at 0:00 is
+ // indistinguishable from "still loading", and that ambiguity cost several rounds of
+ // guessing at a browser I could not see. The error code is the whole diagnosis:
+ //   1 aborted  2 network  3 decode  4 src not supported / rejected by the browser
+ var _v=document.getElementById('sw-ad'), _n=document.getElementById('sw-tour-note');
+ if(_v&&_n){
+   _v.addEventListener('error',function(){
+     var e=_v.error||{}; 
+     _n.innerHTML='Video could not play here (error '+(e.code||'?')+
+       (e.message?': '+String(e.message).slice(0,90):'')+'). '+
+       '<a href="/ad.mp4" download style="color:#2563eb;font-weight:600;">Download it</a> or '+
+       '<a href="https://www.youtube.com/shorts/Orpi5y0Us8U" target="_blank" rel="noopener" style="color:#2563eb;font-weight:600;">watch on YouTube</a>.';
+     _n.style.color='#b91c1c';
+   },true);
  }
 })();
 (function(){
