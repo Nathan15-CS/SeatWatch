@@ -1745,22 +1745,19 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
   </div>
 </header>
 
-<!-- The 36-second tour. Sits directly after the hero: first thing below the fold on
-     desktop, right under the call to action on mobile. Self-hosted and preload="none" —
-     the poster carries the pitch at 81 KB and the 27 MB file is fetched only on play. -->
+<!-- The 36-second tour. Directly after the hero: first thing below the fold on desktop,
+     right under the call to action on mobile. YouTube when it loads, our own copy when it
+     does not — see the player script. Nothing is fetched until someone presses play. -->
 <section id="sw-tour" style="background:linear-gradient(180deg,#fff 0%,#F7F9FC 100%);border-top:1px solid rgba(11,21,38,.06);">
   <div style="max-width:1000px;margin:0 auto;padding:78px 28px 84px;text-align:center;">
     <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:#fff;border:1px solid rgba(11,21,38,.08);border-radius:100px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500;letter-spacing:.09em;color:#3d4c63;">36 SECONDS</div>
     <h2 style="margin:20px 0 10px;font-size:40px;line-height:1.1;font-weight:800;letter-spacing:-.03em;">See it happen.</h2>
     <p style="margin:0 auto 34px;max-width:520px;font-size:17px;line-height:1.6;color:#4b5a72;">A full class, a seat opening at 2am, and the text that gets you in.</p>
-    <div id="sw-tour-frame" style="position:relative;border-radius:20px;overflow:hidden;background:#0b1526;box-shadow:0 34px 80px -28px rgba(11,21,38,.34),0 2px 10px rgba(11,21,38,.05);border:1px solid rgba(11,21,38,.08);">
-      <video id="sw-ad" controls playsinline preload="none" poster="/ad-poster.jpg?v=__ADPOSTERV__" style="display:block;width:100%;height:auto;aspect-ratio:16/9;background:#0b1526;">
-        <source src="/ad.mp4?v=__ADVIDEOV__" type="video/mp4">
-        Your browser cannot play this video. <a href="/ad.mp4" style="color:#fff;">Download it instead.</a>
-      </video>
-      <button id="sw-play" aria-label="Play the 36-second tour" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(11,21,38,.18);border:0;cursor:pointer;padding:0;">
-        <span style="display:flex;align-items:center;justify-content:center;width:82px;height:82px;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:0 12px 34px -8px rgba(11,21,38,.5);">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="#2563eb" style="margin-left:5px;"><path d="M8 5v14l11-7z"/></svg>
+    <div id="sw-tour-frame" style="position:relative;width:100%;max-width:380px;margin:0 auto;aspect-ratio:9/16;border-radius:22px;overflow:hidden;background:#0b1526;box-shadow:0 34px 80px -28px rgba(11,21,38,.4),0 2px 10px rgba(11,21,38,.05);border:1px solid rgba(11,21,38,.08);">
+      <img id="sw-poster" src="/ad-poster.jpg?v=__ADPOSTERV__" alt="SeatWatch: a full class, a seat opening, and the text that gets you in" style="display:block;width:100%;height:100%;object-fit:cover;">
+      <button id="sw-play" aria-label="Play the 36-second tour" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(11,21,38,.2);border:0;cursor:pointer;padding:0;">
+        <span style="display:flex;align-items:center;justify-content:center;width:78px;height:78px;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:0 12px 34px -8px rgba(11,21,38,.55);">
+          <svg width="29" height="29" viewBox="0 0 24 24" fill="#2563eb" style="margin-left:5px;"><path d="M8 5v14l11-7z"/></svg>
         </span>
       </button>
     </div>
@@ -1881,13 +1878,44 @@ __PRICING__
  // The custom play overlay makes the poster read as a video rather than a picture.
  // Native controls stay ON underneath for keyboard access and scrubbing; the overlay
  // hides itself the moment playback begins and returns when the ad ends.
- // Hide the overlay once playback starts; bring it back when the ad ends. Native
- // controls stay ON underneath for keyboard access and scrubbing.
- var v=document.getElementById('sw-ad'), b=document.getElementById('sw-play');
- if(v&&b){
-   b.addEventListener('click',function(){b.style.display='none';v.play();});
-   v.addEventListener('play',function(){b.style.display='none';});
-   v.addEventListener('ended',function(){b.style.display='flex';});
+ // THE PLAYER. YouTube is the intended source, but a blocked iframe is a silent, total
+ // failure — an ad blocker replaces the ad with a grey "This content is blocked" box, and
+ // uBlock is close to universal among the students this is aimed at. None of them would
+ // report it; they would simply not watch.
+ //
+ // So: probe YouTube before committing to it. A no-cors fetch either resolves (the domain
+ // is reachable) or rejects (an extension refused it), which is exactly the question that
+ // matters and is not answerable from an iframe's load event — blockers commonly inject a
+ // blank document that fires load quite happily. If the probe fails, or takes too long, we
+ // play OUR copy from OUR origin instead. Same 36 seconds either way.
+ //
+ // Nothing at all is fetched until the visitor presses play.
+ var YT_ID='Orpi5y0Us8U';
+ var f=document.getElementById('sw-tour-frame'), b=document.getElementById('sw-play');
+ function mount(el){ f.innerHTML=''; el.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;display:block;object-fit:cover;background:#0b1526;'; f.appendChild(el); }
+ function playYouTube(){
+   var i=document.createElement('iframe');
+   i.src='https://www.youtube-nocookie.com/embed/'+YT_ID+'?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+   i.title='SeatWatch \u2014 36 second tour';
+   i.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+   i.referrerPolicy='strict-origin-when-cross-origin';
+   i.setAttribute('allowfullscreen','');
+   mount(i);
+ }
+ function playSelfHosted(){
+   var v=document.createElement('video');
+   v.src='/ad.mp4?v=__ADVIDEOV__'; v.controls=true; v.autoplay=true; v.playsInline=true;
+   mount(v); var p=v.play(); if(p&&p.catch){p.catch(function(){v.controls=true;});}
+ }
+ if(f&&b){
+   b.addEventListener('click',function(){
+     b.style.display='none';
+     var done=false;
+     var timer=setTimeout(function(){ if(!done){done=true;playSelfHosted();} },2500);
+     fetch('https://www.youtube-nocookie.com/embed/'+YT_ID,{mode:'no-cors',cache:'no-store'})
+       .then(function(){ if(!done){done=true;clearTimeout(timer);playYouTube();} })
+       .catch(function(){ if(!done){done=true;clearTimeout(timer);playSelfHosted();} });
+   });
  }
 })();
 (function(){
