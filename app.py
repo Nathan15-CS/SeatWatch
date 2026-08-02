@@ -1750,26 +1750,31 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
      it without hunting. Deliberately NOT inside the hero — the live activity feed there
      is doing real work as proof, and a video cannot replace watching seats change.
 
-     preload="none" is the load-bearing attribute. The file is 26 MB and a student on
-     campus data should spend nothing at all unless they choose to watch. The poster is
-     81 KB and carries the whole pitch by itself: FULL, 120/120 seats taken, and it is
-     the class you need to graduate. Someone who never presses play still gets it. -->
+     A FACADE, not a bare iframe. A YouTube embed pulls roughly a megabyte of third-party
+     JavaScript and sets tracking cookies on EVERY page load, whether or not anyone
+     watches — paid for by every student who scrolls past. So the page ships a 32 KB
+     poster and loads the player only when someone actually presses play. youtube-nocookie
+     for the same reason: nobody is tracked for scrolling past a video they ignored.
+
+     The poster is the FULL frame — "120/120 seats taken. And it's the class you need to
+     graduate." — so a visitor who never presses play still receives the entire pitch.
+
+     It is a Short, so 9:16. Capped at 380px wide because a full-width vertical video on a
+     desktop monitor is absurd; on a phone it fills the column naturally. -->
 <section id="sw-tour" style="background:linear-gradient(180deg,#fff 0%,#F7F9FC 100%);border-top:1px solid rgba(11,21,38,.06);">
   <div style="max-width:1000px;margin:0 auto;padding:78px 28px 84px;text-align:center;">
     <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:#fff;border:1px solid rgba(11,21,38,.08);border-radius:100px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500;letter-spacing:.09em;color:#3d4c63;">36 SECONDS</div>
     <h2 style="margin:20px 0 10px;font-size:40px;line-height:1.1;font-weight:800;letter-spacing:-.03em;">See it happen.</h2>
     <p style="margin:0 auto 34px;max-width:520px;font-size:17px;line-height:1.6;color:#4b5a72;">A full class, a seat opening at 2am, and the text that gets you in.</p>
-    <div style="position:relative;border-radius:20px;overflow:hidden;box-shadow:0 34px 80px -28px rgba(11,21,38,.34),0 2px 10px rgba(11,21,38,.05);border:1px solid rgba(11,21,38,.08);background:#0b1526;">
-      <video id="sw-ad" controls playsinline preload="none" poster="/ad-poster.jpg?v=__ADPOSTERV__" style="display:block;width:100%;height:auto;aspect-ratio:16/9;background:#0b1526;">
-        <source src="/ad.mp4?v=__ADVIDEOV__" type="video/mp4">
-      </video>
-      <button id="sw-play" aria-label="Play the 36-second tour" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(11,21,38,.18);border:0;cursor:pointer;padding:0;">
-        <span style="display:flex;align-items:center;justify-content:center;width:82px;height:82px;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:0 12px 34px -8px rgba(11,21,38,.5);">
-          <svg width="30" height="30" viewBox="0 0 24 24" fill="#2563eb" style="margin-left:5px;"><path d="M8 5v14l11-7z"/></svg>
+    <div id="sw-tour-frame" style="position:relative;width:100%;max-width:380px;margin:0 auto;aspect-ratio:9/16;border-radius:22px;overflow:hidden;background:#0b1526;box-shadow:0 34px 80px -28px rgba(11,21,38,.4),0 2px 10px rgba(11,21,38,.05);border:1px solid rgba(11,21,38,.08);">
+      <img src="/ad-poster.jpg?v=__ADPOSTERV__" alt="SeatWatch: a full class, a seat opening, and the text that gets you in" style="display:block;width:100%;height:100%;object-fit:cover;">
+      <button id="sw-play" aria-label="Play the 36-second tour" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(11,21,38,.2);border:0;cursor:pointer;padding:0;">
+        <span style="display:flex;align-items:center;justify-content:center;width:78px;height:78px;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:0 12px 34px -8px rgba(11,21,38,.55);">
+          <svg width="29" height="29" viewBox="0 0 24 24" fill="#2563eb" style="margin-left:5px;"><path d="M8 5v14l11-7z"/></svg>
         </span>
       </button>
     </div>
-    <p style="margin:22px 0 0;font-size:14px;color:#6b7a92;">Sound on. It is 36 seconds.</p>
+    <p style="margin:22px 0 0;font-size:14px;color:#6b7a92;">Sound on. It is 36 seconds. <a href="https://www.youtube.com/shorts/Orpi5y0Us8U" target="_blank" rel="noopener" style="color:#2563eb;font-weight:600;">Watch on YouTube</a></p>
   </div>
 </section>
 
@@ -1886,11 +1891,21 @@ __PRICING__
  // The custom play overlay makes the poster read as a video rather than a picture.
  // Native controls stay ON underneath for keyboard access and scrubbing; the overlay
  // hides itself the moment playback begins and returns when the ad ends.
- var v=document.getElementById('sw-ad'), b=document.getElementById('sw-play');
- if(v&&b){
-   b.addEventListener('click',function(){b.style.display='none';v.play();});
-   v.addEventListener('play',function(){b.style.display='none';});
-   v.addEventListener('ended',function(){b.style.display='flex';});
+ var f=document.getElementById('sw-tour-frame'), b=document.getElementById('sw-play');
+ if(f&&b){
+   b.addEventListener('click',function(){
+     // Swap the poster for the real player only now — nothing from YouTube is fetched,
+     // and no cookie is set, for anyone who never presses play.
+     var i=document.createElement('iframe');
+     i.src='https://www.youtube-nocookie.com/embed/Orpi5y0Us8U?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+     i.title='SeatWatch — 36 second tour';
+     i.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+     i.referrerPolicy='strict-origin-when-cross-origin';
+     i.setAttribute('allowfullscreen','');
+     i.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;';
+     f.innerHTML='';
+     f.appendChild(i);
+   });
  }
 })();
 (function(){
