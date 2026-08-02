@@ -49,3 +49,11 @@ backups/
 
 # Ad/media build artifacts — large binaries, not application code (Build lane, 2026-07-30)
 marketing/
+
+# Ad media: deployed to the VM with ops/push-media.sh, never committed.
+# A 26 MB binary in git history is permanent and unshrinkable.
+ad-web.mp4
+ad-poster.jpg
+marketing/*.mp4
+marketing/ad-web*.mp4
+marketing/*.wav

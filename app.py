@@ -1350,6 +1350,66 @@ MANIFEST = json.dumps({
                "purpose": "any maskable"}]})
 
 
+def _send_media(handler, name, ctype):
+    """Stream a large static file from DISK with Range support.
+
+    Deliberately NOT _read_static: the icons are a few KB and live in memory happily, but
+    the ad is 26 MB and this VM has 1 GB total. Holding it resident would cost a fortieth
+    of the machine's memory permanently, to serve a file most visitors never request.
+
+    Range matters as much as size. Without a 206 the browser cannot seek, so dragging the
+    scrubber restarts the download from zero — on campus wifi that reads as a broken
+    player. Safari will not even begin playback of a long file without it.
+    """
+    path = os.path.join(HERE, name)
+    try:
+        total = os.path.getsize(path)
+    except OSError:
+        return handler._send(page("<p>Not found.</p>"), 404)
+    start, end = 0, total - 1
+    rng = (handler.headers.get("Range") or "").strip()
+    partial = False
+    m = re.match(r"bytes=(\d*)-(\d*)$", rng)
+    if m:
+        a, b = m.group(1), m.group(2)
+        if a:
+            start = int(a)
+            end = min(int(b), total - 1) if b else total - 1
+        elif b:                                   # suffix range: last N bytes
+            start = max(0, total - int(b))
+        # RFC 7233: a range that starts past the end is UNSATISFIABLE and must be 416.
+        # Clamping it to the last byte instead looks harmless and is worse — the player
+        # receives 206 with content it did not ask for, and a seek past the end silently
+        # returns the wrong bytes rather than an error it can handle.
+        if start >= total or start > end:
+            handler.send_response(416)
+            handler.send_header("Content-Range", f"bytes */{total}")
+            handler.end_headers()
+            return
+        partial = True
+    length = end - start + 1
+    handler.send_response(206 if partial else 200)
+    handler.send_header("Content-Type", ctype)
+    handler.send_header("Content-Length", str(length))
+    handler.send_header("Accept-Ranges", "bytes")
+    if partial:
+        handler.send_header("Content-Range", f"bytes {start}-{end}/{total}")
+    handler.send_header("Cache-Control", "public, max-age=86400")
+    handler.end_headers()
+    try:
+        with open(path, "rb") as f:
+            f.seek(start)
+            left = length
+            while left > 0:
+                chunk = f.read(min(262144, left))
+                if not chunk:
+                    break
+                handler.wfile.write(chunk)
+                left -= len(chunk)
+    except (BrokenPipeError, ConnectionResetError):
+        pass          # the visitor closed the tab mid-stream; entirely normal
+
+
 def _read_static(name):
     try:
         with open(os.path.join(HERE, name), "rb") as f:
@@ -1665,6 +1725,34 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
   </div>
 </header>
 
+<!-- THE 36-SECOND TOUR. Immediately after the hero on purpose: first thing below the
+     fold on desktop, and directly under the call to action on mobile, so a visitor meets
+     it without hunting. Deliberately NOT inside the hero — the live activity feed there
+     is doing real work as proof, and a video cannot replace watching seats change.
+
+     preload="none" is the load-bearing attribute. The file is 26 MB and a student on
+     campus data should spend nothing at all unless they choose to watch. The poster is
+     81 KB and carries the whole pitch by itself: FULL, 120/120 seats taken, and it is
+     the class you need to graduate. Someone who never presses play still gets it. -->
+<section id="sw-tour" style="background:linear-gradient(180deg,#fff 0%,#F7F9FC 100%);border-top:1px solid rgba(11,21,38,.06);">
+  <div style="max-width:1000px;margin:0 auto;padding:78px 28px 84px;text-align:center;">
+    <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:#fff;border:1px solid rgba(11,21,38,.08);border-radius:100px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500;letter-spacing:.09em;color:#3d4c63;">36 SECONDS</div>
+    <h2 style="margin:20px 0 10px;font-size:40px;line-height:1.1;font-weight:800;letter-spacing:-.03em;">See it happen.</h2>
+    <p style="margin:0 auto 34px;max-width:520px;font-size:17px;line-height:1.6;color:#4b5a72;">A full class, a seat opening at 2am, and the text that gets you in.</p>
+    <div style="position:relative;border-radius:20px;overflow:hidden;box-shadow:0 34px 80px -28px rgba(11,21,38,.34),0 2px 10px rgba(11,21,38,.05);border:1px solid rgba(11,21,38,.08);background:#0b1526;">
+      <video id="sw-ad" controls playsinline preload="none" poster="/ad-poster.jpg" style="display:block;width:100%;height:auto;aspect-ratio:16/9;background:#0b1526;">
+        <source src="/ad.mp4" type="video/mp4">
+      </video>
+      <button id="sw-play" aria-label="Play the 36-second tour" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(11,21,38,.18);border:0;cursor:pointer;padding:0;">
+        <span style="display:flex;align-items:center;justify-content:center;width:82px;height:82px;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:0 12px 34px -8px rgba(11,21,38,.5);">
+          <svg width="30" height="30" viewBox="0 0 24 24" fill="#2563eb" style="margin-left:5px;"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+      </button>
+    </div>
+    <p style="margin:22px 0 0;font-size:14px;color:#6b7a92;">Sound on. It is 36 seconds.</p>
+  </div>
+</section>
+
 <div data-reveal style="border-top:1px solid rgba(11,21,38,.06);border-bottom:1px solid rgba(11,21,38,.06);background:#fff;">
   <div style="max-width:1140px;margin:0 auto;padding:18px 28px;display:flex;align-items:center;justify-content:center;gap:34px;flex-wrap:wrap;font-size:13.5px;font-weight:600;color:#4b5a72;">
     <span style="display:flex;align-items:center;gap:8px;"><span style="color:#17b26a;">✓</span>Never fake: real seats only</span>
@@ -1774,6 +1862,17 @@ __PRICING__
 </footer>
 
 <script>
+(function(){
+ // The custom play overlay makes the poster read as a video rather than a picture.
+ // Native controls stay ON underneath for keyboard access and scrubbing; the overlay
+ // hides itself the moment playback begins and returns when the ad ends.
+ var v=document.getElementById('sw-ad'), b=document.getElementById('sw-play');
+ if(v&&b){
+   b.addEventListener('click',function(){b.style.display='none';v.play();});
+   v.addEventListener('play',function(){b.style.display='none';});
+   v.addEventListener('ended',function(){b.style.display='flex';});
+ }
+})();
 (function(){
  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('sw-in');io.unobserve(e.target);}});},{threshold:.12});
  document.querySelectorAll('[data-reveal]').forEach(function(el){io.observe(el);});
@@ -2338,6 +2437,10 @@ class Handler(BaseHTTPRequestHandler):
                                            "sha256_cert_fingerprints": TWA_FINGERPRINTS}}])
             return self._send_bytes(body.encode(), "application/json",
                                     cache="public, max-age=3600")
+        if path == "/ad.mp4":
+            return _send_media(self, "ad-web.mp4", "video/mp4")
+        if path == "/ad-poster.jpg":
+            return _send_media(self, "ad-poster.jpg", "image/jpeg")
         if path == "/icon-192.png":
             return (self._send_bytes(ICON192, "image/png") if ICON192
                     else self._send(page("<p>Not found.</p>"), 404))
