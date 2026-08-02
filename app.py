@@ -547,10 +547,24 @@ def _conv_signal(kind, user_id):
 
 
 # ------------------------------------------------------------------- Stripe (stdlib)
+# PIN THE STRIPE API VERSION. Without this, every request uses whatever version Stripe
+# has made the account default — which they move forward over time, changing request
+# shapes underneath a running app. It already bit us: the account had rolled onto a
+# version where /v1/promotion_codes rejects `coupon` ("Received unknown parameter:
+# coupon"), so EVERY promo code silently failed to mint. The 7-day offer would have
+# quietly stopped existing, and the only visible symptom would have been students never
+# receiving an email nobody was watching for.
+#
+# Pinned to a version verified working against this account for coupons, promotion codes
+# and Checkout Sessions. Moving it is a deliberate, tested change — never a default.
+STRIPE_API_VERSION = "2024-06-20"
+
+
 def _stripe_get(path):
     """GET a Stripe object. Returns parsed JSON, or None if absent/unreachable."""
     req = urllib.request.Request("https://api.stripe.com/v1" + path)
     req.add_header("Authorization", "Bearer " + STRIPE_SECRET_KEY)
+    req.add_header("Stripe-Version", STRIPE_API_VERSION)
     try:
         return json.loads(urllib.request.urlopen(req, timeout=20).read().decode())
     except Exception:
@@ -564,10 +578,22 @@ def _stripe_post(path, fields, idem=None):
     req = urllib.request.Request("https://api.stripe.com/v1" + path, data=data)
     req.add_header("Authorization", "Bearer " + STRIPE_SECRET_KEY)
     req.add_header("Content-Type", "application/x-www-form-urlencoded")
+    req.add_header("Stripe-Version", STRIPE_API_VERSION)
     if idem:
         req.add_header("Idempotency-Key", idem)   # safe to retry without double-charge
     try:
         return json.loads(urllib.request.urlopen(req, timeout=20).read().decode())
+    except urllib.error.HTTPError as e:
+        # Stripe puts the actual reason in the body. Logging only the status code cost
+        # real time here: four identical "HTTP Error 400" lines that said nothing, when
+        # the body said "Received unknown parameter: coupon" and named the bug outright.
+        detail = ""
+        try:
+            detail = (json.loads(e.read().decode()).get("error", {}) or {}).get("message", "")
+        except Exception:
+            pass
+        sw.log(f"  [stripe] POST {path} failed: {e.code} {detail}"[:300])
+        return None
     except Exception as e:
         sw.log(f"  [stripe] POST {path} failed: {e}")
         return None
