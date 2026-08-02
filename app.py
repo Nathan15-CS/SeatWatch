@@ -3146,13 +3146,25 @@ class Handler(BaseHTTPRequestHandler):
                 new = [s for s in sections if s not in have]
                 if not new:
                     return self._notice("You're already watching those sections.", user=user)
-                if len(have) + len(new) > FREE_SECTIONS_PER_COURSE:
-                    _conv_signal("wall_hit", user["id"])
+                # TIER-AWARE, and it was not. The check above already lets a paid student
+                # name as many sections as they like; this one — on the insert path —
+                # still applied the FREE cap of 2, so a customer on the 5-course plan was
+                # told about "your free plan" while the note under the same form correctly
+                # described their paid one. Being refused something you have just paid for,
+                # by a message calling you a free user, is the worst version of a bug.
+                cap = FREE_SECTIONS_PER_COURSE if tier == 0 else PAID_MAX_SECTIONS
+                if len(have) + len(new) > cap:
+                    if tier == 0:
+                        _conv_signal("wall_hit", user["id"])
+                        return self._notice(
+                            f"Your free plan watches {FREE_SECTIONS_PER_COURSE} sections of "
+                            f"one class" + (f", and you're already watching {len(have)} of "
+                            f"this one" if have else "") + ". Stop one below, or a paid plan "
+                            f"watches every section." + (" (Coming soon.)" if not PAID_LIVE else ""),
+                            user=user)
                     return self._notice(
-                        f"Your free plan watches {FREE_SECTIONS_PER_COURSE} sections of a "
-                        f"class; you already have {len(have)}. Stop one below, or the paid "
-                        f"plans watch unlimited sections." + (" (Coming soon.)" if not PAID_LIVE else ""),
-                        user=user)
+                        f"That's more than {cap} sections of one class — leave the section "
+                        f"box blank and your plan watches every section instead.", user=user)
                 with db() as c:
                     for sec in new:
                         c.execute("INSERT INTO watches(school,topic,course,section,term,created,user_id) "

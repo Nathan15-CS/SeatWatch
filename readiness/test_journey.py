@@ -292,6 +292,53 @@ def run():
             "SELECT section FROM watches WHERE user_id=? AND course=?", (uid, "BIOL404")))
     check("10. narrowing from all-sections to one drops the catch-all",
           got == ["0101"], f"got {got} — they would still be alerted about excluded sections")
+    # ---- the full allowance matrix: courses AND sections, per plan ----
+    # A paying customer was refused a section with a message calling them a free user,
+    # because the cap on the INSERT path was still hardcoded to the free tier while the
+    # check above it had been made tier-aware. Two places enforcing one rule is how that
+    # happens; this pins both from the outside, per tier.
+    def _allowance(tier, courses_wanted=7, secs="0101, 0102"):
+        with app.db() as c:
+            c.execute("DELETE FROM watches WHERE user_id=?", (uid,))
+            c.execute("UPDATE users SET plan_tier=?, plan_term=?, plan_purchased_at=? WHERE id=?",
+                      (tier, app.current_season() if tier else None,
+                       time.time() if tier else None, uid))
+        for i in range(courses_wanted):
+            http("/watch", [("csrf", csrf), ("school", "testu"), ("course", f"BIOL{200+i}"),
+                            ("sections", secs)], cookie=cookie)
+        with app.db() as c:
+            rows = c.execute("SELECT course, section FROM watches WHERE user_id=?",
+                             (uid,)).fetchall()
+        by = {}
+        for r in rows:
+            by.setdefault(r["course"], []).append(r["section"])
+        return by
+
+    app.PAID_ENABLED = True
+    for tier, want_courses in ((0, 1), (1, 1), (2, 2), (3, 5)):
+        got = _allowance(tier)
+        check(f"11. tier {tier} gets exactly {want_courses} course(s)",
+              len(got) == want_courses,
+              f"got {len(got)} — a paying student is being denied what they bought"
+              if len(got) < want_courses else f"got {len(got)} — a plan limit is not holding")
+        if got:
+            n = len(next(iter(got.values())))
+            check(f"11. tier {tier} keeps both named sections of a course", n == 2, f"got {n}")
+
+    # the free cap still holds, and still says so
+    with app.db() as c:
+        c.execute("DELETE FROM watches WHERE user_id=?", (uid,))
+        c.execute("UPDATE users SET plan_tier=0, plan_term=NULL WHERE id=?", (uid,))
+    http("/watch", [("csrf", csrf), ("school", "testu"), ("course", "BIOL300"),
+                    ("sections", "0101, 0102")], cookie=cookie)
+    code, body, _ = http("/watch", [("csrf", csrf), ("school", "testu"), ("course", "BIOL300"),
+                                    ("sections", "0103")], cookie=cookie)
+    with app.db() as c:
+        n = c.execute("SELECT COUNT(*) n FROM watches WHERE user_id=? AND course='BIOL300'",
+                      (uid,)).fetchone()["n"]
+    check("11. a FREE student is held to 2 sections", n == 2, f"got {n}")
+    check("11. ...and the refusal names the free plan", "free plan" in body.lower())
+
     with app.db() as c:
         c.execute("DELETE FROM watches WHERE user_id=?", (uid,))
         c.execute("UPDATE users SET plan_tier=0, plan_term=NULL WHERE id=?", (uid,))
