@@ -1350,6 +1350,26 @@ MANIFEST = json.dumps({
                "purpose": "any maskable"}]})
 
 
+def _media_ver(name):
+    """A short version tag derived from the file's size and mtime.
+
+    Appended to the media URLs so a replaced file is a NEW url to Cloudflare. Without it
+    the 24h Cache-Control means an updated ad is invisible to visitors for a day — which
+    is exactly what happened on the first re-render: the origin had the new file and the
+    edge kept serving the old one, cf-cache-status HIT. Long caching plus versioned urls
+    gets both properties; a short cache would just be slow for everyone forever.
+
+    Computed per render rather than at import, because ops/push-media.sh replaces the file
+    WITHOUT restarting the app — a start-up value would be stale the moment it mattered.
+    One stat() on a page render is free.
+    """
+    try:
+        st = os.stat(os.path.join(HERE, name))
+        return hashlib.sha256(f"{st.st_size}.{int(st.st_mtime)}".encode()).hexdigest()[:10]
+    except OSError:
+        return "0"
+
+
 def _send_media(handler, name, ctype):
     """Stream a large static file from DISK with Range support.
 
@@ -1740,8 +1760,8 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
     <h2 style="margin:20px 0 10px;font-size:40px;line-height:1.1;font-weight:800;letter-spacing:-.03em;">See it happen.</h2>
     <p style="margin:0 auto 34px;max-width:520px;font-size:17px;line-height:1.6;color:#4b5a72;">A full class, a seat opening at 2am, and the text that gets you in.</p>
     <div style="position:relative;border-radius:20px;overflow:hidden;box-shadow:0 34px 80px -28px rgba(11,21,38,.34),0 2px 10px rgba(11,21,38,.05);border:1px solid rgba(11,21,38,.08);background:#0b1526;">
-      <video id="sw-ad" controls playsinline preload="none" poster="/ad-poster.jpg" style="display:block;width:100%;height:auto;aspect-ratio:16/9;background:#0b1526;">
-        <source src="/ad.mp4" type="video/mp4">
+      <video id="sw-ad" controls playsinline preload="none" poster="/ad-poster.jpg?v=__ADPOSTERV__" style="display:block;width:100%;height:auto;aspect-ratio:16/9;background:#0b1526;">
+        <source src="/ad.mp4?v=__ADVIDEOV__" type="video/mp4">
       </video>
       <button id="sw-play" aria-label="Play the 36-second tour" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(11,21,38,.18);border:0;cursor:pointer;padding:0;">
         <span style="display:flex;align-items:center;justify-content:center;width:82px;height:82px;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:0 12px 34px -8px rgba(11,21,38,.5);">
@@ -2000,7 +2020,10 @@ def pricing_section():
 def landing_page():
     """The redesigned marketing landing page (logged-out home). Fills the live
     school count; all CTAs route to /login (Google sign-in)."""
-    return LANDING.replace("__COUNT__", str(len(schools.SCHOOLS))).replace("__PRICING__", pricing_section())
+    return (LANDING.replace("__COUNT__", str(len(schools.SCHOOLS)))
+            .replace("__PRICING__", pricing_section())
+            .replace("__ADVIDEOV__", _media_ver("ad-web.mp4"))
+            .replace("__ADPOSTERV__", _media_ver("ad-poster.jpg")))
 
 def page(body, feedback=""):
     # Substitute __COUNT__ on the ASSEMBLED page so the shell (PAGE) and every body
