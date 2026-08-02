@@ -254,6 +254,48 @@ def run():
     http("/unwatch", [("csrf", csrf), ("id", str(wid))], cookie=cookie)
     with app.db() as c:
         gone = c.execute("SELECT COUNT(*) FROM watches WHERE id=?", (wid,)).fetchone()[0]
+    # ---- a named section means THAT section, on every plan ----
+    # This was wrong in a way that quietly destroys trust: a paid account had its typed
+    # sections discarded and the whole course watched instead. A text about a seat in a
+    # section the student cannot take is worse than silence — it teaches them to ignore
+    # the next alert, and the next one is the real seat.
+    with app.db() as c:
+        c.execute("UPDATE users SET plan_tier=3, plan_term=?, plan_purchased_at=? WHERE id=?",
+                  (app.current_season(), time.time(), uid))
+    app.PAID_ENABLED = True
+
+    def _watch_sections(secs, course="BIOL404"):
+        with app.db() as c:
+            c.execute("DELETE FROM watches WHERE user_id=?", (uid,))   # clear the course cap too
+        http("/watch", [("csrf", csrf), ("school", "testu"), ("course", course),
+                        ("sections", secs)], cookie=cookie)
+        with app.db() as c:
+            return sorted(r["section"] for r in c.execute(
+                "SELECT section FROM watches WHERE user_id=? AND course=?", (uid, course)))
+
+    got = _watch_sections("0101")
+    check("10. a PAID student who names one section watches only that section",
+          got == ["0101"], f"got {got} — the course-wide catch-all row is back")
+    # 0102, not 0201: the fake school only publishes 0101 and 0102, and SeatWatch
+    # correctly refuses to watch a section that does not exist. Asking for a phantom
+    # section is a different (already covered) behaviour, not this one.
+    got = _watch_sections("0101, 0102")
+    check("10. naming two sections watches exactly those two",
+          got == ["0101", "0102"], f"got {got}")
+    got = _watch_sections("")
+    check("10. leaving it blank still watches every section (that is the paid perk)",
+          got == [""], f"got {got}")
+    http("/watch", [("csrf", csrf), ("school", "testu"), ("course", "BIOL404"),
+                    ("sections", "0101")], cookie=cookie)
+    with app.db() as c:
+        got = sorted(r["section"] for r in c.execute(
+            "SELECT section FROM watches WHERE user_id=? AND course=?", (uid, "BIOL404")))
+    check("10. narrowing from all-sections to one drops the catch-all",
+          got == ["0101"], f"got {got} — they would still be alerted about excluded sections")
+    with app.db() as c:
+        c.execute("DELETE FROM watches WHERE user_id=?", (uid,))
+        c.execute("UPDATE users SET plan_tier=0, plan_term=NULL WHERE id=?", (uid,))
+
     check("9. unwatch actually removes the watch", gone == 0)
 
     srv.shutdown()

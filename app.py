@@ -2305,11 +2305,12 @@ def form_page(notice="", user=None):
         # listing them is pointless — the field goes optional and the copy says so. Free copy
         # is preserved verbatim (and is what shows whenever paid is parked, since tier is 0).
         if effective_tier(user) >= 1:
-            secfield = ('<label>Section number(s) <small>(optional; we watch <b>every</b> '
-                        'section)</small></label>\n'
-                        ' <input name="sections" placeholder="Leave blank, we watch them all">')
-            plannote = ('<p class="note">Your plan watches <b>every section</b> of each class, '
-                        'you don\'t need to list section numbers.</p>')
+            secfield = ('<label>Section number(s) <small>(name the ones you want, or leave '
+                        'blank for <b>all</b>)</small></label>\n'
+                        ' <input name="sections" placeholder="e.g. 0101, 0102 &mdash; or blank for every section">')
+            plannote = ('<p class="note">Name the sections you can actually take and we will '
+                        'only alert you about those. Leave it blank and your plan watches '
+                        '<b>every section</b> of the class.</p>')
         else:
             secfield = ('<label>Section number(s) <small>(up to 2, comma-separated)</small></label>\n'
                         ' <input name="sections" placeholder="e.g. 0101, 0102" required>')
@@ -3047,17 +3048,26 @@ class Handler(BaseHTTPRequestHandler):
             send_sample_sms(user["id"])
 
         tier = effective_tier(user)             # 0 = free (also the state when paid is off)
-        all_sections = tier >= 1                 # paid watches EVERY section of a course
+        # all_sections is decided BELOW, once we know whether the student named any —
+        # a paid plan lets you watch every section, it does not oblige you to.
         max_courses = tier_courses(tier)
 
         raw = form.get("sections", [""])[0]
         # dict.fromkeys dedupes ("0101, 0101" would otherwise double-alert)
         sections = list(dict.fromkeys(s.strip().upper() for s in raw.split(",") if s.strip()))
+        # THE STUDENT'S CHOICE WINS. This used to be `tier >= 1`, so a paid account had its
+        # typed sections thrown away and every section of the course watched instead. Nathan
+        # entered 0101 and was alerted about the whole course — which is worse than noise:
+        # a text saying a seat opened in a section he cannot take teaches him to ignore the
+        # next one, and the next one is the real seat. "Unlimited sections" is a capability,
+        # not an obligation. Name sections and we watch exactly those; leave it blank and
+        # a paid plan watches them all.
+        all_sections = tier >= 1 and not sections
         if not all_sections:
             if not sections:
                 return self._notice("Please add the section number(s) you want to watch, e.g. 0101.",
                                     user=user)
-            if len(sections) > FREE_SECTIONS_PER_COURSE:
+            if tier == 0 and len(sections) > FREE_SECTIONS_PER_COURSE:
                 _conv_signal("wall_hit", user["id"])   # tried >2 sections on free
                 return self._notice(
                     f"Your free plan watches up to {FREE_SECTIONS_PER_COURSE} sections of "
@@ -3125,6 +3135,14 @@ class Handler(BaseHTTPRequestHandler):
                                stamp_term(school), time.time(), user["id"]))
                 what = course + " (unlimited sections)"
             else:
+                if "" in have:
+                    # They previously watched EVERY section and have now named specific
+                    # ones: that is a deliberate narrowing, so the catch-all row has to go
+                    # or it would keep alerting on the sections they just excluded.
+                    with db() as c:
+                        c.execute("DELETE FROM watches WHERE user_id=? AND school=? AND "
+                                  "course=? AND section=''", (user["id"], school.id, course))
+                    have.discard("")
                 new = [s for s in sections if s not in have]
                 if not new:
                     return self._notice("You're already watching those sections.", user=user)
