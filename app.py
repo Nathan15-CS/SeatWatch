@@ -1878,43 +1878,54 @@ __PRICING__
  // The custom play overlay makes the poster read as a video rather than a picture.
  // Native controls stay ON underneath for keyboard access and scrubbing; the overlay
  // hides itself the moment playback begins and returns when the ad ends.
- // THE PLAYER. YouTube is the intended source, but a blocked iframe is a silent, total
- // failure — an ad blocker replaces the ad with a grey "This content is blocked" box, and
- // uBlock is close to universal among the students this is aimed at. None of them would
- // report it; they would simply not watch.
+ // THE PLAYER. Press play and it plays — that is the entire requirement, and it is
+ // harder than it looks for two reasons that both bit us:
  //
- // So: probe YouTube before committing to it. A no-cors fetch either resolves (the domain
- // is reachable) or rejects (an extension refused it), which is exactly the question that
- // matters and is not answerable from an iframe's load event — blockers commonly inject a
- // blank document that fires load quite happily. If the probe fails, or takes too long, we
- // play OUR copy from OUR origin instead. Same 36 seconds either way.
+ //   NO ASYNC BEFORE play(). A browser only permits sound when play() is called inside
+ //   the user's gesture. Awaiting anything first — a fetch to check whether YouTube is
+ //   reachable, for instance — spends that permission, and play() is then refused and the
+ //   video sits at 0:00 looking broken. So the decision is made BEFORE the click, and the
+ //   click handler does nothing but mount and play, synchronously.
  //
- // Nothing at all is fetched until the visitor presses play.
- var YT_ID='Orpi5y0Us8U';
+ //   ALWAYS SET A POSTER. A freshly created <video> with no poster paints black until it
+ //   has decoded a frame, so a slow first byte looks exactly like a failure.
+ //
+ // YouTube is used when it is reachable — an ad blocker refusing the domain is the common
+ // case among the students this is aimed at, and they would see a grey "content blocked"
+ // box and simply not watch. The probe runs quietly after load, so by the time anyone
+ // clicks we already know which source works.
+ var YT_ID='Orpi5y0Us8U', POSTER='/ad-poster.jpg?v=__ADPOSTERV__', ytOk=false;
+ (function(){
+   var t=setTimeout(function(){ytOk=false;},3000);
+   fetch('https://www.youtube-nocookie.com/embed/'+YT_ID,{mode:'no-cors',cache:'force-cache'})
+     .then(function(){clearTimeout(t);ytOk=true;})
+     .catch(function(){clearTimeout(t);ytOk=false;});
+ })();
  var f=document.getElementById('sw-tour-frame'), b=document.getElementById('sw-play');
- function mount(el){ f.innerHTML=''; el.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;display:block;object-fit:cover;background:#0b1526;'; f.appendChild(el); }
- function playYouTube(){
-   var i=document.createElement('iframe');
-   i.src='https://www.youtube-nocookie.com/embed/'+YT_ID+'?autoplay=1&rel=0&playsinline=1&modestbranding=1';
-   i.title='SeatWatch \u2014 36 second tour';
-   i.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
-   i.referrerPolicy='strict-origin-when-cross-origin';
-   i.setAttribute('allowfullscreen','');
-   mount(i);
- }
- function playSelfHosted(){
-   var v=document.createElement('video');
-   v.src='/ad.mp4?v=__ADVIDEOV__'; v.controls=true; v.autoplay=true; v.playsInline=true;
-   mount(v); var p=v.play(); if(p&&p.catch){p.catch(function(){v.controls=true;});}
+ function mount(el){
+   el.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;display:block;object-fit:cover;background:#0b1526;';
+   f.innerHTML=''; f.appendChild(el);
  }
  if(f&&b){
    b.addEventListener('click',function(){
      b.style.display='none';
-     var done=false;
-     var timer=setTimeout(function(){ if(!done){done=true;playSelfHosted();} },2500);
-     fetch('https://www.youtube-nocookie.com/embed/'+YT_ID,{mode:'no-cors',cache:'no-store'})
-       .then(function(){ if(!done){done=true;clearTimeout(timer);playYouTube();} })
-       .catch(function(){ if(!done){done=true;clearTimeout(timer);playSelfHosted();} });
+     if(ytOk){
+       var i=document.createElement('iframe');
+       i.src='https://www.youtube-nocookie.com/embed/'+YT_ID+'?autoplay=1&rel=0&playsinline=1&modestbranding=1';
+       i.title='SeatWatch \u2014 36 second tour';
+       i.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+       i.referrerPolicy='strict-origin-when-cross-origin';
+       i.setAttribute('allowfullscreen','');
+       mount(i);
+       return;
+     }
+     var v=document.createElement('video');
+     v.poster=POSTER;                 // never paint black while the first bytes arrive
+     v.src='/ad.mp4?v=__ADVIDEOV__';
+     v.controls=true; v.playsInline=true; v.preload='auto';
+     mount(v);
+     var p=v.play();                  // synchronous: the gesture is still ours
+     if(p&&p.catch){ p.catch(function(){ v.muted=true; v.play().catch(function(){}); }); }
    });
  }
 })();
