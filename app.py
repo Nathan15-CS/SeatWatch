@@ -1745,21 +1745,22 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
   </div>
 </header>
 
-<!-- The 36-second tour. The <video> is STATIC markup with native controls, not built in
-     JavaScript: pressing the browser's own play button is a direct gesture on the media
-     element, which is the most reliable way to start playback that exists. Every layer I
-     put in front of it — a custom overlay, an async probe, a JS-constructed element — was
-     another thing that could fail, and each one did. If playback errors, the handler below
-     SHOWS the reason instead of leaving a silent black rectangle. -->
+<!-- The 36-second tour. Directly after the hero: first thing below the fold on desktop,
+     right under the call to action on mobile. Click the poster and it plays on YouTube;
+     nothing from YouTube is fetched until then. See the script for why we verify that the
+     embed actually started rather than trusting it to. -->
 <section id="sw-tour" style="background:linear-gradient(180deg,#fff 0%,#F7F9FC 100%);border-top:1px solid rgba(11,21,38,.06);">
   <div style="max-width:1000px;margin:0 auto;padding:78px 28px 84px;text-align:center;">
     <div style="display:inline-flex;align-items:center;gap:8px;padding:6px 14px;background:#fff;border:1px solid rgba(11,21,38,.08);border-radius:100px;font-family:'IBM Plex Mono',monospace;font-size:11.5px;font-weight:500;letter-spacing:.09em;color:#3d4c63;">36 SECONDS</div>
     <h2 style="margin:20px 0 10px;font-size:40px;line-height:1.1;font-weight:800;letter-spacing:-.03em;">See it happen.</h2>
     <p style="margin:0 auto 34px;max-width:520px;font-size:17px;line-height:1.6;color:#4b5a72;">A full class, a seat opening at 2am, and the text that gets you in.</p>
-    <div id="sw-tour-frame" style="position:relative;width:100%;max-width:380px;margin:0 auto;border-radius:22px;overflow:hidden;background:#0b1526;box-shadow:0 34px 80px -28px rgba(11,21,38,.4);border:1px solid rgba(11,21,38,.08);">
-      <video id="sw-tourvid" controls preload="metadata" playsinline poster="/tour-poster.jpg?v=__ADPOSTERV__" style="display:block;width:100%;height:auto;aspect-ratio:9/16;background:#0b1526;">
-        <source src="/tour.mp4?v=__ADVIDEOV__" type="video/mp4">
-      </video>
+    <div id="sw-tour-frame" style="position:relative;width:100%;max-width:380px;margin:0 auto;aspect-ratio:9/16;border-radius:22px;overflow:hidden;background:#0b1526;box-shadow:0 34px 80px -28px rgba(11,21,38,.4);border:1px solid rgba(11,21,38,.08);">
+      <img src="/tour-poster.jpg?v=__ADPOSTERV__" alt="A full class, a seat opening, and the text that gets you in" style="display:block;width:100%;height:100%;object-fit:cover;">
+      <button id="sw-play" aria-label="Play the 36-second tour" style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(11,21,38,.2);border:0;cursor:pointer;padding:0;">
+        <span style="display:flex;align-items:center;justify-content:center;width:78px;height:78px;border-radius:50%;background:rgba(255,255,255,.96);box-shadow:0 12px 34px -8px rgba(11,21,38,.55);">
+          <svg width="29" height="29" viewBox="0 0 24 24" fill="#2563eb" style="margin-left:5px;"><path d="M8 5v14l11-7z"/></svg>
+        </span>
+      </button>
     </div>
     <p id="sw-tour-note" style="margin:22px 0 0;font-size:14px;color:#6b7a92;">Sound on. It is 36 seconds.</p>
   </div>
@@ -1878,16 +1879,41 @@ __PRICING__
  // The custom play overlay makes the poster read as a video rather than a picture.
  // Native controls stay ON underneath for keyboard access and scrubbing; the overlay
  // hides itself the moment playback begins and returns when the ad ends.
- // If playback fails, offer the escape hatches rather than an error code. The cause is
- // almost always the visitor's own extension, so the useful response is "here are two
- // other ways to watch", not a number they cannot act on.
- var _v=document.getElementById('sw-tourvid'), _n=document.getElementById('sw-tour-note');
- if(_v&&_n){
-   _v.addEventListener('error',function(){
-     _n.innerHTML='Trouble playing it here? '+
-       '<a href="/tour.mp4" download style="color:#2563eb;font-weight:600;">Download it</a> or '+
-       '<a href="https://www.youtube.com/shorts/Orpi5y0Us8U" target="_blank" rel="noopener" style="color:#2563eb;font-weight:600;">watch on YouTube</a>.';
-   },true);
+ // Click the poster, play it on YouTube. The iframe is built only on click, so nothing
+ // from YouTube is fetched — and no cookie is set — for the many visitors who scroll past.
+ //
+ // AND WE CHECK THAT IT ACTUALLY STARTED. A blocked embed is not a visible error: the
+ // extension serves a blank document, the iframe's own load event fires perfectly happily,
+ // and the visitor gets a silent grey rectangle. So enablejsapi=1 is set and we listen for
+ // the player's postMessage handshake — a real embed talks back within a second or two, a
+ // blocked one never says anything. If nothing arrives, we stop pretending and offer the
+ // one thing that always works: opening the video on YouTube itself.
+ var YT='Orpi5y0Us8U';
+ var f=document.getElementById('sw-tour-frame'), b=document.getElementById('sw-play');
+ function offerYouTube(){
+   f.innerHTML='<a href="https://www.youtube.com/shorts/'+YT+'" target="_blank" rel="noopener" '+
+     'style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;'+
+     'background:#0b1526;color:#fff;text-decoration:none;padding:28px;text-align:center;">'+
+     '<span style="display:flex;align-items:center;justify-content:center;width:74px;height:74px;border-radius:50%;background:#fff;">'+
+     '<svg width="30" height="30" viewBox="0 0 24 24" fill="#2563eb" style="margin-left:5px"><path d="M8 5v14l11-7z"/></svg></span>'+
+     '<span style="font-size:17px;font-weight:700;">Watch on YouTube</span>'+
+     '<span style="font-size:13.5px;opacity:.72;line-height:1.5;">Your browser is blocking the embedded player.<br>This link opens it directly.</span></a>';
+ }
+ if(f&&b){
+   b.addEventListener('click',function(){
+     var spoke=false;
+     function onMsg(e){ if(/youtube(-nocookie)?\.com$/.test(new URL(e.origin).hostname.replace(/^www\./,''))) spoke=true; }
+     window.addEventListener('message',onMsg);
+     var i=document.createElement('iframe');
+     i.src='https://www.youtube-nocookie.com/embed/'+YT+'?autoplay=1&rel=0&playsinline=1&modestbranding=1&enablejsapi=1';
+     i.title='SeatWatch \u2014 36 second tour';
+     i.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+     i.referrerPolicy='strict-origin-when-cross-origin';
+     i.setAttribute('allowfullscreen','');
+     i.style.cssText='position:absolute;inset:0;width:100%;height:100%;border:0;';
+     f.innerHTML=''; f.appendChild(i);
+     setTimeout(function(){ window.removeEventListener('message',onMsg); if(!spoke) offerYouTube(); },3500);
+   });
  }
 })();
 (function(){
