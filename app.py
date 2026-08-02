@@ -1757,11 +1757,11 @@ LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
     <h2 style="margin:20px 0 10px;font-size:40px;line-height:1.1;font-weight:800;letter-spacing:-.03em;">See it happen.</h2>
     <p style="margin:0 auto 34px;max-width:520px;font-size:17px;line-height:1.6;color:#4b5a72;">A full class, a seat opening at 2am, and the text that gets you in.</p>
     <div id="sw-tour-frame" style="position:relative;width:100%;max-width:380px;margin:0 auto;border-radius:22px;overflow:hidden;background:#0b1526;box-shadow:0 34px 80px -28px rgba(11,21,38,.4);border:1px solid rgba(11,21,38,.08);">
-      <video id="sw-ad" controls preload="metadata" playsinline poster="/ad-poster.jpg?v=__ADPOSTERV__" style="display:block;width:100%;height:auto;aspect-ratio:9/16;background:#0b1526;">
-        <source src="/ad.mp4?v=__ADVIDEOV__" type="video/mp4">
+      <video id="sw-tourvid" controls preload="metadata" playsinline poster="/tour-poster.jpg?v=__ADPOSTERV__" style="display:block;width:100%;height:auto;aspect-ratio:9/16;background:#0b1526;">
+        <source src="/tour.mp4?v=__ADVIDEOV__" type="video/mp4">
       </video>
     </div>
-    <p id="sw-tour-note" style="margin:22px 0 0;font-size:14px;color:#6b7a92;">Sound on. It is 36 seconds. &middot; <a href="/ad.mp4" download style="color:#2563eb;font-weight:600;">Download</a> &middot; <a href="https://www.youtube.com/shorts/Orpi5y0Us8U" target="_blank" rel="noopener" style="color:#2563eb;font-weight:600;">Watch on YouTube</a></p>
+    <p id="sw-tour-note" style="margin:22px 0 0;font-size:14px;color:#6b7a92;">Sound on. It is 36 seconds.</p>
   </div>
 </section>
 
@@ -1878,19 +1878,15 @@ __PRICING__
  // The custom play overlay makes the poster read as a video rather than a picture.
  // Native controls stay ON underneath for keyboard access and scrubbing; the overlay
  // hides itself the moment playback begins and returns when the ad ends.
- // If the media element fails, SAY SO. A silent poster sitting at 0:00 is
- // indistinguishable from "still loading", and that ambiguity cost several rounds of
- // guessing at a browser I could not see. The error code is the whole diagnosis:
- //   1 aborted  2 network  3 decode  4 src not supported / rejected by the browser
- var _v=document.getElementById('sw-ad'), _n=document.getElementById('sw-tour-note');
+ // If playback fails, offer the escape hatches rather than an error code. The cause is
+ // almost always the visitor's own extension, so the useful response is "here are two
+ // other ways to watch", not a number they cannot act on.
+ var _v=document.getElementById('sw-tourvid'), _n=document.getElementById('sw-tour-note');
  if(_v&&_n){
    _v.addEventListener('error',function(){
-     var e=_v.error||{}; 
-     _n.innerHTML='Video could not play here (error '+(e.code||'?')+
-       (e.message?': '+String(e.message).slice(0,90):'')+'). '+
-       '<a href="/ad.mp4" download style="color:#2563eb;font-weight:600;">Download it</a> or '+
+     _n.innerHTML='Trouble playing it here? '+
+       '<a href="/tour.mp4" download style="color:#2563eb;font-weight:600;">Download it</a> or '+
        '<a href="https://www.youtube.com/shorts/Orpi5y0Us8U" target="_blank" rel="noopener" style="color:#2563eb;font-weight:600;">watch on YouTube</a>.';
-     _n.style.color='#b91c1c';
    },true);
  }
 })();
@@ -2023,8 +2019,8 @@ def landing_page():
     school count; all CTAs route to /login (Google sign-in)."""
     return (LANDING.replace("__COUNT__", str(len(schools.SCHOOLS)))
             .replace("__PRICING__", pricing_section())
-            .replace("__ADVIDEOV__", _media_ver("ad-web.mp4"))
-            .replace("__ADPOSTERV__", _media_ver("ad-poster.jpg")))
+            .replace("__ADVIDEOV__", _media_ver("tour.mp4"))
+            .replace("__ADPOSTERV__", _media_ver("tour-poster.jpg")))
 
 def page(body, feedback=""):
     # Substitute __COUNT__ on the ASSEMBLED page so the shell (PAGE) and every body
@@ -2461,10 +2457,10 @@ class Handler(BaseHTTPRequestHandler):
                                            "sha256_cert_fingerprints": TWA_FINGERPRINTS}}])
             return self._send_bytes(body.encode(), "application/json",
                                     cache="public, max-age=3600")
-        if path == "/ad.mp4":
-            return _send_media(self, "ad-web.mp4", "video/mp4")
-        if path == "/ad-poster.jpg":
-            return _send_media(self, "ad-poster.jpg", "image/jpeg")
+        if path == "/tour.mp4":
+            return _send_media(self, "tour.mp4", "video/mp4")
+        if path == "/tour-poster.jpg":
+            return _send_media(self, "tour-poster.jpg", "image/jpeg")
         if path == "/icon-192.png":
             return (self._send_bytes(ICON192, "image/png") if ICON192
                     else self._send(page("<p>Not found.</p>"), 404))

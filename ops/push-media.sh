@@ -1,6 +1,11 @@
 #!/usr/bin/env bash
 # Push the ad media to the VM.
 #
+# NOTE THE FILENAMES. They were ad-web.mp4 / ad-poster.jpg and ad blockers refused them:
+# a URL containing "/ad." matches standard advertising filters, so the browser rejected
+# the media load BEFORE issuing a request. Do not name shipped assets ad*, promo*, banner*
+# or sponsor*, however accurate the word is.
+#
 # SEPARATE from ops/deploy.sh on purpose. deploy.sh ships four .py files and restarts the
 # service; these are static assets that change almost never and are far too large to sit
 # in git — a 26 MB binary in git history is permanent and cannot be shrunk later. So they
@@ -15,7 +20,7 @@ KEY="${SEATWATCH_KEY:-$HOME/.ssh/seatwatch-vm.key}"
 VM="${SEATWATCH_VM:?set SEATWATCH_VM=ubuntu@<vm-host> first}"
 cd "$(dirname "$0")/.."
 
-FILES=(ad-web.mp4 ad-poster.jpg)
+FILES=(tour.mp4 tour-poster.jpg)
 for f in "${FILES[@]}"; do
   [ -f "$f" ] || { echo "MISSING: $f — build it with marketing/webify.swift"; exit 1; }
 done
