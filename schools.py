@@ -6590,6 +6590,10 @@ class MichiganFlint(Banner):
     id = "umflint"; name = "University of Michigan–Flint"
     example = "CSC 137"; host = "ssb.umflint.edu"; term = "202710"
 
+class EasternMichigan(Banner):
+    id = "emich"; name = "Eastern Michigan University"
+    example = "ACC 240"; host = "bannerweb.oci.emich.edu"; term = "202710"
+
 class Wentworth(Banner):
     id = "wit"; name = "Wentworth Institute of Technology"
     example = "COMP 1000"; host = "selfservice.wit.edu"; term = "202710"
@@ -6617,6 +6621,34 @@ class NortheastState(Banner):
 class RoaneState(Banner):
     id = "roanestate"; name = "Roane State Community College"
     example = "ACCT 1010"; host = "ssb.roanestate.edu"; term = "202680"
+
+class MotlowState(Banner):
+    id = "mscc"; name = "Motlow State Community College"
+    example = "MATH 1530"; host = "prodssb.mscc.edu"; term = "202680"
+
+class WaltersState(Banner):
+    id = "ws"; name = "Walters State Community College"
+    example = "MATH 1530"; host = "prodssb.ws.edu"; term = "202680"
+
+class DyersburgState(Banner):
+    id = "dscc"; name = "Dyersburg State Community College"
+    example = "MATH 1530"; host = "ssbprd.dscc.edu"; term = "202680"
+
+class ClevelandStateTN(Banner):
+    id = "clevelandstatetn"; name = "Cleveland State Community College (TN)"
+    example = "MATH 1530"; host = "ban-sserv.clevelandstatecc.edu"; term = "202680"
+
+class SouthwestTennessee(Banner):
+    id = "swtcc"; name = "Southwest Tennessee Community College"
+    example = "MATH 1530"; host = "mafa1033ssbp.southwest.tn.edu"; term = "202680"
+
+class NashvilleState(Banner):
+    id = "nscc"; name = "Nashville State Community College"
+    example = "MATH 1530"; host = "pnsmss.nscc.edu"; term = "202680"
+
+class HarperCollege(Banner):
+    id = "harper"; name = "Harper College"
+    example = "ENG 101"; host = "sis.harpercollege.edu"; term = "202735"
 
 class PiedmontTech(Banner):
     id = "piedmonttech"; name = "Piedmont Technical College"
@@ -6815,6 +6847,18 @@ class UpstateMedical(Banner):
     id = "upstate"; name = "SUNY Upstate Medical University"
     example = "ENGL 325"; host = "bannerweb.upstate.edu"; term = "202680"
 
+class SUNYOrange(Banner):
+    id = "sunyorange"; name = "SUNY Orange County Community College"
+    example = "MAT 040"; host = "bannerprod.sunyorange.edu"; term = "202690"
+
+class SUNYSuffolk(Banner):
+    id = "sunysuffolk"; name = "Suffolk County Community College"
+    example = "MAT 001"; host = "lighthouse.sunysuffolk.edu"; term = "202609"
+
+class SUNYNorthCountry(Banner):
+    id = "sunynorthcountry"; name = "North Country Community College"
+    example = "ENG 088"; host = "ncccbanner.itec.suny.edu"; term = "202630"
+
 class Presbyterian(Banner):
     id = "presby"; name = "Presbyterian College"
     example = "ENGL 1001"; host = "banprod.presby.edu"; term = "202601"
@@ -6898,6 +6942,67 @@ class EastGeorgiaState(Banner):
     example = "ACCT 2101"; host = "ega.gabest.usg.edu"; term = "202605"
 
 
+class AugustaTech(Banner):
+    id = "augustatech"; name = "Augusta Technical College"
+    example = "ENGL 1101"; host = "bannerss.augustatech.edu"; term = "202712"
+
+class AthensTech(Banner):
+    id = "athenstech"; name = "Athens Technical College"
+    example = "ENGL 1101"; host = "bannerss.athenstech.edu"; term = "202712"
+
+class ChattahoocheeTech(Banner):
+    id = "chattahoocheetech"; name = "Chattahoochee Technical College"
+    example = "ENGL 1101"; host = "bannerss.chattahoocheetech.edu"; term = "202712"
+    def _seckey(self, r): return r.get("courseReferenceNumber")
+
+class GwinnettTech(Banner):
+    id = "gwinnetttech"; name = "Gwinnett Technical College"
+    example = "ENGL 1101"; host = "bannerss.gwinnetttech.edu"; term = "202712"
+
+class GeorgiaPiedmontTech(Banner):
+    id = "gptc"; name = "Georgia Piedmont Technical College"
+    example = "ENGL 1101"; host = "bannerss.gptc.edu"; term = "202712"
+    def _seckey(self, r): return r.get("courseReferenceNumber")
+
+class LanierTech(Banner):
+    id = "laniertech"; name = "Lanier Technical College"
+    example = "ENGL 1101"; host = "bannerss.laniertech.edu"; term = "202712"
+    def _seckey(self, r): return r.get("courseReferenceNumber")
+
+class SouthernCrescentTech(Banner):
+    id = "sctech"; name = "Southern Crescent Technical College"
+    example = "ENGL 1101"; host = "bannerss.sctech.edu"; term = "202712"
+    def _seckey(self, r): return r.get("courseReferenceNumber")
+
+class CentralGATech(Banner):
+    id = "centralgatech"; name = "Central Georgia Technical College"
+    example = "ENGL 1101"; host = "bannerss.centralgatech.edu"; term = "202712"
+
+class SavannahTech(Banner):
+    id = "savannahtech"; name = "Savannah Technical College"
+    example = "ENGL 1101"; host = "bannerss.savannahtech.edu"; term = "202712"
+
+class WestGATech(Banner):
+    id = "westgatech"; name = "West Georgia Technical College"
+    example = "ENGL 1101"; host = "bannerss.westgatech.edu"; term = "202712"
+
+class WiregrassTech(Banner):
+    id = "wiregrass"; name = "Wiregrass Georgia Technical College"
+    example = "ENGL 1101"; host = "bannerss.wiregrass.edu"; term = "202712"
+
+class HolmesCC(Banner):
+    id = "holmescc"; name = "Holmes Community College"
+    example = "ENG 1113"; host = "api.holmescc.edu"; term = "202608"
+
+class HACC(Banner):
+    id = "hacc"; name = "Harrisburg Area Community College"
+    example = "ACCT 150"; host = "banxeappprod.hacc.edu"; term = "202720"
+
+class LCCC(Banner):
+    id = "lccc"; name = "Lehigh Carbon Community College"
+    example = "ENG 100"; host = "banwebssprod.lccc.edu"; term = "202640"
+
+
 class CACCD(Banner):
     """California multi-college district on ONE Ellucian Cloud Banner host, isolated by
     the campus filter (SD-regental pattern: first token of campusDescription — verified
@@ -6938,6 +7043,24 @@ class CerroCoso(CACCD):
 class Porterville(CACCD):
     id = "porterville"; name = "Porterville College"
     example = "ENGL P101A"; host = "reg-prod.ec.kccd.edu"; term = "202670"; campus = "Porterville"
+
+class SMCCD(Banner):
+    host = "phx-ban-apps.smccd.edu"; term = "202608"
+    def _seckey(self, r): return r.get("courseReferenceNumber")
+    def _campus_ok(self, r):
+        return (r.get("campusDescription") or "").strip() == self.campus
+
+class CanadaCollege(SMCCD):
+    id = "canadacollege"; name = "Cañada College"
+    example = "ENGL 100"; campus = "Canada College"
+
+class SanMateoCollege(SMCCD):
+    id = "sanmateo"; name = "College of San Mateo"
+    example = "ENGL 100"; campus = "College of San Mateo"
+
+class SkylineCollege(SMCCD):
+    id = "skyline"; name = "Skyline College"
+    example = "ENGL 100"; campus = "Skyline College"
 
 
 class CrnKeyedBanner(Banner):
@@ -8946,6 +9069,104 @@ class WayneCC(Colleague):
     id = "waynecc"; name = "Wayne Community College"
     example = "ENG 111"; host = "ss-prod.cloud.waynecc.edu"
 
+class FayettevilleTech(Colleague):
+    id = "faytechcc"; name = "Fayetteville Technical Community College"
+    example = "ENG 111"; host = "selfserv.faytechcc.edu"
+
+class JohnstonCC(Colleague):
+    id = "johnstoncc"; name = "Johnston Community College"
+    example = "ENG 111"; host = "selfserv.johnstoncc.edu"
+
+class CCM(Colleague):
+    id = "ccm"; name = "County College of Morris"
+    example = "ENG 111"; host = "titansdirect.ccm.edu"
+
+class HudsonCC(Colleague):
+    id = "hudsoncc"; name = "Hudson County Community College"
+    example = "ENG 101"; host = "libertylink.hccc.edu"
+
+class PassaicCC(Colleague):
+    id = "passaiccc"; name = "Passaic County Community College"
+    example = "EN 101"; host = "eselfservice.pccc.edu"
+
+class RCBC(Colleague):
+    id = "rcbc"; name = "Rowan College at Burlington County"
+    example = "ENG 101"; host = "selfservice2019.rcbc.edu"
+
+class AtlanticCape(Colleague):
+    id = "atlanticcape"; name = "Atlantic Cape Community College"
+    example = "CRIM 101"; host = "acccdtsfss22.atlantic.edu"
+
+class CatawbaValleyCC(Colleague):
+    id = "catawbavalley"; name = "Catawba Valley Community College"
+    example = "ENG 111"; host = "ss-prod-cloud.cvcc.edu"
+
+class EdgecombeCC(Colleague):
+    id = "edgecombecc"; name = "Edgecombe Community College"
+    example = "ENG 111"; host = "ss-prod-cloud.edgecombe.edu"
+
+class WilsonCC(Colleague):
+    id = "wilsoncc"; name = "Wilson Community College"
+    example = "ENG 111"; host = "ss-prod-cloud.wilsoncc.edu"
+
+class GastonCollege(Colleague):
+    id = "gaston"; name = "Gaston College"
+    example = "ENG 111"; host = "ss-prod-cloud.gaston.edu"
+
+class NashCC(Colleague):
+    id = "nashcc"; name = "Nash Community College"
+    example = "ENG 111"; host = "ss-prod-cloud.nashcc.edu"
+
+class CarteretCC(Colleague):
+    id = "carteretcc"; name = "Carteret Community College"
+    example = "BIO 111"; host = "ss-prod-cloud.carteret.edu"
+
+class HalifaxCC(Colleague):
+    id = "halifaxcc"; name = "Halifax Community College"
+    example = "ENG 111"; host = "ss-prod-cloud.halifaxcc.edu"
+
+class CollegeOfTheAlbemarle(Colleague):
+    id = "albemarle"; name = "College of the Albemarle"
+    example = "ENG 111"; host = "ss-prod-cloud.albemarle.edu"
+
+class MoraineValley(Colleague):
+    id = "morainevalley"; name = "Moraine Valley Community College"
+    example = "PSY 101"; host = "self-serv.morainevalley.edu"
+
+class RockValley(Colleague):
+    id = "rockvalley"; name = "Rock Valley College"
+    example = "ENG 101"; host = "colss-prod.rockvsaas.elluciancloud.com"
+
+class HenryFordCollege(Colleague):
+    id = "hfcc"; name = "Henry Ford College"
+    example = "MATH 110"; host = "sss.hfcc.edu"
+
+
+
+class EastMississippiCC(Colleague):
+    id = "emcc-ms"; name = "East Mississippi Community College"
+    example = "ENG 1113"; host = "colss-prod.ec.eastms.edu"
+
+class MATCMilwaukee(Colleague):
+    id = "matc"; name = "Milwaukee Area Technical College"
+    example = "ENG 201"; host = "colss-prod.ec.matc.edu"
+
+class NEIowaCC(Colleague):
+    id = "nicc"; name = "Northeast Iowa Community College"
+    example = "ENG 105"; host = "selfserv.nicc.edu"
+
+class HowardCC(Colleague):
+    id = "howardcc"; name = "Howard Community College"
+    example = "PSYC 101"; host = "colss-prod.ec.howardcc.edu"
+
+class CoastalCarolinaCC(Colleague):
+    id = "coastalcarolinacc"; name = "Coastal Carolina Community College"
+    example = "ENG 111"; host = "ss-prod-cloud.coastalcarolina.edu"
+
+class CentralCCNebraska(Colleague):
+    id = "cccneb"; name = "Central Community College Nebraska"
+    example = "ENGL 1010"; host = "colss-prod.ec.cccneb.edu"
+
 class BrunswickCC(Colleague):
     id = "brunswickcc"; name = "Brunswick Community College"
     example = "ENG 111"; host = "ss2-prod-cloud.brunswickcc.edu"
@@ -9038,6 +9259,74 @@ class SCF(Banner):
     # English = ENC. Live gate: ENC 1101 = 82 sec with 58 Act==Cap FULL rows.
     id = "scf"; name = "State College of Florida, Manatee-Sarasota"
     example = "ENC 1101"; host = "banner.banprod.scf.edu"; term = "202710"
+
+class ValenciaCollege(CrnKeyedBanner):
+    id = "valencia"; name = "Valencia College"
+    example = "ENC 1101"; host = "banner.aws.valenciacollege.edu"; term = "202710"
+
+class BrowardCollege(CrnKeyedBanner):
+    id = "broward"; name = "Broward College"
+    example = "ENC 1101"; host = "reg-prod.browardsaas.elluciancloud.com:8103"; term = "202670"
+
+class PolkState(CrnKeyedBanner):
+    id = "polkstate"; name = "Polk State College"
+    example = "ENC 1101"; host = "polk-prod-pxes02.banner.elluciancloud.com:8090"; term = "202720"
+
+class StarkState(Banner):
+    id = "starkstate"; name = "Stark State College"
+    example = "ENG 011"; host = "selfservice-registration.starkstate.edu"; term = "202720"
+
+class LaredoCollege(Banner):
+    id = "laredo"; name = "Laredo College"
+    example = "ENGL 1301"; host = "reg-prod.laredo.elluciancloud.com:8103"; term = "202710"
+
+class GeorgiaHighlands(Banner):
+    id = "gahighlands"; name = "Georgia Highlands College"
+    example = "ENGL 1101"; host = "fedwest.highlands.edu:7985"; term = "202608"
+
+class HerkimerCC(Banner):
+    id = "herkimer"; name = "Herkimer College"
+    example = "BU 225"; host = "onlineservices.herkimer.edu"; term = "202640"
+
+class JacksonCollege(Colleague):
+    id = "jacksonmi"; name = "Jackson College"
+    example = "ENG 131"; host = "jetstream.jccmi.edu"
+
+class BayCollege(Colleague):
+    id = "baycollege"; name = "Bay College"
+    example = "ENGL 1010"; host = "colss-prod.baycollegesaas.elluciancloud.com"
+
+class CecilCollege(Colleague):
+    id = "cecil"; name = "Cecil College"
+    example = "PSY 101"; host = "colss-prod.cecilsaas.elluciancloud.com"
+
+class ChemeketaCC(Banner):
+    id = "chemeketa"; name = "Chemeketa Community College"
+    example = "MTH 060"; host = "reg-ss.chemeketa.edu"; term = "202620"
+
+class LaneCC(Banner):
+    id = "lanecc"; name = "Lane Community College"
+    example = "MTH 095"; host = "siuslaw.lanecc.edu"; term = "202720"
+
+class SouthFloridaState(Banner):
+    id = "sfsc"; name = "South Florida State College"
+    example = "ENC 1101"; host = "sfsc-prod-pxes02.banner.elluciancloud.com:8090"; term = "202710"
+
+class HolyokeCC(Banner):
+    id = "holyoke"; name = "Holyoke Community College"
+    example = "ENG 101"; host = "ban.hcc.edu"; term = "202630"
+
+class ManhattanCollege(Banner):
+    id = "manhattan"; name = "Manhattan College"
+    example = "ACCT 201"; host = "ssb03.manhattan.edu"; term = "202710"
+
+class LeMoyne(Colleague):
+    id = "lemoyne"; name = "Le Moyne University"
+    example = "PSY 101"; host = "webadvisor.lemoyne.edu"
+
+class IthacaCollege(Banner):
+    id = "ithaca"; name = "Ithaca College"
+    example = "BIOL 12100"; host = "homerapps.ithaca.edu"; term = "202720"
 
 
 # NOTE: OhioState() is now LIVE (#13, ~61k students). The earlier "throttling" was a
@@ -9801,10 +10090,13 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                              MissouriWestern(), WestfieldState(), EasternIllinois(),
                              SUNYBroome(), DutchessCC(), JeffersonCC(), AdirondackCC(),
                              GeneseeCC(), UlsterCC(), CorningCC(), Concord(),
-                             RaritanValley(), NassauCC(), MichiganFlint(), Harding(),
+                             RaritanValley(), NassauCC(), MichiganFlint(), EasternMichigan(), Harding(),
                              Spelman(), Ramapo(), Wentworth(), EasternFlorida(), Oakton(),
                              Washtenaw(), Pellissippi(), VolunteerState(), JacksonStateTN(),
-                             ColumbiaState(), NortheastState(), RoaneState(), PiedmontTech(),
+                             ColumbiaState(), NortheastState(), RoaneState(),
+                             MotlowState(), WaltersState(), DyersburgState(),
+                             ClevelandStateTN(), SouthwestTennessee(), NashvilleState(),
+                             PiedmontTech(),
                              NortheastMississippi(), Itawamba(), MississippiDelta(),
                              LindseyWilson(), BartonCC(), Centenary(), Catawba(),
                              Walsh(), ConcordiaWI(), Curry(),
@@ -9832,7 +10124,8 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                              LakeMichigan(), MVNU(), WashingtonStateOH(),
                              ConnecticutCollege(), BunkerHill(), Denison(), KentuckyState(),
                              TCLowcountry(), MarsHill(), WesternPiedmont(), MitchellCC(),
-                             SUNYPurchase(), SUNYESF(), NorthGATech(), Colgate(), UIndy(),
+                             SUNYPurchase(), SUNYESF(), SUNYOrange(), SUNYSuffolk(), SUNYNorthCountry(),
+                             NorthGATech(), Colgate(), UIndy(),
                              Northwood(), Rowan(), Roosevelt(), NationalLouis(), MercyUniversity(), Pasadena(), SanJoseEvergreen(),
                              Baruch(), BMCC(), HunterCUNY(), QueensCUNY(),
                              BronxCC(), StatenIsland(), CityCollege(), GuttmanCC(), HostosCC(), KingsboroughCC(), JohnJayCUNY(), LaGuardiaCC(), MedgarEvers(), LehmanCUNY(), CityTech(), Queensborough(), YorkCUNY(), CunySPS(), BrooklynCUNY()]
@@ -9844,7 +10137,12 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                                BevillState(), EnterpriseState(), SneadState(),
                                IngramState(), CentralAlabama(), DrakeState(),
                                MarionMilitary(), NortheastAlabama(), WallaceHanceville(),
-                               EastGeorgiaState()]
+                               EastGeorgiaState(),
+                               AugustaTech(), AthensTech(), ChattahoocheeTech(),
+                               GwinnettTech(), GeorgiaPiedmontTech(), LanierTech(),
+                               SouthernCrescentTech(), CentralGATech(), SavannahTech(),
+                               WestGATech(), WiregrassTech(), HolmesCC(),
+                               HACC(), LCCC()]
                             + [SacredHeart(), WashingtonAdventist(), CollegeOfIdaho(),
                                DigiPen(), Campbell(), Loras(), ColumbiaMO(),
                                NWOSU(), SouthwesternTX(), VTSU(), CCV()]
@@ -9887,7 +10185,8 @@ _ALL_SCHOOLS = ([UMD(), Rutgers(), Cornell(), Penn(), VirginiaTech(), OhioState(
                                MontgomeryCountyCC(), WestminsterUT(), WesternWyoming(),
                                GeorgiaMilitary(), Bridgeport(),
                                OrangeCoast(), GoldenWest(), Coastline(),
-                               Bakersfield(), CerroCoso(), Porterville()]
+                               Bakersfield(), CerroCoso(), Porterville(),
+                               CanadaCollege(), SanMateoCollege(), SkylineCollege()]
                             + [CtcLink(*t) for t in _CTCLINK]
                             + [MinnState(*t) for t in _MINNSTATE]
                             + [VCCS(*t) for t in _VCCS])
@@ -9941,6 +10240,9 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
     AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
     MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(), SanDiegoCity(), SanDiegoMesa(), SanDiegoMiramar(), Fairfield(),
+    ValenciaCollege(), BrowardCollege(), PolkState(), StarkState(),
+    LaredoCollege(), GeorgiaHighlands(), HerkimerCC(), JacksonCollege(), BayCollege(),
+    CecilCollege(), ChemeketaCC(), LaneCC(), SouthFloridaState(), HolyokeCC(), ManhattanCollege(), LeMoyne(), IthacaCollege(),
     IvyTech(), UTArlington(), UAlaska(), UOregon(),
     WrightState(), RPI(), Duquesne(), NMSU(), USC(), Rice(),
     PhoenixCollege(), GlendaleCC(), MesaCC(), ChandlerGilbert(), EstrellaMountain(),
@@ -9953,7 +10255,17 @@ SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(),
                              AlamanceCC(), BlueRidgeCCNC(), IsothermalCC(),
                              McDowellTech(), MontgomeryCC(), RandolphCC(),
                              RichmondCC(), WayneCC(),
+                             FayettevilleTech(), JohnstonCC(),
+                             CCM(), HudsonCC(), PassaicCC(), RCBC(), AtlanticCape(),
+                             EastMississippiCC(), MATCMilwaukee(), NEIowaCC(),
+                             HowardCC(), CoastalCarolinaCC(), CentralCCNebraska(),
+                             CatawbaValleyCC(), EdgecombeCC(), WilsonCC(),
+                             GastonCollege(), NashCC(), CarteretCC(),
+                             HalifaxCC(), CollegeOfTheAlbemarle(),
+                             MoraineValley(), RockValley(),
+                             HenryFordCollege(),
                              BrunswickCC(),
+    HarperCollege(),
     CollegeOfDuPage(), SouthwesternCA(), VictorValley(), Elgin(), Kellogg(), Coalinga(),
     SantaAna(), SantiagoCanyon(), WabashValley(), OlneyCentral(), LincolnTrail(),
     SUNYDelhi(), GuamCC(), Washburn(), MurrayState(), NorthAlabama(), SIUCarbondale(),

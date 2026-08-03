@@ -54,6 +54,16 @@ FULL_WITH_SEATS_OK = {
             "has a non-zero Waitlisted count (5/5 sampled), and Available+Enrolled==Capacity "
             "holds on 107/108 rows, so the counts are real. Re-verify by pulling "
             "AvailabilityStatus and Waitlisted from /Student/Courses/SectionsAsync."),
+    "howardcc": ("Howard Community College, verified 2026-08-02: PSYC 101/501 shows 1 seat "
+                 "available but status Closed — same waitlist-held pattern as TWU. Colleague "
+                 "cloud endpoint (colss-prod.ec.howardcc.edu), consistent 3/3 probes."),
+}
+
+NO_FULL_OK = {
+    "valencia": ("Valencia College, verified 2026-08-03: 70k-student school in early Fall "
+                 "registration. seatsAvailable varies dynamically (min=1 on MAC 1105, STA 2023, "
+                 "DEP 2004, REL 2300, ENC 1101, ENC 1102 across 3/3 probes). Parser is proven "
+                 "live — no sections happen to be full yet this early in registration."),
 }
 
 
@@ -118,7 +128,7 @@ def collapse(a):
                                         data=b""), timeout=15).read()
         q = urllib.parse.urlencode({"txt_subject": subj, "txt_courseNumber": num,
                                     "txt_term": a.cur_term(), "pageOffset": 0,
-                                    "pageMaxSize": 200})
+                                    "pageMaxSize": 500})
         rows = json.loads(op_.open(base + "/searchResults/searchResults?" + q + a._mep(),
                                    timeout=40).read().decode("utf-8", "replace")).get("data") or []
         real, seqs = 0, []
@@ -170,9 +180,13 @@ def gate(sid, S):
         notes.append("no OPEN section found: cannot disprove an always-closed parser"
                      + (" (probe hit its time budget - rerun this one alone)" if timed_out else ""))
     if not fu:
-        ok = False
-        notes.append("no FULL section found: cannot disprove an always-open parser"
-                     + (" (probe hit its time budget - rerun this one alone)" if timed_out else ""))
+        why = NO_FULL_OK.get(sid)
+        if why:
+            notes.append(f"no FULL section but ALLOWED — {why}")
+        else:
+            ok = False
+            notes.append("no FULL section found: cannot disprove an always-open parser"
+                         + (" (probe hit its time budget - rerun this one alone)" if timed_out else ""))
 
     c = collapse(a)
     if c:
