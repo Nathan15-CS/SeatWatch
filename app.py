@@ -685,14 +685,23 @@ def stripe_checkout_url(user, target_tier):
     re-charge). None if paid isn't live or the tier is invalid/not an upgrade."""
     if not PAID_LIVE or target_tier not in TIER_PRICE_CENTS:
         return None
-    # NO UPGRADE PATH, by Nathan's call, and the reason is not technical: showing a
-    # student a better plan minutes after they paid manufactures buyer's remorse. They
-    # chose what they wanted; selling against that choice is a bad trade even when the
-    # $10 is real. A paid student buys nothing else this term.
+    # UPWARD ONLY. A student on the $19.95 plan can move to $24.95 or $29.95; a student
+    # on $24.95 can never "buy" $19.95. Two separate reasons, and both matter:
+    #
+    #   Selling DOWN is not a purchase, it is a refund request wearing a checkout button.
+    #   Taking $19.95 to reduce someone's plan would be charging them to lose something,
+    #   and it is the kind of thing a student screenshots.
+    #
+    #   Re-buying the SAME tier is equally refused. It reads as a renewal and is not one —
+    #   they already hold it for this term, so it would be money for nothing.
+    #
+    # They pay only the DIFFERENCE, never the full price again. Someone who paid $19.95 and
+    # then wants five courses owes $10, not $29.95; charging twice for the overlap is how
+    # an upgrade path turns into a reason to ask for a refund instead.
     cur = effective_tier(user)
-    if cur:
+    if target_tier <= cur:
         return None
-    amount = TIER_PRICE_CENTS[target_tier]
+    amount = TIER_PRICE_CENTS[target_tier] - TIER_PRICE_CENTS.get(cur, 0)
     if amount <= 0:
         return None
     season = current_season()
@@ -2682,36 +2691,52 @@ class Handler(BaseHTTPRequestHandler):
     def _pricing_html(self, user):
         """The plan ladder (only rendered when PAID_LIVE).
 
-        There is no upgrade path. A student who has already paid sees their plan and
-        nothing to buy — showing them a better one after the fact only teaches them they
-        chose wrong. Prices are computed server-side at checkout regardless of what this
-        page renders.
+        UPWARD ONLY. A student already on a plan sees the ones ABOVE theirs priced at the
+        difference, their own marked as current, and the ones below marked as included —
+        never as something to buy. Selling a smaller plan to someone who already holds a
+        bigger one is charging them to lose something.
+
+        What this page renders is presentation only; stripe_checkout_url re-derives the
+        tier and the price server-side, so a hand-edited link cannot buy a downgrade or
+        dodge the delta.
         """
         cur = effective_tier(user) if user else 0
-        if cur:
-            return ("<div class='card reveal d2'><h2 class='ct'>Your plan</h2>"
-                    f"<p class='cs' style='margin-bottom:4px'><b>"
-                    f"{html.escape(TIER_NAME[cur])}</b></p>"
-                    "<p class='note'>One-time for this term — you're all set. Add your "
-                    "classes and we'll watch them.</p>"
-                    "<a href='/' style='display:block;margin-top:16px;font-weight:700'>"
-                    "← Go watch your classes</a></div>")
         cards = []
         for t in (1, 2, 3):
             price = f"${TIER_PRICE_CENTS[t] / 100:.2f}"
             if not user:
                 btn = "<a class='cbtn' href='/login'>Sign in to choose</a>"
+                sub = "one-time, this term"
+            elif t == cur:
+                btn = ("<span class='note' style='display:block;font-weight:700;"
+                       "color:#0F9D74'>Your current plan ✓</span>")
+                sub = "one-time, this term"
+            elif t < cur:
+                # Already covered by what they hold. Not a product, not a button.
+                btn = "<span class='note' style='display:block'>Included in your plan</span>"
+                sub = "one-time, this term"
             else:
-                btn = f"<a class='cbtn' href='/checkout?tier={t}'>Choose — {price}</a>"
+                delta = (TIER_PRICE_CENTS[t] - TIER_PRICE_CENTS.get(cur, 0)) / 100
+                btn = (f"<a class='cbtn' href='/checkout?tier={t}'>"
+                       + (f"Upgrade — ${delta:.2f}" if cur else f"Choose — {price}")
+                       + "</a>")
+                sub = (f"${delta:.2f} more than your plan" if cur else "one-time, this term")
+            # The promo code only ever reaches the top plan at full price, so mentioning it
+            # on an upgrade would be a promise the payment page cannot keep.
             note = ("<p class='note' style='margin:6px 0 0'>Have a promotional code? "
-                    "Enter it on the payment page.</p>" if t == PROMO_TIER else "")
+                    "Enter it on the payment page.</p>"
+                    if (t == PROMO_TIER and not cur) else "")
             cards.append(f"<div class='price'><p class='amt'>{price} "
-                         f"<small>one-time, this term</small></p>"
+                         f"<small>{sub}</small></p>"
                          f"<p style='font-weight:700;margin:6px 0'>{html.escape(TIER_NAME[t])}</p>"
                          f"{btn}{note}</div>")
-        return ("<div class='card reveal d2'><h2 class='ct'>Watch more classes</h2>"
-                "<p class='cs'>One-time for the term, no subscription. Pick the one that "
-                "fits — your first class is always free.</p><div class='prices'>"
+        head = ("Add more classes" if cur else "Watch more classes")
+        lede = ("You're on the " + html.escape(TIER_NAME[cur]) + " plan. Moving up costs "
+                "only the difference." if cur else
+                "One-time for the term, no subscription. Pick the one that fits — your "
+                "first class is always free.")
+        return (f"<div class='card reveal d2'><h2 class='ct'>{head}</h2>"
+                f"<p class='cs'>{lede}</p><div class='prices'>"
                 + "".join(cards) + "</div>"
                 "<a href='/' style='display:block;margin-top:16px;font-weight:700'>← Back</a></div>")
 

@@ -138,10 +138,10 @@ def run():
           == [str(app.TIER_PRICE_CENTS[t]) for t in (1, 2, 3)],
           str([by_tier[t]["line_items[0][price_data][unit_amount]"] for t in (1, 2, 3)]))
 
-    # ---- NO UPGRADES: a student who already paid buys nothing else ----
+    # ---- UPGRADES ARE UPWARD ONLY, and the promo never rides on one ----
     # PAID_ENABLED and a fresh purchase timestamp both matter: effective_tier fails
     # closed on a lapsed or dormant entitlement, so without them this student reads as
-    # free and the check would pass for the wrong reason.
+    # free and the checks would pass for the wrong reason.
     app.PAID_ENABLED = True
     with app.db() as c:
         c.execute("UPDATE users SET plan_tier=1, plan_purchased_at=?, plan_term=? WHERE id=?",
@@ -149,9 +149,19 @@ def run():
         paid_u = c.execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone()
     check("...and that student really is entitled (guard against a false pass)",
           app.effective_tier(paid_u) == 1, f"effective_tier={app.effective_tier(paid_u)}")
-    check("a paying student is offered NO upgrade to any tier",
-          all(app.stripe_checkout_url(paid_u, t) is None for t in (1, 2, 3)),
-          "showing a better plan after purchase manufactures buyer's remorse")
+    check("a $19.95 student CAN move up to $24.95 and $29.95",
+          all(app.stripe_checkout_url(paid_u, t) is not None for t in (2, 3)),
+          "an upgrade path the student is entitled to is closed")
+    check("...but cannot re-buy the plan they already hold",
+          app.stripe_checkout_url(paid_u, 1) is None, "money for nothing")
+    # The promo's $29.95 minimum is what keeps it off an upgrade: an upgrade charges the
+    # DIFFERENCE, which can never reach that floor, so a $5 code cannot be applied to a
+    # $5 delta. Asserted as arithmetic rather than trusted.
+    check("an upgrade delta can never reach the promo's minimum order",
+          all(app.TIER_PRICE_CENTS[t] - app.TIER_PRICE_CENTS[c]
+              < app.TIER_PRICE_CENTS[app.PROMO_TIER]
+              for t in (2, 3) for c in (1, 2) if t > c),
+          "a $5 coupon could be taken off a $5 upgrade, making it free")
     with app.db() as c:
         c.execute("UPDATE users SET plan_tier=0, plan_term=NULL WHERE id=?", (uid,))
 

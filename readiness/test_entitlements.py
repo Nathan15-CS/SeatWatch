@@ -283,6 +283,71 @@ def run():
         app._alert = _real_alert
         sch.fetch = base
 
+    # ============================================== H. what each plan may BUY
+    # Upward only, priced at the difference. Selling DOWN is not a purchase — it is a
+    # refund request wearing a checkout button, and charging someone to reduce their plan
+    # is the kind of thing a student screenshots. Re-buying the SAME tier is money for
+    # nothing. Both are refused server-side, so a hand-edited /checkout?tier= link cannot
+    # do what the page declines to offer.
+    app.PAID_LIVE = True
+    app.STRIPE_SECRET_KEY = "sk_test_entitlements"
+    _sent = []
+    _real_post = app._stripe_post
+    app._stripe_post = lambda path, fields, idem=None: (_sent.append(fields),
+                                                        {"url": "https://checkout.test/s"})[1]
+    try:
+        def buyer(tier):
+            with app.db() as c:
+                c.execute("DELETE FROM users WHERE google_sub='buyer'")
+                c.execute("INSERT INTO users(google_sub,email,topic,created,plan_tier,"
+                          "plan_term,plan_purchased_at) VALUES('buyer','b@x.edu','tb',?,?,?,?)",
+                          (time.time(), tier, app.current_season() if tier else None,
+                           time.time() if tier else None))
+                return c.execute("SELECT * FROM users WHERE google_sub='buyer'").fetchone()
+
+        for cur in (0, 1, 2, 3):
+            for want in (1, 2, 3):
+                _sent.clear()
+                url = app.stripe_checkout_url(buyer(cur), want)
+                cl = "free" if cur == 0 else f"${app.TIER_PRICE_CENTS[cur]/100:.2f}"
+                wl = f"${app.TIER_PRICE_CENTS[want]/100:.2f}"
+                if want > cur:
+                    charged = (int(_sent[-1]["line_items[0][price_data][unit_amount]"])
+                               if url and _sent else None)
+                    expect = app.TIER_PRICE_CENTS[want] - app.TIER_PRICE_CENTS.get(cur, 0)
+                    check(f"H. {cl} -> {wl}: allowed, and charges only the difference",
+                          url is not None and charged == expect,
+                          f"url={'yes' if url else 'None'} charged={charged} expected={expect}")
+                else:
+                    label = "the SAME plan again" if want == cur else "a SMALLER plan"
+                    check(f"H. {cl} -> {wl}: refused ({label})", url is None,
+                          "a student can be charged to lose capacity, or charged twice "
+                          "for what they already hold")
+
+        # an upgrade must actually RAISE the tier, never lower it
+        u = buyer(2)
+        app.stripe_apply_event({"id": "evt_up", "type": "checkout.session.completed",
+                                "data": {"object": {"payment_intent": "pi_up",
+                                                    "metadata": {"user_id": str(u["id"]),
+                                                                 "target_tier": "3"}}}})
+        with app.db() as c:
+            got = c.execute("SELECT plan_tier FROM users WHERE id=?", (u["id"],)).fetchone()
+        check("H. a completed upgrade raises the tier", got["plan_tier"] == 3,
+              f"got {got['plan_tier']}")
+
+        u = buyer(3)
+        app.stripe_apply_event({"id": "evt_down", "type": "checkout.session.completed",
+                                "data": {"object": {"payment_intent": "pi_dn",
+                                                    "metadata": {"user_id": str(u["id"]),
+                                                                 "target_tier": "1"}}}})
+        with app.db() as c:
+            got = c.execute("SELECT plan_tier FROM users WHERE id=?", (u["id"],)).fetchone()
+        check("H. a stale LOWER-tier event can never demote a paid student",
+              got["plan_tier"] == 3,
+              f"got {got['plan_tier']} — a replayed old webhook would strip capacity")
+    finally:
+        app._stripe_post = _real_post
+
     # ============================================== F. the ladder is coherent
     check("F. every priced tier grants at least as many courses as the one below",
           all(app.TIER_COURSES[t] >= app.TIER_COURSES[t - 1] for t in (2, 3)),
