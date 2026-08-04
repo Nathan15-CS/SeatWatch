@@ -46,3 +46,4 @@
 2026-08-04T04:23:20Z sha=1086ef3 mode=app files=[app.py guardian.py confidence.py schools.py]
 2026-08-04T16:11:27Z sha=f8f086e mode=app files=[app.py guardian.py confidence.py schools.py]
 2026-08-04T22:43:59Z sha=97199eb mode=app files=[app.py ca_chain.py guardian.py confidence.py schools.py ops/edu-intermediates.pem ops/coverage.json]
+2026-08-04T23:15:19Z sha=84c1722 mode=app files=[app.py ca_chain.py guardian.py confidence.py schools.py ops/edu-intermediates.pem ops/coverage.json ops/blocked.json]
