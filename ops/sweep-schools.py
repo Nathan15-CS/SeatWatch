@@ -37,6 +37,8 @@ HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, HERE)
 os.environ.setdefault("SEATWATCH_DB", "/tmp/sweep-schools.db")
 
+import ca_chain     # same TLS trust the poller runs with, or the sweep
+ca_chain.install()  # would keep filing working schools as broken
 import schools  # noqa: E402
 
 
@@ -153,7 +155,9 @@ def main():
                     help="probe only the last N schools in registry order")
     ap.add_argument("--retries", type=int, default=2)
     ap.add_argument("--workers", type=int, default=10, help="distinct HOSTS in parallel")
-    ap.add_argument("--out", default="/tmp/sweep-results.json")
+    ap.add_argument("--out", default=os.path.join(HERE, "ops", "coverage.json"),
+                help="verdict file the app reads to decide the public school "
+                     "count and which schools may be watched")
     a = ap.parse_args()
 
     ids = list(schools.SCHOOLS)

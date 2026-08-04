@@ -25,7 +25,12 @@ case "$MODE" in
   schools) FILES=(schools.py) ;;
   app)     [ "$APPROVE" = "--app-approved" ] || {
              echo "REFUSED: app mode needs the CEO to type --app-approved"; exit 1; }
-           FILES=(app.py guardian.py confidence.py schools.py) ;;
+           # ca_chain.py and its bundle ship WITH app.py: app.py imports ca_chain at module
+           # scope, so shipping one without the other leaves the service unable to start.
+           # coverage.json ships too — it decides the public school count and which schools
+           # may be watched, so a stale one silently mis-states both.
+           FILES=(app.py ca_chain.py guardian.py confidence.py schools.py
+                  ops/edu-intermediates.pem ops/coverage.json) ;;
   *) echo "usage: ops/deploy.sh schools | app --app-approved"; exit 1 ;;
 esac
 

@@ -62,6 +62,8 @@ SUITES = [
      "IDOR, forged sessions, CSRF, SQLi, push hijack, consent forgery, floods"),
     ("Pinned-term schools still live", "test_pinned_terms",
      "schools that can't auto-roll haven't silently gone dead (hits real hosts)"),
+    ("Coverage: the school count is measured, not claimed", "test_coverage",
+     "only proven schools are counted; broken ones can't be watched; recovery is automatic"),
 ]
 
 

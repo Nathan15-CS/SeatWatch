@@ -10,6 +10,13 @@ vapid_private.pem
 vapid_public.txt
 *.token
 
+# The ONE .pem that must be committed. These are PUBLIC CA intermediate certificates —
+# the links some colleges' servers fail to send — not a key, and they contain no secret.
+# app.py imports ca_chain at module scope and ca_chain reads this file, so a deploy
+# without it leaves nine schools unreachable. Narrow exception on purpose: the *.pem rule
+# above stays, because the next .pem in this repo probably IS a private key.
+!ops/edu-intermediates.pem
+
 # secret-ish filenames
 *secret*
 *_secret*

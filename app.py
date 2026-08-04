@@ -33,6 +33,7 @@ from email.utils import formataddr
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlencode, urlparse
 
+import ca_chain         # CA intermediates colleges' own servers fail to send
 import seatwatch as sw  # reuse: notify, log
 import schools          # multi-school registry (UMD, Rutgers, ...)
 import guardian         # reliability guardian: off | shadow (default) | enforce
@@ -93,6 +94,11 @@ VAPID_PUBLIC_KEY = os.environ.get("VAPID_PUBLIC_KEY", "")
 VAPID_PRIVATE_PEM = os.environ.get("VAPID_PRIVATE_PEM", os.path.join(HERE, "vapid_private.pem"))
 VAPID_SUBJECT = os.environ.get("VAPID_SUBJECT", "mailto:support@seatwatchapp.com")
 PUSH_ENABLED = bool(VAPID_PUBLIC_KEY and webpush)
+
+# Colleges whose servers omit their certificate's intermediate link — see ca_chain.py.
+# Installed before any adapter runs, and shared with ops/sweep-schools.py so the sweep
+# judges a school under the same TLS conditions the poller will actually fetch it under.
+ca_chain.install(sw.log)
 # --- Email alerts (the zero-setup default channel). SMTP creds come from the server env
 # and work with any provider — Gmail app-password, Resend, SES, etc. If unset, email is
 # quietly disabled and nothing breaks (push/ntfy still run). ---
@@ -1998,7 +2004,7 @@ def pricing_section():
 def landing_page():
     """The redesigned marketing landing page (logged-out home). Fills the live
     school count; all CTAs route to /login (Google sign-in)."""
-    return (LANDING.replace("__COUNT__", str(len(schools.SCHOOLS)))
+    return (LANDING.replace("__COUNT__", str(proven_count()))
             .replace("__PRICING__", pricing_section())
             .replace("__ADVIDEOV__", _media_ver("tour.mp4"))
             .replace("__ADPOSTERV__", _media_ver("tour-poster.jpg")))
@@ -2012,12 +2018,109 @@ def page(body, feedback=""):
     # page (terms, privacy, notices) strips the placeholder rather than leaking it.
     return (PAGE.replace("__BODY__", body)
             .replace("__FEEDBACK__", feedback)
-            .replace("__COUNT__", str(len(schools.SCHOOLS))))
+            .replace("__COUNT__", str(proven_count())))
 
 
-SCHOOLS_JS = json.dumps([
-    {"id": s.id, "name": s.name, "ex": s.example}
-    for s in sorted(schools.SCHOOLS.values(), key=lambda s: s.name.lower())])
+# --- Coverage: what we can actually PROVE, not what is in the registry file ----------
+#
+# The homepage used to say len(SCHOOLS) — the number of rows in schools.py, whether or not
+# a row worked. 926 rows meant "926 universities" on the marketing page while 31 of them
+# returned nothing to a student who signed up. That is not a rounding error, it is a claim
+# we could not support, and it is the same silent-failure shape as an alert sent to a
+# channel nobody reads.
+#
+# Both the number and the picker now derive from ops/coverage.json, written by
+# ops/sweep-schools.py when it probes every school against its real registration system:
+#
+#   COUNTED   OK          returned real sections AND correctly separated open from full.
+#                         The only verdict we are willing to publish a number for.
+#   LISTED    ALL_OPEN    returns usable data, but every section reads open, so we have
+#                         not yet watched it call anything full. Watchable, not provable —
+#                         so a student may pick it, and it is left OUT of the count.
+#   HIDDEN    everything  EMPTY/ERROR/MALFORMED/NEGATIVE/FAKE_OPEN/PHANTOM/NO_EXAMPLE.
+#             else        Removed from the picker so nobody can start a watch we cannot
+#                         deliver. FAKE_OPEN especially: a school that claims open with no
+#                         seats would send false alerts, which costs more than silence.
+#
+# Existing watches are never touched by this — hiding governs what can be STARTED. A
+# school that breaks and is fixed returns to the list on the next sweep, with no code
+# change and nobody having to remember to update a number.
+COVERAGE_PATH = os.environ.get("COVERAGE_PATH", os.path.join(HERE, "ops", "coverage.json"))
+COUNTED_VERDICTS = ("OK",)
+LISTED_VERDICTS = ("OK", "ALL_OPEN")
+_cov = {"mtime": -1.0, "data": {}}
+
+
+def coverage():
+    """{school_id: verdict} from the last sweep, reloaded when the file changes.
+
+    Missing or unreadable file FAILS OPEN — every school stays listed and counted — and
+    pages the operator. Taking the school list down because a data file went missing would
+    turn a reporting problem into an outage; an overstated count for the minutes it takes
+    someone to notice is the smaller harm. ops/deploy.sh ships this file so "missing"
+    means a broken deploy, not a normal state.
+    """
+    try:
+        m = os.path.getmtime(COVERAGE_PATH)
+        if m != _cov["mtime"]:
+            with open(COVERAGE_PATH) as f:
+                raw = json.load(f)
+            _cov["data"] = {k: (v.get("verdict") if isinstance(v, dict) else v)
+                            for k, v in raw.items()}
+            _cov["mtime"] = m
+            sw.log(f"  [coverage] loaded {len(_cov['data'])} school verdict(s); "
+                   f"{sum(1 for x in _cov['data'].values() if x in COUNTED_VERDICTS)} proven")
+    except Exception as e:
+        if _cov["mtime"] != -2.0:
+            _cov["mtime"] = -2.0        # page once, not every request
+            sw.log(f"  [coverage] UNREADABLE ({type(e).__name__}) — failing OPEN, every "
+                   f"school listed and counted until it is restored")
+            try:
+                operator_alert("⚠️ coverage.json unreadable — the homepage count is back to "
+                               "the raw registry size and broken schools are selectable "
+                               "again. Re-run ops/sweep-schools.py --out ops/coverage.json.")
+            except Exception:
+                pass
+        return {}
+    return _cov["data"]
+
+
+def school_listed(school_id):
+    """May a student START a watch here? Unknown to the sweep = listed (fail open)."""
+    v = coverage().get(school_id)
+    return v is None or v in LISTED_VERDICTS
+
+
+def listed_schools():
+    return [s for s in schools.SCHOOLS.values() if school_listed(s.id)]
+
+
+def proven_count():
+    """The number we are willing to print. Schools whose last probe returned real sections
+    AND showed us open and full sections side by side — the evidence that the adapter can
+    tell them apart. Falls back to the registry size only when coverage is unavailable."""
+    cov = coverage()
+    if not cov:
+        return len(schools.SCHOOLS)
+    n = sum(1 for s in schools.SCHOOLS if cov.get(s) in COUNTED_VERDICTS)
+    return n or len(schools.SCHOOLS)
+
+
+_schools_js = {"key": None, "val": ""}
+
+
+def schools_js():
+    """Picker payload, rebuilt when coverage changes so a fixed school reappears without
+    a restart. Cached against the same mtime the verdicts are — read AFTER coverage() has
+    had its chance to reload, or the first call would cache under a stale key."""
+    coverage()
+    key = _cov["mtime"]
+    if _schools_js["key"] != key:
+        _schools_js["val"] = json.dumps([
+            {"id": s.id, "name": s.name, "ex": s.example}
+            for s in sorted(listed_schools(), key=lambda s: s.name.lower())])
+        _schools_js["key"] = key
+    return _schools_js["val"]
 
 
 def watches_html(user_id, csrf):
@@ -2280,7 +2383,7 @@ def form_page(notice="", user=None):
                 .replace("__PUSHBLOCK__", notify_prefs_block(user, tok))
                 .replace("__CSRF__", tok)
                 .replace("__WATCHES__", watches_html(user["id"], tok))
-                .replace("__SCHOOLS__", SCHOOLS_JS))
+                .replace("__SCHOOLS__", schools_js()))
     # Feedback lives in the footer, and only for signed-in users (the POST requires auth,
     # so showing it logged-out would just bounce them to a login screen).
     fb = feedback_block(csrf_token(user["id"])) if user else ""
@@ -3046,6 +3149,17 @@ class Handler(BaseHTTPRequestHandler):
         school = schools.SCHOOLS.get(form.get("school", [""])[0].strip())
         if not school:
             return self._notice("Please choose a valid school.", 400, user=user)
+        # Enforced HERE, not just by leaving it out of the picker: the picker is a JSON
+        # blob in the page, and anyone who can craft a POST can name a school that is not
+        # in it. A watch on a school whose last probe failed is a watch that can only ever
+        # produce silence — the student would wait all term for an alert that cannot come.
+        # Say so plainly instead, and never create the row.
+        if not school_listed(school.id):
+            return self._notice(
+                f"We can't read {school.name}'s seat data right now, so we can't watch a "
+                "class there yet — and we'd rather tell you than take the request and go "
+                "quiet. We're working on it. Email support@seatwatchapp.com and we'll let "
+                "you know the moment it works.", 400, user=user)
         course = form.get("course", [""])[0].strip().upper()
 
         # Optional phone + consent, collected INSIDE this form so it sits in the path a
