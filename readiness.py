@@ -54,6 +54,8 @@ SUITES = [
      "numeric per-account code; ONLY the $29.95 plan; single-use; shown price == charged"),
     ("Entitlements: every plan gets what it promises", "test_entitlements",
      "course + section allowance per tier; refund/expiry/upgrade; the perk actually fires"),
+    ("VARIATIONS: features in combination", "test_variations",
+     "PRG on every form; no refusal says 200; tier x section-mode x prefs x alerts"),
     ("Payments: only a verified webhook pays", "test_payments",
      "forged/replayed/tampered webhooks grant nothing; refunds match the exact charge"),
     ("ADVERSARIAL: hostile visitor", "test_adversarial",
