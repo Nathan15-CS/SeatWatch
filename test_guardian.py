@@ -308,7 +308,45 @@ class TestFailureModes(Base):
             h = c.execute("SELECT sanity_violations FROM guardian_adapter_health "
                           "WHERE school='fakeu'").fetchone()
         self.assertEqual(h["sanity_violations"], 1)
-        self.assertTrue(any("contract" in p for p in self.pages))
+        # Assert the MEANING, not the phrasing: this is the shape that would advertise a
+        # seat that is not there, so the page has to say so.
+        self.assertTrue(any("not there" in p or "FALSE ALERT" in p for p in self.pages),
+                        f"pages were {self.pages}")
+
+    def test_waitlisted_section_is_not_treated_as_parse_drift(self):
+        """open=False with seats>0 is a WAITLIST, and reading it as closed is correct.
+
+        Butte paged on 50 of 50 fetches for exactly two such rows out of ~52 sections.
+        Nothing was wrong: a waitlisted seat cannot simply be taken, so staying quiet is
+        the right answer. Treating it as "parse drift, do not trust this school" is how an
+        operator is trained to ignore the pager — and the pager still has to work on the
+        day a parser really does break."""
+        self.add_user(1)
+        self.add_watch(1, section="0101")
+        self.install(FakeSchool(steps=[{"data": {"TEST101": {
+            "0101": sec(False, 2),                     # full, but holding a waitlisted seat
+            "0202": sec(False, 0), "0303": sec(True, 5)}}}]))
+        self.cycle()
+        with app.db() as c:
+            h = c.execute("SELECT sanity_violations FROM guardian_adapter_health "
+                          "WHERE school='fakeu'").fetchone()
+        self.assertEqual(h["sanity_violations"], 0,
+                         "a waitlisted section was counted as a data-contract breach")
+        self.assertFalse(any("not there" in p for p in self.pages),
+                         f"paged about a false-alert risk that does not exist: {self.pages}")
+
+    def test_widespread_full_with_seats_DOES_page(self):
+        """The other half: if the open flag stopped being read at all, every section would
+        look full-while-holding-seats and the school would go SILENT. A handful is
+        waitlists; most of the catalogue is a broken parser, and that must still page."""
+        self.add_user(1)
+        self.add_watch(1, section="0101")
+        data = {f"S{i:03d}": sec(False, 3) for i in range(12)}
+        data["0101"] = sec(False, 3)
+        self.install(FakeSchool(steps=[{"data": {"TEST101": data}}]))
+        self.cycle()
+        self.assertTrue(any("FULL while showing seats" in p for p in self.pages),
+                        f"a school that went silent would never be noticed: {self.pages}")
 
     def test_term_roll_blocks_loudly_not_silently(self):
         self.add_user(1)

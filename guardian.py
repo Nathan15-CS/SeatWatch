@@ -55,6 +55,9 @@ TUNING = {
     "RESULTS_RETENTION_S": 7 * 86400,  # per-watch/cycle evidence kept this long
     "PRUNE_EVERY_S": 6 * 3600,       # retention sweep cadence (cheap, but not per-cycle)
     "FREEZE_CLEAR_CYCLES": 3,        # calm cycles before a mass-freeze releases itself
+    # Fraction of a school's sections reading FULL-while-holding-seats that stops looking
+    # like waitlists and starts looking like an unread open flag (i.e. silent alerting).
+    "HELD_SEATS_ALARM_FRAC": 0.25,
 }
 
 OUTCOMES = (
@@ -263,22 +266,52 @@ def note_fetch(cycle, school_id, ok, ms, data):
     if cycle.mode == "off":
         return
     try:
-        nsecs, bad = 0, 0
+        # THE CONTRACT IS ASYMMETRIC, because the two ways a row can disagree with itself
+        # have opposite consequences:
+        #
+        #   open=True, seats=0   DANGEROUS. We would alert a student to a seat that is not
+        #                        there. They drop what they are doing, race to the
+        #                        registrar, find nothing, and never trust an alert again.
+        #                        Always pages.
+        #
+        #   open=False, seats>0  USUALLY FINE. A waitlisted section shows a seat you cannot
+        #                        simply take, and reading it as closed is CORRECT. The cost
+        #                        of being wrong is that we stay quiet — conservative, not
+        #                        harmful. Butte paged on 50 of 50 fetches for exactly two
+        #                        such rows out of ~52, and treating that as "parse drift,
+        #                        do not trust this school" is how an operator learns to
+        #                        ignore the pager.
+        #
+        # But it is not ALWAYS fine: if a parser stopped reading the open flag entirely,
+        # every section would look full-while-holding-seats and we would go silent on a
+        # whole school. So it pages when it is WIDESPREAD — a handful is waitlists, most of
+        # the catalogue is a broken flag.
+        nsecs, bad, held = 0, 0, 0
         for course_secs in (data or {}).values():
             nsecs += len(course_secs)
             for info in course_secs.values():
                 seats = info.get("seats")
-                if seats is not None and (not isinstance(seats, int) or seats < 0
-                                          or bool(info.get("open")) != (seats > 0)):
-                    bad += 1                     # violates the adapter data contract
+                if seats is None:
+                    continue
+                op = bool(info.get("open"))
+                if not isinstance(seats, int) or seats < 0 or (op and seats == 0):
+                    bad += 1                     # a seat we might advertise that isn't real
+                elif not op and seats > 0:
+                    held += 1                    # waitlisted / restricted: safe to ignore
         cycle.fetches[school_id] = {"ok": bool(ok), "ms": int(ms),
                                     "courses": len(data or {}), "sections": nsecs,
-                                    "violations": bad}
+                                    "violations": bad, "held": held}
         if bad:
             page(f"sanity:{school_id}",
-                 f"⚠️ {school_id}: {bad} section row(s) violate the seat-data contract "
-                 "(negative/inconsistent seats) — parse drift suspected; inspect before "
-                 "trusting alerts from this school.")
+                 f"🚨 {school_id}: {bad} section row(s) claim a seat that is not there "
+                 "(open with 0 seats, or a negative count) — this is the shape that "
+                 "produces FALSE ALERTS. Inspect before trusting this school.", "red")
+        elif nsecs and held >= max(4, int(nsecs * TUNING["HELD_SEATS_ALARM_FRAC"])):
+            page(f"held:{school_id}",
+                 f"⚠️ {school_id}: {held} of {nsecs} sections read as FULL while showing "
+                 "seats. A few is normal (waitlists); this many suggests the open flag is "
+                 "no longer being read, which would make this school silently stop "
+                 "alerting.")
     except Exception as e:
         _telemetry_mark(f"note_fetch:{type(e).__name__}")
 
