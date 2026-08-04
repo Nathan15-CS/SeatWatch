@@ -31,7 +31,12 @@ import argparse, collections, json, sys, warnings, urllib.parse, urllib.request
 import concurrent.futures as cf
 
 warnings.filterwarnings("ignore")
-sys.path.insert(0, "/Users/nathananapolsky/seatwatch")
+import os
+# Resolve the repo from THIS file, not a hardcoded home directory: the gate has to run on
+# the VM, and it must, because the Mac's LibreSSL reports working schools as dead.
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import ca_chain      # same TLS trust the poller uses, or colleges whose servers omit
+ca_chain.install()   # their intermediate get failed here for a reason that is ours
 import schools  # noqa: E402
 
 # Deliberately generic AND format-diverse: schools do not share a numbering convention.
@@ -50,6 +55,22 @@ PROBE = ["ENG 101", "ENGL 101", "ENGL 1010", "ENGL 1101", "ENG 111", "MATH 101",
 # at a seat they cannot take. Each entry needs evidence, not a hunch, and stays listed so
 # the exception is reviewable instead of hidden inside an adapter.
 FULL_WITH_SEATS_OK = {
+    "baycollege": ("Bay College, verified 2026-08-04: ENGL-1010-21 reports "
+                   "AvailabilityStatus='Waitlisted', Waitlisted=1, Available=1, "
+                   "Enrolled=19, Capacity=20 — Available+Enrolled==Capacity, and the one "
+                   "free seat belongs to the queued student. Announcing it would send "
+                   "someone sprinting at a seat they cannot take. Re-verify by reading "
+                   "Waitlisted on any FULL-with-seats row from colss-prod."
+                   "baycollegesaas.elluciancloud.com."),
+    "cecil": ("Cecil College, verified 2026-08-04: PSY-101-01 (TermId 2026FA) reports "
+              "AvailabilityStatus='Waitlisted', Waitlisted=1, Available=1, Enrolled=23, "
+              "Capacity=24 — consistent, and the seat is queue-held. NOTE for whoever "
+              "re-checks: match the section by its exact Number field. Matching '01' as a "
+              "substring hits 'PSY-101-R' and produces confident, wrong evidence."),
+    "nicc": ("Northeast Iowa Community College, verified 2026-08-04: ENG-105-84101 "
+             "reports AvailabilityStatus='Waitlisted', Waitlisted=1, Available=1, "
+             "Enrolled=21, Capacity=22 — consistent, queue-held seat. Same Colleague "
+             "pattern already cleared at Howard CC and TWU."),
     "twu": ("Texas Woman's University, verified 2026-07-31: every FULL-with-seats section "
             "has a non-zero Waitlisted count (5/5 sampled), and Available+Enrolled==Capacity "
             "holds on 107/108 rows, so the counts are real. Re-verify by pulling "

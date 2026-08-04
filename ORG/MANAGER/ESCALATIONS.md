@@ -156,3 +156,33 @@ numeric-seat parse break needs its own discriminator (implausible seat counts / 
 ## RESOLVED
 
 _(none)_
+
+## 2026-08-04 — Build: Jackson College (jacksonmi) blocked, needs a schools.py fix
+
+Nathan asked me to verify the 69 adapters added since the 857 freeze. 68 are sound.
+`jacksonmi` is not, and it was live and counted.
+
+**Defect.** Jackson's Colleague feed accumulates THREE terms at once (26/SUM, 26/FAL,
+27/SPR) and the adapter keys sections by their display number, so 88 raw records collapse
+into 50 and **24 section numbers appear more than once**. Evidence:
+
+    ENG-131-04   TermId 27/SPR   AvailabilityStatus Open        Available 14
+    ENG-131-04   TermId 26/FAL   AvailabilityStatus Waitlisted  Available 1
+    ENG-131-I50  present in 27/SPR, 26/FAL AND 26/SUM
+
+Whichever record survives the collapse is arbitrary. A student is therefore either told a
+seat opened in a term they are not registering for (false alert), or never told about a
+real one in the term they are (silent miss). This is the RCCD accumulating-feed lesson.
+
+**Fix (Grab's lane — I did not touch schools.py):** key sections by their unique `Id`, and
+filter the feed to the current term before parsing. Then `python3 ops/gate.py jacksonmi`.
+
+**Meanwhile** it is held off the site by `ops/blocked.json`, which outranks the sweep — the
+one-course sweep marks jacksonmi OK, so without that file the next sweep would re-list it.
+Remove the entry when the gate passes.
+
+Also cleared while here: `baycollege`, `cecil`, `nicc` were gate-blocked on FULL-with-seats
+but are legitimate waitlist holds (`Waitlisted>=1`, `Available+Enrolled==Capacity`, status
+literally `Waitlisted`). Evidence recorded in `ops/gate.py:FULL_WITH_SEATS_OK`. Same
+pattern already cleared at Howard CC and TWU — worth checking whether the still-blocked
+`cpcc`, `forsythtech`, `pittcc`, `vgcc` are the same thing.

@@ -61,6 +61,17 @@ def run():
         app._cov["data"] = {}
         return p
 
+    # Neutralise the REAL blocklist for the general checks. Whatever production is holding
+    # off the site today is a moving list, and a suite whose arithmetic depends on it fails
+    # every time someone blocks a school — noise that trains people to ignore red. The
+    # blocklist gets its own section below, with contents this test controls.
+    empty_block = os.path.join(tmpdir, "noblock.json")
+    with open(empty_block, "w") as f:
+        json.dump({}, f)
+    app.BLOCKED_PATH = empty_block
+    app._blocked["mtime"] = -1.0
+    app._blocked["data"] = {}
+
     ids = list(app.schools.SCHOOLS)
     good, allopen, empty, fake = ids[0], ids[1], ids[2], ids[3]
     rest = ids[4:]
@@ -147,6 +158,39 @@ def run():
           "the gate is refusing a school that returns real data")
     check("...and the refusal it does give is about the course, not coverage",
           code_ok < 400 or "seat data" not in body_ok.lower())
+
+    # ------------------------------------------------------------- blocklist
+    # The sweep probes ONE course and asks whether the answer looks sane. Jackson College
+    # passed it while collapsing three terms of sections into one namespace — confident,
+    # wrong data. A human block has to outrank the sweep, or the next run puts it back.
+    bp = os.path.join(tmpdir, "blocked.json")
+    with open(bp, "w") as f:
+        json.dump({"_README": ["docs, not a school"], good: {"reason": "term collapse"}}, f)
+    app.BLOCKED_PATH = bp
+    app._blocked["mtime"] = -1.0
+    app._blocked["data"] = {}
+    load(base)                                   # good is OK in coverage, blocked by hand
+
+    check("a blocklist entry beats an OK sweep verdict", not app.school_listed(good),
+          "the sweep would otherwise re-list a school we deliberately pulled")
+    check("...and removes it from the picker", f'"{good}"' not in app.schools_js())
+    check("...and from the published count", app.proven_count() == expected - 1,
+          "hiding a school while still counting it would restate the same dishonesty")
+    check("_README keys are documentation, not schools",
+          "_README" not in app.blocked_schools(),
+          "a comment key must never be mistaken for a school id")
+    check("schools NOT on the blocklist are unaffected", app.school_listed(allopen))
+
+    with open(bp, "w") as f:
+        json.dump({}, f)
+    app._blocked["mtime"] = -1.0
+    check("clearing the blocklist restores the school", app.school_listed(good))
+
+    app.BLOCKED_PATH = empty_block
+    app._blocked["mtime"] = -1.0
+    app._blocked["data"] = {}
+    app._schools_js["key"] = None
+    load(base)
 
     # -------------------------------------------------------------- recovery
     fixed = dict(base)

@@ -1,0 +1,20 @@
+{
+ "_README": [
+  "Schools held OFF the site by a human decision, regardless of what the sweep says.",
+  "",
+  "The sweep probes ONE course and asks whether the answer looks sane. That catches a dead",
+  "host; it does not catch an adapter that returns confident, wrong data. ops/gate.py goes",
+  "deeper (both open AND full states required, section-collapse keying, term freshness) and",
+  "can fail a school the sweep happily marks OK — and the next sweep would put it straight",
+  "back on the site. This file outranks the sweep so that cannot happen.",
+  "",
+  "Remove an entry only when the defect is FIXED and ops/gate.py passes the school.",
+  "Each entry states the defect and what a student would experience, because 'blocked' with",
+  "no reason becomes permanent by default once nobody remembers why."
+ ],
+ "jacksonmi": {
+  "reason": "Feed accumulates three terms at once (26/SUM, 26/FAL, 27/SPR) and the adapter keys sections by number, so 88 records collapse to 50 and 24 section numbers appear more than once. ENG-131-04 exists as Spring-27 (Open, 14 seats) AND Fall-26 (Waitlisted, 1 seat); whichever survives the collapse is arbitrary. A student would either be told a seat opened in a term they are not registering for, or never told about a real one in the term they are. Verified 2026-08-04.",
+  "blocked_at": "2026-08-04",
+  "fix": "Key sections by their unique Id, and filter the feed to the current term before parsing — see the RCCD accumulating-feed lesson. Then run: python3 ops/gate.py jacksonmi"
+ }
+}

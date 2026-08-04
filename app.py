@@ -2046,9 +2046,11 @@ def page(body, feedback=""):
 # school that breaks and is fixed returns to the list on the next sweep, with no code
 # change and nobody having to remember to update a number.
 COVERAGE_PATH = os.environ.get("COVERAGE_PATH", os.path.join(HERE, "ops", "coverage.json"))
+BLOCKED_PATH = os.environ.get("BLOCKED_PATH", os.path.join(HERE, "ops", "blocked.json"))
 COUNTED_VERDICTS = ("OK",)
 LISTED_VERDICTS = ("OK", "ALL_OPEN")
 _cov = {"mtime": -1.0, "data": {}}
+_blocked = {"mtime": -1.0, "data": {}}
 
 
 def coverage():
@@ -2085,8 +2087,32 @@ def coverage():
     return _cov["data"]
 
 
+def blocked_schools():
+    """ops/blocked.json — schools held off the site by a human decision, outranking the
+    sweep. The sweep probes one course and asks whether the answer looks sane; it cannot
+    catch an adapter returning confident, wrong data, and it would put such a school back
+    on the site at the next run. Jackson College passed the sweep while collapsing three
+    terms of sections into one namespace. Keys starting with _ are documentation."""
+    try:
+        m = os.path.getmtime(BLOCKED_PATH)
+        if m != _blocked["mtime"]:
+            with open(BLOCKED_PATH) as f:
+                _blocked["data"] = {k: v for k, v in json.load(f).items()
+                                    if not k.startswith("_")}
+            _blocked["mtime"] = m
+            if _blocked["data"]:
+                sw.log(f"  [coverage] {len(_blocked['data'])} school(s) held off the site "
+                       f"by ops/blocked.json: {', '.join(sorted(_blocked['data']))}")
+    except Exception:
+        return _blocked["data"]        # keep the last good list; never un-block on error
+    return _blocked["data"]
+
+
 def school_listed(school_id):
-    """May a student START a watch here? Unknown to the sweep = listed (fail open)."""
+    """May a student START a watch here? Unknown to the sweep = listed (fail open), but a
+    blocklist entry always wins — that one IS a decision, not an absence of data."""
+    if school_id in blocked_schools():
+        return False
     v = coverage().get(school_id)
     return v is None or v in LISTED_VERDICTS
 
@@ -2102,7 +2128,9 @@ def proven_count():
     cov = coverage()
     if not cov:
         return len(schools.SCHOOLS)
-    n = sum(1 for s in schools.SCHOOLS if cov.get(s) in COUNTED_VERDICTS)
+    blocked = blocked_schools()
+    n = sum(1 for s in schools.SCHOOLS
+            if cov.get(s) in COUNTED_VERDICTS and s not in blocked)
     return n or len(schools.SCHOOLS)
 
 
