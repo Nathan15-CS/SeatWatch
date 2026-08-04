@@ -2090,8 +2090,14 @@ def watches_html(user_id, csrf):
     for r in rows:
         sch = schools.SCHOOLS.get(r["school"])
         name = sch.name if sch else r["school"]
-        items += (f"<li><span>{html.escape(r['course'])} §{html.escape(r['section'])}"
-                  f", {html.escape(name)}</span>"
+        # An all-sections watch stores section="" and used to render as "CMSC250 §," —
+        # a section symbol pointing at nothing. It looked like a bug in the row rather
+        # than the feature the student had just paid for, and it did not answer the only
+        # question they actually have: is this covering everything or not? Say it.
+        sect = (f"§{html.escape(r['section'])}" if r["section"]
+                else "<span style='color:#0F9D74;font-weight:600'>all sections</span>")
+        items += (f"<li><span>{html.escape(r['course'])} {sect}"
+                  f" &middot; {html.escape(name)}</span>"
                   f"<form method='post' action='/unwatch'>"
                   f"<input type='hidden' name='id' value='{r['id']}'>"
                   f"<input type='hidden' name='csrf' value='{csrf}'>"

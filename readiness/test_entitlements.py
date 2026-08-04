@@ -348,6 +348,26 @@ def run():
     finally:
         app._stripe_post = _real_post
 
+    # ============================================== I. the watch list READS correctly
+    # An all-sections watch stores section="" and rendered as "CMSC250 §," — a section
+    # symbol pointing at nothing. It looked like a broken row rather than the feature the
+    # student had just paid for, and it left the only question they have unanswered: is
+    # this covering everything, or did something go wrong?
+    uid = new_user(3)
+    watch(uid, "BIOL960", "0101")
+    watch(uid, "BIOL961", "")
+    page_html = app.watches_html(uid, "tok")
+    check("I. a NAMED section still shows its number",
+          "§0101" in page_html, page_html[:160])
+    check("I. an ALL-sections watch says 'all sections' in words",
+          "all sections" in page_html,
+          "the student cannot tell whether every section is covered")
+    check("I. no dangling section symbol is left anywhere",
+          "§," not in page_html and "§ " not in page_html.replace("§0101", ""),
+          "a lone § reads as a rendering bug")
+    check("I. the school is still named on every row",
+          page_html.count("Entitlement U") == 2, page_html[:200])
+
     # ============================================== F. the ladder is coherent
     check("F. every priced tier grants at least as many courses as the one below",
           all(app.TIER_COURSES[t] >= app.TIER_COURSES[t - 1] for t in (2, 3)),
