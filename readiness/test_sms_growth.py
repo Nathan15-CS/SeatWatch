@@ -149,6 +149,37 @@ def run():
     check("promo skips someone who joined yesterday", "new@umd.edu" not in to)
     check("promo skips someone who already paid", "paid@umd.edu" not in to,
           "discounting a customer who already bought is money thrown away")
+    # ---- EMAIL gets a sample too, for the same reason SMS does ----
+    # Email's first ever use used to be a REAL seat alert. A wrong address, a full
+    # mailbox, or Gmail filing it under Promotions all failed silently at the one moment
+    # it mattered — the student found out by missing the seat. The sample makes email
+    # prove itself on a calm day.
+    app.EMAIL_ENABLED = True
+    with app.db() as c:
+        c.execute("INSERT INTO users(google_sub,email,topic,created,promo_sent_at) "
+                  "VALUES('g_se','se@umd.edu','t_se',0,1)")
+        se = c.execute("SELECT id FROM users WHERE google_sub='g_se'").fetchone()["id"]
+    before = len(mails)
+    check("a new student gets ONE sample alert email", app.send_sample_email(se) is True,
+          "email is never proven until a real seat is on the line")
+    body = mails[-1][2] if len(mails) > before else ""
+    check("...it shows what an alert actually looks like",
+          "Seat open" in body and "seats just opened" in body.lower(), body[:90])
+    check("...and tells them to rescue it from Promotions/Spam",
+          "promotions" in body.lower() or "spam" in body.lower(),
+          "a filtered alert is a missed seat, and the student can fix that in one drag")
+    n = len(mails)
+    check("a second call sends nothing (once per ACCOUNT)",
+          app.send_sample_email(se) is False and len(mails) == n)
+
+    with app.db() as c:
+        c.execute("INSERT INTO users(google_sub,email,topic,created,notify_email,promo_sent_at) "
+                  "VALUES('g_seoff','seoff@umd.edu','t_seoff',0,0,1)")
+        seoff = c.execute("SELECT id FROM users WHERE google_sub='g_seoff'").fetchone()["id"]
+    check("a student who turned EMAIL off gets no sample email",
+          app.send_sample_email(seoff) is False,
+          "demonstrating a channel they switched off is spam")
+
     # ---- "every person, every time": consent and the sample can never disagree ----
     # Nathan: a new student must see what an alert looks like. The risk is not that the
     # sample fails to fire — it is that it fires and LIES, promising texts to an account

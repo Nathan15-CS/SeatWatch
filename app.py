@@ -304,6 +304,12 @@ def init_db():
             c.execute("ALTER TABLE users ADD COLUMN promo_redeemed_at REAL")
         if "sample_sms_at" not in ucols:
             c.execute("ALTER TABLE users ADD COLUMN sample_sms_at REAL")
+        # sample_email_at: the same idea for email, and it was missing. SMS proved itself
+        # on day one with a sample text; email's first ever use was a REAL seat alert. If
+        # the address is wrong, or Gmail files it under Promotions, the student discovers
+        # that by missing the seat — which is the exact failure the sample text prevents.
+        if "sample_email_at" not in ucols:
+            c.execute("ALTER TABLE users ADD COLUMN sample_email_at REAL")
         if "promo_sent_at" not in ucols:
             c.execute("ALTER TABLE users ADD COLUMN promo_sent_at REAL")
         # webhook idempotency — a Stripe event unlocks a tier AT MOST once, even on retries
@@ -2959,6 +2965,7 @@ class Handler(BaseHTTPRequestHandler):
             # second never saw what an alert looks like. Safe to call from both places:
             # sample_sms_at makes it once per ACCOUNT, so this can never double-send.
             send_sample_sms(user["id"])
+            send_sample_email(user["id"])
             return self._notice(
                 "You're opted in to text alerts. Check your phone — we just sent you an "
                 "example of what an alert looks like. Reply STOP anytime to turn them off."
@@ -3071,6 +3078,7 @@ class Handler(BaseHTTPRequestHandler):
             # and a student who just handed over their number and ticked a box should not be
             # punished for that with silence. Once per account, so this cannot double-send.
             send_sample_sms(user["id"])
+            send_sample_email(user["id"])
 
         tier = effective_tier(user)             # 0 = free (also the state when paid is off)
         # all_sections is decided BELOW, once we know whether the student named any —
@@ -3202,6 +3210,7 @@ class Handler(BaseHTTPRequestHandler):
         # moment to demonstrate the product is the moment they start needing it. Once per
         # account, never per watch, and it can never break watch creation.
         send_sample_sms(user["id"])
+        send_sample_email(user["id"])
         self._send(done_page(f"{what} @ {school.name}", user))
         return
 
@@ -3686,6 +3695,59 @@ def _twilio_post(to, body):
 _sms_paged = set()   # which cap trips were already operator-paged today (page once, not
                      # per cycle; cosmetic only — the CAPS themselves are ledger-derived)
 _dryrun_logged = set()   # watch_ids already dry-run-logged this process (log once, not per cycle)
+
+
+def send_sample_email(user_id):
+    """Show a student what a seat alert looks like, by email, once.
+
+    SMS has done this since day one. Email never did — so the first time a student's
+    inbox was used was a REAL opening, and a wrong address, a full mailbox or Gmail's
+    Promotions tab all failed silently at the worst possible moment. This makes email
+    prove itself on the calm day instead of the urgent one.
+
+    Deliberately NOT a "welcome" or "confirm your account" mail. It is a WORKED EXAMPLE
+    of the thing they signed up for, so the value is visible even to someone who never
+    reads it twice — and it doubles as a deliverability test they do not have to run.
+
+    Once per ACCOUNT (sample_email_at), never per watch. Honours the email preference:
+    a student who switched email off must not receive a demonstration of email. Never
+    raises — a nicety must not be able to break watch creation.
+    """
+    if not EMAIL_ENABLED or not user_id:
+        return False
+    try:
+        with db() as c:
+            u = c.execute("SELECT email, sample_email_at FROM users WHERE id=?",
+                          (user_id,)).fetchone()
+        if not u or u["sample_email_at"] or not (u["email"] or "").strip():
+            return False
+        if not notify_prefs(user_id)[1]:
+            return False                      # they turned email off; respect it
+        base = BASE_URL or "https://seatwatchapp.com"
+        body = (
+            "You're all set — we're watching your class.\n\n"
+            "This is what an alert will look like when a seat opens:\n\n"
+            "    Seat open: CHEM231-0101\n"
+            "    2 seats just opened. Register now.\n"
+            f"    {base}/\n\n"
+            "That is the whole product. We check every 20 seconds, around the clock, and\n"
+            "we never send an alert for a seat that is not really there.\n\n"
+            "Nothing else to do — keep this so you know what to look for, and make sure\n"
+            "it did not land in Promotions or Spam. If it did, drag it to your inbox so\n"
+            "the real one reaches you.\n\n"
+            f"Your classes: {base}/\n\n— SeatWatch")
+        ok = send_email(u["email"], "This is what a SeatWatch alert looks like",
+                        body, base + "/")
+        # Stamp on ATTEMPT, like the sample text. Retrying a courtesy email until it
+        # succeeds is how someone ends up receiving it four times.
+        with db() as c:
+            c.execute("UPDATE users SET sample_email_at=? WHERE id=?", (time.time(), user_id))
+        if ok:
+            sw.log(f"  [email] sample alert sent to user {user_id}")
+        return bool(ok)
+    except Exception as e:
+        sw.log(f"  [email] sample failed: {type(e).__name__}")
+        return False
 
 
 def send_sample_sms(user_id):
