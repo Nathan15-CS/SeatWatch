@@ -8,7 +8,8 @@
 #   SEATWATCH_VM=ubuntu@<vm-host>            the origin host
 #   SEATWATCH_KEY=<path>                     optional; default ~/.ssh/seatwatch-vm.key
 #
-# Guarantees: refuses a dirty tree or a non-main branch; snapshots every target
+# Guarantees: refuses uncommitted changes IN THE FILES IT SHIPS (other lanes' work in
+# progress is reported, not blocked) or a non-main branch; snapshots every target
 # to <file>.prev on the VM before overwrite (rollback.sh restores them);
 # restarts the service; smoke-checks process + poller + public site; appends
 # the release record to DEPLOYED.log and moves the `deployed` git tag.
@@ -20,7 +21,6 @@ SSH=(ssh -i "$KEY" -o IdentitiesOnly=yes "$VM")
 cd "$(dirname "$0")/.."
 
 [ "$(git branch --show-current)" = "main" ] || { echo "REFUSED: not on main"; exit 1; }
-[ -z "$(git status --porcelain)" ] || { echo "REFUSED: dirty tree —"; git status --short; exit 1; }
 case "$MODE" in
   schools) FILES=(schools.py) ;;
   app)     [ "$APPROVE" = "--app-approved" ] || {
@@ -28,6 +28,35 @@ case "$MODE" in
            FILES=(app.py guardian.py confidence.py schools.py) ;;
   *) echo "usage: ops/deploy.sh schools | app --app-approved"; exit 1 ;;
 esac
+
+# DIRTY-TREE CHECK, scoped to the files this deploy actually SHIPS.
+#
+# It used to refuse on ANY uncommitted file, which is stricter than it sounds and wrong in
+# practice: several lanes work in this repo at once, and a deploy has been blocked by a
+# half-written adapter, and then by another session's markdown journal — a file that can
+# never reach the VM under any mode. Refusing on those does not protect anything; it just
+# trains whoever is deploying to find a way around the guard, which is the opposite of
+# what a guard is for.
+#
+# What actually matters is unchanged and still enforced: nothing half-finished may ship,
+# and the sha in DEPLOYED.log must honestly describe the bytes that went out. So the
+# refusal is now scoped to FILES, and everything else is reported rather than blocked —
+# visible in the record, without stopping an unrelated release.
+DIRTY_SHIPPED=""
+for f in "${FILES[@]}"; do
+  if [ -n "$(git status --porcelain -- "$f")" ]; then DIRTY_SHIPPED="$DIRTY_SHIPPED $f"; fi
+done
+if [ -n "$DIRTY_SHIPPED" ]; then
+  echo "REFUSED: uncommitted changes in files this deploy would ship —$DIRTY_SHIPPED"
+  git status --short -- $DIRTY_SHIPPED
+  echo "  Commit them (so DEPLOYED.log's sha describes what actually shipped) or stash them."
+  exit 1
+fi
+OTHER_DIRTY="$(git status --porcelain | grep -vE "^.. ($(IFS='|'; echo "${FILES[*]}"))$" || true)"
+if [ -n "$OTHER_DIRTY" ]; then
+  echo ">> note: uncommitted files NOT shipped by this deploy (proceeding):"
+  echo "$OTHER_DIRTY" | sed 's/^/     /'
+fi
 
 # PRE-FLIGHT: the committed tree must actually IMPORT before anything ships.
 #
