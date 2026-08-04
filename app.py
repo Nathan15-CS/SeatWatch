@@ -2392,7 +2392,7 @@ class Handler(BaseHTTPRequestHandler):
     # front of a real defect and hiding it.
     timeout = 20
 
-    def _send(self, body, code=200):
+    def _send(self, body, code=200, extra_cookies=()):
         data = body.encode("utf-8")
         self.send_response(code)
         self.send_header("Content-Type", "text/html; charset=utf-8")
@@ -2410,6 +2410,8 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("X-Frame-Options", "DENY")
         self.send_header("Referrer-Policy", "no-referrer")
         self.send_header("Strict-Transport-Security", "max-age=15552000")
+        for ck in extra_cookies:            # e.g. clearing a consumed flash message
+            self.send_header("Set-Cookie", ck)
         self.send_header("Content-Security-Policy",
                          "default-src 'none'; "
                          "style-src 'unsafe-inline' https://fonts.googleapis.com; "
@@ -2432,6 +2434,45 @@ class Handler(BaseHTTPRequestHandler):
 
     def _send_json(self, obj, code=200):
         self._send_bytes(json.dumps(obj).encode(), "application/json", code, cache="no-store")
+
+    # POST / REDIRECT / GET.
+    #
+    # Every form used to answer its own POST with HTML, which leaves a POST in the
+    # browser's history. Pressing Back then offers "Confirm Form Resubmission", and a
+    # student who presses reload re-runs whatever the POST did — adding a watch twice,
+    # or worse on a payment path. It also makes the ordinary back button look broken,
+    # which is its own quiet cost.
+    #
+    # So a POST now answers with a 303 to a GET, carrying its message in a short-lived
+    # SIGNED cookie. Signed because the message is rendered back into the page: an
+    # unsigned one would let any site set arbitrary text on seatwatchapp.com, and
+    # 30 seconds because it exists only to survive one redirect.
+    _FLASH_MAX_AGE = 30
+
+    def _flash_set(self, kind, code, msg):
+        payload = f"{kind}|{code}|{base64.urlsafe_b64encode(msg.encode()).decode()}"
+        val = payload + "|" + _sign("flash:" + payload)
+        return (f"sw_flash={val}; Path=/; Max-Age={self._FLASH_MAX_AGE}; "
+                "HttpOnly; Secure; SameSite=Lax")
+
+    def _flash_take(self):
+        """(kind, code, msg) or (None, 0, ''). Fails closed on anything tampered with."""
+        raw = self._cookie("sw_flash")
+        if not raw:
+            return None, 0, ""
+        bits = raw.split("|")
+        if len(bits) != 4:
+            return None, 0, ""
+        kind, code, b64, sig = bits
+        if not hmac.compare_digest(sig, _sign("flash:" + "|".join(bits[:3]))):
+            return None, 0, ""
+        try:
+            msg = base64.urlsafe_b64decode(b64.encode()).decode()
+        except Exception:
+            return None, 0, ""
+        return kind, (int(code) if code.isdigit() else 200), msg
+
+    _FLASH_CLEAR = "sw_flash=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax"
 
     def _redirect(self, location, cookies=()):
         self.send_response(302)
@@ -2634,6 +2675,15 @@ class Handler(BaseHTTPRequestHandler):
         u = self._user()
         if u is None:
             return self._send(landing_page())
+        kind, code, msg = self._flash_take()
+        if kind == "done":
+            return self._send(done_page(msg, u), extra_cookies=(self._FLASH_CLEAR,))
+        if kind == "notice":
+            err = code >= 400
+            icon = self._ERR_ICON if err else self._OK_ICON
+            note = (f"<div class='{'err' if err else 'ok'}'>{icon}"
+                    f"<span>{html.escape(msg)}</span></div>")
+            return self._send(form_page(note, user=u), extra_cookies=(self._FLASH_CLEAR,))
         self._send(form_page(user=u))
 
     def _device_id(self):
@@ -2673,6 +2723,25 @@ class Handler(BaseHTTPRequestHandler):
         the sentence, and walks away believing their class is being watched when nothing
         was saved. Any 4xx/5xx is now visibly a problem.
         """
+        # PRG on SUCCESS ONLY, and the exception is not cosmetic.
+        #
+        # Redirecting everything looked tidier and broke the meaning of the response: a
+        # rate-limited POST came back 303, so the 429 disappeared. The action was still
+        # refused, but the status code said otherwise — and a status code is the only
+        # thing a non-browser client, a monitor, or a test can read. Losing 429 in
+        # particular hides exactly the signal you need when someone is hammering you.
+        #
+        # So: 2xx redirects (that is the common path, and the one that put a POST in the
+        # back-button history), while 4xx/5xx render in place with their real status. The
+        # cost is that Back after a VALIDATION error can still offer to resubmit — much
+        # rarer, and resubmitting a rejected form repeats nothing.
+        if self.command == "POST" and code < 400:
+            self.send_response(303)
+            self.send_header("Location", "/")
+            self.send_header("Set-Cookie", self._flash_set("notice", code, msg))
+            self.send_header("Content-Length", "0")
+            self.end_headers()
+            return
         err = code >= 400
         icon = self._ERR_ICON if err else self._OK_ICON
         cls = "err" if err else "ok"
@@ -2854,7 +2923,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._redirect("/login")
             nform = parse_qs(raw_body)
             if not hmac.compare_digest(nform.get("csrf", [""])[0], csrf_token(user["id"])):
-                return self._notice("That form expired, please try again.", user=user)
+                return self._notice("That form expired, please try again.", 403, user=user)
             want_push = bool(nform.get("notify_push"))
             want_email = bool(nform.get("notify_email"))
             want_sms = bool(nform.get("notify_sms"))
@@ -2889,7 +2958,7 @@ class Handler(BaseHTTPRequestHandler):
                 return self._redirect("/login")
             fform = parse_qs(raw_body)
             if not hmac.compare_digest(fform.get("csrf", [""])[0], csrf_token(user["id"])):
-                return self._notice("That form expired, please try again.", user=user)
+                return self._notice("That form expired, please try again.", 403, user=user)
             msg = (fform.get("message", [""])[0] or "").strip()[:4000]
             if not msg:
                 return self._notice("Please write a message first.", user=user)
@@ -2924,14 +2993,14 @@ class Handler(BaseHTTPRequestHandler):
                 return self._redirect("/login")
             oform = parse_qs(raw_body)
             if not hmac.compare_digest(oform.get("csrf", [""])[0], csrf_token(user["id"])):
-                return self._notice("Session expired, please try again.", user=user)
+                return self._notice("Session expired, please try again.", 403, user=user)
             # No tier check: text alerts are for everyone who consents. A phone number is
             # still never REQUIRED — push and email work without one — but a student who
             # gives us one gets the channel that actually wakes them at 2am.
             phone = _norm_phone(oform.get("phone", [""])[0])
             if not phone:
                 return self._notice("That phone number doesn't look right, use a US "
-                                    "10-digit mobile number.", user=user)
+                                    "10-digit mobile number.", 400, user=user)
             # Test the VALUE, not the key. `oform.get("sms_consent")` returns a list, so a
             # crafted `sms_consent=` would be ['']  -- truthy -- and read as consent the
             # moment anyone adds keep_blank_values here (as the Twilio parse now needs).
@@ -2939,7 +3008,7 @@ class Handler(BaseHTTPRequestHandler):
             # rather than by a side effect of parsing. A consent record with no consent
             # behind it is the one TCPA record we can never defend.
             if not oform.get("sms_consent", [""])[0].strip():
-                return self._notice("Please check the consent box to turn on text alerts.",
+                return self._notice("Please check the consent box to turn on text alerts.", 400,
                                     user=user)
             # Single web opt-in: checking the (unchecked-by-default) box and submitting IS
             # the consent, recorded CONFIRMED immediately — no reply required (a
@@ -3019,7 +3088,7 @@ class Handler(BaseHTTPRequestHandler):
         if not user:
             return self._notice("Please sign in first, it takes one click, no password.")
         if not hmac.compare_digest(form.get("csrf", [""])[0], csrf_token(user["id"])):
-            return self._notice("That form expired, please try again.", user=user)
+            return self._notice("That form expired, please try again.", 403, user=user)
 
         if path == "/unwatch":
             wid = form.get("id", ["0"])[0]
@@ -3037,7 +3106,7 @@ class Handler(BaseHTTPRequestHandler):
 
         school = schools.SCHOOLS.get(form.get("school", [""])[0].strip())
         if not school:
-            return self._notice("Please choose a valid school.", user=user)
+            return self._notice("Please choose a valid school.", 400, user=user)
         course = form.get("course", [""])[0].strip().upper()
 
         # Optional phone + consent, collected INSIDE this form so it sits in the path a
@@ -3053,11 +3122,11 @@ class Handler(BaseHTTPRequestHandler):
         inline_consent = bool(form.get("sms_consent", [""])[0].strip())
         if form.get("phone", [""])[0].strip() and not inline_phone:
             return self._notice("That phone number doesn't look right — use a US 10-digit "
-                                "mobile number, or leave it blank.", user=user)
+                                "mobile number, or leave it blank.", 400, user=user)
         if inline_phone and not inline_consent:
             return self._notice("Please tick the consent box if you'd like text alerts, or "
                                 "clear the phone number. We can't text you without it.",
-                                user=user)
+                                400, user=user)
         if inline_phone and inline_consent:
             now_ts = time.time()
             with db() as c:
@@ -3114,7 +3183,7 @@ class Handler(BaseHTTPRequestHandler):
                                 f"(e.g. {school.example}).", user=user)
         for s in sections:
             if s and not SECTION_RE.match(s):
-                return self._notice(f"Invalid section: {s}", user=user)
+                return self._notice(f"Invalid section: {s}", 400, user=user)
 
         # (3.5) cheap COURSE-COUNT pre-check BEFORE the network fetch, so a limit-hit user
         # can't make us hammer school sites (authoritative re-check happens under the lock)
@@ -3211,7 +3280,13 @@ class Handler(BaseHTTPRequestHandler):
         # account, never per watch, and it can never break watch creation.
         send_sample_sms(user["id"])
         send_sample_email(user["id"])
-        self._send(done_page(f"{what} @ {school.name}", user))
+        # Same treatment for the success page: a student who presses Back after adding a
+        # class must not be asked to resubmit the thing that added it.
+        self.send_response(303)
+        self.send_header("Location", "/")
+        self.send_header("Set-Cookie", self._flash_set("done", 200, f"{what} @ {school.name}"))
+        self.send_header("Content-Length", "0")
+        self.end_headers()
         return
 
     def log_message(self, *a):  # quiet
