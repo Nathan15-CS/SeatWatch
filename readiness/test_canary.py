@@ -7,8 +7,13 @@ correct course, correct section, correct seat count, and a working registration 
 delivered-but-wrong alert (wrong course, wrong count, dead link) is its own reputation
 failure, so "it sent something" is not a pass.
 
-Also proves the fallback chain: when web-push fails, the alert still reaches the student
-by another channel, and if NOTHING reaches them the operator is paged (delivered-to-nobody).
+Also proves the fallback chain: when email fails, the alert still reaches the student by
+text, and if NOTHING reaches them the operator is paged (delivered-to-nobody).
+
+Push was the canary's primary channel until it was retired. It is deliberately NOT tested
+here any more: this suite exists to prove a student was reached, and push could report
+success while reaching nobody at all — a browser subscription the student never granted.
+Email is now the channel a student is alerted on, so it is the channel the canary checks.
 """
 import os, tempfile, sys
 
@@ -31,10 +36,10 @@ def run():
     fake = FakeSchool(); schools.SCHOOLS = {"canary": fake}
     app.BASE_URL = "https://seatwatchapp.com"
 
-    pushes, ntfys, emails, paged = [], [], [], []
-    app.send_web_push = lambda uid, title, body, url: (pushes.append((title, body, url)), 1)[1]
+    ntfys, emails, texts, paged = [], [], [], []
+    app.EMAIL_ENABLED = True
     app.sw.notify = lambda title, msg, click_url=None, topic=None: (ntfys.append((title, msg, click_url)), True)[1]
-    app.send_email = lambda to, subj, body, url: (emails.append((to, subj, body, url)), True)[1]
+    app.send_email = lambda to, subj, body, url=None, **k: (emails.append((to, subj, body, url)), True)[1]
     app.send_sms = lambda *a, **k: False
     app.operator_alert = lambda m: paged.append(m)
 
@@ -48,9 +53,9 @@ def run():
     fake._data = {"CS 101": {"0101": {"open": True, "seats": 3}}}
     app.run_cycle()
 
-    check("canary alert was delivered by web-push", len(pushes) == 1)
-    if pushes:
-        title, body, url = pushes[0]
+    check("canary alert was delivered by email", len(emails) == 1)
+    if emails:
+        _to, title, body, url = emails[0]
         blob = f"{title} {body}"
         check("CONTENT: names the right course (CS 101)", "CS 101" in blob)
         check("CONTENT: names the right section (0101)", "0101" in blob)
@@ -71,27 +76,41 @@ def run():
             check("CONTENT: link is the school's registration URL", url == REG_URL)
         check("CONTENT: tells the student to act", any(w in body.lower() for w in ("register", "go now", "tap")))
         check("CONTENT: no template placeholder leaked", "__" not in blob and "{" not in blob)
-    check("ledger recorded the webpush delivery",
-          _count(app, "webpush") == 1)
+    check("ledger recorded the email delivery",
+          _count(app, "email") == 1)
 
-    # --- fallback chain: web-push dies, student must STILL be reached ---
-    pushes.clear(); ntfys.clear(); emails.clear()
-    app.send_web_push = lambda *a, **k: 0            # every device gone
-    app.EMAIL_ENABLED = True
+    # --- fallback chain: email dies, the student must STILL be reached by text ---
+    ntfys.clear(); emails.clear(); texts.clear()
+    app.send_email = lambda *a, **k: False           # mail server down / address bouncing
+    app.send_sms = lambda uid, r, message, url: (texts.append((r["course"], message, url)), True)[1]
     with app.db() as c:                               # re-arm the watch
         c.execute("UPDATE watches SET alerted=0 WHERE id=?", (WID,))
     app.run_cycle()
-    reached = len(ntfys) > 0 or len(emails) > 0
-    check("FALLBACK: web-push fails -> student still reached by another channel", reached)
-    if emails:
-        eurl = emails[0][3]
-        eok = (eurl == REG_URL) or eurl.startswith(f"{getattr(app,'BASE_URL','')}/r/")
-        check("FALLBACK: email carries the course + a working link",
-              "CS 101" in emails[0][2] and eok, f"url={eurl}")
+    check("FALLBACK: email fails -> student still reached by text", len(texts) == 1)
+    if texts:
+        course, msg, turl = texts[0]
+        check("FALLBACK: text carries the course + a working link",
+              course == "CS 101" and "CS 101" in msg and turl == REG_URL, f"url={turl}")
+    # ntfy must NOT stand in for a real channel any more. It returns True here on purpose:
+    # if a bare ntfy publish could still satisfy delivery, this would pass silently and the
+    # exact bug that stranded a paid account would be back.
+    with app.db() as c:
+        c.execute("UPDATE watches SET alerted=0 WHERE id=?", (WID,))
+    emails.clear(); texts.clear(); paged.clear()
+    app.send_sms = lambda *a, **k: False
+    app.sw.notify = lambda *a, **k: True             # ntfy "succeeds" — and must not count
+    app.run_cycle()
+    with app.db() as c:
+        latched = c.execute("SELECT alerted FROM watches WHERE id=?", (WID,)).fetchone()[0]
+    check("ntfy alone does NOT count as reaching a student", latched == 0,
+          "a topic publish with no listener would latch the watch and lose the seat")
 
     # --- delivered-to-nobody: every channel fails -> operator paged, watch NOT latched ---
+    # _undelivered already holds this watch from the ntfy-only cycle above, and the app
+    # pages ONCE per incident rather than every retry. Clear it so this is a fresh
+    # incident; otherwise the test would be asserting against its own earlier page.
     paged.clear()
-    app.send_web_push = lambda *a, **k: 0
+    app._undelivered.discard(WID)
     app.sw.notify = lambda *a, **k: False
     app.send_email = lambda *a, **k: False
     with app.db() as c:

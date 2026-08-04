@@ -1,22 +1,27 @@
 """READINESS #13 — per-user channel preferences cannot strand a student.
 
-A student who is paying should be able to stop receiving the same seat alert three ways.
-But this feature's failure mode is the worst one we have: a preference that silences every
-channel produces a watch that LOOKS active, generates an alert, delivers it nowhere, and
-tells nobody — including us — that the seat was missed.
+A student should be able to stop receiving the same seat alert two ways. But this
+feature's failure mode is the worst one we have: a preference that silences every channel
+produces a watch that LOOKS active, generates an alert, delivers it nowhere, and tells
+nobody — including us — that the seat was missed.
 
-Two things are pinned here, and the second is the one that breaks quietly:
+That is not hypothetical. A paid account really did sit in exactly that state: push
+enabled, email and text off, and no push subscription ever registered. It passed the old
+floor, because push counted toward it. A seat opened, an alert fired, and it reached
+nobody. Push is now retired for students, and this suite pins the three things that stop
+that from happening again:
 
-  THE FLOOR   at least one channel must stay enabled, enforced SERVER-SIDE. A UI-only
-              guard is bypassed by anyone who can craft a POST.
+  THE FLOOR    at least one channel that can reach a person must stay enabled, enforced
+               SERVER-SIDE. A UI-only guard is bypassed by anyone who can craft a POST.
+               Only email and a CONSENTED number count — never push.
 
-  THE LATCH   guardian.latch_decision treats an account as needing human-channel delivery
-              when it has push or email "enrolled". A channel the user switched OFF is one
-              we never attempt, so counting it as enrolled makes the honest latch demand
-              delivery on a channel that was never tried. In shadow that logs divergences
-              that are not real; under enforcement a correctly-delivered alert fails to
-              latch and the watch re-fires every cycle forever.
-              So enrolled must mean ENROLLED AND ENABLED.
+  THE RESCUE   the migration that retires push must switch email back on for any account
+               push was the only channel for. Retiring a channel without this would
+               silently strand exactly the accounts it was meant to fix.
+
+  THE LATCH    a watch may only latch when a channel that reaches a human delivered.
+               ntfy returning 200 is not that: publishing to a topic with no listener
+               succeeds. If ntfy could latch, the seat is marked handled and lost.
 """
 import os, sys, tempfile, time, warnings
 
@@ -36,84 +41,100 @@ def run():
         c.execute("INSERT INTO users(google_sub,email,topic,created) "
                   "VALUES('g_np','np@umd.edu','t_np',0)")
         uid = c.execute("SELECT id FROM users WHERE google_sub='g_np'").fetchone()["id"]
+        # A leftover push subscription. It must not entitle this account to anything.
         c.execute("INSERT INTO push_subs(user_id,endpoint,p256dh,auth,created) "
                   "VALUES(?,?,?,?,?)", (uid, "https://push.test/np", "k", "a", time.time()))
 
-    # ---- migration is behaviour-neutral for everyone who already exists ----
-    check("existing accounts default to BOTH channels on",
-          app.notify_prefs(uid) == (True, True, True),
+    # ---- push is gone from the contract, email and text are not ----
+    check("existing accounts read as email+text on, push off",
+          app.notify_prefs(uid) == (False, True, True),
           "the migration changed what a current user receives")
-    check("an anonymous/absent user reads as both on", app.notify_prefs(None) == (True, True, True))
-    check("an unknown user id fails OPEN, not closed", app.notify_prefs(999999) == (True, True, True),
+    check("an anonymous/absent user reads as reachable", app.notify_prefs(None) == (False, True, True))
+    check("an unknown user id fails OPEN, not closed", app.notify_prefs(999999) == (False, True, True),
           "failing closed here would silently stop alerting somebody")
+    with app.db() as c:
+        c.execute("UPDATE users SET notify_push=1 WHERE id=?", (uid,))
+    check("a stored notify_push=1 is IGNORED, never revived",
+          app.notify_prefs(uid)[0] is False,
+          "an old column value could quietly put an account back on a dead channel")
 
-    def setprefs(push, email, sms=1):
+    def setprefs(email, sms=1):
         with app.db() as c:
-            c.execute("UPDATE users SET notify_push=?, notify_email=?, notify_sms=? WHERE id=?",
-                      (int(push), int(email), int(sms), uid))
+            c.execute("UPDATE users SET notify_email=?, notify_sms=? WHERE id=?",
+                      (int(email), int(sms), uid))
 
     # ---- the sender honours the preference ----
-    sent = {"push": 0, "email": 0}
+    sent = {"push": 0, "email": 0, "sms": 0}
     app.EMAIL_ENABLED = True
     app.send_web_push = lambda u, t, b, url: (sent.__setitem__("push", sent["push"] + 1), 1)[1]
-    app.send_email = lambda to, s, b, u: (sent.__setitem__("email", sent["email"] + 1), True)[1]
-    app.send_sms = lambda *a, **k: False
+    app.send_email = lambda to, s, b, u=None, **k: (sent.__setitem__("email", sent["email"] + 1), True)[1]
+    app.send_sms = lambda *a, **k: (sent.__setitem__("sms", sent["sms"] + 1), True)[1]
     app.sw.notify = lambda *a, **k: False
 
     class R(dict):
         def keys(self): return list(super().keys())
     with app.db() as c:
-        c.execute("INSERT INTO watches(school,topic,course,section,term,alerted,created) "
-                  "VALUES('umd','t_np','CHEM231','0101','202608',0,?)", (time.time(),))
+        c.execute("INSERT INTO watches(school,topic,course,section,term,alerted,created,user_id) "
+                  "VALUES('umd','t_np','CHEM231','0101','202608',0,?,?)", (time.time(), uid))
         w = dict(c.execute("SELECT * FROM watches WHERE topic='t_np'").fetchone())
-    w["user_id"] = uid
     r = R(w)
 
-    setprefs(True, True); sent.update(push=0, email=0)
+    setprefs(True, 1); sent.update(push=0, email=0, sms=0)
     app._alert(r, "2 seats open", "https://x.test/reg")
-    check("both on: push AND email both attempted", sent["push"] == 1 and sent["email"] == 1,
+    check("both on: email AND text both attempted", sent["email"] == 1 and sent["sms"] == 1,
           f"got {sent}")
+    check("PUSH IS NEVER ATTEMPTED, whatever the account says", sent["push"] == 0,
+          "a retired channel that still fires is a channel we cannot reason about")
 
-    setprefs(True, False); sent.update(push=0, email=0)
+    setprefs(False, 1); sent.update(push=0, email=0, sms=0)
     app._alert(r, "2 seats open", "https://x.test/reg")
-    check("email off: email NOT attempted, push still is",
-          sent["push"] == 1 and sent["email"] == 0, f"got {sent}")
+    check("email off: email NOT attempted, text still is",
+          sent["email"] == 0 and sent["sms"] == 1, f"got {sent}")
 
-    setprefs(False, True); sent.update(push=0, email=0)
+    setprefs(True, 0); sent.update(push=0, email=0, sms=0)
     app._alert(r, "2 seats open", "https://x.test/reg")
-    check("push off: push NOT attempted, email still is",
-          sent["push"] == 0 and sent["email"] == 1, f"got {sent}")
+    check("text off: text NOT attempted, email still is",
+          sent["email"] == 1 and sent["sms"] == 0, f"got {sent}")
 
-    # ---- THE LATCH: a disabled channel must not be treated as enrolled ----
+    # ---- THE RESCUE: retiring push must not strand the accounts it was the only channel for
+    with app.db() as c:
+        c.execute("INSERT INTO users(google_sub,email,topic,created,notify_push,notify_email,"
+                  "notify_sms) VALUES('g_str','stranded@umd.edu','t_str',0,1,0,0)")
+        stranded = c.execute("SELECT id FROM users WHERE google_sub='g_str'").fetchone()["id"]
+        # ...and someone with no address at all, who cannot be rescued by email.
+        c.execute("INSERT INTO users(google_sub,email,topic,created,notify_push,notify_email,"
+                  "notify_sms) VALUES('g_noe','','t_noe',0,1,0,0)")
+        noemail = c.execute("SELECT id FROM users WHERE google_sub='g_noe'").fetchone()["id"]
+    check("before migration the stranded account has NO reachable channel",
+          app.notify_prefs(stranded) == (False, False, False))
+    app.init_db()                                    # re-run: migrations must be idempotent
+    check("RESCUE: push-only account gets email switched back on",
+          app.notify_prefs(stranded) == (False, True, False),
+          "retiring push would otherwise silently strand this student forever")
+    check("RESCUE: an account with no address is left alone, not faked reachable",
+          app.notify_prefs(noemail) == (False, False, False),
+          "turning on a channel with no destination is a different kind of unreachable")
+    app.init_db()
+    check("RESCUE is idempotent (a second run changes nothing)",
+          app.notify_prefs(stranded) == (False, True, False))
+
+    # ---- THE LATCH: only a channel that reaches a human may latch a watch ----
     state, pages = {}, []
     guardian.configure(app.db, lambda k, d=None: state.get(k, d),
                        lambda **kv: state.update(kv), lambda *a: None,
                        lambda m: pages.append(m), mode="enforce", deploy_sha="")
 
-    setprefs(True, True)
-    check("[enforce] both on, delivered by push -> latches",
-          guardian.latch_decision(r, False, 1, False, False) is True)
-    check("[enforce] both on, nothing delivered -> does NOT latch",
+    setprefs(True, 1)
+    check("[enforce] delivered by email -> latches",
+          guardian.latch_decision(r, False, 0, True, False) is True)
+    check("[enforce] delivered by text -> latches",
+          guardian.latch_decision(r, False, 0, False, True) is True)
+    check("[enforce] nothing delivered -> does NOT latch",
           guardian.latch_decision(r, False, 0, False, False) is False,
           "a watch that reached nobody must retry, not latch")
-
-    # email OFF, and email is the only thing that didn't deliver: push did.
-    setprefs(True, False)
-    check("[enforce] email disabled + push delivered -> latches",
-          guardian.latch_decision(r, False, 1, False, False) is True)
-
-    # BOTH the real coupling test: push disabled AND no push sub attempted, email disabled,
-    # only ntfy succeeded. With enrolled==enrolled-and-enabled this account has no enabled
-    # human channel, so ntfy alone is honest and must latch.
-    setprefs(False, False)          # DB-level only; the handler refuses this state
-    check("[enforce] all human channels disabled -> ntfy alone latches",
-          guardian.latch_decision(r, True, 0, False, False) is True,
-          "correctly-delivered alerts would fail to latch and re-fire every cycle")
-
-    setprefs(True, True)
-    check("[enforce] channels enabled but only ntfy fired -> does NOT latch",
+    check("[enforce] ntfy alone does NOT latch",
           guardian.latch_decision(r, True, 0, False, False) is False,
-          "ntfy is not proof a human was reached when a real channel is enrolled")
+          "a topic publish with no listener would mark the seat handled and lose it")
 
     # ---- THE FLOOR, through the REAL endpoint ----
     # Tested over a socket, not by calling a helper, because the guard has to hold against
@@ -128,40 +149,82 @@ def run():
     cookie = app.session_cookie(uid).split(";")[0]
     csrf = app.csrf_token(uid)
 
+    class _NoRedirect(urllib.request.HTTPRedirectHandler):
+        def redirect_request(self, *a, **k): return None
+
     def post(fields):
+        """POST the form and return what the STUDENT would end up reading.
+
+        The app answers a successful POST with 303 + a signed flash cookie (POST/Redirect/
+        GET, so the back button never re-submits). urllib does not carry that cookie to the
+        redirect target, so following it automatically lands on a page with the message
+        stripped out. An earlier version of this test matched 'at least one' against the
+        page's own static copy instead and passed no matter what the handler decided —
+        it would not have caught a floor that silently stopped refusing. So: capture the
+        flash cookie, then fetch the destination with it, exactly as a browser does.
+        """
+        opener = urllib.request.build_opener(_NoRedirect)
         req = urllib.request.Request(
             f"http://127.0.0.1:{port}/notify-prefs",
             data=urlencode([("csrf", csrf)] + fields).encode(),
             headers={"Content-Type": "application/x-www-form-urlencoded", "Cookie": cookie})
         try:
-            with urllib.request.urlopen(req, timeout=10) as r:
-                return r.read().decode("utf-8", "replace")
+            resp = opener.open(req, timeout=10)
+            status, body, hdrs = resp.status, resp.read().decode("utf-8", "replace"), resp.headers
+        except urllib.error.HTTPError as e:
+            status, body, hdrs = e.code, e.read().decode("utf-8", "replace"), e.headers
+        if status not in (302, 303):
+            return body                                  # rendered inline (error path)
+        flash = [v.split(";")[0] for v in hdrs.get_all("Set-Cookie") or []
+                 if v.startswith("sw_flash=") and not v.startswith("sw_flash=;")]
+        follow = urllib.request.Request(
+            f"http://127.0.0.1:{port}{hdrs.get('Location', '/')}",
+            headers={"Cookie": "; ".join([cookie] + flash)})
+        try:
+            with urllib.request.urlopen(follow, timeout=10) as r2:
+                return r2.read().decode("utf-8", "replace")
         except urllib.error.HTTPError as e:
             return e.read().decode("utf-8", "replace")
 
-    setprefs(True, True)
+    setprefs(True, 1)
     body = post([])                                     # both unchecked = both omitted
     check("POST with NO channels is refused", "at least one" in body.lower(),
           "a crafted POST could silence every channel")
-    check("...and the refusal did not persist", app.notify_prefs(uid) == (True, True, True),
+    check("...and the refusal did not persist", app.notify_prefs(uid) == (False, True, True),
           "the rejected state was written anyway")
 
+    # Push must not satisfy the floor. This is the exact POST that stranded a paid account:
+    # every real channel off, push on. It has to be REFUSED now.
     body = post([("notify_push", "1")])
-    check("POST with push only is accepted", app.notify_prefs(uid)[:2] == (True, False),
-          f"got {app.notify_prefs(uid)}")
+    check("POST with push only is REFUSED", "at least one" in body.lower(),
+          "push satisfying the floor is what left a paying student unreachable")
+    check("...and push-only did not persist", app.notify_prefs(uid) == (False, True, True))
+
     body = post([("notify_email", "1")])
-    check("POST with email only is accepted", app.notify_prefs(uid)[:2] == (False, True),
+    check("POST with email only is accepted", app.notify_prefs(uid)[1:] == (True, False),
           f"got {app.notify_prefs(uid)}")
 
-    # having already saved a single-channel state, try to remove the last one
+    # Text alone counts only for someone who actually consented — otherwise a student could
+    # switch off their only real channel by ticking a box for a number we do not have.
+    body = post([("notify_sms", "1")])
+    check("text-only is REFUSED without consent on file", "at least one" in body.lower(),
+          "a number we never confirmed cannot hold up the floor")
+    with app.db() as c:
+        c.execute("INSERT INTO sms_consent(user_id,phone,wording,ip,requested_at,confirmed_at) "
+                  "VALUES(?,?,?,?,?,?)", (uid, "+15551230000", "w", "1.1.1.1", 0, time.time()))
+    body = post([("notify_sms", "1")])
+    check("text-only IS accepted once consent exists", app.notify_prefs(uid)[1:] == (False, True),
+          f"got {app.notify_prefs(uid)}")
+
+    # having saved a single-channel state, try to remove the last one
     body = post([])
     check("cannot remove the LAST remaining channel", "at least one" in body.lower()
-          and app.notify_prefs(uid)[:2] == (False, True),
+          and app.notify_prefs(uid)[1:] == (False, True),
           "a student could end up with no reachable channel at all")
 
     bad = urllib.request.Request(
         f"http://127.0.0.1:{port}/notify-prefs",
-        data=urlencode([("csrf", "forged"), ("notify_push", "1")]).encode(),
+        data=urlencode([("csrf", "forged"), ("notify_email", "1")]).encode(),
         headers={"Content-Type": "application/x-www-form-urlencoded", "Cookie": cookie})
     try:
         with urllib.request.urlopen(bad, timeout=10) as r:

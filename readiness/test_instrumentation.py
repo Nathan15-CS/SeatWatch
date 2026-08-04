@@ -29,10 +29,10 @@ def run():
     fake = FakeSchool(); schools.SCHOOLS = {"canary": fake}
     app.BASE_URL = "https://seatwatchapp.com"
 
-    pushed_urls = []
-    app.sw.notify = lambda *a, **k: True
-    app.send_web_push = lambda uid, t, b, u: (pushed_urls.append(u), 1)[1]
-    app.send_email = lambda *a, **k: False
+    emailed_urls = []
+    app.EMAIL_ENABLED = True
+    app.sw.notify = lambda *a, **k: True                    # operator channel only
+    app.send_email = lambda to, t, b, u=None, **k: (emailed_urls.append(u), True)[1]
     app.send_sms = lambda *a, **k: False
     app.operator_alert = lambda m: None
 
@@ -54,12 +54,12 @@ def run():
     check("each delivered channel carries a click token", all(a["token"] for a in sent if a["channel"] != "sms"))
 
     # --- the click path: a student taps the alert ---
-    wp = [a for a in sent if a["channel"] == "webpush"]
-    check("web-push attempt exists", len(wp) == 1)
+    wp = [a for a in sent if a["channel"] == "email"]
+    check("email attempt exists", len(wp) == 1)
     if wp:
         tokrow = wp[0]
-        check("push link routed through /r/ (trackable)",
-              any(f"/r/{tokrow['token']}" in u for u in pushed_urls))
+        check("email link routed through /r/ (trackable)",
+              any(f"/r/{tokrow['token']}" in (u or "") for u in emailed_urls))
         # simulate the redirect handler's core: first click stamps, second does not
         with app.db() as c:
             r1 = c.execute("SELECT clicked_at FROM alert_attempt WHERE id=?", (tokrow["id"],)).fetchone()
@@ -77,14 +77,13 @@ def run():
 
     # --- THE SILENT FAILURE: seat opens, nothing can reach the student ---
     app.sw.notify = lambda *a, **k: False
-    app.send_web_push = lambda *a, **k: 0
     app.send_email = lambda *a, **k: False
     with app.db() as c:
         c.execute("UPDATE watches SET alerted=0 WHERE id=?", (WID,))
     app.run_cycle()
     with app.db() as c:
         nc = c.execute("SELECT COUNT(*) FROM alert_attempt WHERE outcome='no_channel'").fetchone()[0]
-        succ = c.execute("SELECT COUNT(*) FROM alert_log WHERE channel IN ('webpush','email','sms')").fetchone()[0]
+        succ = c.execute("SELECT COUNT(*) FROM alert_log WHERE channel IN ('email','sms')").fetchone()[0]
     check("unreachable student recorded as 'no_channel'", nc == 1)
     check("...and alert_log alone would have HIDDEN it (successes only)", succ >= 0)
 

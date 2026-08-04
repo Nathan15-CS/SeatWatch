@@ -77,6 +77,7 @@ class Base(unittest.TestCase):
         self._saved = {
             "DB": app.DB, "STATE": app.STATE_PATH, "SCHOOLS": schools_mod.SCHOOLS,
             "notify": app.sw.notify, "push": app.send_web_push,
+            "email": app.send_email, "email_on": app.EMAIL_ENABLED,
             "env_db": os.environ.get("SEATWATCH_DB"),
         }
         app.DB = self.dbpath
@@ -89,10 +90,14 @@ class Base(unittest.TestCase):
         app._stale_logged.clear()
         app._undelivered.clear()
         app._RATE.clear()
-        # channel recorders
+        # Channel recorders. Students are alerted by EMAIL (and text); ntfy is the
+        # operator's channel only, so counting student alerts there would count publishes
+        # to a topic nobody is listening to. push is recorded purely to assert it stays
+        # silent — it is retired.
         self.ntfy_ok = True
+        self.email_ok = True
         self.push_devices = 0              # devices "reached" per send_web_push call
-        self.notifies, self.pushes = [], []
+        self.notifies, self.pushes, self.emails = [], [], []
 
         def fake_notify(title, message, click_url=None, topic=None):
             self.notifies.append({"title": title, "topic": topic})
@@ -102,8 +107,14 @@ class Base(unittest.TestCase):
             self.pushes.append({"user_id": user_id, "title": title})
             return self.push_devices
 
+        def fake_email(to, subject, body, url=None, **kw):
+            self.emails.append({"to": to, "title": subject})
+            return self.email_ok
+
         app.sw.notify = fake_notify
         app.send_web_push = fake_push
+        app.send_email = fake_email
+        app.EMAIL_ENABLED = True
         # guardian: fake clock + captured pages + dict state
         self.clock = [time.time()]
         self.state = {}
@@ -125,6 +136,8 @@ class Base(unittest.TestCase):
         schools_mod.SCHOOLS = self._saved["SCHOOLS"]
         app.sw.notify = self._saved["notify"]
         app.send_web_push = self._saved["push"]
+        app.send_email = self._saved["email"]
+        app.EMAIL_ENABLED = self._saved["email_on"]
         if self._saved["env_db"] is not None:
             os.environ["SEATWATCH_DB"] = self._saved["env_db"]
         guardian._CFG["mode"] = "off"
@@ -185,7 +198,10 @@ class Base(unittest.TestCase):
                 (cycle_id,))}
 
     def user_alerts(self):
-        return [n for n in self.notifies if n["topic"] != app.OPERATOR_TOPIC]
+        """What a STUDENT actually received. Email, not ntfy: an ntfy publish returns 200
+        with nobody subscribed, so counting it here would call an unreachable student
+        alerted — the exact confusion that retired push in the first place."""
+        return self.emails
 
     def operator_msgs(self):
         return [n for n in self.notifies if n["topic"] == app.OPERATOR_TOPIC]
@@ -422,6 +438,7 @@ class TestAlertPath(Base):
     def test_total_delivery_failure_no_latch_and_pages(self):
         self.add_user(1, push_sub=False)
         self.ntfy_ok = False
+        self.email_ok = False              # the student's only live channel is down
         self.push_devices = 0
         self.add_watch(1, section="0101")
         self.install(self._open_school())
@@ -430,34 +447,41 @@ class TestAlertPath(Base):
         self.assertEqual(self.outcomes(cyc.id)[1], "alert_undelivered")
         self.assertEqual(len(self.operator_msgs()), 1)  # UNDELIVERED page, exactly once
 
-    def test_dishonest_latch_shadow_records_enforce_refuses(self):
-        # push-enrolled user, push FAILS, ntfy "succeeds" (topic with no subscriber).
-        self.add_user(1, push_sub=True)
+    def test_ntfy_success_never_latches_a_watch(self):
+        """The bug this whole change exists to prevent, pinned in both modes.
+
+        ntfy answers 200 for a publish to a topic with no subscriber. It used to be
+        allowed to satisfy delivery, which meant a seat could be marked handled for a
+        student who was never reached — no error, no page, just a missed class. Email is
+        down here and ntfy is "fine": the watch must stay un-latched so it retries.
+        """
+        self.add_user(1, push_sub=False)
+        self.email_ok = False
+        self.ntfy_ok = True                            # the deceptive success
         self.push_devices = 0
         self.add_watch(1, section="0101")
         self.install(self._open_school())
-        self.cycle()
-        self.assertEqual(self.alerted(1), 1)           # shadow: legacy latch preserved
-        self.assertTrue(any(d["kind"] == "dishonest_latch"
-                            for d in guardian._LAST_DIVERGENCE))
-        # same scenario in enforce: the ntfy 200 no longer counts as delivered
-        self.setUp_enforce_same_scenario()
+        for mode in ("shadow", "enforce"):
+            with app.db() as c:
+                c.execute("UPDATE watches SET alerted=0 WHERE id=1")
+            self.configure(mode)
+            cyc, _ = self.cycle()
+            self.assertEqual(self.alerted(1), 0, f"ntfy latched the watch in {mode}")
+            self.assertEqual(self.outcomes(cyc.id)[1], "alert_undelivered")
 
-    def setUp_enforce_same_scenario(self):
-        with app.db() as c:
-            c.execute("UPDATE watches SET alerted=0 WHERE id=1")
-        self.configure("enforce")
-        cyc, _ = self.cycle()
-        self.assertEqual(self.alerted(1), 0)           # honest: nobody was reached
-        self.assertEqual(self.outcomes(cyc.id)[1], "alert_undelivered")
-
-    def test_ntfy_only_legacy_account_still_latches_in_enforce(self):
-        self.add_user(1, email="", push_sub=False)     # topic-only account
+    def test_push_is_never_used_for_a_student(self):
+        """Push is retired. An account with a live subscription must still be alerted by
+        email, and send_web_push must not be called at all — a retired channel that still
+        fires is one nobody can reason about, and it was reporting false success."""
+        self.add_user(1, push_sub=True)
+        self.push_devices = 5                          # would "succeed" if ever called
         self.add_watch(1, section="0101")
         self.install(self._open_school())
         self.configure("enforce")
         self.cycle()
-        self.assertEqual(self.alerted(1), 1)           # ntfy is all they have: honored
+        self.assertEqual(len(self.pushes), 0, "push fired for a student")
+        self.assertEqual(len(self.user_alerts()), 1)   # reached by email instead
+        self.assertEqual(self.alerted(1), 1)
 
 
 # ===================================================== mass freeze + gates

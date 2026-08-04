@@ -103,11 +103,15 @@ def run():
         still = c.execute("SELECT 1 FROM watches WHERE id=?", (BOB_WATCH,)).fetchone()
     check("IDOR: not even with Bob's CSRF token in Alice's session", still is not None)
 
-    # Alice changes Bob's notification preferences
-    req("/notify-prefs", {"csrf": csrf_a, "user_id": str(B), "notify_push": "1"},
+    # Alice changes Bob's notification preferences. She submits a VALID save (email on,
+    # text omitted) and names Bob in the body — if the handler trusted that field, Bob
+    # would quietly lose his texts. Push is not used here: it no longer satisfies the
+    # floor, so a push-only POST is refused before ownership is ever reached and would
+    # pass this check without proving anything.
+    req("/notify-prefs", {"csrf": csrf_a, "user_id": str(B), "notify_email": "1"},
         cookie=cookie_a)
     check("IDOR: a user_id in the POST body cannot retarget preferences",
-          app.notify_prefs(B) == (True, True, True),
+          app.notify_prefs(B) == (False, True, True),
           "Bob's channels were changed by Alice")
 
     # Alice's own page must not contain Bob's data

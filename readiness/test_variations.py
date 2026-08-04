@@ -126,7 +126,7 @@ def run():
     forms = [
         ("/watch", {"school": "varu", "course": "BIOL101", "sections": "0101"}),
         ("/unwatch", {"id": str(wid)}),
-        ("/notify-prefs", {"notify_push": "1", "notify_email": "1"}),
+        ("/notify-prefs", {"notify_email": "1"}),
         ("/feedback", {"message": "a variation test"}),
     ]
     for path, fields in forms:
@@ -176,14 +176,18 @@ def run():
               "§," not in page and "§<" not in page and "§ ·" not in page, page[:120])
 
     # ===================================================== D. preferences matrix
-    # Every combination of the three channels. The sample email must fire exactly when
+    # Every combination of the two live channels. The sample email must fire exactly when
     # email is on, and never otherwise — demonstrating a channel someone switched off is
     # spam, and NOT demonstrating one they switched on leaves it unproven until it matters.
+    #
+    # notify_push is still swept across both values on purpose. It is retired, so it must
+    # make NO difference to anything: a stored 1 must not revive the channel, must not
+    # change what notify_prefs reports, and must not stand in for a real one.
     for push in (0, 1):
         for email in (0, 1):
             for sms in (0, 1):
-                if not (push or email or sms):
-                    continue                    # the handler forbids zero channels
+                if not (email or sms):
+                    continue                    # the handler forbids zero real channels
                 uid = new_user(0, notify_push=push, notify_email=email, notify_sms=sms)
                 before = len(mails)
                 app.send_sample_email(uid)
@@ -194,7 +198,8 @@ def run():
                       "a student was emailed a demo of a channel they turned off"
                       if fired else "email was never proven before a real seat depended on it")
                 check(f"D. push={push} email={email} sms={sms}: prefs read back exactly",
-                      app.notify_prefs(uid) == (bool(push), bool(email), bool(sms)))
+                      app.notify_prefs(uid) == (False, bool(email), bool(sms)),
+                      "a stored notify_push must never change what we report or send")
 
     # ===================================================== E. a plan change keeps state
     for start, end in ((0, 1), (1, 2), (1, 3), (2, 3)):

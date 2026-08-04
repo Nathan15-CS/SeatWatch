@@ -4,7 +4,7 @@
     python3 readiness.py
 
 Runs every readiness suite and prints PASS / FAIL / BLOCKED / UNTESTED per requirement,
-then three SEPARATE verdicts: WEB-PUSH, SMS, RECOVERY.
+then three SEPARATE verdicts: EMAIL, SMS, RECOVERY.
 
 Honesty rules (deliberate, do not relax):
   * A requirement that was never exercised prints UNTESTED — never PASS.
@@ -133,7 +133,6 @@ def main():
         facts["sms_enabled"] = bool(getattr(_app, "SMS_ENABLED", False))
         facts["paid_enabled"] = bool(getattr(_app, "PAID_ENABLED", False))
         facts["email_enabled"] = bool(getattr(_app, "EMAIL_ENABLED", False))
-        facts["push_enabled"] = bool(getattr(_app, "PUSH_ENABLED", False))
     except Exception as e:
         print(f"  {Y}could not import app: {e}{X}")
     for k, v in facts.items():
@@ -147,14 +146,17 @@ def main():
             "test_crash_safety", "test_poll_lease", "test_canary"]
     core_ok = all(suite_status.get(m, ("UNTESTED",))[0] == "PASS" for m in core)
 
-    # WEB-PUSH
+    # EMAIL — the channel students are actually alerted on. Push was retired: it could
+    # report success while reaching nobody, which is how a paid account sat "alerted" for
+    # a seat it was never told about.
     if core_ok:
-        print(f"\n  {G}WEB-PUSH: READY FOR A CONTROLLED BETA{X} (small, watched group)")
+        print(f"\n  {G}EMAIL ALERTS: READY FOR A CONTROLLED BETA{X} (small, watched group)")
         print(f"    {DIM}All alert-correctness, fail-closed, crash-safety, duplicate-suppression{X}")
         print(f"    {DIM}and content checks pass against the real code path.{X}")
+        print(f"    {DIM}A watch latches ONLY when email or text delivered — never on ntfy.{X}")
         print(f"    {Y}NOT proven at scale — zero external users to date. Tests are the floor.{X}")
     else:
-        print(f"\n  {R}WEB-PUSH: NOT READY{X} — core suites not all green (see above).")
+        print(f"\n  {R}EMAIL ALERTS: NOT READY{X} — core suites not all green (see above).")
 
     # SMS
     print(f"\n  {R}SMS: BLOCKED — NOT READY, NOT PROVEN{X}")
@@ -171,8 +173,8 @@ def main():
     print(f"    {G}PASS{X}     disaster drill: restored from the off-server copy, app opened it")
     print(f"    {G}PASS{X}     crash/restart resumes polling; lease prevents double-alert")
     print(f"    {Y}UNTESTED{X} full host rebuild end-to-end (documented in ops/RECOVERY.md, never rehearsed)")
-    print(f"    {R}GAP{X}      /etc/seatwatch.env secrets are NOT backed up — losing the VAPID")
-    print(f"             keys would silently break every existing push subscription.")
+    print(f"    {R}GAP{X}      /etc/seatwatch.env secrets are NOT backed up — losing the SMTP")
+    print(f"             and Twilio credentials would stop every alert reaching anyone.")
     print(f"             {DIM}Keep a copy in a password manager (operator action).{X}")
 
     print(f"\n{B}{'-'*74}{X}\n{B}  KNOWN UNTESTED / OUT OF SCOPE{X}\n{B}{'-'*74}{X}")

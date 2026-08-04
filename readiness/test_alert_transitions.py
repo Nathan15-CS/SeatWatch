@@ -37,11 +37,14 @@ def run():
     fake = FakeSchool()
     schools.SCHOOLS = {"canary": fake}
 
-    # capture every channel — deliver nothing, count alerts
+    # Count alerts on EMAIL, the channel students are actually alerted on since push was
+    # retired. sw.notify still answers True because operator_alert uses it; if the count
+    # were taken there, a cycle that reached no student would look like a delivered alert.
     sent = []
-    app.sw.notify = lambda *a, **k: True                    # ntfy "accepts" (but see below)
-    app.send_web_push = lambda uid, t, b, u: (sent.append(("webpush", t, b)), 1)[1]
-    app.send_email = lambda *a, **k: False
+    app.EMAIL_ENABLED = True
+    app.sw.notify = lambda *a, **k: True                    # operator channel only
+    app.send_email = lambda to, subj, body, url=None, **k: (
+        sent.append(("email", subj, body)), True)[1]
     app.send_sms = lambda *a, **k: False
     app.operator_alert = lambda *a, **k: None
 

@@ -25,9 +25,9 @@ def run():
     fake = FakeSchool(); schools.SCHOOLS = {"canary": fake}
 
     sent = []
-    app.sw.notify = lambda *a, **k: True
-    app.send_web_push = lambda uid, t, b, u: (sent.append(1), 1)[1]
-    app.send_email = lambda *a, **k: False
+    app.EMAIL_ENABLED = True
+    app.sw.notify = lambda *a, **k: True                    # operator channel only
+    app.send_email = lambda to, subj, body, url=None, **k: (sent.append(1), True)[1]
     app.send_sms = lambda *a, **k: False
 
     with app.db() as c:

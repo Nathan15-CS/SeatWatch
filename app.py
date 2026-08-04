@@ -287,6 +287,24 @@ def init_db():
             c.execute("ALTER TABLE users ADD COLUMN notify_push INTEGER NOT NULL DEFAULT 1")
         if "notify_sms" not in ucols:
             c.execute("ALTER TABLE users ADD COLUMN notify_sms INTEGER NOT NULL DEFAULT 1")
+        # --- retiring push: rescue anyone it was the only channel for ---------------
+        # Push is gone as a student channel. An account that had push on and both email
+        # and text off was, under the old rules, a fully-configured account — it passed
+        # the floor. Under the new rules it has NOTHING, and its watches would fire into
+        # a void forever without a single error anywhere. So switch email back on for
+        # exactly those accounts before the new floor can apply to them.
+        #
+        # This is the migration that actually matters. It runs before any request is
+        # served and is idempotent: once notify_email is 1 the WHERE clause stops
+        # matching. Scoped to accounts that HAVE an email address, since turning on a
+        # channel with no destination would just be a different kind of unreachable.
+        rescued = c.execute(
+            "UPDATE users SET notify_email=1 WHERE COALESCE(notify_email,0)=0 "
+            "AND COALESCE(notify_sms,0)=0 AND email IS NOT NULL AND email != ''").rowcount
+        if rescued:
+            sw.log(f"[migrate] push retired: re-enabled email for {rescued} account(s) that "
+                   f"had no other way to be reached")
+        c.execute("UPDATE users SET notify_push=0 WHERE COALESCE(notify_push,0)=1")
         # --- one-time sample text + promo -------------------------------------------
         # sample_sms_at: stamped the FIRST time a student is shown what an alert looks
         # like. Once per account, ever — not per watch — so adding five classes does not
@@ -1129,7 +1147,6 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
  .note{font-size:12.5px;color:var(--dim);text-align:center;margin:14px 0 0;line-height:1.5}
  .gbtn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:14px;background:#fff;border:1px solid #CBD5E1;border-radius:13px;font-size:15px;font-weight:700;color:var(--txt);box-shadow:0 1px 3px rgba(15,23,42,.07);transition:all .16s var(--ease)}
  .gbtn:hover{transform:translateY(-1px);border-color:#94A3B8;box-shadow:0 10px 22px rgba(15,23,42,.1);text-decoration:none}
- .pushbtn{background:linear-gradient(135deg,#2563EB,#3B82F6)}
  .userbar{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--dim);margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line2)}
  .userbar b{color:var(--mut);font-weight:600}
  .userbar a{color:var(--dim);font-weight:600;display:inline-flex;align-items:center;gap:4px}
@@ -1170,8 +1187,6 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
  .feat li{display:flex;gap:9px;align-items:flex-start;font-size:13.5px;color:var(--mut);line-height:1.45;margin-bottom:9px}
  .feat li svg{flex:none;margin-top:1px;color:var(--green)}
  .price:not(.free) .feat li svg{color:var(--blue3)}
- .iosHint{display:none;background:var(--tint);border:1px solid #C7D2FE;border-radius:13px;padding:15px;font-size:13.5px;line-height:1.65;color:#1E3A5F;margin-top:10px}
- .tnum{flex:none;width:22px;height:22px;border-radius:50%;background:var(--blue);color:#fff;font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center}
  .tagline{font-size:13px;font-weight:700;color:var(--navy);letter-spacing:-.1px}
  .tagline em{font-style:normal;color:var(--green2)}
  footer{text-align:center;font-size:12px;color:var(--dim);padding:48px 20px 54px;line-height:2;letter-spacing:.02em}
@@ -1502,81 +1517,6 @@ SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
 </urlset>
 """
 
-# The one-tap alert setup. Shown on the success page and the signed-in card.
-PUSH_BLOCK = """<div style="margin-top:18px;border-top:1px solid #F3F4F6;padding-top:16px">
- <button type="button" id="pushBtn" class="pushbtn" style="margin-top:0"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.268 21a2 2 0 0 0 3.464 0"/><path d="M3.262 15.326A1 1 0 0 0 4 17h16a1 1 0 0 0 .74-1.673C19.41 13.956 18 12.499 18 8A6 6 0 0 0 6 8c0 4.499-1.411 5.956-2.738 7.326"/></svg>Turn on phone alerts</button>
- <p class="note" id="pushStatus">One tap. Alerts come straight to this device, right in your browser.</p>
- <button type="button" id="a2hsBtn" style="display:none;margin-top:10px;width:100%;padding:12px;border-radius:10px;border:1.5px solid #DBEAFE;background:#F8FAFC;color:#1D4ED8;font-weight:700;font-size:14.5px;cursor:pointer">📲 Add the SeatWatch app to your phone: free, 1 tap</button>
- <div id="iosHint" class="iosHint">
-  <b style="display:block;font-size:14px;margin-bottom:12px;color:#1E3A5F">📲 On iPhone? Turn on alerts in 3 quick steps <span style="font-weight:500;color:#4B6B9A">(about 15 seconds)</span>:</b>
-  <div style="display:flex;gap:11px;align-items:flex-start;margin-bottom:12px">
-   <span class="tnum">1</span>
-   <div style="font-size:13.5px;line-height:1.5;color:#1E3A5F">Tap the <b>Share</b> icon <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:-2px"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg> at the bottom of Safari (the box with an up-arrow).</div>
-  </div>
-  <div style="display:flex;gap:11px;align-items:flex-start;margin-bottom:12px">
-   <span class="tnum">2</span>
-   <div style="font-size:13.5px;line-height:1.5;color:#1E3A5F">Scroll down and tap <b>Add to Home Screen</b>, then tap <b>Add</b> in the top corner.</div>
-  </div>
-  <div style="display:flex;gap:11px;align-items:flex-start">
-   <span class="tnum">3</span>
-   <div style="font-size:13.5px;line-height:1.5;color:#1E3A5F">Open <b>SeatWatch</b> from your Home Screen and tap <b>Turn on phone alerts</b>. That's it. You're covered. ✅</div>
-  </div>
- </div>
-</div>
-<script>
-(function(){
-var PUSH_CSRF="__CSRF__",VAPID_PK="__VAPIDPK__";
-var btn=document.getElementById('pushBtn'),st=document.getElementById('pushStatus'),ios=document.getElementById('iosHint');
-if(!btn||!VAPID_PK)return;
-function s(m){st.textContent=m;}
-var isIOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
-var standalone=(window.matchMedia&&matchMedia('(display-mode: standalone)').matches)||window.navigator.standalone;
-function b64(u){var p='='.repeat((4-u.length%4)%4);var b=atob((u+p).replace(/-/g,'+').replace(/_/g,'/'));var a=new Uint8Array(b.length);for(var i=0;i<b.length;i++)a[i]=b.charCodeAt(i);return a;}
-// Early SW registration so the browser treats the site as app-ready even before the
-// user taps the alerts button (push subscribe below re-registers harmlessly).
-if('serviceWorker' in navigator){try{navigator.serviceWorker.register('/sw.js').catch(function(){});}catch(e){}}
-// Android/Chrome: offer the REAL install dialog when the browser says we qualify.
-// Progressive: the button only ever appears after beforeinstallprompt fires, so
-// browsers without support (all iOS) never see a dead-end button.
-var a2hs=document.getElementById('a2hsBtn'),defp=null;
-window.addEventListener('beforeinstallprompt',function(e){e.preventDefault();defp=e;if(a2hs&&!standalone)a2hs.style.display='block';});
-window.addEventListener('appinstalled',function(){if(a2hs)a2hs.style.display='none';s('✅ SeatWatch is on your home screen. Open it there any time.');});
-if(a2hs)a2hs.onclick=async function(){
-  if(!defp)return;
-  var p=defp;defp=null;          // Chrome allows prompt() once per event
-  try{p.prompt();var c=await p.userChoice;
-    if(c&&c.outcome==='accepted'){a2hs.style.display='none';}
-  }catch(e){}
-};
-// iPhone-in-Safari: push physically can't turn on until the site is added to the Home Screen
-// (an Apple rule we can't change). So show the steps upfront and hide the button that would
-// only dead-end here, no guessing, nothing to discover, nobody gets stuck.
-if(isIOS&&!standalone){
-  ios.style.display='block';
-  btn.style.display='none';
-  s('Follow the 3 steps below to get alerts on your iPhone:');
-  return;
-}
-if(!('serviceWorker' in navigator)||!('PushManager' in window)){
-  s('This browser does not support push. Try Chrome or Safari 16.4+.');btn.disabled=true;return;
-}
-btn.onclick=async function(){
-  try{
-    var reg=await navigator.serviceWorker.register('/sw.js');
-    var perm=await Notification.requestPermission();
-    if(perm!=='granted'){s('Notifications are blocked, allow them for seatwatchapp.com in settings, then retry.');return;}
-    var sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:b64(VAPID_PK)});
-    var r=await fetch('/push/subscribe',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({csrf:PUSH_CSRF,sub:sub.toJSON()})});
-    var j=await r.json().catch(function(){return {};});
-    if(r.ok&&j.ok){
-      if(j.test_sent>0){btn.style.display='none';s('✅ Alerts are ON for this device, check for a test notification now!');}
-      else{s('Saved for this device, but the test alert didn\\'t go through, this browser may not support push here. Try Chrome, or use the app option below.');}
-    }
-    else{s('Could not save your subscription, please try again.');}
-  }catch(e){s('Could not enable: '+(e.message||e));}
-};
-})();
-</script>"""
 
 DONE = """<div class="hero" style="padding-top:34px;padding-bottom:0"><h1 class="reveal" style="font-size:34px;letter-spacing:-1.4px">You're all set 🎉</h1></div>
 <div class="card reveal d2">
@@ -1614,12 +1554,12 @@ PRIVACY = """<h2 style="font-size:20px;margin:6px 0 2px">Privacy Policy</h2>
 <p class="sub" style="margin-bottom:14px">Last updated: July 23, 2026</p>
 <div style="STYLE">
 <p><b>The short version:</b> we collect the bare minimum needed to run your alerts: your email (from sign-in) and the classes you watch, plus a little more only to stop people from abusing the free plan. We never sell your data or use it for ads.</p>
-<p><b>1. What we collect.</b> (a) your email address and account ID, via &ldquo;Sign in with Google&rdquo; or &ldquo;Sign in with Apple&rdquo; (we never see or store your password); (b) the classes and sections you ask us to watch; (c) the private notification &ldquo;topic&rdquo; we assign your account, so we can push alerts to your phone; (d) your IP address, used to keep the service secure, including rate-limiting and helping us spot abuse such as one person creating many accounts to get around free-plan limits; (e) if you turn on phone alerts, the push subscription your browser creates, which is a device delivery address used to send you your alerts and, if the same device signs up under several accounts, as an abuse signal; removed when you revoke it; (f) a device identifier, a random ID we generate and store in your browser (a cookie and local storage) used <b>solely</b> to detect fraud and free-plan abuse (for example, many accounts from one device). It is not an advertising ID and is never used to track you across other websites.</p>
+<p><b>1. What we collect.</b> (a) your email address and account ID, via &ldquo;Sign in with Google&rdquo; or &ldquo;Sign in with Apple&rdquo; (we never see or store your password); (b) the classes and sections you ask us to watch; (c) if you choose to receive text alerts, the mobile number you give us, together with a record of your consent (the wording you agreed to, and the date, time, and IP address it was given); (d) your IP address, used to keep the service secure, including rate-limiting and helping us spot abuse such as one person creating many accounts to get around free-plan limits; (e) a device identifier, a random ID we generate and store in your browser (a cookie and local storage) used <b>solely</b> to detect fraud and free-plan abuse (for example, many accounts from one device). It is not an advertising ID and is never used to track you across other websites.</p>
 <p><b>2. Payment information.</b> If you buy a paid plan, our payment provider (Stripe) processes your payment. We never see or store your full card number; we keep only a record of the transaction (such as amount, date, plan, and a payment reference) to run the service, prevent fraud, and meet legal and tax obligations.</p>
 <p><b>3. What we do NOT collect.</b> No password (sign-in is handled by Google/Apple) and we never see or store your card details (payment, if any, is handled by Stripe); no location, no browsing history, and no browser &ldquo;fingerprinting&rdquo; or cross-site tracking.</p>
-<p><b>4. How alerts are delivered.</b> Push notifications are sent through the free third-party service <a href="https://ntfy.sh">ntfy.sh</a>. Anyone who knows your topic string could read your alerts, so keep it private.</p>
+<p><b>4. How alerts are delivered.</b> Alerts are sent by email, and by text message if you have given consent for texts. Email is delivered through our email provider, and texts through our SMS provider (Twilio); each receives only what is needed to deliver your alert. You can change which of these you receive at any time from your account page, and you can stop texts at any time by replying STOP.</p>
 <p><b>5. How we use your data.</b> To run the watch-and-alert service, and to keep it secure and fair (see below). Nothing else.</p>
-<p><b>6. Preventing abuse of the free plan.</b> So we can keep offering a free plan, we look for signs that one person is using multiple accounts to bypass the free limit, for example accounts that share a device, network/IP address, or email, or that together watch more of a class than one free account is meant to. To do this we use only the data described above (the device identifier, IP address, sign-in email, notification tokens, and your watch activity), the minimum needed, and no invasive fingerprinting. This protects our legitimate interest in preventing fraud. If we find likely abuse, we may remove the extra watches or accounts, as permitted by our <a href="/terms">Terms of Service</a>. These checks are reviewed by a person before any action. <b>If you believe you were flagged by mistake, email <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a> and a human will help sort it out.</b></p>
+<p><b>6. Preventing abuse of the free plan.</b> So we can keep offering a free plan, we look for signs that one person is using multiple accounts to bypass the free limit, for example accounts that share a device, network/IP address, or email, or that together watch more of a class than one free account is meant to. To do this we use only the data described above (the device identifier, IP address, sign-in email, any mobile number you gave us, and your watch activity), the minimum needed, and no invasive fingerprinting. This protects our legitimate interest in preventing fraud. If we find likely abuse, we may remove the extra watches or accounts, as permitted by our <a href="/terms">Terms of Service</a>. These checks are reviewed by a person before any action. <b>If you believe you were flagged by mistake, email <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a> and a human will help sort it out.</b></p>
 <p><b>7. Sharing.</b> We do not sell, rent, or share your data for advertising. Ever.</p>
 <p><b>7a. Text-message (SMS) alerts.</b> If you opt in to text alerts, we collect your mobile number and a record of your consent: the exact wording you agreed to, the date and time, and the originating IP address, used <b>solely</b> to send the course seat-availability alerts you requested and to honor your STOP and HELP replies. <b>SeatWatch does not share or sell mobile phone numbers, SMS opt-in, or consent information with third parties or affiliates for marketing or promotional purposes.</b> We disclose your mobile number only to our SMS delivery provider (Twilio), strictly to transmit the alerts you asked for. Message frequency varies based on the courses you monitor; message and data rates may apply. Reply STOP to any alert to unsubscribe, or HELP for help. Opting in is never a condition of purchase. SeatWatch works fully without a phone number on every plan, using web push and email. See our <a href="/sms-terms">SMS Terms &amp; Conditions</a>.</p>
 <p><b>Your California privacy rights.</b> If you are a California resident, you have the right to know what personal information we collect and how we use it; to request a copy, correction, or deletion of it; and to not be treated differently for exercising these rights. <b>We do not sell or share your personal information, and have not done so.</b> To exercise any right, email <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a>; we will verify and respond as the law requires.</p>
@@ -2111,13 +2051,6 @@ def watches_html(user_id, csrf):
     return f"<div class='mywatches'><b>{hdr}Your watches</b><ul>" + items + "</ul></div>"
 
 
-def push_block(tok):
-    """The one-tap alerts widget; empty string when push isn't configured."""
-    if not PUSH_ENABLED:
-        return ""
-    return PUSH_BLOCK.replace("__CSRF__", tok).replace("__VAPIDPK__", VAPID_PUBLIC_KEY)
-
-
 def _sms_consent_html():
     """The registered opt-in disclosure, verbatim, with Terms/Privacy hyperlinked. Stays
     word-for-word identical to SMS_CONSENT_WORDING everywhere it renders (checkbox,
@@ -2204,18 +2137,20 @@ def inline_phone_field(user):
 
 
 def notify_prefs_block(user, tok):
-    """Two checkboxes letting a student choose how they are alerted.
+    """Email and text — the two ways a student can be alerted.
 
-    Deliberately shown to everyone (not just paid): a free user with both push and email
+    Deliberately shown to everyone (not just paid): a free user with both email and text
     firing on the same seat is the person most likely to call us spam. There is no
     checkbox for "all off" — the floor is enforced in the handler, not here, because a
     UI-only guard is bypassed by anyone who can craft a POST.
+
+    Email is always listed. Text only appears for someone who has actually given consent,
+    so a student who never gave us a number sees one box, which they cannot switch off —
+    the honest UI for "this is the only way we can reach you."
     """
     if not user:
         return ""
-    want_push, want_email, want_sms = notify_prefs(user["id"])
-    # The text option only appears for someone who has actually consented — offering to
-    # switch off a channel they never turned on is noise.
+    _, want_email, want_sms = notify_prefs(user["id"])
     with db() as c:
         has_sms = c.execute("SELECT 1 FROM sms_consent WHERE user_id=? AND confirmed_at "
                             "IS NOT NULL AND revoked_at IS NULL LIMIT 1",
@@ -2226,22 +2161,21 @@ def notify_prefs_block(user, tok):
                'font-size:13px;text-transform:none;letter-spacing:0;margin:6px 0 0">'
                f'<input type="checkbox" name="notify_sms" value="1"{ck if want_sms else ""} '
                'style="flex:none;width:auto"><span>Text message</span></label>')
+    floor = ('Email is how we reach you, so it stays on. Add a phone number when you add a '
+             'class if you want texts too.' if not has_sms else
+             'Keep at least one on, or we have no way to tell you a seat opened.')
     return (
         '<div style="margin-top:14px;border-top:1px solid #F3F4F6;padding-top:13px">'
         '<form method="post" action="/notify-prefs" style="margin:0">'
         f'<input type="hidden" name="csrf" value="{html.escape(tok or "")}">'
         '<label style="margin-bottom:7px">How should we alert you?</label>'
         '<label style="display:flex;gap:9px;align-items:center;font-weight:400;font-size:13px;'
-        'text-transform:none;letter-spacing:0;margin:0 0 6px">'
-        f'<input type="checkbox" name="notify_push" value="1"{ck if want_push else ""} '
-        'style="flex:none;width:auto"><span>Phone / browser notification</span></label>'
-        '<label style="display:flex;gap:9px;align-items:center;font-weight:400;font-size:13px;'
         'text-transform:none;letter-spacing:0;margin:0">'
         f'<input type="checkbox" name="notify_email" value="1"{ck if want_email else ""} '
-        'style="flex:none;width:auto"><span>Email</span></label>'
+        f'style="flex:none;width:auto"><span>Email &mdash; '
+        f'{html.escape(user["email"] or "")}</span></label>'
         + sms_row +
-        '<p class="note" style="margin:8px 0 0;font-size:12px">Keep at least one on, or we '
-        'have no way to tell you a seat opened.</p>'
+        f'<p class="note" style="margin:8px 0 0;font-size:12px">{floor}</p>'
         '<button type="submit" style="margin-top:9px">Save</button></form></div>')
 
 
@@ -2343,7 +2277,7 @@ def form_page(notice="", user=None):
                 .replace("__SECFIELD__", secfield)
                 .replace("__PLANNOTE__", plannote)
                 .replace("__EMAIL__", html.escape(user["email"]))
-                .replace("__PUSHBLOCK__", push_block(tok) + notify_prefs_block(user, tok))
+                .replace("__PUSHBLOCK__", notify_prefs_block(user, tok))
                 .replace("__CSRF__", tok)
                 .replace("__WATCHES__", watches_html(user["id"], tok))
                 .replace("__SCHOOLS__", SCHOOLS_JS))
@@ -2354,28 +2288,27 @@ def form_page(notice="", user=None):
 
 
 def alert_intro(user):
-    """The line(s) above the phone-alert widget. When email is the live default channel we
-    reassure the student they're ALREADY covered (zero setup) and frame push as optional;
-    otherwise phone alerts are the primary 'last step'."""
+    """Confirmation that the student is already covered — there is no setup step left.
+
+    This used to hand off to a 'now turn on phone alerts' widget. With push retired there
+    is nothing further to do, so the line says so and stops. Naming the address matters:
+    it is the student's one chance to notice we have the wrong one before a seat opens."""
     if EMAIL_ENABLED:
         return ("<div class='ok'><svg width='18' height='18' viewBox='0 0 24 24' fill='none' "
                 "stroke='currentColor' stroke-width='2' stroke-linecap='round' "
                 "stroke-linejoin='round'><rect x='2' y='4' width='20' height='16' rx='2'/>"
                 "<path d='m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7'/></svg><span>We'll email "
                 f"you at <b>{html.escape(user['email'])}</b> the second a seat opens, nothing "
-                "else to do.</span></div>"
-                "<p style='font-weight:700;margin:18px 0 4px'>Want an instant buzz on your "
-                "phone too? <span style='font-weight:500;color:var(--dim)'>(optional)</span></p>")
-    return "<p style='font-weight:700;margin:18px 0 4px'>Last step, get the alert on your phone:</p>"
+                "else to do.</span></div>")
+    return ("<p class='note' style='text-align:left'>Alerts are being set up on this "
+            "account, check back shortly.</p>")
 
 
 def done_page(what, user):
     tok = csrf_token(user["id"])
     body = (DONE.replace("__WHAT__", html.escape(what))
                 .replace("__ALERTINTRO__", alert_intro(user))
-                .replace("__PUSHBLOCK__", push_block(tok) or
-                         "<p class='note' style='text-align:left'>Phone alerts are being "
-                         "set up, check back shortly.</p>"))
+                .replace("__PUSHBLOCK__", notify_prefs_block(user, tok)))
     return page(body)
 
 
@@ -2930,12 +2863,11 @@ class Handler(BaseHTTPRequestHandler):
             nform = parse_qs(raw_body)
             if not hmac.compare_digest(nform.get("csrf", [""])[0], csrf_token(user["id"])):
                 return self._notice("That form expired, please try again.", 403, user=user)
-            want_push = bool(nform.get("notify_push"))
             want_email = bool(nform.get("notify_email"))
             want_sms = bool(nform.get("notify_sms"))
             # Someone with a consented number and every box cleared would be unreachable,
             # so text counts toward the floor for them. For anyone without a number it
-            # cannot count, or they could switch off both real channels and be stranded.
+            # cannot count, or they could switch off their only real channel and be stranded.
             with db() as c:
                 has_sms = c.execute("SELECT 1 FROM sms_consent WHERE user_id=? AND "
                                     "confirmed_at IS NOT NULL AND revoked_at IS NULL LIMIT 1",
@@ -2945,17 +2877,18 @@ class Handler(BaseHTTPRequestHandler):
             # generated, delivered nowhere, and nobody — including us — would be told the
             # student missed their seat. Unchecking both is refused outright rather than
             # accepted-and-ignored, so the saved state always matches what we will do.
-            if not (want_push or want_email or (want_sms and has_sms)):
+            # Push used to satisfy this floor, which is precisely how an account ended up
+            # "covered" by a channel that could not reach anyone. Only email and a
+            # consented number count now.
+            if not (want_email or (want_sms and has_sms)):
                 return self._notice(
                     "Keep at least one alert method on. With both off we would have no way "
                     "to tell you a seat opened. To stop alerts entirely, remove the class "
                     "you are watching.", user=user)
             with db() as c:
-                c.execute("UPDATE users SET notify_push=?, notify_email=?, notify_sms=? "
-                          "WHERE id=?", (int(want_push), int(want_email), int(want_sms),
-                                         user["id"]))
-            on = " and ".join([x for x in ("phone/browser" if want_push else "",
-                                           "email" if want_email else "",
+                c.execute("UPDATE users SET notify_push=0, notify_email=?, notify_sms=? "
+                          "WHERE id=?", (int(want_email), int(want_sms), user["id"]))
+            on = " and ".join([x for x in ("email" if want_email else "",
                                            "text" if (want_sms and has_sms) else "") if x])
             return self._notice(f"Saved. We will alert you by {on}.", user=user)
 
@@ -4124,24 +4057,28 @@ def sms_apply_inbound(from_phone, body):
 
 def notify_prefs(user_id):
     """(want_push, want_email, want_sms) for this account. Fail OPEN: any missing row, missing
-    column or DB error reads as BOTH ENABLED, because the failure mode of guessing wrong
+    column or DB error reads as ENABLED, because the failure mode of guessing wrong
     is a student who silently stops being alerted. An extra notification is a nuisance; a
     missing one is the whole product failing.
+
+    want_push is now ALWAYS False — push is retired. The slot stays so the Guardian's
+    notify_prefs(uid)[:2] read keeps working and so the stored column survives for anyone
+    who wants the history; nothing consults it to decide whether to send.
 
     Guardian reads this too (via app.notify_prefs) so the sender and the latch can never
     disagree about which channels an account actually uses.
     """
     if not user_id:
-        return True, True, True
+        return False, True, True
     try:
         with db() as c:
-            u = c.execute("SELECT notify_push, notify_email, notify_sms FROM users "
+            u = c.execute("SELECT notify_email, notify_sms FROM users "
                           "WHERE id=?", (user_id,)).fetchone()
         if not u:
-            return True, True, True
-        return bool(u["notify_push"]), bool(u["notify_email"]), bool(u["notify_sms"])
+            return False, True, True
+        return False, bool(u["notify_email"]), bool(u["notify_sms"])
     except Exception:
-        return True, True, True
+        return False, True, True
 
 
 _undelivered = set()   # watch_ids whose last alert reached NOBODY (retrying each cycle)
@@ -4153,21 +4090,20 @@ def _alert(r, message, url):
     retries next cycle instead of silently losing the seat — and the operator is paged
     once (a real alert reached nobody)."""
     # One token per CHANNEL so a click attributes to the channel that produced it — that's
-    # what makes "is SMS actually faster than push?" answerable with data instead of priors.
-    tok = {ch: secrets.token_urlsafe(9) for ch in ("ntfy", "webpush", "email", "sms")}
-    ok = sw.notify(f"Seat open: {r['course']}",
-                   message + " Tap to register — go now.",
-                   click_url=_click_url(tok["ntfy"], url), topic=r["topic"])
+    # what makes "is SMS actually faster than email?" answerable with data instead of priors.
+    tok = {ch: secrets.token_urlsafe(9) for ch in ("email", "sms")}
+    # Push and ntfy are RETIRED as student channels. Both could report success while
+    # reaching nobody — a browser subscription the student never granted, or an ntfy topic
+    # with no listener (publishing to an empty topic still returns 200). That is how a paid
+    # account sat "alerted" for a seat it was never told about. Email and SMS are the only
+    # two channels whose delivery we can actually stand behind, so they are the only two we
+    # offer. ntfy remains in operator_alert, which pages the operator, not students.
+    ok, pushed = False, 0
     uid = r["user_id"] if "user_id" in r.keys() else None
     # Per-user channel preferences. Read ONCE here and reused for the latch decision, so
     # the Guardian and the sender can never disagree about which channels this account
     # actually uses. Missing/legacy rows read as enabled, matching the DEFAULT 1 migration.
-    want_push, want_email, want_sms = notify_prefs(uid)
-    pushed = 0
-    if want_push:
-        pushed = send_web_push(uid, f"Seat open: {r['course']}",
-                               message + " Tap to register — go now.",
-                               _click_url(tok["webpush"], url))
+    _, want_email, want_sms = notify_prefs(uid)
     emailed = False
     if want_email and EMAIL_ENABLED and uid:
         with db() as c:
@@ -4182,38 +4118,33 @@ def _alert(r, message, url):
     # LEGAL gate; this is the student's day-to-day "stop texting me, email is fine" switch.
     # Both must allow it, and either one alone can stop it.
     texted = send_sms(uid, r, message, url) if want_sms else False
-    # Ledger: one row per channel that reported success. ntfy is logged but is NOT
-    # proof a human was reached (a publish to a topic with no subscribers still returns
-    # 200) — refund/reachability queries should count webpush/email/sms rows only.
-    if ok:
-        _log_alert(r, "ntfy")
-    if pushed:
-        _log_alert(r, "webpush")
+    # Ledger: one row per channel that reported success. Every row here now represents a
+    # channel that addresses a real inbox or handset, so a count of these is a count of
+    # students actually reached — which was never true while ntfy was in the total.
     if emailed:
         _log_alert(r, "email")
     # Attempt ledger: the DENOMINATOR. Every channel that delivered gets a click token;
     # if NOTHING reached the student we record one 'no_channel' row, so silent failures are
     # counted instead of being invisible (alert_log holds successes only).
-    for ch, sent_ok in (("ntfy", ok), ("webpush", bool(pushed)),
-                        ("email", emailed), ("sms", texted)):
+    for ch, sent_ok in (("email", emailed), ("sms", texted)):
         if sent_ok:
             _log_attempt(r, ch, "sent", tok[ch] if ch != "sms" else None)
-    if not (ok or pushed or emailed or texted):
+    if not (emailed or texted):
         _log_attempt(r, None, "no_channel")
-    # off/shadow: legacy rule (any channel, incl. a bare ntfy 200). enforce: honest
-    # rule — an account with push/email enrolled must be reached on one of them;
-    # ntfy alone latches only topic-only legacy accounts. Shadow records divergences.
+    # Latch only on a channel that reached a person. With ntfy_ok/pushed pinned False the
+    # honest and legacy rules collapse to the same answer — "email or text delivered" —
+    # so this now means the same thing in every Guardian mode. Signature kept so the
+    # Guardian lane's file needs no edit from here.
     delivered = guardian.latch_decision(r, ok, pushed, emailed, texted)
-    sw.log(f"  ALERT {r['course']}-{r['section'] or 'ALL'} -> {r['topic']} "
-           f"(ntfy {'sent' if ok else 'FAILED'}; web-push {pushed}; email {'sent' if emailed else 'off'}"
-           f"; sms {'sent' if texted else 'off'}"
+    sw.log(f"  ALERT {r['course']}-{r['section'] or 'ALL'} -> user {uid} "
+           f"(email {'sent' if emailed else 'off'}; sms {'sent' if texted else 'off'}"
            f"{'; ⚠️DELIVERED-TO-NOBODY' if not delivered else ''})")
     wid = r["id"]
     if not delivered:
         if wid not in _undelivered:            # page once, not every retry cycle
-            operator_alert(f"🚨 UNDELIVERED: {r['course']} seat opened but ntfy + web-push + "
-                           "email ALL failed — student was NOT notified. Retrying every cycle "
-                           "until a channel works; check ntfy/VAPID/email config.")
+            operator_alert(f"🚨 UNDELIVERED: {r['course']} seat opened but email + text BOTH "
+                           "failed — student was NOT notified. Retrying every cycle until a "
+                           "channel works; check SMTP and Twilio config.")
             _undelivered.add(wid)
     else:
         _undelivered.discard(wid)              # recovered (or first success)

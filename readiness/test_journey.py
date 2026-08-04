@@ -61,9 +61,11 @@ def run():
 
     texts, mails, pushes = [], [], []
     app._twilio_post = lambda to, body: (texts.append((to, body)), (True, None))[1]
-    app.send_email = lambda to, s, b, u: (mails.append((to, s, b)), True)[1]
+    app.send_email = lambda to, s, b, u=None, **k: (mails.append((to, s, b, u)), True)[1]
+    # Push is retired for students. Kept as a recorder, asserted to stay EMPTY: if a code
+    # path ever revives it, this list stops being empty and the journey fails loudly.
     app.send_web_push = lambda uid, t, b, url: (pushes.append((uid, t, b, url)), 1)[1]
-    app.sw.notify = lambda *a, **k: True
+    app.sw.notify = lambda *a, **k: True                # operator channel only
 
     srv = ThreadingHTTPServer(("127.0.0.1", 0), app.Handler)
     threading.Thread(target=srv.serve_forever, daemon=True).start()
@@ -152,8 +154,9 @@ def run():
     texts.clear(); mails.clear(); pushes.clear()
     school.state["0101"] = {"open": True, "seats": 2}
     app.run_cycle()
-    check("4. a real seat opening alerts by PUSH", bool(pushes), "push never fired")
-    check("4. ...and by EMAIL", bool(mails), "email never fired")
+    check("4. a real seat opening alerts by EMAIL", bool(mails), "email never fired")
+    check("4. ...and PUSH stays retired", not pushes,
+          "push fired for a student — it is meant to be gone")
     check("4. ...and by TEXT", bool(texts), "text never fired")
     check("4. the alert names the actual course and section",
           any("CHEM231" in str(m) for m in mails) or any("CHEM231" in t[1] for t in texts))
@@ -167,11 +170,11 @@ def run():
           f"{len(texts) - n_texts} duplicate alerts — this is what latching prevents")
 
     # ---------- 5. the link in the alert works ----------
-    # The tracked /r/ link is in PUSH and EMAIL. Texts deliberately carry the DIRECT
+    # The tracked /r/ link is in EMAIL. Texts deliberately carry the DIRECT
     # registrar URL: a text is billed per 160 characters, and a student mid-registration
     # must still reach the registrar even if our box is down. So look where it should be.
     link = None
-    for blob in [str(p) for p in pushes] + [str(m) for m in mails]:
+    for blob in [str(m) for m in mails]:
         m = re.search(r"/r/([A-Za-z0-9_-]+)", blob)
         if m: link = m.group(1); break
     check("5. texts carry the DIRECT registrar link, not a redirect through us",
@@ -200,9 +203,9 @@ def run():
         check("5. the alert contained a tracked link", False, "no /r/ token found in any text")
 
     # ---------- 6. they turn a channel off ----------
-    code, body, _ = http("/notify-prefs", [("csrf", csrf), ("notify_push", "1"),
-                                           ("notify_sms", "1")], cookie=cookie)
-    check("6. preferences saved", app.notify_prefs(uid)[:2] == (True, False),
+    code, body, _ = http("/notify-prefs", [("csrf", csrf), ("notify_sms", "1")],
+                         cookie=cookie)
+    check("6. preferences saved", app.notify_prefs(uid)[1:] == (False, True),
           f"got {app.notify_prefs(uid)}")
 
     school.state["0101"] = {"open": False, "seats": 0}
@@ -211,10 +214,11 @@ def run():
     school.state["0101"] = {"open": True, "seats": 3}
     app.run_cycle()
     check("6. email is now silent", not mails, f"{len(mails)} emails after opting out")
-    check("6. ...but push still fires", bool(pushes))
+    check("6. ...and push did not quietly take over", not pushes,
+          "a retired channel firing as a fallback is a channel nobody chose")
     # NOT a bug that no text arrives: SMS is capped at one per watch, ever, because each
     # one costs real money and a flickering section would otherwise bill repeatedly.
-    # Push and email re-arm freely; they are free. Asserting "text fires again" here would
+    # Email re-arms freely; it is free. Asserting "text fires again" here would
     # have pinned the opposite of the cost control we actually want.
     check("6. text does NOT re-fire for the same watch (one paid text per watch)",
           not texts, f"{len(texts)} texts — the per-watch SMS cap is not holding")
