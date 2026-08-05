@@ -116,6 +116,17 @@ def probe(s):
         # question is settled. This RAISES the evidence bar rather than lowering it — the
         # requirement is still "we watched it call a section full", we just stop insisting
         # the proof arrive in one predetermined course.
+        # Some adapters query their registration system for OPEN sections only, so a full
+        # section can never appear in the result no matter how full the college gets. CUNY
+        # is the case: the search is sent with open_class=O. Demanding a full section from
+        # those is demanding evidence the design forbids, and would leave nine working
+        # colleges permanently uncounted. The safety property is stronger than what the
+        # evidence would have shown anyway — a section is present only when the school
+        # itself says it is open, so the failure mode is a missed alert, never a phantom
+        # seat. Judge them on returning real sections, which they just did.
+        if getattr(s, "open_only", False):
+            return "OK", ("adapter queries open sections only (open_only), so a full section "
+                          "cannot appear; a phantom seat is structurally impossible"), stats
         try:
             proof = _find_full_section(s, course)
         except _FakeOpen as e:

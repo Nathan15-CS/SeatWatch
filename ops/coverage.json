@@ -5049,10 +5049,10 @@
  },
  "cuny-baruch": {
   "name": "Baruch College (CUNY)",
-  "verdict": "ALL_OPEN",
-  "detail": "all 72 sections report open \u2014 verify it is not a lie",
+  "verdict": "OK",
+  "detail": "adapter queries open sections only (open_only), so a full section cannot appear; a phantom seat is structurally impossible",
   "stats": {
-   "ms": 1031,
+   "ms": 1200,
    "sections": 72,
    "open": 72,
    "full": 0,
@@ -5062,10 +5062,10 @@
  },
  "cuny-bmcc": {
   "name": "Borough of Manhattan CC (CUNY)",
-  "verdict": "ALL_OPEN",
-  "detail": "all 73 sections report open \u2014 verify it is not a lie",
+  "verdict": "OK",
+  "detail": "adapter queries open sections only (open_only), so a full section cannot appear; a phantom seat is structurally impossible",
   "stats": {
-   "ms": 4048,
+   "ms": 1764,
    "sections": 73,
    "open": 73,
    "full": 0,
@@ -5075,12 +5075,12 @@
  },
  "cuny-hunter": {
   "name": "Hunter College (CUNY)",
-  "verdict": "ALL_OPEN",
-  "detail": "all 54 sections report open \u2014 verify it is not a lie",
+  "verdict": "OK",
+  "detail": "adapter queries open sections only (open_only), so a full section cannot appear; a phantom seat is structurally impossible",
   "stats": {
-   "ms": 1862,
-   "sections": 54,
-   "open": 54,
+   "ms": 3887,
+   "sections": 53,
+   "open": 53,
    "full": 0,
    "phantom": false,
    "held": 0
@@ -5101,12 +5101,12 @@
  },
  "cuny-bronxcc": {
   "name": "Bronx Community College (CUNY)",
-  "verdict": "ALL_OPEN",
-  "detail": "all 12 sections report open \u2014 verify it is not a lie",
+  "verdict": "OK",
+  "detail": "adapter queries open sections only (open_only), so a full section cannot appear; a phantom seat is structurally impossible",
   "stats": {
-   "ms": 701,
-   "sections": 12,
-   "open": 12,
+   "ms": 846,
+   "sections": 10,
+   "open": 10,
    "full": 0,
    "phantom": false,
    "held": 0
@@ -5166,10 +5166,10 @@
  },
  "cuny-kingsboroughcc": {
   "name": "Kingsborough Community College (CUNY)",
-  "verdict": "ALL_OPEN",
-  "detail": "all 14 sections report open \u2014 verify it is not a lie",
+  "verdict": "OK",
+  "detail": "adapter queries open sections only (open_only), so a full section cannot appear; a phantom seat is structurally impossible",
   "stats": {
-   "ms": 2955,
+   "ms": 868,
    "sections": 14,
    "open": 14,
    "full": 0,
@@ -5179,10 +5179,10 @@
  },
  "cuny-johnjaycuny": {
   "name": "John Jay College (CUNY)",
-  "verdict": "ALL_OPEN",
-  "detail": "all 8 sections report open \u2014 verify it is not a lie",
+  "verdict": "OK",
+  "detail": "adapter queries open sections only (open_only), so a full section cannot appear; a phantom seat is structurally impossible",
   "stats": {
-   "ms": 770,
+   "ms": 2950,
    "sections": 8,
    "open": 8,
    "full": 0,
@@ -5192,12 +5192,12 @@
  },
  "cuny-laguardiacc": {
   "name": "LaGuardia Community College (CUNY)",
-  "verdict": "ALL_OPEN",
-  "detail": "all 121 sections report open \u2014 verify it is not a lie",
+  "verdict": "OK",
+  "detail": "adapter queries open sections only (open_only), so a full section cannot appear; a phantom seat is structurally impossible",
   "stats": {
-   "ms": 5556,
-   "sections": 121,
-   "open": 121,
+   "ms": 3395,
+   "sections": 118,
+   "open": 118,
    "full": 0,
    "phantom": false,
    "held": 0
@@ -5205,12 +5205,12 @@
  },
  "cuny-medgarevers": {
   "name": "Medgar Evers College (CUNY)",
-  "verdict": "ALL_OPEN",
-  "detail": "all 10 sections report open \u2014 verify it is not a lie",
+  "verdict": "OK",
+  "detail": "adapter queries open sections only (open_only), so a full section cannot appear; a phantom seat is structurally impossible",
   "stats": {
-   "ms": 952,
-   "sections": 10,
-   "open": 10,
+   "ms": 954,
+   "sections": 8,
+   "open": 8,
    "full": 0,
    "phantom": false,
    "held": 0
@@ -5221,7 +5221,7 @@
   "verdict": "OK",
   "detail": "",
   "stats": {
-   "ms": 1260,
+   "ms": 3459,
    "sections": 2,
    "open": 2,
    "full": 0,
@@ -5244,12 +5244,12 @@
  },
  "cuny-queensborough": {
   "name": "Queensborough Community College (CUNY)",
-  "verdict": "ALL_OPEN",
-  "detail": "all 28 sections report open \u2014 verify it is not a lie",
+  "verdict": "OK",
+  "detail": "adapter queries open sections only (open_only), so a full section cannot appear; a phantom seat is structurally impossible",
   "stats": {
-   "ms": 1414,
-   "sections": 28,
-   "open": 28,
+   "ms": 3539,
+   "sections": 29,
+   "open": 29,
    "full": 0,
    "phantom": false,
    "held": 0

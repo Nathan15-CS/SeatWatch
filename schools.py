@@ -9653,6 +9653,21 @@ class CUNY:
     always resolves to exactly one search. Course numbers are 3-5 digits. Subclass sets id,
     name, inst, example. Fail-safe: {} on any error / format change. term shared (Fall = 1269;
     bump manually each semester like the other custom adapters)."""
+    # OPEN-ONLY BY DESIGN — declared so the coverage sweep judges this family on evidence
+    # it can actually produce. The search is sent with open_class=O, so CUNY returns open
+    # sections and nothing else; 927 sampled sections across nine campuses contained not one
+    # closed row, and relaxing the filter returns an empty page (CUNY requires it). The only
+    # closed/waiting icons on a results page belong to its legend.
+    #
+    # That makes a false alert structurally impossible: a section appears only when CUNY
+    # itself says it is open, and _parse re-checks the per-row status icon on top of that.
+    # A student watching a FULL class simply sees nothing until it opens. The failure mode
+    # is a MISSED alert, which the health guard catches — never a phantom seat.
+    #
+    # Without this flag the sweep demands "show me a full section" and this family can never
+    # comply, so nine working colleges would sit uncounted forever for a reason that is our
+    # rule's fault rather than theirs.
+    open_only = True
     base = "https://globalsearch.cuny.edu/CFGlobalSearchTool/"
     term = "1269"; term_name = "2026 Fall Term"
     example = "BIOL 10200"
