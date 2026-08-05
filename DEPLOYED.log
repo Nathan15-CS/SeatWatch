@@ -57,3 +57,4 @@
 2026-08-05T16:57:04Z sha=fe3770c mode=app files=[app.py ca_chain.py guardian.py confidence.py schools.py ops/edu-intermediates.pem ops/coverage.json ops/blocked.json ops/nightly-sweep.sh ops/sweep-schools.py]
 2026-08-05T18:18:42Z sha=3e74eea mode=app files=[app.py ca_chain.py guardian.py confidence.py schools.py ops/edu-intermediates.pem ops/coverage.json ops/blocked.json ops/nightly-sweep.sh ops/sweep-schools.py]
 2026-08-05T19:01:17Z sha=161f2c3 mode=app files=[app.py ca_chain.py guardian.py confidence.py schools.py ops/edu-intermediates.pem ops/coverage.json ops/blocked.json ops/nightly-sweep.sh ops/sweep-schools.py]
+2026-08-05T19:07:13Z sha=5e5d330 mode=app files=[app.py ca_chain.py guardian.py confidence.py schools.py ops/edu-intermediates.pem ops/coverage.json ops/blocked.json ops/nightly-sweep.sh ops/sweep-schools.py]
