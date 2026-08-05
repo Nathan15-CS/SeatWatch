@@ -424,3 +424,43 @@ refuse if <95% of rows covered, refuse if proven falls >10%, always accept a ris
 refusal it keeps yesterday'\''s file and escalates here. The 37 unproven schools will
 convert on their own as sections fill — this is what makes that happen without anyone
 remembering to look.
+
+## 2026-08-05 — Build: Spring 2027 readiness. AUTO_ROLL_TERMS ARMED.
+
+Nathan flagged that most demand will be Spring 2027. Findings and actions:
+
+**Spring 2027 registration has NOT opened anywhere.** Every school found listing it marks
+it "View Only" with 100%-open sections (laniertech 30/30, augustatech 32/32) — published,
+not registrable. Sampled: Banner 4/22 list it (all View Only), Colleague 11/14 list it
+(they publish years ahead — one went to 2031). LISTING IS NOT REGISTRABLE. Nothing to
+watch yet, so no term-picker UI was built; it would offer an empty semester.
+
+**Two populations.** ~277 schools (Colleague/VCCS) re-pick their term every fetch and
+self-roll around October. ~651 (Banner et al) cache a pinned term and would have served
+Fall 2026 forever.
+
+**ACTION 1 — students are no longer ghosted at rollover (shipped).** A watch is bound to
+its term; when the school moves, run_cycle skips it forever so it cannot announce a seat
+in a semester nobody signed up for. That skip was SILENT — operator paged, student told
+nothing. They would assume the class never opened. A stranded watch now warns its owner
+ONCE (names the class, says the school changed semesters, explains section numbers are
+reused, says to re-add). watches.stranded_notified_at stamps it; a FAILED send is not
+stamped so it retries. 13 checks.
+
+**ACTION 2 — AUTO_ROLL_TERMS=1 is now ARMED** (was disarmed all year). Not a guess:
+  - resolve_term() is pure; a dry run over 20 pinned schools proposed 0 changes
+  - 8 guards proven first: dead term rejected, live adopted, backward refused,
+    auto_term=False honoured, unreadable list a no-op, August keeps Fall,
+    November moves to Spring
+  - after arming, the FIRST pass gave 1 refusal, 0 rolls:
+      [term] ggc: detected 202618 but no live data yet — keeping 202608
+    That is the live-data gate working in production. 20 watches untouched.
+  To disarm: AUTO_ROLL_TERMS=0 in /etc/seatwatch.env + restart (a .bak is beside it).
+
+**Note for whoever touches this next:** the backward-roll guard lives in
+_pick_current_term because it compares parsed season+year. Term CODES are not comparable
+across schools — 202608, 2267 and 26/FA*1 are all Fall 2026 — so a lexical check bolted
+onto refresh_term looks safer and quietly breaks the odd formats. My first test failed
+for exactly this reason: it stubbed resolve_term and so bypassed the real guard.
+
+580 checks green. Expect schools to move to Spring 2027 around October, on their own.
