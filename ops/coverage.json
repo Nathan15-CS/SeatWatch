@@ -12003,5 +12003,18 @@
    "phantom": false,
    "held": 0
   }
+ },
+ "udel": {
+  "name": "University of Delaware",
+  "verdict": "OK",
+  "detail": "",
+  "stats": {
+   "ms": 197,
+   "sections": 49,
+   "open": 4,
+   "full": 45,
+   "phantom": false,
+   "held": 0
+  }
  }
 }

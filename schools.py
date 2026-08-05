@@ -8396,6 +8396,91 @@ class WestminsterUT(Colleague):
     id = "westminsterut"; name = "Westminster University"
     example = "PSYC 105"; host = "ss.westminsteru.edu"
 
+class UDelaware:
+    """University of Delaware — public HTML class search, no login (~24k students).
+
+    udapps.nss.udel.edu/CoursesSearch/search-results?term=<strm>&search_type=A&course_sec=<CODE>
+    returns a plain results table. One GET per course; the column we need is "Open seats".
+
+    Delaware states availability in words rather than leaving it to be inferred:
+
+        "0 OF 22    CURRENTLY FULL"   -> full
+        "1 OF 22"                     -> one seat free
+        "39 OF 40"                    -> plenty
+
+    OPEN REQUIRES BOTH: a positive count AND the absence of CURRENTLY FULL. Either alone
+    would be enough in today's data, but taking the school at its word costs nothing and
+    means a future format change has to defeat two independent signals to produce a
+    phantom seat.
+
+    The WL marker in the course cell ("ENGL110014 LEC WL") is NOT a held seat — it marks
+    sections that OFFER a waitlist. Checked before trusting it, because this is exactly
+    where the Colleague waitlist trap lives: across 118 sampled rows, WL appears on 70 full
+    sections AND on 45 with seats, while Delaware independently marks the full ones
+    CURRENTLY FULL. So WL is orthogonal to availability and is deliberately ignored;
+    Delaware's own FULL text is the authority.
+
+    Section key comes from the run-together code: "ENGL110010" under course ENGL110 is
+    section "010". Students type "ENGL 110" or "ENGL110" — both normalise to the same
+    search. Fail-safe: {} on any error, so a broken fetch is silent, never fabricated.
+    """
+    id = "udel"; name = "University of Delaware"
+    example = "ENGL110"; term = "2268"          # 2026 Fall, from the form's own term select
+    base = "https://udapps.nss.udel.edu/CoursesSearch/"
+    _RE = re.compile(r"^([A-Za-z]{2,5})\s*(\d{3}[A-Za-z]?)$")
+
+    def cur_term(self):
+        return self.term
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper() + m.group(2).upper()) if m else None
+
+    def valid_course(self, course):
+        return self._norm(course) is not None
+
+    def reg_url(self, course):
+        return self.base
+
+    def fetch(self, courses):
+        out = {}
+        for course in courses:
+            code = self._norm(course)
+            if not code:
+                continue
+            try:
+                q = urllib.parse.urlencode({"term": self.cur_term(),
+                                            "search_type": "A", "course_sec": code})
+                req = urllib.request.Request(self.base + "search-results?" + q,
+                                             headers={"User-Agent": UA, "Referer": self.base})
+                html = urllib.request.urlopen(req, timeout=30).read().decode("utf-8", "replace")
+            except Exception:
+                continue
+            secs = {}
+            for row in re.finditer(r"<tr[^>]*>(.*?)</tr>", html, re.S):
+                cells = [re.sub(r"<[^>]+>|&nbsp;|\s+", " ", c).strip()
+                         for c in re.findall(r"<td[^>]*>(.*?)</td>", row.group(1), re.S)]
+                if len(cells) < 4:
+                    continue
+                ident = cells[0].split()[0] if cells[0].split() else ""
+                if not ident.upper().startswith(code):
+                    continue                      # another course in a shared result table
+                sec = ident[len(code):].strip()
+                if not sec:
+                    continue
+                m = re.match(r"(\d+)\s+OF\s+(\d+)", cells[3])
+                if not m:
+                    continue                      # no count published -> skip, never guess
+                avail = int(m.group(1))
+                full = "CURRENTLY FULL" in cells[3].upper()
+                if sec in secs:
+                    continue                      # collapse guard
+                secs[sec] = {"open": avail > 0 and not full, "seats": max(avail, 0)}
+            if secs:
+                out[course] = secs
+        return out
+
+
 class WesternWyoming(Colleague):
     id = "westernwyoming"; name = "Western Wyoming Community College"
     example = "ENGL 1010"; host = "selfservice.westernwyoming.edu"
@@ -10343,7 +10428,7 @@ def _guard_registry(all_schools):
     return {s.id: s for s in all_schools}
 
 
-SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
+SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UDelaware(), UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
     MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(), SanDiegoCity(), SanDiegoMesa(), SanDiegoMiramar(), Fairfield(),
