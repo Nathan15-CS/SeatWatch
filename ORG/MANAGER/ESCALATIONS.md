@@ -310,3 +310,40 @@ its OUTPUT, not the payload it filters.
 
 **38 ALL_OPEN** stay listed-but-uncounted. Not broken — verified VCCS is fail-closed
 and Valencia returns real seat counts. They self-prove when sections fill.
+
+## 2026-08-05 — Build: 879 of 926. The last 10 are NOT code problems.
+
+Pushed from 851 to 879. Everything gained came from fixing our own client. The 10 that
+remain were each chased to a definitive cause, and none of them is a bug we can fix:
+
+**LOGIN-GATED — structurally unsupportable (4).** Their course data now sits behind SSO.
+Reading it would require a student's credentials, which we will never ask for.
+  - walshcollege   every registration path -> portal.walshcollege.edu, 'sso-walshcollege-edu - Sign In'
+  - mcdowelltech   /Student/Courses -> 'Unauthorized Request - Ellucian Student Application'
+  - brunswickcc    /Student/Courses -> 'Unauthorized Request - Brunswick Community College'
+  - northgatech    -> 'TCSG - Sign In' (Technical College System of Georgia SSO)
+  RECOMMEND DELISTING these four. They cannot come back without the college reopening a
+  public catalogue. Leaving them in the registry inflates it with schools nobody can watch.
+
+**BLOCKING OUR SERVER IP (4).** TCP completes, then the host never replies — a silent
+drop, not a timeout. Proven by network: reg-ss.chemeketa.edu answers instantly from a
+normal residential connection and hangs for 20s+ from 141.148.27.134.
+  - chemeketa, ysu, eosc  (TCP accepted, no reply)
+  - centenarynj           (TCP never completes)
+  Only fixes are a different egress IP or asking the colleges to allowlist us. A proxy
+  costs money every month, which is against the standing constraint, so these stay hidden.
+
+**HOST RETIRED (1).**
+  - wssu  Their OWN registrar page links to ssbprod-wssu.uncecs.edu/pls/WSSUPROD/
+    twbkwbis.P_GenMenu — and that exact URL 404s, as does every path including '/'.
+    Their published link is stale. Needs a human to find where Banner Rams Online moved.
+
+**NEEDS DEEPER ADAPTER WORK (1).**
+  - sacredheart  Reachable, term picked correctly ('Fall 2026'), course matched
+    (courseId='MA_109', 17 MatchingSectionIds), but the Sections POST returns
+    {"TermsAndSections": [], "Course": null} — the server does not resolve that courseId.
+    Underscore-style ids differ from the numeric ones elsewhere; likely the payload shape.
+
+**37 all-open stay listed-but-uncounted.** Not broken: Camp (ITE 152, 1/5 full) and
+Virginia Western (MTH 161, 5/9 full) prove the Virginia parser reports both states.
+Early-August registration. They self-prove as sections fill, with no work from anyone.
