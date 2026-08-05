@@ -340,11 +340,32 @@ class Cornell:
 
 
 # ===========================================================================
-class OhioState:
+class OhioState(TermAutoRoll):
     id = "osu"
     name = "Ohio State University"
     example = "CSE 2221"
-    term = "1268"   # Autumn 2026
+    term = "1268"   # Autumn 2026; fallback only — term_options() detects it now
+
+    def term_options(self):
+        """OSU has no terms endpoint, but every search response carries a filter facet
+        listing them ("Term" -> [{"title": "Autumn 2026", "term": "1268"}]). Asking with
+        NO term selected is what makes the facet show every term rather than only the one
+        already chosen.
+
+        Note OSU says AUTUMN, not Fall. The shared picker maps autumn onto fall, which is
+        the whole reason term_options returns the school's own words instead of a
+        normalised guess.
+        """
+        import json as _json
+        url = ("https://content.osu.edu/v2/classes/search?q="
+               + urllib.parse.quote(self.example) + "&campus=col")
+        req = urllib.request.Request(url, headers={"User-Agent": UA})
+        d = _json.loads(urllib.request.urlopen(req, timeout=30).read()).get("data", {})
+        for f in d.get("filters") or []:
+            if str(f.get("slug")) == "term":
+                return [(str(i.get("term")), str(i.get("title") or ""))
+                        for i in (f.get("items") or []) if i.get("term")]
+        return []
     _re = re.compile(r"^[A-Z]{2,8}\s\d{3,4}(?:\.\d+)?[A-Z]?$")
 
     @staticmethod
@@ -385,7 +406,7 @@ class OhioState:
 
 
 # ===========================================================================
-class VirginiaTech:
+class VirginiaTech(TermAutoRoll):
     """Big non-Banner school added via a BESPOKE adapter (like UMD/Cornell/Penn).
     VT publishes its full Timetable of Classes with no login and — critically — an
     authoritative 'open only' filter. We ask VT twice per course: all sections, and
@@ -396,7 +417,33 @@ class VirginiaTech:
     id = "vt"
     name = "Virginia Tech"
     example = "CS 1114"
-    term = "202609"   # Fall 2026 (VT TERMYEAR format)
+    term = "202609"   # Fall 2026; fallback only — term_options() detects it now
+
+    def term_options(self):
+        """VT's request page carries a TERMYEAR dropdown. Two traps in it:
+
+        the first entry is a PLACEHOLDER ("Select Term") that reuses the NEXT term's
+        value, so keying on value alone yields a duplicate whose label carries no season —
+        skipped here, and the picker would skip it anyway since it cannot parse one.
+
+        "Winter 26-27" has no four-digit year, so the picker cannot date it and ignores it.
+        That is the right outcome rather than a bug to fix: VT's winter session is a
+        three-week mini-term, not a semester students queue for seats in.
+        """
+        req = urllib.request.Request(self._url.rsplit("/", 1)[0] + "/HZSKVTSC.P_ProcRequest",
+                                     headers={"User-Agent": UA})
+        html = urllib.request.urlopen(req, timeout=25).read().decode("utf-8", "replace")
+        m = re.search(r"<select[^>]*name=[\"']?TERMYEAR.*?</select>", html, re.S | re.I)
+        if not m:
+            return []
+        out = []
+        for o in re.finditer(r"<option[^>]*value=[\"']?([^\"'>\s]+)[\"']?[^>]*>\s*([^<]{1,40})",
+                             m.group(0), re.I):
+            code, label = o.group(1).strip(), o.group(2).strip()
+            if "select" in label.lower():
+                continue                      # the placeholder that reuses a real value
+            out.append((code, label))
+        return out
     _url = "https://selfservice.banner.vt.edu/ssb/HZSKVTSC.P_ProcRequest"
     _re = re.compile(r"^[A-Z]{2,4}\s?\d{4}$")
 
