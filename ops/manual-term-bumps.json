@@ -1,576 +1,310 @@
 [
  {
-  "id": "mercyny",
-  "name": "Mercy University (New York)",
-  "term": "202630",
-  "family": "Banner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "oaklandu",
-  "name": "Oakland University",
-  "term": "202640",
-  "family": "Banner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "utrgv",
-  "name": "University of Texas Rio Grande Valley",
-  "term": "202710",
-  "family": "Banner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "wwu",
-  "name": "Western Washington University",
-  "term": "202640",
-  "family": "Banner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "cuny-baruch",
-  "name": "Baruch College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-bmcc",
-  "name": "Borough of Manhattan CC (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-bronxcc",
-  "name": "Bronx Community College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-brooklyncuny",
-  "name": "Brooklyn College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-citycollege",
-  "name": "City College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-citytech",
-  "name": "NYC College of Technology (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-cunysps",
-  "name": "CUNY School of Professional Studies",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-guttmancc",
-  "name": "Guttman Community College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-hostoscc",
-  "name": "Hostos Community College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-hunter",
-  "name": "Hunter College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-johnjaycuny",
-  "name": "John Jay College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-kingsboroughcc",
-  "name": "Kingsborough Community College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-laguardiacc",
-  "name": "LaGuardia Community College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-lehmancuny",
-  "name": "Lehman College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-medgarevers",
-  "name": "Medgar Evers College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-queens",
-  "name": "Queens College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-queensborough",
-  "name": "Queensborough Community College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-statenisland",
-  "name": "College of Staten Island (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "cuny-yorkcuny",
-  "name": "York College (CUNY)",
-  "term": "1269",
-  "family": "CUNY",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
   "id": "cayuga",
   "name": "Cayuga Community College",
   "term": null,
-  "family": "Cayuga",
-  "reason": "no term detection \u2014 hardcoded term only"
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
   "id": "clevelandstate",
   "name": "Cleveland State University",
   "term": "117-Fall 2026",
-  "family": "ClevelandState",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
+  "family": "object",
+  "reason": "opted out (auto_term=False)"
  },
  {
   "id": "cornell",
   "name": "Cornell University",
   "term": null,
-  "family": "Cornell",
-  "reason": "no term detection \u2014 hardcoded term only"
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
   "id": "fairfield",
   "name": "Fairfield University",
   "term": null,
-  "family": "Fairfield",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "oregonstate",
-  "name": "Oregon State University",
-  "term": null,
-  "family": "Fose",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "uiowa",
-  "name": "University of Iowa",
-  "term": null,
-  "family": "Iowa",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "ashlandctc",
-  "name": "Ashland Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "bigsandyctc",
-  "name": "Big Sandy Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "bluegrassctc",
-  "name": "Bluegrass Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "elizabethtownctc",
-  "name": "Elizabethtown Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "gatewayky",
-  "name": "Gateway Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "hazardctc",
-  "name": "Hazard Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "hendersoncc",
-  "name": "Henderson Community College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "hopkinsvillecc",
-  "name": "Hopkinsville Community College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "jeffersonctc",
-  "name": "Jefferson Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "madisonvillecc",
-  "name": "Madisonville Community College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "maysvillectc",
-  "name": "Maysville Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "owensboroctc",
-  "name": "Owensboro Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "somersetcc",
-  "name": "Somerset Community College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "southcentralky",
-  "name": "Southcentral Kentucky Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "southeastky",
-  "name": "Southeast Kentucky Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "westkentuckyctc",
-  "name": "West Kentucky Community & Technical College",
-  "term": "4264",
-  "family": "KCTCS",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "monroecc-ny",
-  "name": "Monroe Community College",
-  "term": null,
-  "family": "MonroeCC",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "niagara",
-  "name": "Niagara University",
-  "term": "26/FA*1",
-  "family": "Niagara",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "osu",
-  "name": "Ohio State University",
-  "term": "1268",
-  "family": "OhioState",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "penn",
-  "name": "University of Pennsylvania",
-  "term": null,
-  "family": "Penn",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "rutgers-nb",
-  "name": "Rutgers\u2013New Brunswick",
-  "term": null,
-  "family": "Rutgers",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "sdcity",
-  "name": "San Diego City College",
-  "term": "2267",
-  "family": "SDCCD",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "sdmesa",
-  "name": "San Diego Mesa College",
-  "term": "2267",
-  "family": "SDCCD",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "sdmiramar",
-  "name": "San Diego Miramar College",
-  "term": "2267",
-  "family": "SDCCD",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "tamucc",
-  "name": "Texas A&M University-Corpus Christi",
-  "term": "202609",
-  "family": "TAMUCorpusChristi",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "tntech",
-  "name": "Tennessee Technological University",
-  "term": "202680",
-  "family": "TennesseeTech",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "uci",
-  "name": "University of California, Irvine",
-  "term": "2026-92",
-  "family": "UCI",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "ucla",
-  "name": "University of California, Los Angeles",
-  "term": "26F",
-  "family": "UCLA",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "ucsb",
-  "name": "University of California, Santa Barbara",
-  "term": "20264",
-  "family": "UCSB",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "ucsc",
-  "name": "University of California, Santa Cruz",
-  "term": "2268",
-  "family": "UCSC",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "udel",
-  "name": "University of Delaware",
-  "term": "2268",
-  "family": "UDelaware",
-  "reason": "no term detection \u2014 hardcoded term only"
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
   "id": "hawaiicc",
   "name": "Hawaii Community College",
   "term": "202710",
   "family": "UHBanner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
+  "reason": "opted out (auto_term=False)"
  },
  {
   "id": "honolulucc",
   "name": "Honolulu Community College",
   "term": "202710",
   "family": "UHBanner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
+  "reason": "opted out (auto_term=False)"
  },
  {
   "id": "kapiolanicc",
   "name": "Kapiolani Community College",
   "term": "202710",
   "family": "UHBanner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
+  "reason": "opted out (auto_term=False)"
  },
  {
   "id": "kauaicc",
   "name": "Kauai Community College",
   "term": "202710",
   "family": "UHBanner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
+  "reason": "opted out (auto_term=False)"
  },
  {
   "id": "leewardcc",
   "name": "Leeward Community College",
   "term": "202710",
   "family": "UHBanner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
+  "reason": "opted out (auto_term=False)"
  },
  {
-  "id": "uhhilo",
-  "name": "University of Hawaii at Hilo",
-  "term": "202710",
-  "family": "UHBanner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
+  "id": "mercyny",
+  "name": "Mercy University (New York)",
+  "term": "202630",
+  "family": "Banner",
+  "reason": "opted out (auto_term=False)"
  },
  {
-  "id": "uhmanoa",
-  "name": "University of Hawaii at Manoa",
-  "term": "202710",
-  "family": "UHBanner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "uhmaui",
-  "name": "University of Hawaii Maui College",
-  "term": "202710",
-  "family": "UHBanner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "uhwestoahu",
-  "name": "University of Hawaii - West Oahu",
-  "term": "202710",
-  "family": "UHBanner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "windwardcc",
-  "name": "Windward Community College",
-  "term": "202710",
-  "family": "UHBanner",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "umd",
-  "name": "University of Maryland",
-  "term": "202608",
-  "family": "UMD",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "unca",
-  "name": "University of North Carolina Asheville",
+  "id": "monroecc-ny",
+  "name": "Monroe Community College",
   "term": null,
-  "family": "UNCAsheville",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "uoregon",
-  "name": "University of Oregon",
-  "term": "202601",
-  "family": "UOregon",
-  "reason": "opted out: parallel same-season terms (auto_term=False)"
- },
- {
-  "id": "uvi",
-  "name": "University of the Virgin Islands",
-  "term": "202608",
-  "family": "UVI",
-  "reason": "no term detection \u2014 hardcoded term only"
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
   "id": "moorpark",
   "name": "Moorpark College",
   "term": "202607",
   "family": "VCCCD",
-  "reason": "no term detection \u2014 hardcoded term only"
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "niagara",
+  "name": "Niagara University",
+  "term": "26/FA*1",
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "oaklandu",
+  "name": "Oakland University",
+  "term": "202640",
+  "family": "Banner",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "oregonstate",
+  "name": "Oregon State University",
+  "term": null,
+  "family": "Fose",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "osu",
+  "name": "Ohio State University",
+  "term": "1268",
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
   "id": "oxnard",
   "name": "Oxnard College",
   "term": "202607",
   "family": "VCCCD",
-  "reason": "no term detection \u2014 hardcoded term only"
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "penn",
+  "name": "University of Pennsylvania",
+  "term": null,
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "rutgers-nb",
+  "name": "Rutgers\u2013New Brunswick",
+  "term": null,
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "sdcity",
+  "name": "San Diego City College",
+  "term": "2267",
+  "family": "SDCCD",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "sdmesa",
+  "name": "San Diego Mesa College",
+  "term": "2267",
+  "family": "SDCCD",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "sdmiramar",
+  "name": "San Diego Miramar College",
+  "term": "2267",
+  "family": "SDCCD",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "tamucc",
+  "name": "Texas A&M University-Corpus Christi",
+  "term": "202609",
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "tntech",
+  "name": "Tennessee Technological University",
+  "term": "202680",
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "uci",
+  "name": "University of California, Irvine",
+  "term": "2026-92",
+  "family": "object",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "ucla",
+  "name": "University of California, Los Angeles",
+  "term": "26F",
+  "family": "object",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "ucsb",
+  "name": "University of California, Santa Barbara",
+  "term": "20264",
+  "family": "object",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "ucsc",
+  "name": "University of California, Santa Cruz",
+  "term": "2268",
+  "family": "object",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "udel",
+  "name": "University of Delaware",
+  "term": "2268",
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "uhhilo",
+  "name": "University of Hawaii at Hilo",
+  "term": "202710",
+  "family": "UHBanner",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "uhmanoa",
+  "name": "University of Hawaii at Manoa",
+  "term": "202710",
+  "family": "UHBanner",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "uhmaui",
+  "name": "University of Hawaii Maui College",
+  "term": "202710",
+  "family": "UHBanner",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "uhwestoahu",
+  "name": "University of Hawaii - West Oahu",
+  "term": "202710",
+  "family": "UHBanner",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "uiowa",
+  "name": "University of Iowa",
+  "term": null,
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "umd",
+  "name": "University of Maryland",
+  "term": "202608",
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "unca",
+  "name": "University of North Carolina Asheville",
+  "term": null,
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "uoregon",
+  "name": "University of Oregon",
+  "term": "202601",
+  "family": "object",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "utrgv",
+  "name": "University of Texas Rio Grande Valley",
+  "term": "202710",
+  "family": "Banner",
+  "reason": "opted out (auto_term=False)"
+ },
+ {
+  "id": "uvi",
+  "name": "University of the Virgin Islands",
+  "term": "202608",
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
   "id": "venturacollege",
   "name": "Ventura College",
   "term": "202607",
   "family": "VCCCD",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "contracostacollege",
-  "name": "Contra Costa College",
-  "term": "202630",
-  "family": "VSB",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "diablovalley",
-  "name": "Diablo Valley College",
-  "term": "202630",
-  "family": "VSB",
-  "reason": "no term detection \u2014 hardcoded term only"
- },
- {
-  "id": "losmedanos",
-  "name": "Los Medanos College",
-  "term": "202630",
-  "family": "VSB",
-  "reason": "no term detection \u2014 hardcoded term only"
+  "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
   "id": "vt",
   "name": "Virginia Tech",
   "term": "202609",
-  "family": "VirginiaTech",
-  "reason": "no term detection \u2014 hardcoded term only"
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "windwardcc",
+  "name": "Windward Community College",
+  "term": "202710",
+  "family": "UHBanner",
+  "reason": "opted out (auto_term=False)"
  },
  {
   "id": "wisc",
   "name": "University of Wisconsin\u2013Madison",
   "term": "1272",
-  "family": "Wisconsin",
-  "reason": "no term detection \u2014 hardcoded term only"
+  "family": "object",
+  "reason": "no refresh_term \u2014 hardcoded term only"
+ },
+ {
+  "id": "wwu",
+  "name": "Western Washington University",
+  "term": "202640",
+  "family": "Banner",
+  "reason": "opted out (auto_term=False)"
  }
 ]
