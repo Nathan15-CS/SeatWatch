@@ -385,3 +385,42 @@ course-code suffix handling so a student typing ENGL 100 reaches ENGLC1000.
 **Highest-value from your bespoke list**, if you want ranking: ASU (~80k students) dwarfs
 everything else, then UGA (~40k), then Delaware (~24k). Those three are worth more than
 the remaining long tail combined.
+
+## 2026-08-05 — Build: ASU is NOT viable. Candidate screen + nightly measurement.
+
+**Arizona State — do not build. Not difficulty, principle.**
+Traced the whole thing rather than guessing. catalog.apps.asu.edu serves a 657-byte
+client-side shell; the real endpoint is recovered from their own bundle:
+  https://eadvs-cscc-catalog-api.apps.asu.edu/catalog-microservices/api/v1/search/classes?&refine=Y&<params>
+  (there is also /search/seats, /search/courses; term codes via api.myasuplat-dpl.asu.edu/api/codeset/terms — Fall 2026 = 2267)
+It returns **401 Unauthorized**. The bundle authenticates with authorization_code + PKCE
+(S256) and a passive-auth flag — an INTERACTIVE OAuth grant. There is no
+client_credentials grant and NO literal secret embedded (I checked, and deliberately did
+not go looking for one to use). Getting a token would mean simulating a browser through
+ASU'\''s OAuth flow and polling their API as their own web app. That is not reading a
+public catalogue, and it is not worth one school however large. The legacy
+webapp4.asu.edu/catalog path serves the SAME shell behind the SAME gate.
+
+**UGA — same answer.** athena.uga.edu returns an identical ~20.6KB SSO page for every
+Banner endpoint, including getTerms. Their public CSV is a periodic ARCHIVE snapshot,
+not live availability, so it is useless for alerts even though it is public.
+
+**Screened all 16 bespoke candidates for public reachability** (cheap, before investing
+in any one). Publicly reachable: U Delaware, Champlain, Niagara, UNO Omaha, Palm Beach
+State, College of Central Florida, Oglethorpe. Dead or gated: Lipscomb (404), Eastern
+New Mexico (404), St Petersburg (404), Greenville Tech (404), Hillsborough (unreachable),
+Austin CC (host does not resolve).
+
+CAUTION on the Colleague-looking ones: Champlain'\''s /Student/Courses page is public and
+full of seat data, but the PostSearchCriteria API returns non-JSON — the same
+'\''Unauthorized Request'\'' wall as mcdowelltech and brunswickcc. A Colleague subclass will
+NOT work there; it needs an HTML parser. Oglethorpe is public but every course returns
+MatchingSectionIds=0. Verify the API, not the page, before promising a 4-line subclass.
+
+**Nightly measurement is now installed** (cron 04:30 UTC, ops/nightly-sweep.sh). Nothing
+was refreshing coverage.json, so the count could only move when a human ran a sweep. It
+now re-measures every school nightly and publishes ONLY if the result passes a guard:
+refuse if <95% of rows covered, refuse if proven falls >10%, always accept a rise. On
+refusal it keeps yesterday'\''s file and escalates here. The 37 unproven schools will
+convert on their own as sections fill — this is what makes that happen without anyone
+remembering to look.
