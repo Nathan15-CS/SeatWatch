@@ -1383,7 +1383,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 3030,
+   "ms": 3022,
    "phantom": false
   }
  },
@@ -1483,7 +1483,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 93106,
+   "ms": 93152,
    "phantom": false
   }
  },
@@ -4691,7 +4691,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 20027,
+   "ms": 20025,
    "phantom": false
   }
  },
@@ -4922,7 +4922,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 3403,
+   "ms": 3308,
    "phantom": false
   }
  },
@@ -5048,7 +5048,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 2842,
+   "ms": 691,
    "phantom": true
   }
  },
@@ -5603,7 +5603,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 468,
+   "ms": 496,
    "phantom": false
   }
  },
@@ -6480,11 +6480,15 @@
  },
  "brookdale": {
   "name": "Brookdale Community College",
-  "verdict": "EMPTY",
-  "detail": "no sections for its own example course",
+  "verdict": "OK",
+  "detail": "",
   "stats": {
-   "ms": 739,
-   "phantom": false
+   "ms": 1496,
+   "sections": 36,
+   "open": 14,
+   "full": 22,
+   "phantom": false,
+   "held": 1
   }
  },
  "westerntexas": {
@@ -7246,7 +7250,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 20065,
+   "ms": 20115,
    "phantom": false
   }
  },
@@ -8990,7 +8994,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 344,
+   "ms": 106,
    "phantom": true
   }
  },
@@ -9285,7 +9289,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 93259,
+   "ms": 93269,
    "phantom": false
   }
  },
@@ -9957,7 +9961,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 142,
+   "ms": 135,
    "phantom": false
   }
  },
@@ -10330,7 +10334,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 1101,
+   "ms": 248,
    "phantom": false
   }
  },
