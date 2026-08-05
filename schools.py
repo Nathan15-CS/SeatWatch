@@ -258,12 +258,57 @@ class UMD(TermAutoRoll):
 
 
 # ===========================================================================
-class Rutgers:
+class Rutgers(TermAutoRoll):
     id = "rutgers-nb"
     name = "Rutgers–New Brunswick"
     example = "01:198:111"
     _re = re.compile(r"^\d{2}:\d{3}:\d{3}$")
-    api = "https://classes.rutgers.edu/soc/api/courses.json?year=2026&term=9&campus=NB"
+    # Rutgers writes a term as term-digit + year ("92026" = Fall 2026), which is the shape
+    # its own JS uses internally. Stored that way so one value carries both halves the API
+    # needs; the URL below splits it back apart.
+    term = "92026"
+    campus = "NB"
+    _SEASONS = {"0": "Winter", "1": "Spring", "7": "Summer", "9": "Fall"}
+
+    @property
+    def api(self):
+        t = self.cur_term()
+        return ("https://classes.rutgers.edu/soc/api/courses.json"
+                f"?year={t[1:]}&term={t[0]}&campus={self.campus}")
+
+    def term_options(self):
+        """Rutgers publishes no term list — its own page carries only
+        currentTermDate {year, term} and the JS derives neighbours from it. So the
+        candidates are derived the same way, using Rutgers' own season map
+        (0 Winter, 1 Spring, 7 Summer, 9 Fall).
+
+        Deriving rather than reading a list is safe here because nothing is adopted on the
+        strength of this alone: refresh_term fetches the example course in the candidate
+        term and rolls back unless real sections come back. A synthesised term that does
+        not exist simply fails that check. Winter is omitted — Rutgers' winter session is a
+        three-week mini-term, and offering it would let the picker choose it over Spring.
+        """
+        req = urllib.request.Request("https://classes.rutgers.edu/soc/",
+                                     headers={"User-Agent": UA})
+        html = urllib.request.urlopen(req, timeout=25).read().decode("utf-8", "replace")
+        m = re.search(r'currentTermDate"?\s*:\s*\{[^}]*"year"\s*:\s*(\d{4})[^}]*"term"\s*:\s*(\d)',
+                      html)
+        if not m:
+            return []
+        year, term = int(m.group(1)), m.group(2)
+        order = ["1", "7", "9"]                      # Spring, Summer, Fall within a year
+        out, y = [], year
+        if term in order:
+            i = order.index(term)
+        else:
+            i = 0
+        for _ in range(5):                           # current plus the next four
+            code = order[i]
+            out.append((f"{code}{y}", f"{self._SEASONS[code]} {y}"))
+            i += 1
+            if i >= len(order):
+                i, y = 0, y + 1
+        return out
 
     def valid_course(self, course):
         return bool(self._re.match(course.strip()))
@@ -3795,7 +3840,7 @@ class TAMU:
         return out
 
 
-class Iowa:
+class Iowa(TermAutoRoll):
     """Bespoke adapter for the University of Iowa's public MAUI API. One call per
     DEPARTMENT returns every section with an authoritative sectionStatus
     ('Open'/'Pending'/'MAUI Waitlist'/'Closed'). We treat ONLY 'Open' as open
@@ -3805,7 +3850,40 @@ class Iowa:
     id = "uiowa"
     name = "University of Iowa"
     example = "CS 1210"
-    legacy = "20263"   # Fall 2026 (MAUI legacyCode; from the public sessions list)
+    term = "20263"     # Fall 2026 legacyCode; fallback — term_options() detects it now
+
+    @property
+    def legacy(self):
+        """Iowa keys its section URLs on MAUI's legacyCode, and the rest of this adapter
+        calls it `legacy`. Exposing it over cur_term() means the existing fetch keeps
+        reading self.legacy while following the detected term."""
+        return self.cur_term()
+
+    def term_options(self):
+        """MAUI publishes every session with a plain shortDescription ("Fall 2026") and the
+        legacyCode the section endpoint is keyed on — exactly the pair needed.
+
+        411 sessions come back, running from 1908 to 2040. The far-future ones are harmless
+        (the picker keeps the current term until well past its start, and refresh_term
+        refuses any term with no live data behind it) but they are dropped anyway: offering
+        a picker a term dated 2039 is asking two guards to cover for a question that need
+        not be asked."""
+        import datetime as _dt
+        import json as _json
+        req = urllib.request.Request(
+            "https://api.maui.uiowa.edu/maui/api/pub/registrar/sessions",
+            headers={"User-Agent": UA})
+        rows = _json.loads(urllib.request.urlopen(req, timeout=30).read())
+        yr = _dt.date.today().year
+        out = []
+        for r in rows or []:
+            code, desc = r.get("legacyCode"), str(r.get("shortDescription") or "")
+            if not code or r.get("previousSession"):
+                continue
+            m = re.search(r"(20\d\d)", desc)
+            if m and yr <= int(m.group(1)) <= yr + 2:
+                out.append((str(code), desc))
+        return out
     _url = "https://api.maui.uiowa.edu/maui/api/pub/registrar/sections/{lc}/{dept}"
 
     @staticmethod
