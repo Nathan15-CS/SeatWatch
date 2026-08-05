@@ -136,8 +136,26 @@ PROBE_COURSES = ["ENGL 1101", "ENG 101", "ENGL 101", "MATH 101", "MATH 1010", "B
                  "PSY 101", "PSYC 101", "HIST 101", "ENG 111", "ENGL 1010", "MATH 1530",
                  "ACCT 201", "CHEM 101", "SOC 101", "ECON 201", "BIO 101", "MAT 101"]
 
+# Family overrides, because the generic list is useless against some systems. The Virginia
+# colleges number courses MTH 154 / ITE 152 / SDV 100 — nothing resembling MATH 101 — so
+# every one of them sat "unproven" while its parser worked perfectly. Probing ITE 152 and
+# MTH 161 found full sections at Camp and Virginia Western immediately.
+FAMILY_COURSES = {
+    "va-": ["ENG 111", "ENG 112", "MTH 154", "MTH 161", "ITE 152", "PSY 200", "BIO 101",
+            "HIS 121", "SDV 100", "CST 100", "ACC 211", "MTH 245"],
+    "cuny-": ["ENG 101", "ENGL 110", "ENGL 111", "MATH 104", "PSY 101", "BIO 101",
+              "HIST 101", "SPAN 101", "ACC 111", "SPE 100", "MAT 100", "ECO 101"],
+}
 
-def _find_full_section(s, already_tried, limit=8):
+
+def _probe_list(school_id):
+    for prefix, courses in FAMILY_COURSES.items():
+        if school_id.startswith(prefix):
+            return courses + PROBE_COURSES
+    return PROBE_COURSES
+
+
+def _find_full_section(s, already_tried, limit=12):
     """Look for one course at this school holding a FULL section.
 
     Returns (course, n_full, n_total) on the first course that proves it, else None. A
@@ -149,7 +167,7 @@ def _find_full_section(s, already_tried, limit=8):
     important result than the proof itself.
     """
     tried = 0
-    for crs in PROBE_COURSES:
+    for crs in _probe_list(getattr(s, "id", "")):
         if crs == already_tried or tried >= limit:
             continue
         tried += 1
