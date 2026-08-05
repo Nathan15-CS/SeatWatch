@@ -108,9 +108,69 @@ def probe(s):
     if phantom:
         return "PHANTOM", "a 'none' sentinel row survived into the result", stats
     if opens == len(real) and len(real) >= 8:
-        # Every section open, in volume, is what a broken 'open' flag looks like.
+        # Every section open, in volume, is what a broken 'open' flag looks like — but it
+        # is ALSO what a small college in early registration looks like. One course cannot
+        # tell those apart, and answering "unproven" on that basis leaves dozens of working
+        # schools uncounted for weeks. So go and look: if ANY other course at this school
+        # has a full section, the parser has demonstrably reported both states and the
+        # question is settled. This RAISES the evidence bar rather than lowering it — the
+        # requirement is still "we watched it call a section full", we just stop insisting
+        # the proof arrive in one predetermined course.
+        try:
+            proof = _find_full_section(s, course)
+        except _FakeOpen as e:
+            # Went looking for proof the parser works and found proof it does not.
+            return "FAKE_OPEN", f"open with 0 seats in {e.args[0]}", stats
+        if proof:
+            crs, nfull, ntot = proof
+            stats["proved_by"] = crs
+            return "OK", (f"example course all-open, but {crs} shows {nfull}/{ntot} full — "
+                          f"parser reports both states"), stats
         return "ALL_OPEN", f"all {len(real)} sections report open — verify it is not a lie", stats
     return "OK", "", stats
+
+
+# Deliberately generic AND format-diverse: schools share no numbering convention. A list
+# that assumes one house style finds nothing and looks like a broken adapter.
+PROBE_COURSES = ["ENGL 1101", "ENG 101", "ENGL 101", "MATH 101", "MATH 1010", "BIOL 101",
+                 "PSY 101", "PSYC 101", "HIST 101", "ENG 111", "ENGL 1010", "MATH 1530",
+                 "ACCT 201", "CHEM 101", "SOC 101", "ECON 201", "BIO 101", "MAT 101"]
+
+
+def _find_full_section(s, already_tried, limit=8):
+    """Look for one course at this school holding a FULL section.
+
+    Returns (course, n_full, n_total) on the first course that proves it, else None. A
+    course that is itself entirely open proves nothing and is skipped rather than counted
+    against the school — absence of evidence here is not evidence of a broken parser.
+
+    Anything actively WRONG found along the way (open with zero seats) is surfaced by
+    raising, because discovering a fake-open while hunting for proof is a far more
+    important result than the proof itself.
+    """
+    tried = 0
+    for crs in PROBE_COURSES:
+        if crs == already_tried or tried >= limit:
+            continue
+        tried += 1
+        try:
+            raw = s.fetch([crs]) or {}
+        except Exception:
+            continue
+        real = {k: v for k, v in (raw.get(crs) or {}).items()
+                if k != "none" and isinstance(v, dict)}
+        if not real:
+            continue
+        if any(v.get("open") and v.get("seats") == 0 for v in real.values()):
+            raise _FakeOpen(crs)
+        full = [k for k, v in real.items() if not v.get("open")]
+        if full:
+            return crs, len(full), len(real)
+    return None
+
+
+class _FakeOpen(Exception):
+    """A course probed for proof turned out to claim open with zero seats."""
 
 
 def sweep(targets, retries, host_workers):

@@ -2164,7 +2164,20 @@ class SDCCD:
     CLASS_NBR. Subclass sets id, name, example, campus."""
     term = "2267"                 # Fall 2026 (PeopleSoft strm); pinned, bump per term
     campus = ""
-    _API = "https://mws-api.sdccd.edu/?term=%s&career=ugrd"
+    # 2026-08-04: mws-api.sdccd.edu stopped resolving and took City/Mesa/Miramar down with
+    # it — three colleges silently returning nothing. The district moved the same feed
+    # behind a token-gated proxy on their main site; their own app.js still carries the old
+    # URL commented out directly above the new one, which is what confirmed it is the same
+    # feed rather than a lookalike. Identical query params, identical JSON shape.
+    #
+    # Two steps now: GET a short-lived token, then send it as X-Schedule-Token. The
+    # request also needs a cookie jar and a Referer — without them the edge returns 403,
+    # which is indistinguishable from "endpoint gone" and is exactly how this could get
+    # written off as dead a second time.
+    _TOKEN_URL = "https://www.sdccd.edu/students/class-search/api/schedule-token.aspx"
+    _API = ("https://www.sdccd.edu/students/class-search/api/"
+            "schedule-proxy.aspx?term=%s&career=ugrd")
+    _PAGE = "https://www.sdccd.edu/students/class-search/search.html"
     _TTL = 600
     _lock = threading.Lock()
     _dump = {}                    # term -> (ts, rows) — SHARED across the 3 campuses
@@ -2190,8 +2203,16 @@ class SDCCD:
             if c and time.time() - c[0] < self._TTL:
                 return c[1]
             try:
-                req = urllib.request.Request(self._API % term, headers={"User-Agent": UA})
-                rows = json.loads(urllib.request.urlopen(req, timeout=40).read())["data"]["query"]["rows"]
+                h = {"User-Agent": UA, "Referer": self._PAGE,
+                     "Accept": "application/json, text/javascript, */*; q=0.01",
+                     "X-Requested-With": "XMLHttpRequest"}
+                op = urllib.request.build_opener(
+                    urllib.request.HTTPCookieProcessor(http.cookiejar.CookieJar()))
+                tok = json.loads(op.open(urllib.request.Request(self._TOKEN_URL, headers=h),
+                                         timeout=30).read())["token"]
+                req = urllib.request.Request(self._API % term,
+                                             headers={**h, "X-Schedule-Token": tok})
+                rows = json.loads(op.open(req, timeout=90).read())["data"]["query"]["rows"]
             except Exception:
                 return c[1] if c else []        # stale-if-error; never guess
             if isinstance(rows, list) and rows:
@@ -6364,7 +6385,7 @@ class NortheastAlabama(ACCS):
     id = "nacc"; name = "Northeast Alabama Community College"; example = "ADM 110"; mep = "NACC"
 
 class WallaceHanceville(ACCS):
-    id = "wallacestate"; name = "Wallace State Community College (Hanceville)"; example = "ART 100"; mep = "WSCC"
+    id = "wallacestate"; name = "Wallace State Community College (Hanceville)"; example = "ENG 101"; mep = "WSCC"
 
 # --- Colorado Community College System: ONE Banner 9 host (selfservice.cccs.edu) serves
 # --- all 13 state-system colleges via mepCode. Codes verified two ways: an invalid code
@@ -9646,7 +9667,7 @@ class CUNY:
 class Baruch(CUNY):
     id = "cuny-baruch"; name = "Baruch College (CUNY)"; inst = "BAR01"; example = "BIO 1012"
 class BMCC(CUNY):
-    id = "cuny-bmcc"; name = "Borough of Manhattan CC (CUNY)"; inst = "BMC01"; example = "BIO 108"
+    id = "cuny-bmcc"; name = "Borough of Manhattan CC (CUNY)"; inst = "BMC01"; example = "ENG 101"
 class HunterCUNY(CUNY):
     id = "cuny-hunter"; name = "Hunter College (CUNY)"; inst = "HTR01"; example = "BIOL 10200"
 class QueensCUNY(CUNY):
@@ -9674,7 +9695,7 @@ class LaGuardiaCC(CUNY):
 class MedgarEvers(CUNY):
     id = "cuny-medgarevers"; name = "Medgar Evers College (CUNY)"; inst = "MEC01"; example = "BIO 101"
 class LehmanCUNY(CUNY):
-    id = "cuny-lehmancuny"; name = "Lehman College (CUNY)"; inst = "LEH01"; example = "BIO 166"
+    id = "cuny-lehmancuny"; name = "Lehman College (CUNY)"; inst = "LEH01"; example = "ENG 111"
 class CityTech(CUNY):
     id = "cuny-citytech"; name = "NYC College of Technology (CUNY)"; inst = "NYT01"; example = "BIO 1100"
 class Queensborough(CUNY):
