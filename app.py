@@ -249,6 +249,15 @@ def init_db():
         cols = [r[1] for r in c.execute("PRAGMA table_info(watches)")]
         if "user_id" not in cols:              # migrate pre-accounts DBs in place
             c.execute("ALTER TABLE watches ADD COLUMN user_id INTEGER")
+        # stranded_notified_at: stamped when we TELL the student their watch died at a
+        # semester rollover. A watch is bound to the term it was created in; once the
+        # school moves on, the watch is skipped forever so it cannot false-alert about the
+        # wrong semester. That skip was silent to the student — the operator got paged and
+        # the student got nothing, which is the same silent failure as an alert delivered
+        # to a dead channel. Stamped so the warning goes out ONCE per watch, not every
+        # 20-second cycle.
+        if "stranded_notified_at" not in cols:
+            c.execute("ALTER TABLE watches ADD COLUMN stranded_notified_at REAL")
         # --- free-tier abuse signals (all SOFT except free_eligible; detect-and-trim,
         # never block-at-door — campus NAT means shared IPs are normal) ---
         ucols = [r[1] for r in c.execute("PRAGMA table_info(users)")]
@@ -3578,6 +3587,10 @@ def run_cycle():
             if r["term"] and cur_term and r["term"] != cur_term:
                 guardian.record(cyc, r["id"], "blocked_wrong_term",
                                 adapter_term=cur_term, watch_term=r["term"])
+                # Tell the STUDENT, not just the operator. Skipping this watch is right,
+                # but doing it silently means someone who set a watch in August simply
+                # never hears from us again and concludes their class never opened.
+                notify_stranded(r, school, cur_term)
                 k = (school_id, r["term"], cur_term)
                 if k not in _stale_logged:
                     _stale_logged.add(k)
@@ -4291,6 +4304,68 @@ def _alert(r, message, url):
     else:
         _undelivered.discard(wid)              # recovered (or first success)
     return delivered
+
+
+def notify_stranded(watch, school, new_term):
+    """Tell a student, ONCE, that their watch died because the school changed semesters.
+
+    A watch is bound to the term it was created in. When the school rolls, run_cycle skips
+    it forever — correctly, because matching a Fall watch against a same-numbered Spring
+    section would alert about a semester the student never asked for. But the skip was
+    SILENT: the operator got paged and the student got nothing, so someone who set a watch
+    in August would simply never hear from us again and would assume their class never
+    opened. That is indistinguishable, from their side, from us being broken.
+
+    This matters far more in the next few weeks than it did all year. Roughly 277 schools
+    re-pick their term on every fetch and will move to Spring 2027 on their own around
+    October; every Fall watch at those schools goes quiet the moment they do.
+
+    Stamped so it goes out exactly once per watch. Failure to send is not stamped, so a
+    transient SMTP problem retries next cycle rather than silently swallowing the only
+    warning the student gets. Never raises: telling someone their watch expired must not
+    be able to interfere with alerting everybody else.
+    """
+    wid = watch["id"]
+    uid = watch["user_id"] if "user_id" in watch.keys() else None
+    if not uid:
+        return False
+    try:
+        with db() as c:
+            row = c.execute("SELECT stranded_notified_at, email FROM watches w "
+                            "JOIN users u ON u.id=w.user_id WHERE w.id=?", (wid,)).fetchone()
+        if not row or row["stranded_notified_at"]:
+            return False                      # already told them; never nag
+        _, want_email, want_sms = notify_prefs(uid)
+        what = f"{watch['course']}" + (f" section {watch['section']}" if watch["section"] else "")
+        base = BASE_URL or "https://seatwatchapp.com"
+        sent = False
+        if want_email and EMAIL_ENABLED and row["email"]:
+            sent = send_email(
+                row["email"],
+                f"Your {what} watch has ended — {school.name} moved to a new semester",
+                f"{school.name} has moved its class schedule to a new semester, so your "
+                f"watch on {what} has ended.\n\n"
+                f"We stopped it on purpose. Section numbers get reused between semesters, "
+                f"and letting it run would have texted you about a seat in a term you never "
+                f"signed up for.\n\n"
+                f"If you still want this class, add it again and we will watch the new "
+                f"semester:\n\n    {base}/\n\n"
+                f"Nothing else you watch is affected.\n\n— SeatWatch",
+                base + "/")
+        if not sent and want_sms:
+            sent = bool(send_sms(uid, watch,
+                                 f"Your {what} watch ended: {school.name} moved to a new "
+                                 f"semester. Add the class again to watch it.", base + "/"))
+        if sent:
+            with db() as c:
+                c.execute("UPDATE watches SET stranded_notified_at=? WHERE id=?",
+                          (time.time(), wid))
+            sw.log(f"  [term] told watch {wid} its term ({watch['term']}) is over at "
+                   f"{school.id} (now {new_term})")
+        return sent
+    except Exception as e:
+        sw.log(f"  [term] could not notify stranded watch {wid}: {type(e).__name__}")
+        return False
 
 
 def _set_alerted(watch_id, val):

@@ -64,6 +64,8 @@ SUITES = [
      "schools that can't auto-roll haven't silently gone dead (hits real hosts)"),
     ("Coverage: the school count is measured, not claimed", "test_coverage",
      "only proven schools are counted; broken ones can't be watched; recovery is automatic"),
+    ("Semester rollover tells the student", "test_term_roll",
+     "a watch ended by a term roll warns its owner once — never silently, never twice"),
 ]
 
 

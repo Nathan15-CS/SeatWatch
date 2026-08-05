@@ -86,8 +86,21 @@ def run():
     set_state(True)                            # section is OPEN in the new term
     before = len(sent)
     app.run_cycle()
-    check("stale-term watch does NOT false-alert on roll", len(sent) == before,
-          f"fired {len(sent)-before}")
+    after = sent[before:]
+    # A stale watch must never produce a SEAT alert — that would announce a seat in a
+    # semester the student never signed up for. It SHOULD produce exactly one expiry
+    # notice, because ending the watch silently is how someone concludes we are broken.
+    # Asserted on the message CONTENT rather than on a bare count: counting alone cannot
+    # tell "no false alert" from "no warning either", and both used to look identical here.
+    seat_alerts = [m for m in after if "seat open" in (m[1] + m[2]).lower()]
+    expiry = [m for m in after if "semester" in (m[1] + m[2]).lower()]
+    check("stale-term watch does NOT false-alert on roll", not seat_alerts,
+          f"fired {len(seat_alerts)} seat alert(s) for the wrong term")
+    check("...but the student IS told the watch ended", len(expiry) == 1,
+          f"got {len(expiry)} expiry notice(s) — silence here reads as SeatWatch failing")
+    app.run_cycle()
+    check("...and is not told twice", len(sent[before:]) == len(after),
+          "the poller runs every 20s; a repeated notice would be worse than silence")
 
     passed = sum(1 for _, ok, _ in results if ok)
     failed = sum(1 for _, ok, _ in results if not ok)
