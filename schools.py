@@ -8396,6 +8396,102 @@ class WestminsterUT(Colleague):
     id = "westminsterut"; name = "Westminster University"
     example = "PSYC 105"; host = "ss.westminsteru.edu"
 
+class Niagara:
+    """Niagara University — the WHOLE term arrives in one public HTML page, no login.
+
+    POST thesemester=26/FA*1 to apps.niagara.edu/courses/ and the response is every
+    undergraduate section for the term (655 of them, ~780KB). So one fetch serves every
+    course anyone watches here, cached class-wide for _TTL — watching twenty Niagara
+    courses costs one request per ten minutes, not twenty.
+
+    THE TERM IS POSTED EXPLICITLY, never left to the default. The default page happens to
+    be Fall 2026 today (byte-identical md5 to an explicit 26/FA*1 POST), but relying on
+    that would mean silently following the school whenever they roll to Spring — and
+    alerting a Fall student about a Spring seat is the false alert this project exists to
+    prevent. Sending the term makes a rollover a visible, deliberate edit.
+    NOTE the GET form does nothing: ?thesemester=... returns the default page unchanged.
+    It must be a POST, and testing it with GET is how you conclude the selector is broken.
+
+    The Availability column is AVAILABLE SEATS, verified against the school's own
+    per-section detail page rather than inferred from the header: a row showing 0 opens a
+    detail page reading "Seats Available: 0", and a row showing 6 reads "Seats Available:
+    6". That check mattered — if the column had been ENROLLED, 0 would mean an empty class
+    and every full section would have been reported open.
+
+    Section key is whatever follows the course code: ACC111A under ACC111 is section "A".
+    Fail-safe: {} on any error, and a stale cache is served rather than a guess.
+    """
+    id = "niagara"; name = "Niagara University"
+    example = "ACC111"; term = "26/FA*1"        # Fall 2026 undergraduate; bump per term
+    base = "https://apps.niagara.edu/courses/"
+    _TTL = 600
+    _lock = threading.Lock()
+    _dump = {}                                  # term -> (fetched_at, [(code, seats)])
+    _RE = re.compile(r"^([A-Za-z]{2,5})\s*(\d{2,4}[A-Za-z]?)$")
+
+    def cur_term(self):
+        return self.term
+
+    def _norm(self, course):
+        m = self._RE.match(course.strip())
+        return (m.group(1).upper() + m.group(2).upper()) if m else None
+
+    def valid_course(self, course):
+        return self._norm(course) is not None
+
+    def reg_url(self, course):
+        return self.base
+
+    def _rows(self):
+        term = self.cur_term()
+        with Niagara._lock:
+            c = Niagara._dump.get(term)
+            if c and time.time() - c[0] < self._TTL:
+                return c[1]
+            try:
+                req = urllib.request.Request(
+                    self.base, data=urllib.parse.urlencode({"thesemester": term}).encode(),
+                    headers={"User-Agent": UA, "Referer": self.base,
+                             "Content-Type": "application/x-www-form-urlencoded"})
+                html = urllib.request.urlopen(req, timeout=60).read().decode("utf-8", "replace")
+            except Exception:
+                return c[1] if c else []        # stale-if-error; never guess
+            rows = []
+            for row in re.finditer(r"<tr[^>]*>(.*?)</tr>", html, re.S):
+                cells = [re.sub(r"<[^>]+>|&nbsp;|\s+", " ", x).strip()
+                         for x in re.findall(r"<td[^>]*>(.*?)</td>", row.group(1), re.S)]
+                if len(cells) < 8 or not cells[7].isdigit():
+                    continue
+                code = cells[0].split()[0].upper() if cells[0].split() else ""
+                if code:
+                    rows.append((code, int(cells[7])))
+            if rows:
+                Niagara._dump[term] = (time.time(), rows)
+                return rows
+            return c[1] if c else []
+
+    def fetch(self, courses):
+        rows = self._rows()
+        if not rows:
+            return {}
+        out = {}
+        for course in courses:
+            code = self._norm(course)
+            if not code:
+                continue
+            secs = {}
+            for ident, seats in rows:
+                if not ident.startswith(code):
+                    continue
+                sec = ident[len(code):].strip()
+                if not sec or sec in secs:      # collapse guard
+                    continue
+                secs[sec] = {"open": seats > 0, "seats": max(seats, 0)}
+            if secs:
+                out[course] = secs
+        return out
+
+
 class UDelaware:
     """University of Delaware — public HTML class search, no login (~24k students).
 
@@ -10428,7 +10524,7 @@ def _guard_registry(all_schools):
     return {s.id: s for s in all_schools}
 
 
-SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UDelaware(), UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
+SCHOOLS = _guard_registry(_ALL_SCHOOLS + [UDelaware(), Niagara(), UCI(), UCSC(), UCSB(), UCLA(), SFSU(), SacState(), CSUN(), IowaState(), TAMU(), Purdue(), UtahU(),
     AugustanaIL(), CamdenCounty(), WalshCollege(),
     BristolCC(), Clovis(), UNCG(), NCCU(), UNCAsheville(), Otis(),
     MissouriState(), Toledo(), SFAustin(), AlabamaAM(), Utica(), Berkeley(), SCF(), WorcesterState(), WSSU(), MTSU(), Framingham(), UNM(), Chabot(), LasPositas(), CCRI(), NCAT(), HGTC(), SanDiegoCity(), SanDiegoMesa(), SanDiegoMiramar(), Fairfield(),

@@ -12016,5 +12016,18 @@
    "phantom": false,
    "held": 0
   }
+ },
+ "niagara": {
+  "name": "Niagara University",
+  "verdict": "OK",
+  "detail": "",
+  "stats": {
+   "ms": 638,
+   "sections": 6,
+   "open": 1,
+   "full": 5,
+   "phantom": false,
+   "held": 0
+  }
  }
 }
