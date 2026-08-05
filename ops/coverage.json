@@ -1380,11 +1380,15 @@
  },
  "asu-ga": {
   "name": "Albany State University",
-  "verdict": "EMPTY",
-  "detail": "no sections for its own example course",
+  "verdict": "OK",
+  "detail": "",
   "stats": {
-   "ms": 3022,
-   "phantom": false
+   "ms": 793,
+   "sections": 7,
+   "open": 7,
+   "full": 0,
+   "phantom": false,
+   "held": 0
   }
  },
  "siue": {
@@ -4922,7 +4926,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 3308,
+   "ms": 3311,
    "phantom": false
   }
  },
@@ -5045,11 +5049,15 @@
  },
  "cuny-baruch": {
   "name": "Baruch College (CUNY)",
-  "verdict": "EMPTY",
-  "detail": "no sections for its own example course",
+  "verdict": "ALL_OPEN",
+  "detail": "all 72 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 691,
-   "phantom": true
+   "ms": 1031,
+   "sections": 72,
+   "open": 72,
+   "full": 0,
+   "phantom": false,
+   "held": 0
   }
  },
  "cuny-bmcc": {
@@ -9967,7 +9975,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 135,
+   "ms": 162,
    "phantom": false
   }
  },
@@ -10340,7 +10348,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 248,
+   "ms": 8272,
    "phantom": false
   }
  },
