@@ -1,0 +1,16 @@
+{
+  "_comment": "Claims the safety gate will permit. Every entry is a statement about the REAL product state, and flipping one to true is an assertion that the corresponding thing is actually fixed. safety.py fails closed on anything missing here.",
+
+  "sms_claims_allowed": false,
+  "_sms_note": "Set true ONLY after the published SMS Terms, the Privacy Policy 7a section, and /text-alerts stop describing texts as a paid-plan feature, AND after STOP/START have been confirmed against real Twilio webhooks. The toll-free number was verified on 2026-07-30 against the paid-plan description; advertising free texts while that stands is a carrier-verification mismatch, not a wording nit.",
+
+  "paid_claims_allowed": false,
+  "_paid_note": "PAID_ENABLED is 0 in production. Do not advertise prices, tiers, or upgrades while checkout is off.",
+
+  "free_tier_courses": 1,
+  "free_tier_sections": 2,
+  "_free_tier_note": "The real free tier: one course, up to two of its sections. A post implying all sections are watched for free is true-but-misleading and is the reviewer's job to catch.",
+
+  "testimonials_available": false,
+  "_testimonials_note": "There are none. This exists so the answer is written down rather than assumed, because a fabricated testimonial shipped to production once already."
+}

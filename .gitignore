@@ -56,6 +56,15 @@ backups/
 
 # Ad/media build artifacts — large binaries, not application code (Build lane, 2026-07-30)
 marketing/
+# ...except the Reddit traction system, which is source, not media. Negation cannot
+# re-include a path under an excluded DIRECTORY, so marketing/ is unignored and its
+# heavy assets are listed individually below.
+!marketing/
+marketing/*
+!marketing/reddit/
+marketing/reddit/*.db
+marketing/reddit/*.db-wal
+marketing/reddit/*.db-shm
 
 # Ad media: deployed to the VM with ops/push-media.sh, never committed.
 # A 26 MB binary in git history is permanent and unshrinkable.

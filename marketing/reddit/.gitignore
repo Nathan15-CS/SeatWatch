@@ -1,0 +1,4 @@
+reddit.db
+demo.db
+*.db-wal
+*.db-shm
