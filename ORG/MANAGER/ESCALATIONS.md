@@ -186,3 +186,45 @@ but are legitimate waitlist holds (`Waitlisted>=1`, `Available+Enrolled==Capacit
 literally `Waitlisted`). Evidence recorded in `ops/gate.py:FULL_WITH_SEATS_OK`. Same
 pattern already cleared at Howard CC and TWU — worth checking whether the still-blocked
 `cpcc`, `forsythtech`, `pittcc`, `vgcc` are the same thing.
+
+## 2026-08-04 — Build: 873 proven of 926. The last 16, diagnosed.
+
+Nathan asked us to keep going until all 926 work. Went 851 -> 873 today by fixing
+OUR side, not theirs. Four causes, all recorded so nobody re-derives them:
+
+1. **San Diego CCD (+3)** — mws-api.sdccd.edu stopped resolving, taking City/Mesa/
+   Miramar down together. Same feed now sits behind a token-gated proxy on their main
+   site; needs a token, a cookie jar AND a Referer or the edge 403s.
+2. **TLS cipher floor (+5)** — canyons/triton/ursinus/delawarestate/mhu RESET the
+   handshake against OpenSSL 3.0 defaults. SECLEVEL=1 fixes it with verification fully
+   ON. Measured: Stripe/Twilio/Google negotiate identical TLS 1.3 either way.
+3. **Stale probe courses (+3 reachable)** — cuny-bmcc, cuny-lehmancuny, wallacestate
+   were judged on a course that no longer runs.
+4. **The sweep judged on ONE course (+5)** — now looks for a full section in any other
+   course before filing a school unproven.
+
+**37 remain ALL_OPEN** (listed, watchable, NOT counted). I suspected a family-wide
+parser defect after 1,179 sampled sections came back with zero closed — that does NOT
+hold. VCCS is documented fail-closed and Valencia returns real positive seat counts.
+Early-August registration, not a bug. They self-prove once sections fill.
+
+**The last 16 need per-school research — this is Grab's lane:**
+
+- **asu-ga** — DNS GONE — banner.asurams.edu does not resolve; bannerweb/banweb/ssb/banner9/bannerssb/ssb-prod.ec all fail too. Their system moved somewhere only asurams.edu itself will name. Find the live 'Schedule of Classes' link, or delist.
+- **brookdale** — HTTP 200, parses nothing — brookdalecc-ss.colleague.elluciancloud.com. Term or parser, NOT network.
+- **brunswickcc** — no diagnosis recorded; re-run ops/sweep-schools.py --only brunswickcc
+- **centenarynj** — TCP timeout on selfservice.centenaryuniversity.edu — the one Colleague host the SECLEVEL=1 floor did NOT rescue.
+- **chemeketa** — TCP 443 accepts then never answers (>25s). Blocking us, or campus-only.
+- **cuny-baruch** — no diagnosis recorded; re-run ops/sweep-schools.py --only cuny-baruch
+- **eosc** — TCP timeout, same shape as chemeketa.
+- **mcdowelltech** — HTTP 200, parses nothing — ss-prod.cloud.mcdowelltech.edu. Term or parser.
+- **northgatech** — HTTP 503 — banner.northgatech.edu answers but refuses. Retry later; if persistent the endpoint moved.
+- **sacredheart** — HTTP 200, parses nothing — colleague.sacredheart.edu. Term or parser.
+- **va-nova** — HTTP 200, parses nothing — ps-sis.vccs.edu. The other 13 VCCS colleges work on this exact host, so it is this college's institution code or term, not the adapter.
+- **va-virginia-peninsula** — HTTP 200, parses nothing — ps-sis.vccs.edu. Same as va-nova.
+- **walshcollege** — DNS GONE — selfservice.walshcollege.edu dead; walsh.edu, the elluciancloud SaaS pattern and ss.* all fail. my.walshcollege.edu resolves (155.226.157.188) and is the place to start.
+- **westminsterut** — Certificate is not valid for ss.westminstercollege.edu. Westminster in Utah became Westminster University and changed domains — CHECK WHETHER THIS ADAPTER POINTS AT A DIFFERENT WESTMINSTER ENTIRELY. Possible wrong-school bug, not a dead host.
+- **wssu** — HTTP 404 — ssbprod-wssu.uncecs.edu RESOLVES (152.4.216.6). Host is alive, the PATH moved. Find the current Banner SSB path.
+- **ysu** — TCP timeout, same shape.
+brunswickcc and cuny-baruch newly appeared in EMPTY and have no diagnosis yet.
+Start with wssu + uncfsu: both are live UNC-ECS hosts with a moved path, likely one fix.
