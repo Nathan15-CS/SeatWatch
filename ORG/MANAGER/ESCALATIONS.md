@@ -464,3 +464,39 @@ onto refresh_term looks safer and quietly breaks the odd formats. My first test 
 for exactly this reason: it stubbed resolve_term and so bypassed the real guard.
 
 580 checks green. Expect schools to move to Spring 2027 around October, on their own.
+
+## 2026-08-05 — Build: 82 schools will NOT reach Spring 2027 on their own
+
+Answering "will every college transition?" — no. Measured, not estimated:
+
+    277  YES — self-picking (re-read the term every fetch; Colleague/VCCS)
+    569  YES — auto-roll armed 2026-08-05 (move from 1 Oct, gated on real data)
+     61  NO  — HAND-PINNED, no term detection at all
+     21  NO  — opted out (auto_term=False: parallel same-season terms)
+    ---
+    928  total   |   846 move themselves, 82 need a human
+
+**The 82 are listed in ops/manual-term-bumps.json** (id, name, pinned term, family,
+reason). Biggest blocks:
+    CUNY      19  pinned '1269'      — the base docstring says "bump manually each semester"
+    KCTCS     16  pinned '4264'
+    UHBanner  10  pinned '202710'
+    SDCCD/VCCCD/VSB/Banner  13 more
+
+It also includes some of the most-wanted individual universities: UMD, Ohio State,
+Virginia Tech, Wisconsin, Cornell, Penn, Rutgers-NB, UCLA, and both schools I added
+today (Delaware, Niagara).
+
+**Why this is not merely a chore.** A stale term is INVISIBLE from outside. The school
+keeps answering, the adapter keeps parsing, and a student watching a Spring class simply
+never hears anything — identical, from their side, to the class never opening. Left
+alone these 82 serve Fall 2026 through the entire Spring registration season.
+
+**Timing.** The switchover date for everything that CAN move is 1 October 2026 — verified
+by running the picker month by month (Aug/Sep keep Fall, Oct picks Spring). Each school
+then moves the first day its own Spring data is live; no data means it stays put.
+
+**RECOMMENDED: bump the 82 in late September**, before the 1 Oct switchover, so the whole
+registry crosses together. The nightly sweep is a backstop, not a plan: it will only
+catch a stale school once Fall sections actually vanish, which is well into Spring
+registration and far too late for the students who wanted those seats.
