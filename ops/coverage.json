@@ -5055,11 +5055,11 @@
  "cuny-bmcc": {
   "name": "Borough of Manhattan CC (CUNY)",
   "verdict": "ALL_OPEN",
-  "detail": "all 75 sections report open \u2014 verify it is not a lie",
+  "detail": "all 73 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 1964,
-   "sections": 75,
-   "open": 75,
+   "ms": 4048,
+   "sections": 73,
+   "open": 73,
    "full": 0,
    "phantom": false,
    "held": 0
@@ -5068,11 +5068,11 @@
  "cuny-hunter": {
   "name": "Hunter College (CUNY)",
   "verdict": "ALL_OPEN",
-  "detail": "all 53 sections report open \u2014 verify it is not a lie",
+  "detail": "all 54 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 1817,
-   "sections": 53,
-   "open": 53,
+   "ms": 1862,
+   "sections": 54,
+   "open": 54,
    "full": 0,
    "phantom": false,
    "held": 0
@@ -5096,7 +5096,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 12 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 2520,
+   "ms": 701,
    "sections": 12,
    "open": 12,
    "full": 0,
@@ -5161,7 +5161,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 14 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 3008,
+   "ms": 2955,
    "sections": 14,
    "open": 14,
    "full": 0,
@@ -5174,7 +5174,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 8 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 2842,
+   "ms": 770,
    "sections": 8,
    "open": 8,
    "full": 0,
@@ -5185,11 +5185,11 @@
  "cuny-laguardiacc": {
   "name": "LaGuardia Community College (CUNY)",
   "verdict": "ALL_OPEN",
-  "detail": "all 120 sections report open \u2014 verify it is not a lie",
+  "detail": "all 121 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 2927,
-   "sections": 120,
-   "open": 120,
+   "ms": 5556,
+   "sections": 121,
+   "open": 121,
    "full": 0,
    "phantom": false,
    "held": 0
@@ -5200,7 +5200,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 10 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 3018,
+   "ms": 952,
    "sections": 10,
    "open": 10,
    "full": 0,
@@ -5239,7 +5239,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 28 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 3385,
+   "ms": 1414,
    "sections": 28,
    "open": 28,
    "full": 0,
@@ -8338,7 +8338,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 40 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 2434,
+   "ms": 3705,
    "sections": 40,
    "open": 40,
    "full": 0,
@@ -8351,7 +8351,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 26 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 2273,
+   "ms": 3573,
    "sections": 26,
    "open": 26,
    "full": 0,
@@ -8361,15 +8361,16 @@
  },
  "va-camp": {
   "name": "Camp Community College",
-  "verdict": "ALL_OPEN",
-  "detail": "all 9 sections report open \u2014 verify it is not a lie",
+  "verdict": "OK",
+  "detail": "example course all-open, but ITE 152 shows 1/5 full \u2014 parser reports both states",
   "stats": {
-   "ms": 1702,
+   "ms": 1780,
    "sections": 9,
    "open": 9,
    "full": 0,
    "phantom": false,
-   "held": 0
+   "held": 0,
+   "proved_by": "ITE 152"
   }
  },
  "va-central-virginia": {
@@ -8416,7 +8417,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 26 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 2298,
+   "ms": 2381,
    "sections": 26,
    "open": 26,
    "full": 0,
@@ -8427,11 +8428,11 @@
  "va-laurel-ridge": {
   "name": "Laurel Ridge Community College",
   "verdict": "ALL_OPEN",
-  "detail": "all 24 sections report open \u2014 verify it is not a lie",
+  "detail": "all 25 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 2208,
-   "sections": 24,
-   "open": 24,
+   "ms": 2351,
+   "sections": 25,
+   "open": 25,
    "full": 0,
    "phantom": false,
    "held": 0
@@ -8468,7 +8469,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 9 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 1831,
+   "ms": 1725,
    "sections": 9,
    "open": 9,
    "full": 0,
@@ -8494,7 +8495,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 26 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 2265,
+   "ms": 2199,
    "sections": 26,
    "open": 26,
    "full": 0,
@@ -8507,7 +8508,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 14 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 1718,
+   "ms": 2066,
    "sections": 14,
    "open": 14,
    "full": 0,
@@ -8520,7 +8521,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 11 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 1903,
+   "ms": 1730,
    "sections": 11,
    "open": 11,
    "full": 0,
@@ -8546,7 +8547,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 8 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 1873,
+   "ms": 1704,
    "sections": 8,
    "open": 8,
    "full": 0,
@@ -8570,11 +8571,11 @@
  "va-tidewater": {
   "name": "Tidewater Community College",
   "verdict": "ALL_OPEN",
-  "detail": "all 63 sections report open \u2014 verify it is not a lie",
+  "detail": "all 64 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 3719,
-   "sections": 63,
-   "open": 63,
+   "ms": 3768,
+   "sections": 64,
+   "open": 64,
    "full": 0,
    "phantom": false,
    "held": 0
@@ -8598,7 +8599,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 27 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 2077,
+   "ms": 2135,
    "sections": 27,
    "open": 27,
    "full": 0,
@@ -8608,15 +8609,16 @@
  },
  "va-virginia-western": {
   "name": "Virginia Western Community College",
-  "verdict": "ALL_OPEN",
-  "detail": "all 47 sections report open \u2014 verify it is not a lie",
+  "verdict": "OK",
+  "detail": "example course all-open, but MTH 161 shows 5/9 full \u2014 parser reports both states",
   "stats": {
-   "ms": 2537,
+   "ms": 5051,
    "sections": 47,
    "open": 47,
    "full": 0,
    "phantom": false,
-   "held": 0
+   "held": 0,
+   "proved_by": "MTH 161"
   }
  },
  "va-wytheville": {
@@ -8624,7 +8626,7 @@
   "verdict": "ALL_OPEN",
   "detail": "all 8 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 1674,
+   "ms": 1718,
    "sections": 8,
    "open": 8,
    "full": 0,
