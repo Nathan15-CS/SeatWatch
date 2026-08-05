@@ -9850,9 +9850,65 @@ class CUNY:
     # rule's fault rather than theirs.
     open_only = True
     base = "https://globalsearch.cuny.edu/CFGlobalSearchTool/"
-    term = "1269"; term_name = "2026 Fall Term"
+    term = "1269"; term_name = "2026 Fall Term"    # fallback only; see resolve_term below
     example = "BIOL 10200"
     _RE = re.compile(r"^([A-Za-z]{2,6})\.?\s*(\d{2,5}[A-Za-z]?)$")  # tolerate "BIOL. 1001" (Brooklyn)
+    # Detected term, shared by all 19 campuses — they read ONE search tool, so one probe
+    # serves the family. (code, label); None until resolved.
+    _active = None
+    _active_at = 0.0
+    _TERM_TTL = 21600                              # 6h; a semester does not turn over faster
+    _tlock = threading.Lock()
+
+    def _term_pair(self):
+        a = CUNY._active
+        return a if a else (self.term, self.term_name)
+
+    def cur_term(self):
+        """The term code run_cycle compares a watch against, and stamp_term records."""
+        return self._term_pair()[0]
+
+    def resolve_term(self, log=None):
+        """Read the term dropdown off CUNY's own search page and pick the current one.
+
+        These 19 campuses used to be hand-pinned — the docstring said "bump manually each
+        semester", which meant every CUNY student silently kept watching Fall while Spring
+        registration ran. search.jsp exposes the whole list ("1269" -> "2026 Fall Term"),
+        so the same _pick_current_term used everywhere else can choose it, including its
+        bias toward keeping the current term until well past its start.
+
+        Cached for 6h across the family and behind a lock: 19 campuses sharing one search
+        tool must not each hammer it. Any failure keeps the last-known-good term — a
+        network blip must never move a school.
+        """
+        with CUNY._tlock:
+            if CUNY._active and time.time() - CUNY._active_at < self._TERM_TTL:
+                return CUNY._active[0]
+            try:
+                cj = http.cookiejar.CookieJar()
+                op = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cj))
+                op.addheaders = [("User-Agent", _CUNY_UA)]
+                html = op.open(self.base + "search.jsp", timeout=20).read().decode("latin-1")
+                opts = re.findall(r'<option[^>]*value=["\']?(\d{3,5})["\']?[^>]*>([^<]{4,40})',
+                                  html)
+            except Exception:
+                return self._term_pair()[0]        # keep last-known-good
+            terms = [{"code": c, "description": d.strip()} for c, d in opts]
+            if not terms:
+                return self._term_pair()[0]
+            pick = _pick_current_term(terms, cur=self._term_pair()[0])
+            if not pick:
+                return self._term_pair()[0]
+            label = next((t["description"] for t in terms if t["code"] == pick), "")
+            if pick != self._term_pair()[0] and log:
+                log(f"[term] cuny: {self._term_pair()[0]} -> {pick} ({label})")
+            CUNY._active = (pick, label)
+            CUNY._active_at = time.time()
+            return pick
+
+    def refresh_term(self, log=None):
+        """Entry point for the daily auto-roll job (same name the Banner family uses)."""
+        self.resolve_term(log=log)
 
     def _norm(self, course):
         m = self._RE.match(course.strip())
@@ -9872,7 +9928,9 @@ class CUNY:
         op.open(self.base + "search.jsp", timeout=15).read()
         d2 = op.open(urllib.request.Request(self.base + "CFSearchToolController",
             data=urllib.parse.urlencode({"inst_selection": self.inst,
-                "selectedTermName": self.term_name, "term_value": self.term,
+                # Use the DETECTED term, not the hard-coded pin, so the family follows
+                # CUNY across semesters instead of serving Fall forever.
+                "selectedTermName": self._term_pair()[1], "term_value": self._term_pair()[0],
                 "next_btn": "Next"}).encode()), timeout=20).read().decode("latin-1")
         form = d2[d2.find('name="class_search_form"'):]
         if not form:
