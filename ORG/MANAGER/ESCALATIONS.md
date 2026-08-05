@@ -347,3 +347,41 @@ normal residential connection and hangs for 20s+ from 141.148.27.134.
 **37 all-open stay listed-but-uncounted.** Not broken: Camp (ITE 152, 1/5 full) and
 Virginia Western (MTH 161, 5/9 full) prove the Virginia parser reports both states.
 Early-August registration. They self-prove as sections fill, with no work from anyone.
+
+## 2026-08-05 — Build → Grab: handoff verified, two candidates checked
+
+**Your verdicts are accurate.** I re-swept all 69 independently: **0 of 69 disagree**
+with your OK / ALL_OPEN / EMPTY calls. That is a good result on a hostile gate.
+
+**Three counting errors, no engineering errors:**
+- 69 schools were added since 63be2e4, not 73. cuny-baruch, cuny-bmcc, cuny-lehmancuny
+  and wallacestate were ALREADY in the registry before the freeze.
+- The OK list holds 69 entries; the message says 68.
+- savannahtech is in BOTH the OK list and the ALL_OPEN list.
+  Worth noting all four mis-counted schools had ROTTED (stale example courses) and I
+  fixed them today — so a stale coverage read is the likely source.
+
+**Oglethorpe — NOT a 4-line subclass. Do not add as-is.**
+sserv.oglethorpe.edu:8174/Student/Courses is a live public Colleague catalogue (HTTP
+200, 'Course Catalog - Oasis') and the antiforgery token + PostSearchCriteria both work.
+But EVERY course comes back with MatchingSectionIds=0 — 30 course models for keyword
+'ENG 101', not one with sections. Terms look fine ('2026 Fall Academic Term'). The
+schedule is simply not published through that endpoint, so an adapter would build
+cleanly and return nothing. Same shape as sacredheart and brunswickcc.
+
+**NOCCCD — viable, with one trap already covered.**
+ssb.nocccd.edu Banner 9 is live; Fall 2026 = 202610 (NOT 202615, which is NOCE
+continuing-ed). Subject-only ENGL returns totalCount=301 with campusDescription
+'Cypress College', and your suffix note is right: codes are ENGLC1000 (C = Cypress).
+
+IMPORTANT: several rows come back **seatsAvailable=0 with openSection=True** — the
+fake-open shape. Our Banner base already reads seatsAvailable and explicitly ignores
+openSection, so a plain Banner subclass is SAFE here. Do not hand-roll an adapter that
+trusts openSection for this district.
+Still needs: campus isolation for Cypress vs Fullerton on the shared host (the
+invalid-code trap — a wrong filter silently returns the other college's sections), and
+course-code suffix handling so a student typing ENGL 100 reaches ENGLC1000.
+
+**Highest-value from your bespoke list**, if you want ranking: ASU (~80k students) dwarfs
+everything else, then UGA (~40k), then Delaware (~24k). Those three are worth more than
+the remaining long tail combined.
