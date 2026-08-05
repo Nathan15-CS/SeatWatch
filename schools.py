@@ -6170,8 +6170,17 @@ class Stockton(Banner):
     example = "CSCI 2101"; host = "banner.stockton.edu"; term = "202680"
 
 class AlbanyStateGA(Banner):
+    # 2026-08-05: banner.asurams.edu stopped resolving entirely. Albany State now runs on
+    # the University System of Georgia's shared Banner 9 host, the same estate as Fort
+    # Valley State — taken from the live "Class Schedules" link on their own registrar
+    # page, not guessed. The host is asuramsPC, not asurams. getTerms confirms 202608 =
+    # 'Fall 2026', matching the term already configured.
+    #
+    # The note above about a gabest duplicate being removed in favour of the school's own
+    # host is now inverted by events: the school's own host is gone and gabest is where
+    # Albany State actually lives. There is still exactly ONE Albany State entry.
     id = "asu-ga"; name = "Albany State University"
-    example = "CSCI 1300"; host = "banner.asurams.edu"; term = "202608"
+    example = "CSCI 1300"; host = "asuramspc.gabest.usg.edu"; term = "202608"
 
 class SIUE(Banner):
     id = "siue"; name = "Southern Illinois University Edwardsville"
@@ -9727,7 +9736,7 @@ class CUNY:
 
 
 class Baruch(CUNY):
-    id = "cuny-baruch"; name = "Baruch College (CUNY)"; inst = "BAR01"; example = "BIO 1012"
+    id = "cuny-baruch"; name = "Baruch College (CUNY)"; inst = "BAR01"; example = "ENG 2100"
 class BMCC(CUNY):
     id = "cuny-bmcc"; name = "Borough of Manhattan CC (CUNY)"; inst = "BMC01"; example = "ENG 101"
 class HunterCUNY(CUNY):
