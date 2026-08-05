@@ -14,13 +14,6 @@
   "reason": "opted out (auto_term=False)"
  },
  {
-  "id": "cornell",
-  "name": "Cornell University",
-  "term": null,
-  "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
   "id": "fairfield",
   "name": "Fairfield University",
   "term": null,
@@ -77,20 +70,6 @@
   "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
-  "id": "moorpark",
-  "name": "Moorpark College",
-  "term": "202607",
-  "family": "VCCCD",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
-  "id": "niagara",
-  "name": "Niagara University",
-  "term": "26/FA*1",
-  "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
   "id": "oaklandu",
   "name": "Oakland University",
   "term": "202640",
@@ -105,13 +84,6 @@
   "reason": "opted out (auto_term=False)"
  },
  {
-  "id": "oxnard",
-  "name": "Oxnard College",
-  "term": "202607",
-  "family": "VCCCD",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
   "id": "penn",
   "name": "University of Pennsylvania",
   "term": null,
@@ -123,27 +95,6 @@
   "name": "Rutgers\u2013New Brunswick",
   "term": null,
   "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
-  "id": "sdcity",
-  "name": "San Diego City College",
-  "term": "2267",
-  "family": "SDCCD",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
-  "id": "sdmesa",
-  "name": "San Diego Mesa College",
-  "term": "2267",
-  "family": "SDCCD",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
-  "id": "sdmiramar",
-  "name": "San Diego Miramar College",
-  "term": "2267",
-  "family": "SDCCD",
   "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
@@ -187,13 +138,6 @@
   "term": "2268",
   "family": "object",
   "reason": "opted out (auto_term=False)"
- },
- {
-  "id": "udel",
-  "name": "University of Delaware",
-  "term": "2268",
-  "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
   "id": "uhhilo",
@@ -256,13 +200,6 @@
   "name": "University of the Virgin Islands",
   "term": "202608",
   "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
-  "id": "venturacollege",
-  "name": "Ventura College",
-  "term": "202607",
-  "family": "VCCCD",
   "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
