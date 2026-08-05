@@ -7639,6 +7639,60 @@ class Colleague:
         r"\bmini\b|clinical",
         re.I)
 
+    @staticmethod
+    def _season_year(desc):
+        m = (re.search(r"(spring|summer|fall|autumn|winter)\D{0,12}(20\d\d)", desc or "", re.I) or
+             re.search(r"(20\d\d)\D{0,12}(spring|summer|fall|autumn|winter)", desc or "", re.I))
+        if not m:
+            return None
+        a, b = m.groups()
+        return (a.lower(), int(b)) if a.lower().isalpha() else (b.lower(), int(a))
+
+    def _same_season_fallback(self, term, sd):
+        """Last resort when the chosen term name matches NO section block.
+
+        _pick_term ranks ActivePlanTerms by nearest date, then fewest sub-term qualifiers,
+        then shortest description — and at Brookdale that picks 'CPS Fall 2026', the
+        Continuing Professional Studies term, over 'Fall 2026 (15 Week)', which is the real
+        undergraduate term holding 36 sections. Nothing matches, the course comes back
+        empty, and a working college reads as dead.
+
+        Rather than re-tune a name heuristic that will lose again on the next naming
+        style, fall back to what the SECTIONS actually say: among blocks in the same
+        season and year as the term we picked, take the one carrying the most sections —
+        the main semester, not a 7-week sub-term.
+
+        Only reachable when the normal path produced NOTHING, so no school that works
+        today can change behaviour. It still refuses to cross a season or year boundary:
+        alerting on a section from the wrong semester is the false alert this module
+        exists to prevent, and a silent miss is the better failure of the two.
+        """
+        want = self._season_year(term)
+        if not want:
+            return {}
+        best, best_n = {}, 0
+        for tm in (sd.get("SectionsRetrieved") or {}).get("TermsAndSections") or []:
+            if self._season_year((tm.get("Term") or {}).get("Description") or "") != want:
+                continue
+            secs = {}
+            for wrap in tm.get("Sections") or []:
+                s = wrap.get("Section") or wrap
+                if self.campus and (s.get("LocationCode") or "") != self.campus:
+                    continue
+                if not s.get("AreSeatCountsAvailable"):
+                    continue
+                try:
+                    av = int(s.get("Available"))
+                except (TypeError, ValueError):
+                    continue
+                key = str(s.get("Number") or s.get("SectionNameDisplay"))
+                if key not in secs:
+                    secs[key] = {"open": s.get("AvailabilityStatus") == "Open",
+                                 "seats": max(av, 0)}
+            if len(secs) > best_n:
+                best, best_n = secs, len(secs)
+        return best
+
     def _pick_term(self, terms):
         """Nearest upcoming PRIMARY term (e.g. 'Fall 2026', 'Fall 2026 Undergraduate') from
         ActivePlanTerms. Ranking: (1) nearest upcoming date, then (2) FEWEST secondary
@@ -7717,6 +7771,8 @@ class Colleague:
                             continue
                         # open ONLY when Colleague says 'Open'; Waitlisted/Closed => not open
                         secs[key] = {"open": s.get("AvailabilityStatus") == "Open", "seats": max(av, 0)}
+                if not secs:
+                    secs = self._same_season_fallback(term, sd)
                 if secs:
                     out[course] = secs
             except Exception:
