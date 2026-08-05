@@ -105,13 +105,6 @@
   "reason": "opted out (auto_term=False)"
  },
  {
-  "id": "osu",
-  "name": "Ohio State University",
-  "term": "1268",
-  "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
   "id": "oxnard",
   "name": "Oxnard College",
   "term": "202607",
@@ -238,13 +231,6 @@
   "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
-  "id": "umd",
-  "name": "University of Maryland",
-  "term": "202608",
-  "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
   "id": "unca",
   "name": "University of North Carolina Asheville",
   "term": null,
@@ -280,25 +266,11 @@
   "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
-  "id": "vt",
-  "name": "Virginia Tech",
-  "term": "202609",
-  "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
   "id": "windwardcc",
   "name": "Windward Community College",
   "term": "202710",
   "family": "UHBanner",
   "reason": "opted out (auto_term=False)"
- },
- {
-  "id": "wisc",
-  "name": "University of Wisconsin\u2013Madison",
-  "term": "1272",
-  "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
   "id": "wwu",
