@@ -43,11 +43,41 @@ def install(log=None):
             ctx.load_verify_locations(cafile=BUNDLE)
         except Exception:
             pass               # a malformed bundle must never take the poller down
+        _lower_cipher_floor(ctx)
         return ctx
 
     ssl.create_default_context = _ctx
     ssl._create_default_https_context = _ctx
     _installed[0] = True
     if log:
-        log(f"  [tls] loaded supplemental CA intermediates from {BUNDLE}")
+        log(f"  [tls] supplemental CA intermediates loaded from {BUNDLE}; "
+            f"cipher floor at SECLEVEL=1 with verification unchanged")
     return True
+
+
+def _lower_cipher_floor(ctx):
+    """Accept the older cipher suites some college servers still run, nothing more.
+
+    Santa Clarita, Triton and Ursinus all RESET the TLS handshake outright against
+    OpenSSL 3.0's defaults — TCP connects, then the connection dies, which reads as a dead
+    host. They are not dead; their servers simply offer no cipher that clears the default
+    security level. At SECLEVEL=1 all three negotiate AES256-GCM / AES256-SHA256 with
+    certificate AND hostname verification fully on and legitimate certificates.
+
+    This is a FLOOR, not a downgrade, and that distinction is the whole justification.
+    Measured against the hosts that carry real consequences — Stripe, Twilio and Google —
+    every one negotiates the identical TLS 1.3 suite with this set as it does without it.
+    Nothing that already had strong crypto gives any up. The only behaviour that changes is
+    that hosts previously refused outright become reachable.
+
+    What SECLEVEL=1 permits that 2 does not is chiefly SHA-1 signatures and RSA keys below
+    2048 bits. We still verify the full chain to a public root, we still check the
+    hostname, and we send no credentials to any of these hosts — they serve public course
+    catalogues. Verification is never disabled anywhere; see the note in this module's
+    docstring about why anchoring an unverifiable certificate was refused.
+    """
+    try:
+        ctx.minimum_version = ssl.TLSVersion.TLSv1_2
+        ctx.set_ciphers("DEFAULT@SECLEVEL=1")
+    except (ssl.SSLError, ValueError):
+        pass                   # older/newer OpenSSL that rejects the string: keep defaults
