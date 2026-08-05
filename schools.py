@@ -133,11 +133,98 @@ def _pick_current_term(terms, today=None, cur=None):
 
 
 # ===========================================================================
-class UMD:
+class TermAutoRoll:
+    """Give a bespoke adapter the same self-maintaining term roll the Banner family has.
+
+    Roughly thirty one-off adapters (UMD, Ohio State, Virginia Tech, Wisconsin, Cornell,
+    Penn...) carry a hand-pinned term and no way to notice a new one. Left alone they serve
+    Fall 2026 straight through Spring registration — silently, because the school still
+    answers and the parser still works, so a student watching a Spring class simply never
+    hears anything.
+
+    A subclass supplies ONE method, term_options(), returning [(code, human label)] from
+    whatever the school publishes. Everything dangerous lives here, once:
+
+      * _pick_current_term chooses, so the bias that keeps the CURRENT term until well past
+        its start applies everywhere — no adapter can accidentally roll early and strand
+        every Fall watcher during add/drop.
+      * VERIFY BEFORE ADOPT. The candidate is tried, the example course fetched in it, and
+        the term rolled back unless real sections come back. Several schools publish a
+        Spring term months early with nothing behind it; adopting one would point every
+        student at an empty semester.
+      * any failure keeps last-known-good. A network blip must never move a school.
+
+    Labels matter more than codes: 202608, 1268, 202609 and 1272 are all Fall 2026 at four
+    different schools, which is why the picker reads descriptions and why term_options must
+    return something like "Fall 2026".
+    """
+    _active_term = None
+
+    def cur_term(self):
+        return self._active_term or self.term
+
+    def term_options(self):
+        """[(code, label)] from the school's own public term list. Subclass provides."""
+        return []
+
+    def resolve_term(self):
+        try:
+            opts = self.term_options()
+        except Exception:
+            return None
+        if not opts:
+            return None
+        terms = [{"code": str(c), "description": str(d)} for c, d in opts]
+        try:
+            return _pick_current_term(terms, cur=self.cur_term())
+        except Exception:
+            return None
+
+    def refresh_term(self, log=None):
+        if not getattr(self, "auto_term", True):
+            return
+        new = self.resolve_term()
+        if not new or new == self.cur_term():
+            return
+        prev = self._active_term
+        self._active_term = new
+        try:
+            ok = bool((self.fetch([self.example]) or {}).get(self.example)) \
+                if getattr(self, "example", "") else False
+        except Exception:
+            ok = False
+        if not ok:
+            self._active_term = prev
+            if log:
+                log(f"[term] {self.id}: detected {new} but no live data yet — "
+                    f"keeping {self.cur_term()}")
+            return
+        if log:
+            log(f"[term] {self.id}: term auto-updated {prev or self.term} -> {new}")
+
+
+class UMD(TermAutoRoll):
     id = "umd"
     name = "University of Maryland"
     example = "CMSC216"
     term = "202608"
+
+    def term_options(self):
+        """api.umd.io publishes the semester list as bare YYYYMM codes and no labels, so
+        the label is derived from the month: 01 Spring, 05 Summer, 08 Fall, 12 Winter.
+        That derivation is what lets the shared picker compare UMD against every other
+        school — "202608" means nothing to it, "Fall 2026" means everything."""
+        import json as _json
+        req = urllib.request.Request("https://api.umd.io/v1/courses/semesters",
+                                     headers={"User-Agent": UA})
+        codes = _json.loads(urllib.request.urlopen(req, timeout=20).read())
+        names = {"01": "Spring", "05": "Summer", "08": "Fall", "12": "Winter"}
+        out = []
+        for c in codes:
+            c = str(c)
+            if len(c) == 6 and c[4:] in names:
+                out.append((c, f"{names[c[4:]]} {c[:4]}"))
+        return out
     _re = re.compile(r"^[A-Z]{2,4}\d{3,4}[A-Z]?$")
 
     def valid_course(self, course):
@@ -3637,7 +3724,7 @@ class Iowa:
         return out
 
 
-class Wisconsin:
+class Wisconsin(TermAutoRoll):
     """Bespoke adapter for UW-Madison's public enrollment API — the best kind of
     source: it reports both an authoritative status (OPEN/WAITLISTED/CLOSED) AND an
     exact availableSeats count. One search + one packages call per course. Open iff
@@ -3646,7 +3733,18 @@ class Wisconsin:
     id = "wisc"
     name = "University of Wisconsin–Madison"
     example = "COMP SCI 300"
-    term = "1272"   # Fall 2026 (from the public term list; termCode)
+    term = "1272"   # Fall 2026; fallback only — term_options() detects it now
+
+    def term_options(self):
+        """UW publishes termCode + longDescription outright. pastTerm rows are dropped:
+        the picker forbids rolling backward anyway, but handing it terms the school has
+        already closed is asking a guard to save us from a question we needn't ask."""
+        import json as _json
+        req = urllib.request.Request("https://public.enroll.wisc.edu/api/search/v1/terms",
+                                     headers={"User-Agent": UA})
+        rows = _json.loads(urllib.request.urlopen(req, timeout=20).read())
+        return [(str(t.get("termCode")), str(t.get("longDescription") or ""))
+                for t in (rows or []) if not t.get("pastTerm") and t.get("termCode")]
     _search = "https://public.enroll.wisc.edu/api/search/v1"
     _pkgs = "https://public.enroll.wisc.edu/api/search/v1/enrollmentPackages/{t}/{subj}/{cid}"
 
