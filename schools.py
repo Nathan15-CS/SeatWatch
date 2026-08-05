@@ -293,11 +293,34 @@ class Rutgers:
 
 
 # ===========================================================================
-class Cornell:
+class Cornell(TermAutoRoll):
     id = "cornell"
     name = "Cornell University"
     example = "CS 1110"
-    roster = "FA26"
+    term = "FA26"                      # Fall 2026; fallback only — detected below
+
+    @property
+    def roster(self):
+        """Cornell calls its term a ROSTER, and the rest of this adapter says so. Exposing
+        it as a property over cur_term() means the existing fetch code keeps reading
+        self.roster while actually following the detected term — no call sites change, and
+        there is no second source of truth to drift."""
+        return self.cur_term()
+
+    def term_options(self):
+        """classes.cornell.edu publishes every roster with a plain-English label
+        ("FA26" -> "Fall 2026"), which is exactly the pair the shared picker needs. It also
+        flags isDefaultRoster, but that is deliberately NOT used: it marks what Cornell
+        shows a visitor today, and adopting it directly would hand the school its next term
+        the moment Cornell flips the default — which can happen months before registration,
+        stranding everyone still watching the current one. The picker's own late bias
+        decides instead, uniformly with every other school."""
+        import json as _json
+        req = urllib.request.Request("https://classes.cornell.edu/api/2.0/config/rosters.json",
+                                     headers={"User-Agent": UA})
+        d = _json.loads(urllib.request.urlopen(req, timeout=25).read())
+        return [(str(r.get("slug")), str(r.get("descr") or ""))
+                for r in (d.get("data", {}).get("rosters") or []) if r.get("slug")]
     _re = re.compile(r"^[A-Z]{2,6}\s\d{4}$")
 
     @staticmethod
