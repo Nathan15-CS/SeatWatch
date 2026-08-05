@@ -91,13 +91,6 @@
   "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
-  "id": "rutgers-nb",
-  "name": "Rutgers\u2013New Brunswick",
-  "term": null,
-  "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
   "id": "tamucc",
   "name": "Texas A&M University-Corpus Christi",
   "term": "202609",
@@ -166,13 +159,6 @@
   "term": "202710",
   "family": "UHBanner",
   "reason": "opted out (auto_term=False)"
- },
- {
-  "id": "uiowa",
-  "name": "University of Iowa",
-  "term": null,
-  "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
  },
  {
   "id": "unca",
