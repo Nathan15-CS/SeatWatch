@@ -30,7 +30,8 @@ case "$MODE" in
            # coverage.json ships too — it decides the public school count and which schools
            # may be watched, so a stale one silently mis-states both.
            FILES=(app.py ca_chain.py guardian.py confidence.py schools.py
-                  ops/edu-intermediates.pem ops/coverage.json ops/blocked.json) ;;
+                  ops/edu-intermediates.pem ops/coverage.json ops/blocked.json
+                  ops/nightly-sweep.sh ops/sweep-schools.py) ;;
   *) echo "usage: ops/deploy.sh schools | app --app-approved"; exit 1 ;;
 esac
 
