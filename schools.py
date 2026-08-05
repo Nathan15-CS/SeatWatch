@@ -8378,8 +8378,14 @@ class MontgomeryCountyCC(Colleague):
     example = "ENG 101"; host = "selfservice.mc3.edu"
 
 class WestminsterUT(Colleague):
+    # Renamed from Westminster College to Westminster University. The old host still
+    # resolves — to the SAME machine, 146.86.4.65 — so this looked alive while failing
+    # certificate verification, because the certificate is issued only for the new name.
+    # Checked before changing it: ss.westminstercollege.edu and ss.westminsteru.edu share
+    # an IP, and westminstercollege.edu and westminsteru.edu share another, so this is one
+    # institution with a legacy alias, NOT the Pennsylvania or Missouri Westminster.
     id = "westminsterut"; name = "Westminster University"
-    example = "LMW 326"; host = "ss.westminstercollege.edu"
+    example = "PSYC 105"; host = "ss.westminsteru.edu"
 
 class WesternWyoming(Colleague):
     id = "westernwyoming"; name = "Western Wyoming Community College"
