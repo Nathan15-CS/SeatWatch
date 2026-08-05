@@ -10,11 +10,16 @@
   "",
   "Remove an entry only when the defect is FIXED and ops/gate.py passes the school.",
   "Each entry states the defect and what a student would experience, because 'blocked' with",
-  "no reason becomes permanent by default once nobody remembers why."
- ],
- "jacksonmi": {
-  "reason": "Feed accumulates three terms at once (26/SUM, 26/FAL, 27/SPR) and the adapter keys sections by number, so 88 records collapse to 50 and 24 section numbers appear more than once. ENG-131-04 exists as Spring-27 (Open, 14 seats) AND Fall-26 (Waitlisted, 1 seat); whichever survives the collapse is arbitrary. A student would either be told a seat opened in a term they are not registering for, or never told about a real one in the term they are. Verified 2026-08-04.",
-  "blocked_at": "2026-08-04",
-  "fix": "Key sections by their unique Id, and filter the feed to the current term before parsing — see the RCCD accumulating-feed lesson. Then run: python3 ops/gate.py jacksonmi"
- }
+  "no reason becomes permanent by default once nobody remembers why.",
+  "",
+  "HISTORY — jacksonmi was listed here on 2026-08-04 and removed the same day. The block",
+  "was WRONG. The raw HTTP payload carries three terms (26/SUM, 26/FAL, 27/SPR) with",
+  "section numbers repeating across them, and that was mistaken for the adapter's own",
+  "output. It is not: Colleague picks one term and drops the rest before parsing, so",
+  "ENG 131 yields 50 sections with 50 distinct numbers and zero collisions. Its two",
+  "FULL-with-seats rows are ordinary waitlist holds. Lesson worth keeping: read the",
+  "ADAPTER'S output when judging an adapter. A raw upstream payload routinely contains",
+  "rows the parser is supposed to discard, and mistaking those for a defect pulls a working",
+  "college off the site."
+ ]
 }

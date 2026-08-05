@@ -67,6 +67,14 @@ FULL_WITH_SEATS_OK = {
               "Capacity=24 — consistent, and the seat is queue-held. NOTE for whoever "
               "re-checks: match the section by its exact Number field. Matching '01' as a "
               "substring hits 'PSY-101-R' and produces confident, wrong evidence."),
+    "jacksonmi": ("Jackson College, verified 2026-08-04: ENG-131-04 and ENG-131-I50 both "
+                  "report AvailabilityStatus='Waitlisted', Waitlisted=1, Available=1, "
+                  "Enrolled=23, Capacity=24 — consistent, queue-held seats. Jackson's feed "
+                  "carries three terms and repeats section numbers across them, which LOOKS "
+                  "like a collapse bug in the raw payload; it is not. _pick_term keeps "
+                  "'Fall 2026' and drops Summer 2026 and Spring 2027 before parsing, giving "
+                  "50 sections with 50 distinct numbers and zero collisions. Judge an "
+                  "adapter on the adapter's OUTPUT, not on the upstream payload it filters."),
     "nicc": ("Northeast Iowa Community College, verified 2026-08-04: ENG-105-84101 "
              "reports AvailabilityStatus='Waitlisted', Waitlisted=1, Available=1, "
              "Enrolled=21, Capacity=22 — consistent, queue-held seat. Same Colleague "
