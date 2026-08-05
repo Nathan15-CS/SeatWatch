@@ -9550,7 +9550,7 @@ _VCCS = [
     ("va-mountain-empire", "Mountain Empire Community College", "ME299", "ENG 111"),
     ("va-mountain-gateway", "Mountain Gateway Community College", "DL287", "ENG 111"),
     ("va-new-river", "New River Community College", "NR275", "ENG 111"),
-    ("va-nova", "Northern Virginia Community College (NOVA)", "NV280", "ENG 111"),
+    ("va-nova", "Northern Virginia Community College (NOVA)", "NV280", "MTH 154"),
     ("va-patrick-henry", "Patrick & Henry Community College", "PH285", "ENG 111"),
     ("va-piedmont", "Piedmont Virginia Community College", "PV282", "ENG 111"),
     ("va-rappahannock", "Rappahannock Community College", "RC278", "ENG 111"),
@@ -9561,7 +9561,7 @@ _VCCS = [
     ("va-southwest", "Southwest Virginia Community College", "SW294", "ENG 111"),
     ("va-tidewater", "Tidewater Community College", "TC295", "ENG 111"),
     ("va-virginia-highlands", "Virginia Highlands Community College", "VH296", "ENG 111"),
-    ("va-virginia-peninsula", "Virginia Peninsula Community College", "TN293", "ENG 111"),
+    ("va-virginia-peninsula", "Virginia Peninsula Community College", "TN293", "MTH 161"),
     ("va-virginia-western", "Virginia Western Community College", "VW286", "ENG 111"),
     ("va-wytheville", "Wytheville Community College", "WC288", "ENG 111"),
 ]
