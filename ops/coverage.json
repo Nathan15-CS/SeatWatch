@@ -7308,11 +7308,15 @@
  },
  "westminsterut": {
   "name": "Westminster University",
-  "verdict": "EMPTY",
-  "detail": "no sections for its own example course",
+  "verdict": "OK",
+  "detail": "",
   "stats": {
-   "ms": 126,
-   "phantom": false
+   "ms": 1294,
+   "sections": 4,
+   "open": 1,
+   "full": 3,
+   "phantom": false,
+   "held": 0
   }
  },
  "westernwyoming": {
