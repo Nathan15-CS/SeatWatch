@@ -2450,7 +2450,7 @@ class SanDiegoMiramar(SDCCD):
     example = "BIOL 131"; campus = "MIRA"
 
 
-class VCCCD:
+class VCCCD(TermAutoRoll):
     """Ventura County CCD — Moorpark / Oxnard / Ventura College (~37k) on ONE Django app
     (schedule.vcccd.edu). Its /filter/ POST IGNORES the subject filter and always returns
     the COMPLETE district catalog (~7.3MB embedded JSON), so we fetch it ONCE per TTL into
@@ -2474,6 +2474,24 @@ class VCCCD:
     _OBJ = re.compile(r'\{"SUBJECT_CODE":.*?"RECORD_COUNT":\s*\d+\}')
     _RE = re.compile(r"^([A-Za-z]{2,5})\s*([A-Za-z]?\d+[A-Za-z]{0,2})$")
 
+
+    def term_options(self):
+        """The district's schedule landing page carries every term as an option with a
+        plain label ("202607" -> "Fall 2026"), so no separate endpoint is needed. The
+        6-digit shape is 20YY0S with S = 3 Spring / 5 Summer / 7 Fall, which is why the
+        options are matched on that pattern rather than on any option in the document —
+        the page also carries campus and subject pickers whose values would otherwise be
+        swept in and offered to the term picker as nonsense."""
+        req = urllib.request.Request("https://schedule.vcccd.edu/",
+                                     headers={"User-Agent": UA})
+        html = urllib.request.urlopen(req, timeout=30).read().decode("utf-8", "replace")
+        out, seen = [], set()
+        for code, label in re.findall(
+                r"<option[^>]*value=[\"']?(20\d{2}0[357])[\"']?[^>]*>\s*([^<]{3,36})", html):
+            if code not in seen:
+                seen.add(code)
+                out.append((code, label.strip()))
+        return out
     def _norm(self, course):
         m = self._RE.match(course.strip())
         return (m.group(1).upper(), m.group(2).upper()) if m else (None, None)
