@@ -67,6 +67,14 @@ FULL_WITH_SEATS_OK = {
               "Capacity=24 — consistent, and the seat is queue-held. NOTE for whoever "
               "re-checks: match the section by its exact Number field. Matching '01' as a "
               "substring hits 'PSY-101-R' and produces confident, wrong evidence."),
+    "sdcity": ("San Diego City College, verified 2026-08-05: MATH 121/44158 reports "
+               "ENRL_STAT='C' (the district's own status: NOT open), ENRL_CAP=45, "
+               "ENRL_TOT=44 — one raw free seat — and WAIT_TOT=4, four students already "
+               "queued for it. The SDCCD adapter requires BOTH status 'O' AND a free seat, "
+               "so it withholds this deliberately: announcing it would send a student at a "
+               "seat four people are ahead of them for. Re-verify by reading ENRL_STAT and "
+               "WAIT_TOT on any FULL-with-seats row from the district JSON dump. Applies to "
+               "sdmesa and sdmiramar too — one shared feed."),
     "jacksonmi": ("Jackson College, verified 2026-08-04: ENG-131-04 and ENG-131-I50 both "
                   "report AvailabilityStatus='Waitlisted', Waitlisted=1, Available=1, "
                   "Enrolled=23, Capacity=24 — consistent, queue-held seats. Jackson's feed "

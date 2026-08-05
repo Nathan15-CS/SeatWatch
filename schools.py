@@ -2309,7 +2309,7 @@ class HGTC(ListcrseBanner8):
     base = "https://ssb.hgtc.edu/PROD9"
 
 
-class SDCCD:
+class SDCCD(TermAutoRoll):
     """San Diego CCD — ONE public district JSON dump (mws-api.sdccd.edu) serves City/Mesa/
     Miramar; rows separated by CAMPUS. The whole dump (~4,200 rows, ~5.7MB, ~3s) is fetched
     ONCE per TTL into a SHARED class-level cache — all 3 campus subclasses read the same
@@ -2319,8 +2319,38 @@ class SDCCD:
     reserved-but-'closed' section (status C with positive raw capacity) is correctly
     withheld (Codex's reserved-seat flag). Waitlist (WAIT_*) ignored. Section key =
     CLASS_NBR. Subclass sets id, name, example, campus."""
-    term = "2267"                 # Fall 2026 (PeopleSoft strm); pinned, bump per term
+    term = "2267"                 # Fall 2026 (PeopleSoft strm); fallback, detected below
     campus = ""
+
+    def term_options(self):
+        """SDCCD's term list lives in a TERM_VISIBILITY_CONFIG object inside its class-search
+        JavaScript, as code -> {displayName, startDate, endDate}.
+
+        THE DISPLAY NAMES CANNOT BE TRUSTED. Code 2273 is labelled "Spring 2026" while its
+        own date range runs Nov 2026 - May 2027, and every other code in the file decodes as
+        2 + YY + season (3 Spring, 5 Summer, 7 Fall): 2237 Fall 2023, 2243 Spring 2024,
+        2265 Summer 2026, 2267 Fall 2026. So 2273 is SPRING 2027 and the district's label is
+        simply wrong. Feeding that label to the picker would offer it a term dated a year in
+        the PAST, which the backward guard would correctly refuse — and San Diego would sit
+        on Fall 2026 forever while its own site advertised Spring.
+
+        The label is therefore DERIVED from the code, which is the field the API is actually
+        keyed on and the one that has never been wrong here.
+        """
+        req = urllib.request.Request(
+            "https://www.sdccd.edu/students/class-search/js/app.js",
+            headers={"User-Agent": UA})
+        js = urllib.request.urlopen(req, timeout=30).read().decode("utf-8", "replace")
+        i = js.find("TERM_VISIBILITY_CONFIG")
+        if i < 0:
+            return []
+        seg = js[i:i + 6000]
+        seasons = {"3": "Spring", "5": "Summer", "7": "Fall"}
+        out = []
+        for code in dict.fromkeys(re.findall(r"[\"']?(2\d{3})[\"']?\s*:\s*\{", seg)):
+            if code[3] in seasons:
+                out.append((code, f"{seasons[code[3]]} 20{code[1:3]}"))
+        return out
     # 2026-08-04: mws-api.sdccd.edu stopped resolving and took City/Mesa/Miramar down with
     # it — three colleges silently returning nothing. The district moved the same feed
     # behind a token-gated proxy on their main site; their own app.js still carries the old
@@ -8564,7 +8594,7 @@ class WestminsterUT(Colleague):
     id = "westminsterut"; name = "Westminster University"
     example = "PSYC 105"; host = "ss.westminsteru.edu"
 
-class Niagara:
+class Niagara(TermAutoRoll):
     """Niagara University — the WHOLE term arrives in one public HTML page, no login.
 
     POST thesemester=26/FA*1 to apps.niagara.edu/courses/ and the response is every
@@ -8590,7 +8620,25 @@ class Niagara:
     Fail-safe: {} on any error, and a stale cache is served rather than a guess.
     """
     id = "niagara"; name = "Niagara University"
-    example = "ACC111"; term = "26/FA*1"        # Fall 2026 undergraduate; bump per term
+    example = "ACC111"; term = "26/FA*1"        # fallback; term_options() detects it now
+
+    def term_options(self):
+        """Niagara's `thesemester` dropdown, e.g. "26/FA*1" -> "Fall 2026 - UG".
+
+        UNDERGRADUATE ONLY. Every term appears twice, once per career ("Fall 2026 - UG"
+        and "Fall 2026- GRAD"), and the picker cannot tell them apart — both parse as
+        Fall 2026, so it would choose by description length and could silently hand this
+        school its graduate catalogue. The value's *1 suffix is the career flag, so the
+        UG rows are selected explicitly rather than left to chance."""
+        req = urllib.request.Request(self.base, headers={"User-Agent": UA})
+        html = urllib.request.urlopen(req, timeout=30).read().decode("utf-8", "replace")
+        out = []
+        for code, label in re.findall(
+                r"<option[^>]*value=[\"']([0-9]{2}/[A-Z]{2}\*[01])[\"'][^>]*>\s*([^<]{4,40})",
+                html):
+            if code.endswith("*1"):             # *1 = undergraduate, *0 = graduate
+                out.append((code, label.strip()))
+        return out
     base = "https://apps.niagara.edu/courses/"
     _TTL = 600
     _lock = threading.Lock()
@@ -8660,7 +8708,7 @@ class Niagara:
         return out
 
 
-class UDelaware:
+class UDelaware(TermAutoRoll):
     """University of Delaware — public HTML class search, no login (~24k students).
 
     udapps.nss.udel.edu/CoursesSearch/search-results?term=<strm>&search_type=A&course_sec=<CODE>
@@ -8689,7 +8737,19 @@ class UDelaware:
     search. Fail-safe: {} on any error, so a broken fetch is silent, never fabricated.
     """
     id = "udel"; name = "University of Delaware"
-    example = "ENGL110"; term = "2268"          # 2026 Fall, from the form's own term select
+    example = "ENGL110"; term = "2268"          # fallback; term_options() detects it now
+
+    def term_options(self):
+        """The search form's own term dropdown, e.g. value 2268 labelled "2026 Fall (2268)".
+        The label already carries year and season, which is all the picker needs."""
+        req = urllib.request.Request(self.base, headers={"User-Agent": UA})
+        html = urllib.request.urlopen(req, timeout=25).read().decode("utf-8", "replace")
+        m = re.search(r"<select[^>]*name=[\"']?term[\"']?[^>]*>(.*?)</select>", html, re.S | re.I)
+        if not m:
+            return []
+        return [(c, l.strip()) for c, l in
+                re.findall(r"<option[^>]*value=[\"']?(\d{4})[\"']?[^>]*>\s*([^<]{4,40})",
+                           m.group(1))]
     base = "https://udapps.nss.udel.edu/CoursesSearch/"
     _RE = re.compile(r"^([A-Za-z]{2,5})\s*(\d{3}[A-Za-z]?)$")
 
