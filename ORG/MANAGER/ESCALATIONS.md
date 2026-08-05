@@ -22,6 +22,42 @@ decision but is not actively harming anyone.
 
 ## OPEN
 
+### 2026-08-04 04:30 — GUARDIAN (shadow checkpoint, day 8.9/14) — INVESTIGATE — first incident of the window: USF was dark for 1h48m and paged nobody
+
+**Evidence — `guardian_incidents` id 1, verbatim:**
+```
+kind=adapter_down  severity=yellow  school=usf  watch_id=0  count=268
+first_seen=2026-08-02 12:03   last_seen=2026-08-02 13:51
+evidence="272 consecutive failed/empty fetches; last ok 6574s ago"
+contained="fail-closed: no data -> no alerts from this school"
+status=resolved
+```
+Window totals: 28,103 cycles, **27,787 GREEN / 316 YELLOW / 0 RED**. YELLOW by day is
+5 / 10 / 4 / 12 / 7 / **273** / 5 / 0 — the 273 is 2026-08-02 and is entirely this incident.
+USF recovered unaided: last 300 cycles show usf `checked_open_already` 600× with zero failures,
+and the 20 most recent cycles are all GREEN. Confidence unchanged (score 40 / tier LOW / binding
+`P0_deploy_identity`); `P6_maturity` rose 73 → 100; no factor dropped. Term-roll detector clear.
+
+**Impact.** Two live USF watches went unmonitored for 1h48m on 08-02. Containment worked as designed
+— fail-closed meant no data produced no alerts, so nothing was mis-alerted and no watch was dropped.
+The exposure is detection, not correctness: `adapter_down` is classified **yellow**, and **only RED
+pages**, so a school can go fully dark and no human is told. It surfaced here only because a
+scheduled checkpoint happened to read the table two days later. This is the same shape as the
+already-open M-10 term-roll paging gap (`blocked_wrong_term` is yellow, pages nobody).
+
+**Asked of Manager:**
+1. Decide whether `adapter_down` sustained past a threshold (e.g. >15 min of consecutive failures on
+   a school with live watches) should page, or be promoted to RED. Right now nothing does.
+2. Route with the existing M-10 paging gap — one fix to the paging predicate likely covers both;
+   they should not be worked twice.
+3. No action needed on USF itself; it is healthy and the incident is `status=resolved`.
+
+**Also, unchanged and now dated:** the **7 success criteria are still not in the repository** (first
+raised 07-31). `grep` over `ORG/` and `ops/` finds only references to them — `guardian-v1-freeze.md:20`
+and the Phase-D journal — never the criteria. The shadow window closes **~2026-08-09, five days out**.
+Reconstruct them before it closes or the Phase E enforcement decision is scored against goalposts no
+lane can produce.
+
 ### 2026-07-31 19:40 — GUARDIAN — INVESTIGATE — Phase-E evidence is IN and unanimous; bring the enforcement decision forward
 **CORRECTED 19:58.** My first version of this claimed shadow produced no durable evidence. That was
 wrong and I am glad it was caught before Guardian acted on it. There are TWO shadow signals, and only
@@ -228,3 +264,49 @@ Early-August registration, not a bug. They self-prove once sections fill.
 - **ysu** — TCP timeout, same shape.
 brunswickcc and cuny-baruch newly appeared in EMPTY and have no diagnosis yet.
 Start with wssu + uncfsu: both are live UNC-ECS hosts with a moved path, likely one fix.
+
+## 2026-08-04 (later) — Build: 876 of 926 proven. The last 12.
+
+Continued to 876 (from 851 this morning, +25). Everything gained today came from
+fixing OUR client, not the colleges. Additional causes found after the first pass:
+
+5. **Colleague term-name mismatch (+1, brookdale)** — _pick_term ranks by nearest date,
+   fewest sub-term qualifiers, then SHORTEST description, so at Brookdale it chose
+   'CPS Fall 2026' (Continuing Professional Studies) over 'Fall 2026 (15 Week)', the real
+   undergraduate term holding 36 sections. Fixed with a season fallback that only fires
+   when the normal path returns NOTHING, so no working school changes behaviour.
+6. **Renamed domain, stale certificate (+1, westminsterut)** — ss.westminstercollege.edu
+   still resolves, to the SAME IP as ss.westminsteru.edu, but only the new name has a
+   valid cert. Verified it is one institution with a legacy alias, not a different
+   Westminster.
+7. **More stale probe courses (+2)** — va-nova (largest college in Virginia, filed dead
+   because ENG 111 stopped running; MTH 154 has 62 sections) and va-virginia-peninsula.
+
+**Correction: jacksonmi was UNBLOCKED.** My earlier block was wrong — I read the raw
+upstream payload (which carries 3 terms) as the adapter's output. Colleague filters to
+one term first: 50 sections, 50 distinct numbers, zero collisions. Judge an adapter on
+its OUTPUT, not the payload it filters.
+
+**The last 12, with what I established:**
+
+- **wssu** — DEAD END from our side. WSSU's OWN registrar page links to
+  ssbprod-wssu.uncecs.edu/pls/WSSUPROD/twbkwbis.P_GenMenu — and that exact URL 404s,
+  as does every other path including '/'. Their published link is stale. Needs a human
+  to find where Banner Rams Online actually lives now, or delist.
+- **asu-ga**, **walshcollege** — hostnames gone. Every candidate pattern fails DNS.
+  asurams.edu and my.walshcollege.edu resolve and are the places to start.
+- **brunswickcc**, **sacredheart** — REACHABLE, catalogue readable (43 and 21 courses
+  with section ids), term picked correctly, but the Sections POST returns ZERO term
+  blocks for every course tried. Not a course-naming problem — something in the
+  Sections call. Busiest courses: brunswickcc ENG 111(36)/ENG 112(24);
+  sacredheart MA 109(17)/MA 106(14).
+- **mcdowelltech** — search endpoint returns HTML, not JSON (JSONDecodeError on every
+  keyword). Different Colleague version or an interstitial page.
+- **cuny-baruch** — 9 CUNY siblings work; likely the same stale-example-course pattern,
+  but needs CUNY-format candidates (its current example is BIO 1012).
+- **northgatech** — HTTP 503, persistent across retries.
+- **centenarynj**, **chemeketa**, **eosc**, **ysu** — TCP connects then never answers.
+  Almost certainly blocking our IP. The SECLEVEL=1 floor did NOT rescue these.
+
+**38 ALL_OPEN** stay listed-but-uncounted. Not broken — verified VCCS is fail-closed
+and Valencia returns real seat counts. They self-prove when sections fill.
