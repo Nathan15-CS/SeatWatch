@@ -1383,7 +1383,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 3078,
+   "ms": 3030,
    "phantom": false
   }
  },
@@ -1483,7 +1483,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 93101,
+   "ms": 93106,
    "phantom": false
   }
  },
@@ -4691,7 +4691,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 20019,
+   "ms": 20027,
    "phantom": false
   }
  },
@@ -4922,7 +4922,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 3648,
+   "ms": 3403,
    "phantom": false
   }
  },
@@ -5048,7 +5048,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 2805,
+   "ms": 2842,
    "phantom": true
   }
  },
@@ -5603,7 +5603,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 429,
+   "ms": 468,
    "phantom": false
   }
  },
@@ -6483,7 +6483,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 753,
+   "ms": 739,
    "phantom": false
   }
  },
@@ -7307,7 +7307,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 306,
+   "ms": 126,
    "phantom": false
   }
  },
@@ -8470,11 +8470,15 @@
  },
  "va-nova": {
   "name": "Northern Virginia Community College (NOVA)",
-  "verdict": "EMPTY",
-  "detail": "no sections for its own example course",
+  "verdict": "OK",
+  "detail": "",
   "stats": {
-   "ms": 7005,
-   "phantom": false
+   "ms": 5095,
+   "sections": 62,
+   "open": 57,
+   "full": 5,
+   "phantom": false,
+   "held": 0
   }
  },
  "va-patrick-henry": {
@@ -8583,11 +8587,15 @@
  },
  "va-virginia-peninsula": {
   "name": "Virginia Peninsula Community College",
-  "verdict": "EMPTY",
-  "detail": "no sections for its own example course",
+  "verdict": "ALL_OPEN",
+  "detail": "all 27 sections report open \u2014 verify it is not a lie",
   "stats": {
-   "ms": 2880,
-   "phantom": false
+   "ms": 2077,
+   "sections": 27,
+   "open": 27,
+   "full": 0,
+   "phantom": false,
+   "held": 0
   }
  },
  "va-virginia-western": {
@@ -8982,7 +8990,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 269,
+   "ms": 344,
    "phantom": true
   }
  },
@@ -9238,7 +9246,7 @@
   "verdict": "OK",
   "detail": "",
   "stats": {
-   "ms": 2344,
+   "ms": 2575,
    "sections": 50,
    "open": 14,
    "full": 36,
@@ -9277,7 +9285,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 93275,
+   "ms": 93259,
    "phantom": false
   }
  },
@@ -9949,7 +9957,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 186,
+   "ms": 142,
    "phantom": false
   }
  },
@@ -10322,7 +10330,7 @@
   "verdict": "EMPTY",
   "detail": "no sections for its own example course",
   "stats": {
-   "ms": 424,
+   "ms": 1101,
    "phantom": false
   }
  },
@@ -11098,7 +11106,7 @@
   "verdict": "OK",
   "detail": "",
   "stats": {
-   "ms": 1378,
+   "ms": 1597,
    "sections": 5,
    "open": 0,
    "full": 5,
