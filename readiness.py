@@ -66,6 +66,8 @@ SUITES = [
      "only proven schools are counted; broken ones can't be watched; recovery is automatic"),
     ("Semester rollover tells the student", "test_term_roll",
      "a watch ended by a term roll warns its owner once — never silently, never twice"),
+    ("Term auto-roll never lands on a dead term", "test_term_autoroll",
+     "empty term rejected; live one adopted; no backward/early roll; opt-out absolute"),
 ]
 
 
