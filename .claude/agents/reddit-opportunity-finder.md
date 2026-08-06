@@ -16,7 +16,18 @@ A thread, posted recently, where a student describes being shut out of a class. 
 
 - "waitlisted", "closed section", "full", "can't get into", "swap", "add/drop"
 - "does anyone know when seats open"
-- "refreshing Testudo/Albert/WebReg" — the school's registration system by name
+- the school's registration system by name — every campus has its own word for it
+
+**Across every major, not one.** The bottleneck course has a different name at every school
+and in every department: Anatomy & Physiology and Microbiology for nursing, Organic Chemistry
+for pre-med, Intro Accounting for business, Statics for engineering, Research Methods for
+psych, the intro sequence for CS. A nursing student locked out of A&P has a harder problem
+than most CS students do, and there are more of them. If your opportunity list is mostly one
+department, you are searching your own assumptions.
+
+**Prefer question-shaped titles.** "Does X ever open up?" threads rank in Google and keep
+being found for years, so a helpful reply there earns traffic long after the thread dies.
+A reply on a thread that spikes and vanishes is worth much less.
 
 **Recency is most of the value.** A thread from last semester is archaeology; the student
 already solved it or gave up. Weight the last 7 days heavily and ignore anything over 30

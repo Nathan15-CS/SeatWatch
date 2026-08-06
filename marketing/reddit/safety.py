@@ -79,8 +79,13 @@ BANNED = [
 ]
 
 # The post must sound like a person who built a thing, because that is what it is.
-DISCLOSURE = re.compile(r'\bI\s+(built|made|created|wrote|put together)\b'
-                        r'|\bmy\s+(project|side project|app|tool)\b', re.I)
+# The first-person subject and the build verb are allowed to be separated, within one
+# sentence: "I got locked out of a required class and built a tool" is a disclosure, and an
+# earlier version that demanded the literal phrase "I built" rejected it. A disclosure rule
+# that fails honest disclosure trains the writer to reword until it passes, which is the
+# opposite of what it is for.
+DISCLOSURE = re.compile(r"\bI\b[^.!?\n]{0,90}?\b(built|made|created|wrote|put together)\b"
+                        r"|\bmy\s+(project|side project|app|tool)\b", re.I)
 
 LINK_RE = re.compile(r'https?://[^\s\)\]]+', re.I)
 OWN_DOMAIN = "seatwatchapp.com"
@@ -197,6 +202,25 @@ def check(draft, *, account=None, facts=None):
                             "sms_claims_allowed — the published SMS Terms and /text-alerts "
                             "page still describe texts as a paid-plan feature, and the "
                             "toll-free number was verified against that description"})
+
+    # ---- 5b. never claim to attend a school you do not attend
+    # The product serves 890 campuses; the founder attends one. "Here at UConn" posted to
+    # r/uconn by someone who does not go there is a lie about identity, which is both the
+    # fastest way to be exposed and a worse offence than any marketing claim. The honest
+    # framing — "I got stuck in a full class and built this" — travels everywhere.
+    with store.db() as c:
+        _s = c.execute("SELECT school FROM subreddits WHERE name=?",
+                       (draft["subreddit"],)).fetchone()
+    target_school = (_s["school"] if _s else None)
+    if target_school and target_school != facts.get("founder_school"):
+        AFFIL = re.compile(r'\b(here\s+at|i\s+go\s+to|i\'?m\s+a\s+\w+\s+at|i\s+attend|'
+                           r'my\s+school|our\s+campus|we\s+at)\b', re.I)
+        m = AFFIL.search(blob)
+        if m:
+            f.append({"rule": "false_affiliation",
+                      "detail": "implies attending %s (founder's school is %s) -> matched %r"
+                                % (target_school, facts.get("founder_school") or "unset",
+                                   m.group(0))})
 
     # ---- 6. subreddit must be approved
     with store.db() as c:

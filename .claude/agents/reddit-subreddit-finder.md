@@ -18,23 +18,34 @@ know if CMSC216 opens up"* or *"waitlisted for orgo, what do I do"*. That is the
 
 Ranked by how well they meet it:
 
-1. **Campus subreddits for schools SeatWatch already covers** — r/UMD, r/UCSD, r/rutgers.
-   Highest intent, smallest audience, best conversion. Prefer these.
-2. **Course-registration-adjacent** — r/college, r/CollegeRant during add/drop.
-3. **Major-specific** where the bottleneck courses live — r/csMajors and similar.
+1. **Campus subreddits for any of the 890 proven schools.** Highest intent, smallest
+   audience, best conversion. There are 890 of these and roughly four are claimed — breadth
+   is the opportunity, not depth in one campus.
+2. **Major-specific communities where bottleneck courses live** — r/StudentNurse (Anatomy &
+   Physiology, Microbiology), r/premed (Organic Chemistry), r/accounting, r/EngineeringStudents,
+   r/psychologystudents, r/Teachers. **Do not default to CS.** Nursing prereqs lock more
+   students out of more programs than any CS course, and a nursing student who misses A&P
+   loses a year.
+3. **Course-registration-adjacent** — r/college, r/CollegeRant during add/drop.
 
 Deliberately NOT candidates: r/entrepreneur, r/SideProject, r/startups, r/SomebodyMakeThis.
 Those reward the post, not the product. They produce upvotes from people who will never
 register for a class, and they cost the same founder-minutes as a campus post that converts.
 
-## Verify coverage before recording
+## Work from the coverage list, not from memory
 
-A subreddit for a school SeatWatch does not cover is worse than useless — it sends students
-to a page that cannot watch their classes. Check first:
+`coverage_index.py` is your worklist. It emits every school with a PROVEN adapter, largest
+first, with candidate subreddit names already guessed:
 
 ```bash
-cd ~/seatwatch && python3 -c "import schools; print([k for k in schools.SCHOOLS if 'umd' in k])"
+cd ~/seatwatch/marketing/reddit && python3 coverage_index.py --unclaimed --limit 40
 ```
+
+`--unclaimed` hides schools already in the registry, so each run gives you new ground.
+
+**Only proven schools.** The registry holds 928 adapters but only 890 pass; the rest report
+everything open or return nothing. Sending a student to one of those is worse than never
+reaching them. `coverage_index.py` filters this for you — do not go around it.
 
 Record the `school` id alongside the subreddit so attribution can join them later.
 

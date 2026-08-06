@@ -189,6 +189,45 @@ class TestApprovalInvariant(Base):
         self.assertNotIn(bad, got)
 
 
+class TestBreadth(Base):
+    """SeatWatch serves 890 campuses and every major. These pin the two things that must
+    hold when the system stops being about one school."""
+
+    def test_honest_builder_framing_passes_on_any_campus(self):
+        store.add_subreddit("uconn", school="uconn")
+        store.record_rules("uconn", "allowed", "u")
+        store.set_status("uconn", "approved")
+        d = mkdraft("I got locked out of a required class last year and built a tool that "
+                    "emails you when a seat opens. Free for one course. "
+                    "https://seatwatchapp.com/?r=rd-y", sub="uconn")
+        self.assertEqual(self.rules(d), set())
+
+    def test_claiming_to_attend_another_school_blocked(self):
+        store.add_subreddit("uconn", school="uconn")
+        store.record_rules("uconn", "allowed", "u")
+        store.set_status("uconn", "approved")
+        d = mkdraft("I built a seat alert tool. Here at UConn everyone gets stuck in Anatomy "
+                    "and Physiology. https://seatwatchapp.com/?r=rd-x", sub="uconn")
+        self.assertIn("false_affiliation", self.rules(d))
+
+    def test_own_school_may_be_claimed(self):
+        d = mkdraft("I go to UMD and I built a tool that emails you when a seat opens in a "
+                    "full class. https://seatwatchapp.com/?r=rd-z")   # umd == founder_school
+        self.assertNotIn("false_affiliation", self.rules(d))
+
+    def test_non_cs_majors_are_not_penalised(self):
+        d = mkdraft("I built a tool that watches Anatomy and Physiology sections and emails "
+                    "you when one opens. Free for one course. "
+                    "https://seatwatchapp.com/?r=rd-ap")
+        self.assertEqual(self.rules(d), set())
+
+    def test_coverage_index_spans_many_schools(self):
+        import coverage_index
+        rows = coverage_index.proven()
+        self.assertGreater(len(rows), 500, "worklist must span the fleet, not one campus")
+        self.assertTrue(all(r["subreddits"] for r in rows[:50]))
+
+
 if __name__ == "__main__":
     store.init()
     unittest.main(verbosity=2)
