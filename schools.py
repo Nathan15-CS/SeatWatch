@@ -4005,11 +4005,48 @@ class Wisconsin(TermAutoRoll):
 
 # ===========================================================================
 # ===========================================================================
-class Penn:
+class Penn(TermAutoRoll):
     id = "penn"
     name = "University of Pennsylvania"
     example = "CIS 1200"
-    sem = "2026C"   # Fall 2026
+    term = "2026C"     # Fall 2026; fallback — term_options() detects it now
+    _SEASONS = {"A": "Spring", "B": "Summer", "C": "Fall"}
+
+    @property
+    def sem(self):
+        """Penn calls it a semester and the rest of this adapter says `sem`. A property
+        over cur_term() keeps those call sites working while following the detected term."""
+        return self.cur_term()
+
+    def term_options(self):
+        """Penn Course Plan states its CURRENT semester outright at /api/options/
+        ("2026C"), but publishes no list of the others. So candidates are derived from it
+        using Penn's own suffix scheme (A Spring, B Summer, C Fall).
+
+        Penn's own answer is deliberately NOT adopted directly, even though it is
+        authoritative. It marks what their planner is showing today, and taking it as the
+        term would hand the school its next semester the moment Penn flips — which can
+        happen while Fall is still running. Feeding it through the shared picker means Penn
+        gets the same late bias as everywhere else, and refresh_term still refuses any
+        candidate with no live data behind it.
+        """
+        import json as _json
+        req = urllib.request.Request("https://penncourseplan.com/api/options/",
+                                     headers={"User-Agent": UA})
+        cur = str(_json.loads(urllib.request.urlopen(req, timeout=20).read()
+                              ).get("SEMESTER") or "")
+        m = re.match(r"^(\d{4})([ABC])$", cur)
+        if not m:
+            return []
+        year, letter = int(m.group(1)), m.group(2)
+        order = ["A", "B", "C"]
+        i, y, out = order.index(letter), year, []
+        for _ in range(4):                       # current plus the next three
+            out.append((f"{y}{order[i]}", f"{self._SEASONS[order[i]]} {y}"))
+            i += 1
+            if i >= len(order):
+                i, y = 0, y + 1
+        return out
 
     @staticmethod
     def _code(course):
