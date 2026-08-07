@@ -2737,7 +2737,7 @@ class ClevelandState:
         return out
 
 
-class TennesseeTech:
+class TennesseeTech(TermAutoRoll):
     """Tennessee Tech — a CUSTOM Banner 8 package. The standard bwckschd/bwckctlg guest
     routes are DEAD here (empty/500), so this is bespoke: POST bwskttuclasses.P_DispClasses
     with my_term + my_subject returns the WHOLE subject as a flat labelled table, no
@@ -2753,7 +2753,28 @@ class TennesseeTech:
     id = "tntech"; name = "Tennessee Technological University"
     example = "ENGL 1010"
     base = "https://ttuss1.tntech.edu/PROD"
-    term = "202680"                        # Fall 2026; pinned (no auto-roll — routes dead)
+    term = "202680"                        # Fall 2026; fallback — detected below
+
+    def term_options(self):
+        """The Banner 8 dynamic-schedule page carries the term dropdown after all — the
+        comment this replaces said "no auto-roll, routes dead", which was true of the
+        routes tried at the time but not of bwckschd.p_disp_dyn_sched.
+
+        Future terms are labelled "(View only)" because registration has not opened for
+        them. The marker is deliberately KEPT in the label rather than stripped: it is
+        harmless to the picker (which reads season and year) and it means anyone reading a
+        log line sees the school's own words about why a term is not being adopted yet.
+        Spring Term 2027 is 202710 and already listed."""
+        req = urllib.request.Request(self.base + "/bwckschd.p_disp_dyn_sched",
+                                     headers={"User-Agent": UA})
+        html = urllib.request.urlopen(req, timeout=25).read().decode("utf-8", "replace")
+        out, seen = [], set()
+        for code, label in re.findall(
+                r"<option[^>]*value=[\"']?(\d{6})[\"']?[^>]*>\s*([^<]{3,40})", html, re.I):
+            if code not in seen:
+                seen.add(code)
+                out.append((code, label.strip()))
+        return out
     _TTL = 300
     _lock = threading.Lock()
     _cache = {}                            # (term, subj) -> (ts, {crn: {open, seats, num}})
