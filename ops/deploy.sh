@@ -27,10 +27,14 @@ case "$MODE" in
              echo "REFUSED: app mode needs the CEO to type --app-approved"; exit 1; }
            # ca_chain.py and its bundle ship WITH app.py: app.py imports ca_chain at module
            # scope, so shipping one without the other leaves the service unable to start.
-           # coverage.json ships too — it decides the public school count and which schools
-           # may be watched, so a stale one silently mis-states both.
+           # NOTE coverage.json is deliberately NOT here. It is a MEASUREMENT the VM
+           # makes nightly, not source. Shipping it meant every app deploy silently
+           # reverted the server to whatever this laptop last measured — on 2026-08-07
+           # that republished a 2-day-old file (890 proven) over that morning's real
+           # result (873), so the site overstated by 17 schools with no error anywhere.
+           # The nightly sweep owns that file now; the app only ever reads it.
            FILES=(app.py ca_chain.py guardian.py confidence.py schools.py
-                  ops/edu-intermediates.pem ops/coverage.json ops/blocked.json
+                  ops/edu-intermediates.pem ops/blocked.json
                   ops/nightly-sweep.sh ops/sweep-schools.py) ;;
   *) echo "usage: ops/deploy.sh schools | app --app-approved"; exit 1 ;;
 esac
