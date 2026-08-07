@@ -56,6 +56,19 @@ if n_live and n_new < n_live * 0.90:
           " either way a human should look before this reaches the site." % (n_live, n_new))
     sys.exit(3)
 
+# A spike in EMPTY is the failure this guard originally missed. On 2026-08-07 a sweep
+# reported 873 proven against 890 — under the 10% floor above, so it published — while
+# EMPTY jumped 10 -> 28. Fifteen healthy colleges were hidden from students for a day on
+# the strength of one bad network night; a re-measure hours later put them all back. OK
+# falling and EMPTY spiking are NOT the same signal: a school can drop out of OK by going
+# ALL_OPEN, which is harmless, whereas EMPTY takes it off the site entirely.
+def empties(d): return sum(1 for v in d.values() if v.get("verdict") == "EMPTY")
+e_new, e_live = empties(new), empties(live)
+if e_live and e_new > max(e_live * 2, e_live + 10):
+    print("  REFUSED: unreachable schools jumped %d -> %d. That hides colleges from"
+          " students, so it needs a human rather than a publish." % (e_live, e_new))
+    sys.exit(4)
+
 shutil.copyfile(new_p, live_p)
 print("  PROMOTED: coverage.json now reports %d proven" % n_new)
 sys.exit(0)
