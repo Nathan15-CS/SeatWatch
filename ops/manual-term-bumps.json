@@ -84,23 +84,9 @@
   "reason": "opted out (auto_term=False)"
  },
  {
-  "id": "penn",
-  "name": "University of Pennsylvania",
-  "term": null,
-  "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
   "id": "tamucc",
   "name": "Texas A&M University-Corpus Christi",
   "term": "202609",
-  "family": "object",
-  "reason": "no refresh_term \u2014 hardcoded term only"
- },
- {
-  "id": "tntech",
-  "name": "Tennessee Technological University",
-  "term": "202680",
   "family": "object",
   "reason": "no refresh_term \u2014 hardcoded term only"
  },
