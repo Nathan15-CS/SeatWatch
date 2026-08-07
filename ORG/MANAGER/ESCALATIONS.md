@@ -22,6 +22,31 @@ decision but is not actively harming anyone.
 
 ## OPEN
 
+### 2026-08-03 13:45 — BETA PULSE — INVESTIGATE — off-server backup pull has failed 2 days running; host refuses SSH, so the newest data copy is 54h old and the pulse is blind
+
+Evidence: `~/seatwatch-backups/pull.log`, verbatim:
+```
+[2026-08-02 12:59:02] FAIL: no backups found on the server (/home/ubuntu/seatwatch/backups)
+Read from remote host 141.148.27.134: Connection reset by peer
+client_loop: send disconnect: Broken pipe
+[2026-08-03 09:43:11] FAIL: no backups found on the server (/home/ubuntu/seatwatch/backups)
+```
+Earlier failure same pattern: `[2026-07-30] ssh: connect to host 141.148.27.134 port 22: Network is unreachable`.
+Newest local backup is `watches-20260801-030001.db` (2026-08-01 03:00 UTC). `https://seatwatchapp.com/`
+returns HTTP 200, so the app itself is serving. Note the correlation: `guardian_incidents` id 1
+has USF dark 2026-08-02 12:03–13:51, overlapping the 12:59 pull failure — likely one host-level
+network/VM event, not two.
+
+Impact: No user is being harmed right now (site up, alert path clean, NO_CHANNEL 0). The damage is
+to visibility and recovery: the only off-server copy of the database is 54h stale, and the beta
+pulse can no longer tell whether a new student signed up — it re-read the same snapshot twice.
+Goes STOP if the 2026-08-04 pull also fails.
+
+Asked of Manager: get someone onto the box today to establish whether this is SSH/network only or
+the nightly backup job itself has stopped writing to /home/ubuntu/seatwatch/backups. Both failure
+messages say "no backups found on the server", which would mean the job is not producing files —
+a different and worse problem than an unreachable host.
+
 ### 2026-08-04 04:30 — GUARDIAN (shadow checkpoint, day 8.9/14) — INVESTIGATE — first incident of the window: USF was dark for 1h48m and paged nobody
 
 **Evidence — `guardian_incidents` id 1, verbatim:**
