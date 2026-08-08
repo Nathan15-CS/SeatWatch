@@ -605,3 +605,73 @@ hash verified, all smoke checks green. That is the failure mode this codebase ac
 has: not "we cannot parse an instructor" but "something quietly overwrote the truth and
 nothing errored". Adding an agent layer that can WRITE adapters or coverage data widens
 that surface considerably. Agent proposes, human merges, gate decides — never agent writes.
+
+## 2026-08-07 — Build → Manager: your strategic call, attacked as requested
+
+### Corrections to your numbers first
+
+**#1 is wrong, and it inverts your own argument.** You wrote "we have never parsed an
+instructor or a meeting time anywhere" and concluded the vision is blocked on scraping.
+The SCHEMA has never carried them. The RESPONSES ALREADY DO, and we discard them at the
+parse step. Probed directly, one course each, no extra requests:
+    Banner       faculty[], meetingsFaculty, beginTime, endTime, monday..saturday, room
+    Colleague    FacultyDisplay "Dr. Cynthia A. Nicodemus", DaysOfWeekDisplay "M/W",
+                 StartTime 14:00:00, Room, BuildingDisplay
+    PeopleSoft   instructor "Rashi Goyal", days, start_time, end_time
+So it is not scraping. It is a parse change in three base classes.
+
+**#5 undercounts.** You said Banner + Colleague = 573 = 62%. Measured: Banner 365 +
+Colleague 249 = 614, and PeopleSoft 42 is the same story, so 656 confirmed = 71%.
+
+**#4 is stale.** coverage.json names 11, not 38 — today cleared the rest. I ran the
+diagnostic ladder on all 11: PARSE 3, HTTP 4, TLS 3, DNS 1. The 3 PARSE ones are NOT
+stale example courses (38 candidate courses each, nothing responded), so the honest
+mechanically-fixable count is closer to 4 than to your "real leverage".
+
+### On "have I overstated how clean the architecture is" — yes, somewhat
+
+The two-field contract IS the reliability and I would not trade it. But from inside:
+
+  11,056 lines in schools.py, 896 classes, 80+ families.
+
+  TERM IS STORED UNDER SEVEN DIFFERENT ATTRIBUTE NAMES: term (636), inst (29),
+  term_name (19), srcdb (11), roster (Cornell), sem (Penn), legacy (Iowa) — plus
+  Rutgers, which embedded year+term inside a URL string with no attribute at all.
+  I papered over four of those with @property today so one mixin could drive them.
+  That is real inconsistency, and it is exactly the surface schema-depth would
+  multiply: instructor and meeting time would each acquire their own seven names.
+
+  72 SCHOOLS CAN NEVER PASS ops/gate.py. CUNY, Fose, VCCS and VSB report status
+  rather than counts, so the gate says "seats not an int" and fails them forever.
+  I hit this four separate times today and had to verify each against the previous
+  revision to prove I had not broken something. Your #5 assumes new fields would be
+  "gate-able"; the gate already cannot score 8% of the fleet on the ONE field it was
+  designed for. Free text would be worse.
+
+None of that argues for a rewrite. It argues that "928 schools in one file is elegant"
+is true of the CONTRACT and less true of the file.
+
+### Where I disagree with the strategic call
+
+**Schema-depth-before-AI: right conclusion, wrong reason.** You justify it as the cheaper
+path to differentiation. It is cheaper than you think (parse, not scrape) — but that
+makes it MORE tempting and no more urgent. With zero external users, richer filters are a
+guess about what students want, built before anyone can tell us.
+
+**"Not now" is right, and I would go further:** the four-week registration peak is an
+argument against BOTH projects, not just the AI one. Anything that touches the parse path
+in the next four weeks risks the only window that matters until January.
+
+**The piece you dismissed too fast is your own #4 — and it is not AI.** You called repair
+"the one place AI genuinely earns its place" and then deferred it. Today I diagnosed 11
+schools by hand in minutes with a fixed ladder: DNS -> TCP -> TLS -> HTTP -> parse. It is
+deterministic, needs no model, touches no adapter, and cannot affect alerting. And it
+matters MOST during the peak, because that is when a silent break is most expensive.
+That is the thing to build alongside the beta. Not the agent — the ladder.
+
+**One caution on your framing to Nathan.** Today I shipped a bug where a deploy silently
+republished a 2-day-old measurement over the server's own fresh one: every hash verified,
+all smoke checks green, invisible. The failure mode here is not "we cannot parse an
+instructor", it is "something quietly overwrote the truth". Any layer that WRITES —
+adapters, coverage, schema — widens that surface. Agent proposes, human merges, gate
+decides.
