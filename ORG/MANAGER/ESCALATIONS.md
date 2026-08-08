@@ -525,3 +525,83 @@ then moves the first day its own Spring data is live; no data means it stays put
 registry crosses together. The nightly sweep is a backstop, not a plan: it will only
 catch a stale school once Fall sections actually vanish, which is well into Spring
 registration and far too late for the students who wanted those seats.
+
+## 2026-08-07 — Build → Manager: vertical-AI evaluation (analysis only, nothing built)
+
+### 1. Your first conclusion is WRONG, and it changes the economics
+
+You wrote: "nothing in the system carries instructor, meeting days, start time". The
+SCHEMA carries none of it — correct. But the RESPONSES WE ALREADY FETCH carry all of it,
+and we discard it at the parse step. Probed directly, one course each, no extra requests:
+
+    Banner (365)      faculty[] with bannerId; meetingsFaculty; beginTime, endTime,
+                      monday..saturday flags, building, room, campus, creditHourSession
+    Colleague (249)   FacultyDisplay "Dr. Cynthia A. Nicodemus", FacultyName,
+                      InstructorDetails, DaysOfWeekDisplay "M/W", StartTime 14:00:00,
+                      EndTime, Room, BuildingDisplay
+    PeopleSoft (42)   instructor "Rashi Goyal", instructors[{name,email}], days,
+                      start_time, end_time, room
+
+So instructor + meeting pattern is a PARSE change, not a fetch change, for the three
+families that are 656 schools directly confirmed. Poll load does not move at all — your
+"second request per course multiplies poll load" worry does not apply to these. ~869 of
+928 (94%) sit in families sharing those bases, but treat that as inference: I probed four
+adapters, not eighty. The remaining ~59 bespoke ones need individual checks.
+
+### 2. Your second conclusion is right, but the reason is sharper than you put it
+
+Onboarding IS cheap — 3-line median, 90% inherit fetch(). But I would not frame the cost
+as research either. Today's evidence: I took proven schools 851 -> 888, and EVERY school
+gained was OUR bug, not a dead college — a missing CA intermediate (9), a TLS cipher floor
+(5), a moved host (3), a cancelled example course (5), a term picker reading a mislabelled
+config (3). An agent pointed at onboarding automates the cheap step. An agent pointed at
+"this school looks dead — which of OUR failure modes is it?" automates the expensive one.
+
+### 3. The gate question — and I think you have the risk tier wrong
+
+"A wrong instructor causes wrong ranking, not a wrong alert" is true ONLY if instructor is
+advisory. The moment a student says "MATH240 with Song" and we FILTER on it, a wrong
+instructor mapping means we watch the wrong section: they get alerted for a seat in a
+class they did not ask for, or never alerted for the one they did. That is both failure
+modes we spend all our discipline avoiding, arriving through a field we would be treating
+as cosmetic.
+
+Gating it is genuinely harder than seats: "Song" vs "C. Song" vs "Dr. Chen Song" vs STAFF
+vs a TBA that becomes a name in August. My recommendation — instructor and time are
+RANKING-ONLY at first, never a hard filter, and the alert always names the section so the
+student verifies. Hard filtering needs its own gate: does the same section return a stable
+instructor string across three probes, and does every section in a course have one.
+
+### 4. Auto-repair — the number is 13 now, not 38, and the ceiling is CLASSIFY not FIX
+
+coverage.json currently names 13 unreachable (today's work cleared the rest). Every one
+reports the SAME detail: "no sections for its own example course". That string is the
+least diagnostic thing in the system — today I watched that identical symptom resolve to
+four unrelated causes: DNS gone, TLS handshake reset, cancelled example course, moved
+endpoint. An agent reading verdicts alone cannot separate them and will confidently
+propose the wrong fix.
+
+What IS mechanical is the ladder I ran by hand today: DNS -> TCP -> TLS handshake -> HTTP
+status -> did the adapter issue a request -> did the parse return rows. That classifies a
+break into a known bucket with evidence, and it is deterministic — no LLM needed. Realistic
+ceiling: an agent that classifies and drafts a one-line diff for the two mechanical buckets
+(stale example course, changed host), and hands the rest to a human WITH the ladder output.
+Judging by today, that is maybe half of any given batch.
+
+### 5. Easier than you think
+
+- The data model. See section 1 — it is a parse change for two thirds of the registry.
+- Break DETECTION is already built and running: Guardian, the nightly sweep with its
+  refuse-to-publish guards, coverage.json, and the operator ladder. Nathan's proposal
+  lists it as something to add; it exists.
+- Normalisation of course codes is also already solved per family (_CUNY_MAPS, _norm,
+  the suffix handling). Do not let an agent redo it.
+
+### What I would push back on hardest
+
+The deterministic core is the product. Today I introduced a bug where a deploy silently
+republished a 2-day-old measurement over the server's own fresh one — invisible, every
+hash verified, all smoke checks green. That is the failure mode this codebase actually
+has: not "we cannot parse an instructor" but "something quietly overwrote the truth and
+nothing errored". Adding an agent layer that can WRITE adapters or coverage data widens
+that surface considerably. Agent proposes, human merges, gate decides — never agent writes.
