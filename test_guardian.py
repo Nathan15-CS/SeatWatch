@@ -372,7 +372,16 @@ class TestFailureModes(Base):
         self.install(f)
         cyc, _ = self.cycle()
         self.assertEqual(self.outcomes(cyc.id)[1], "blocked_wrong_term")
-        self.assertEqual(self.user_alerts(), [])       # the false alert did NOT go out
+        # This used to assert the student received NOTHING, which was right when a rolled
+        # term simply stopped the watch. It is wrong now: app.py:4345 tells the student the
+        # watch ended and why. That notice IS the "loudly, not silently" this test is named
+        # for — a watch that dies without telling anyone is the silent-death failure. So
+        # pin both halves separately instead of banning all mail.
+        mail = self.user_alerts()
+        self.assertFalse([m for m in mail if "Seat open" in m["title"]],
+                         f"a false SEAT alert went out for a rolled term: {mail}")
+        self.assertTrue([m for m in mail if "watch has ended" in m["title"]],
+                        f"student was never told their watch died — silent death: {mail}")
         self.assertTrue(any("STRANDED" in p for p in self.pages))   # ...and it was loud
         with app.db() as c:
             self.assertIsNotNone(c.execute("SELECT 1 FROM guardian_incidents WHERE "
