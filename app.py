@@ -3434,11 +3434,39 @@ _last_drill = [float(_st.get("last_drill", 0.0))]      # persisted fire-drill ti
 
 
 ADMIN_USER_ID = int(os.environ.get("SEATWATCH_ADMIN_USER", "0") or 0)
+# One operator email per distinct problem per half hour. Long enough that an
+# escalating outage is one message, short enough that a NEW problem is not muted
+# behind an old one — the keys are per-message, so they damp independently.
+OPERATOR_MAIL_COOLDOWN_S = int(os.environ.get("OPERATOR_MAIL_COOLDOWN_S", "1800"))
+
+
+_op_mail_last = {}          # normalised message -> last time we emailed it
 
 
 def operator_alert(message):
     """Ping YOU (the operator) when something needs a human. Never goes to users.
-    Web push to the admin's account (primary) + ntfy topic (backup channel)."""
+
+    EMAIL is the channel that actually arrives. Web push and ntfy are kept as extras,
+    but neither is trusted on its own — that is not a guess, it is the documented cause
+    of a real miss: on 2026-08-02 USF went dark for 1h48m across 272 consecutive failed
+    fetches with two live watches on it. The guard worked perfectly, the page fired five
+    seconds after the fifth failure, and the operator alert went to web push and ntfy —
+    where nobody was looking. It surfaced two days later only because a scheduled
+    checkpoint happened to read the incidents table.
+
+    That is the same failure students had until today: a channel that reports success
+    while reaching no one. It was worth fixing for them; it is worth fixing here, because
+    an operator who is not told cannot fix anything, and every guard in this system
+    ultimately terminates in a human being informed.
+
+    Mail is damped on the message with its NUMBERS STRIPPED, so an escalating outage
+    ("5 consecutive", "6 consecutive", "7 consecutive"...) is one email rather than one
+    every twenty seconds. Guardian dampens its own pages, but run_cycle calls this
+    directly too, and a bad hour there would otherwise mail hundreds of times.
+
+    Never raises: an operator alert that breaks the poller would take down alerting for
+    every student to report a problem with one school.
+    """
     if ADMIN_USER_ID:
         try:
             send_web_push(ADMIN_USER_ID, "SeatWatch health", message, BASE_URL)
@@ -3446,6 +3474,27 @@ def operator_alert(message):
             pass
     sw.notify("SeatWatch health", message, topic=OPERATOR_TOPIC)
     sw.log("  [OPERATOR ALERT] " + message)
+    try:
+        if not (EMAIL_ENABLED and ADMIN_USER_ID):
+            return
+        key = re.sub(r"\d+", "#", message)[:120]
+        now = time.time()
+        if now - _op_mail_last.get(key, 0) < OPERATOR_MAIL_COOLDOWN_S:
+            return
+        with db() as c:
+            row = c.execute("SELECT email FROM users WHERE id=?", (ADMIN_USER_ID,)).fetchone()
+        if not (row and row["email"]):
+            return
+        # Stamp only on SUCCESS. Stamping the attempt would let one SMTP hiccup silence
+        # this problem for the whole cooldown — the same mistake the student notifier
+        # makes if you are not careful, and the cost here is an operator never learning
+        # a school went dark.
+        if send_email(row["email"], "SeatWatch: something needs you",
+                      message + "\n\nThis is an operator alert — students were not "
+                                "contacted.\n\n— SeatWatch health", BASE_URL):
+            _op_mail_last[key] = now
+    except Exception as e:
+        sw.log(f"  [OPERATOR ALERT] could not email: {type(e).__name__}")
 
 
 def ping_healthcheck():

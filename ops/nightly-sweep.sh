@@ -14,7 +14,16 @@
 # then promoted. If it looks wrong we keep yesterday's numbers and page the operator: a
 # stale-but-true count is strictly better than a fresh lie.
 #
-#   crontab:  30 4 * * *  /home/ubuntu/seatwatch/ops/nightly-sweep.sh
+#   crontab:  30 16 * * *  /home/ubuntu/seatwatch/ops/nightly-sweep.sh
+#
+# THE HOUR MATTERS AND 04:30 UTC WAS WRONG. That is 00:30 Eastern, inside the overnight
+# maintenance window US registrars use. Measured over three consecutive nights: the 04:30
+# run reported 30-32 unreachable schools while a daytime run of the same sweep reported 11.
+# Nineteen schools failed only overnight, and twelve of those are North Carolina community
+# colleges — one shared system going down for maintenance, not twelve independent breakages.
+# The EMPTY-spike guard below correctly refused all three nights, which is why coverage
+# stopped updating rather than publishing a lie. Moved to 16:30 UTC = 12:30 Eastern /
+# 09:30 Pacific, business hours coast to coast.
 set -uo pipefail
 cd /home/ubuntu/seatwatch || exit 1
 
