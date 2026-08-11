@@ -140,7 +140,24 @@ def probe(a, extra_codes=(), budget_s=75):
             tot += 1
             s = v.get("seats")
             if not isinstance(s, int):
+                # seats=None is not automatically a parse failure. CUNY, Fose, VCCS and VSB
+                # — 72 schools, 7.8% of the fleet — publish an authoritative open/closed
+                # status and NO counts, so None is the correct and only possible answer.
+                # Skipping these rows made op and fu both zero, so one condition produced
+                # three failures ("seats not an int", "no OPEN found", "no FULL found") and
+                # those schools could never pass however healthy they were.
+                #
+                # They are still SCORED, just on what they actually expose: the open/full
+                # mix, which is the same disproof the seat-count schools give. What is NOT
+                # done is exempt them — see the consistency check after this loop, which is
+                # what separates "reports status by design" from "parser broke on some
+                # rows". Only the seat-value lie checks are skipped, because there is no
+                # count to contradict the status with.
                 non_int.append(f"{code}/{k}={s!r}")
+                if v.get("open"):
+                    op += 1
+                else:
+                    fu += 1
                 continue
             if v.get("open"):
                 op += 1
@@ -202,7 +219,20 @@ def gate(sid, S):
     if not tot:
         return sid, a.name, False, ["returned NOTHING for any probed course"]
     if non_int:
-        ok = False; notes.append(f"seats not an int (parse failed): {non_int[:3]}")
+        # CONSISTENCY, not exemption. A school that reports status for EVERY section is
+        # status-only by design and is judged on its open/full mix below. A school that
+        # reports counts for some sections and not others has genuinely failed to parse
+        # the gaps, and that is the case this check exists to catch — it is also the more
+        # dangerous one, because the rows it silently dropped are sections a student can
+        # never be alerted about.
+        if len(non_int) == tot:
+            notes.append(f"status-only adapter: {tot} section(s), no seat counts published "
+                         f"— scored on the open/full mix instead")
+        else:
+            ok = False
+            notes.append(f"seats not an int on {len(non_int)} of {tot} section(s) — a "
+                         f"MIXED response means the parse failed on those rows: "
+                         f"{non_int[:3]}")
     if lf:
         why = FULL_WITH_SEATS_OK.get(sid)
         if why:
@@ -218,7 +248,22 @@ def gate(sid, S):
                      + (" (probe hit its time budget - rerun this one alone)" if timed_out else ""))
     if not fu:
         why = NO_FULL_OK.get(sid)
-        if why:
+        if getattr(a, "open_only", False):
+            # The adapter DECLARES that it asks its registrar for open sections only, so a
+            # full section can never appear in the result no matter how full the college
+            # gets. CUNY sends open_class=O; 927 sampled sections across nine campuses
+            # contained not one closed row, and relaxing the filter returns an empty page.
+            # Demanding a full section here is demanding evidence the design forbids.
+            #
+            # This is read from the adapter's own contract, NOT from an exemption list —
+            # the distinction matters, because a list is a promise someone made once and a
+            # declaration is a property of the code that any reader can check. The safety
+            # it buys is stronger than the evidence being waived: a section appears only
+            # when the school itself says it is open, so the failure mode is a missed
+            # alert, never a phantom seat.
+            notes.append(f"no FULL section, and none is possible: adapter declares "
+                         f"open_only, so it asks the registrar for open sections only")
+        elif why:
             notes.append(f"no FULL section but ALLOWED — {why}")
         else:
             ok = False
