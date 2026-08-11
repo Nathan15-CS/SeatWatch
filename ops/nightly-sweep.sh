@@ -78,6 +78,38 @@ if e_live and e_new > max(e_live * 2, e_live + 10):
           " students, so it needs a human rather than a publish." % (e_live, e_new))
     sys.exit(4)
 
+# HYSTERESIS: one bad reading must not remove a college from the site.
+#
+# On 2026-08-10 a single sweep marked Moorpark, Oxnard and Ventura unreachable. All three
+# were fine minutes later — 75, 32 and 67 sections. They were hidden from students for a
+# day on one measurement, and the spike guard above did not catch it because 11 -> 16 is
+# a small jump; that guard only stops a mass failure.
+#
+# So a school leaving a working verdict for EMPTY must now fail TWICE IN A ROW. The first
+# failure keeps the previous verdict and records a strike; a second consecutive failure
+# accepts it. A school that recovers loses its strike. The cost of being wrong in this
+# direction is a real college the student cannot pick, versus at most one extra day of
+# listing a school that is genuinely down — and a school that is down fails closed anyway,
+# so nobody gets a false alert from the delay.
+WORKING = ("OK", "ALL_OPEN")
+held = 0
+for sid, row in new.items():
+    was, now_v = live.get(sid, {}).get("verdict"), row.get("verdict")
+    if was in WORKING and now_v == "EMPTY":
+        strikes = int(live.get(sid, {}).get("empty_strikes", 0)) + 1
+        if strikes < 2:
+            row.update(live[sid])                 # keep the working verdict for one round
+            row["empty_strikes"] = strikes
+            held += 1
+        else:
+            row["empty_strikes"] = strikes
+    elif now_v in WORKING:
+        row.pop("empty_strikes", None)            # recovered: forget the strike
+if held:
+    print("  held %d school(s) on a FIRST failure — they must fail twice to be hidden" % held)
+    n_new = sum(1 for v in new.values() if v.get("verdict") == "OK")
+
+json.dump(new, open(new_p, "w"), indent=1)
 shutil.copyfile(new_p, live_p)
 print("  PROMOTED: coverage.json now reports %d proven" % n_new)
 sys.exit(0)
