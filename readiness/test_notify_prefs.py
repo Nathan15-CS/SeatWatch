@@ -62,6 +62,11 @@ def run():
         with app.db() as c:
             c.execute("UPDATE users SET notify_email=?, notify_sms=? WHERE id=?",
                       (int(email), int(sms), uid))
+            # Each scenario below is a FRESH question about preferences, asked of the same
+            # watch. The repeat-alert cooldown would suppress every call after the first,
+            # so the ledger is cleared between scenarios — otherwise this suite measures
+            # the storm fix rather than the preference logic it is named for.
+            c.execute("DELETE FROM alert_log")
 
     # ---- the sender honours the preference ----
     sent = {"push": 0, "email": 0, "sms": 0}

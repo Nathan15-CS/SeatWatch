@@ -15,7 +15,7 @@ here any more: this suite exists to prove a student was reached, and push could 
 success while reaching nobody at all — a browser subscription the student never granted.
 Email is now the channel a student is alerted on, so it is the channel the canary checks.
 """
-import os, tempfile, sys
+import os, tempfile, sys, time
 
 
 def run():
@@ -96,6 +96,11 @@ def run():
     # exact bug that stranded a paid account would be back.
     with app.db() as c:
         c.execute("UPDATE watches SET alerted=0 WHERE id=?", (WID,))
+        # Past the repeat-alert cooldown, for the same reason as the block below: a watch
+        # alerted minutes ago is intentionally not re-attempted, and this check is about
+        # whether ntfy COUNTS, not about whether we re-send.
+        c.execute("UPDATE alert_log SET sent_at=? WHERE watch_id=?",
+                  (time.time() - getattr(app, "REPEAT_ALERT_COOLDOWN_S", 1800) - 60, WID))
     emails.clear(); texts.clear(); paged.clear()
     app.send_sms = lambda *a, **k: False
     app.sw.notify = lambda *a, **k: True             # ntfy "succeeds" — and must not count
@@ -111,6 +116,14 @@ def run():
     # incident; otherwise the test would be asserting against its own earlier page.
     paged.clear()
     app._undelivered.discard(WID)
+    # Age this watch's ledger past the repeat-alert cooldown. A watch alerted MINUTES ago
+    # is deliberately not re-attempted (that is the storm fix), so without this the test
+    # would be exercising the cooldown instead of the delivered-to-nobody path it is named
+    # for — and would report a safety property as broken when it is simply not reached.
+    # The property itself is unchanged and still asserted below.
+    with app.db() as c:
+        c.execute("UPDATE alert_log SET sent_at=? WHERE watch_id=?",
+                  (time.time() - getattr(app, "REPEAT_ALERT_COOLDOWN_S", 1800) - 60, WID))
     app.sw.notify = lambda *a, **k: False
     app.send_email = lambda *a, **k: False
     with app.db() as c:

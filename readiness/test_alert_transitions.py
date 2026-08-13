@@ -8,12 +8,12 @@ app.run_cycle() cycle by cycle. Asserts the core promise:
   closed->open   : EXACTLY ONE alert
   open->open     : silent (latched)
   open->closed   : silent, re-arms
-  closed->open   : re-alerts (one more)
+  closed->open   : re-alerts, but ONLY outside the repeat-alert cooldown
 
 Plus the term-roll case (a stale-term watch must NOT fire — the stamping guard).
 Returns (passed, failed, details) so readiness.py can aggregate.
 """
-import os, tempfile, sys
+import os, tempfile, sys, time
 
 def run():
     os.environ["SEATWATCH_DB"] = os.path.join(tempfile.mkdtemp(), "t.db")
@@ -74,10 +74,25 @@ def run():
     # open -> closed : silent, re-arms
     set_state(False)
     check("open->closed silent", cycle() == 0)
-    # closed -> open again : re-alerts (exactly one more)
+    # closed -> open again. This is the exact shape of the storm: watch 27 saw eight of
+    # these in an hour on 2026-08-13 and sent eight emails. Both halves are asserted, since
+    # the contract now has two — silent INSIDE the repeat window, alerting outside it. A
+    # test that only checked one half would call either the storm or a permanent mute
+    # "correct".
     set_state(True)
     n = cycle()
-    check("re-open re-alerts (exactly one)", n == 1, f"got {n}")
+    check("a re-open INSIDE the cooldown does not re-alert", n == 0,
+          f"got {n} — this is how one contested section produced eight emails")
+
+    with app.db() as c:
+        c.execute("UPDATE alert_log SET sent_at=? WHERE watch_id=1",
+                  (time.time() - getattr(app, "REPEAT_ALERT_COOLDOWN_S", 1800) - 60,))
+        c.execute("UPDATE watches SET alerted=0 WHERE id=1")
+    set_state(False); cycle()
+    set_state(True)
+    n = cycle()
+    check("...but OUTSIDE it, a genuine new opening still alerts", n == 1,
+          f"got {n} — a permanent mute would lose every later seat in the term")
 
     # --- TERM-ROLL: a stale-term watch must NOT fire (stamping guard) ---
     with app.db() as c:

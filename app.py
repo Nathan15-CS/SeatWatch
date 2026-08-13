@@ -4288,6 +4288,32 @@ def notify_prefs(user_id):
 _undelivered = set()   # watch_ids whose last alert reached NOBODY (retrying each cycle)
 
 
+# Bursts on one contested section arrive ~45-70s apart, and the two bursts observed on
+# 2026-08-13 were about an hour apart. Thirty minutes collapses a burst to a single alert
+# while still letting a genuinely new opening an hour later through. Longer would start
+# hiding real second chances; shorter would not have stopped the storm that prompted this.
+REPEAT_ALERT_COOLDOWN_S = int(os.environ.get("REPEAT_ALERT_COOLDOWN_S", "1800"))
+
+
+def _repeat_suppressed(watch_id):
+    """Has THIS watch already had an alert DELIVERED inside the cooldown?
+
+    Per watch, deliberately and strictly: a storm on one student's CMSC216 must never
+    delay a different course, a different section, or a different student. The watch id
+    is the narrowest key that exists, so nothing wider can be suppressed by accident.
+
+    SMS is excluded from the lookup because it enforces one text per watch EVER, which is
+    stricter than this; counting it would let a months-old text mute a fresh email.
+    """
+    try:
+        with db() as c:
+            return c.execute(
+                "SELECT 1 FROM alert_log WHERE watch_id=? AND channel!='sms' AND sent_at>? "
+                "LIMIT 1", (watch_id, time.time() - REPEAT_ALERT_COOLDOWN_S)).fetchone() is not None
+    except Exception:
+        return False          # never let a bookkeeping error swallow a real alert
+
+
 def _alert(r, message, url):
     """Deliver a seat-open alert on every channel. Returns True iff AT LEAST ONE channel
     actually delivered. On total failure the caller must NOT latch the watch, so it
@@ -4308,8 +4334,27 @@ def _alert(r, message, url):
     # the Guardian and the sender can never disagree about which channels this account
     # actually uses. Missing/legacy rows read as enabled, matching the DEFAULT 1 migration.
     _, want_email, want_sms = notify_prefs(uid)
+    # REPEAT-ALERT COOLDOWN. Every alert below is CORRECT — each follows a real
+    # closed->open transition the poller observed. But on 2026-08-13 watch 27 (CMSC216
+    # 0102) produced EIGHT emails in an hour while SMS sent exactly one, because SMS has a
+    # one-text-per-watch rule and email had nothing. Add/drop churn on a contested course
+    # opens and refills a seat within seconds, so a student got eight mails about a class
+    # they could not get into. That is how a beta user unsubscribes on day one and then
+    # never hears about the seat they WOULD have got: a correct alert that drives someone
+    # away is worse than no alert.
+    #
+    # Derived from the alert_log ledger rather than held in memory, for the same reason
+    # every SMS cap is: the poller restarts on each deploy, and an in-memory counter would
+    # let a runaway loop reset its own brake.
+    #
+    # It gates on a previous DELIVERY, not on elapsed time, and that distinction is the
+    # whole safety of it. alert_log records successes only, so "a row inside the window"
+    # means this student genuinely heard from us recently. A watch whose alert reached
+    # NOBODY has no row, so the every-cycle delivery retry still runs untouched — losing
+    # that would resurrect the silent-failure class closed last week.
+    suppressed = _repeat_suppressed(r["id"]) if uid else False
     emailed = False
-    if want_email and EMAIL_ENABLED and uid:
+    if want_email and EMAIL_ENABLED and uid and not suppressed:
         with db() as c:
             row = c.execute("SELECT email FROM users WHERE id=?", (uid,)).fetchone()
         if row and row["email"]:
@@ -4339,10 +4384,18 @@ def _alert(r, message, url):
     # honest and legacy rules collapse to the same answer — "email or text delivered" —
     # so this now means the same thing in every Guardian mode. Signature kept so the
     # Guardian lane's file needs no edit from here.
-    delivered = guardian.latch_decision(r, ok, pushed, emailed, texted)
+    # A suppressed repeat COUNTS AS DELIVERED, and getting this wrong would have been
+    # worse than the storm. Without it the latch sees no channel succeed, so the watch
+    # never latches, retries every 20 seconds forever, and pages the operator
+    # "DELIVERED-TO-NOBODY" for a student who was in fact emailed minutes ago. The student
+    # WAS reached; we are declining to repeat ourselves, which is the opposite of a
+    # delivery failure.
+    delivered = guardian.latch_decision(r, ok, pushed, emailed, texted) or suppressed
     sw.log(f"  ALERT {r['course']}-{r['section'] or 'ALL'} -> user {uid} "
-           f"(email {'sent' if emailed else 'off'}; sms {'sent' if texted else 'off'}"
-           f"{'; ⚠️DELIVERED-TO-NOBODY' if not delivered else ''})")
+           + ("(repeat within cooldown — not re-sent; already alerted <"
+              f"{REPEAT_ALERT_COOLDOWN_S // 60}min ago)" if suppressed else
+              f"(email {'sent' if emailed else 'off'}; sms {'sent' if texted else 'off'}"
+              f"{'; ⚠️DELIVERED-TO-NOBODY' if not delivered else ''})"))
     wid = r["id"]
     if not delivered:
         if wid not in _undelivered:            # page once, not every retry cycle
