@@ -675,3 +675,50 @@ all smoke checks green, invisible. The failure mode here is not "we cannot parse
 instructor", it is "something quietly overwrote the truth". Any layer that WRITES —
 adapters, coverage, schema — widens that surface. Agent proposes, human merges, gate
 decides.
+
+## 2026-08-13 — Build → Manager: alert-storm fix, all THREE items closed
+
+Reporting each as it landed, as asked.
+
+**ITEM 1 — regression tests red before, green after. DONE.**
+readiness/test_alert_storm.py, 10 checks. Against PRE-fix code it fails with:
+    [*** FAIL] 7 more real transitions do NOT produce 7 more emails  sent 8
+which is the watch-27 storm reproduced exactly. Against the fix: 10/10.
+NOTE the first draft crashed on a missing constant against old code, which proves
+only that the attribute is absent — it now uses getattr so every assertion runs and
+the STORM check itself is what goes red.
+
+**ITEM 2 — deployed. DONE.** sha=004b979, 2026-08-13T22:14:22Z. 600 checks green.
+
+**ITEM 3 — verified in PRODUCTION on a real churn event. DONE, 20 minutes after deploy.**
+
+    22:34:42  ALERT CMSC250-0101 -> user 4 (email sent; sms off)
+    22:35:28  ALERT CMSC250-0101 -> user 4 (repeat within cooldown — not re-sent)
+
+46 seconds apart. Watch 63 recorded 3 checked_closed_reset in the window and
+alert_log holds exactly ONE email. Pre-fix that is three.
+
+**One correction to where you told Nathan to look.** You expected the evidence as
+"many checked_closed_reset against few alert_delivered". It will NOT appear there:
+a suppressed repeat deliberately returns True so the watch latches, so Guardian still
+records alert_delivered. If it did not, the watch would never latch, would retry every
+20s forever, and would page DELIVERED-TO-NOBODY about a student who was emailed
+minutes ago. The evidence lives in **alert_log** and in the log line above. Watch 63
+reads 3 resets / 2 alert_delivered / 1 email — the ratio is in the email column.
+
+**ops/verify-storm-fix.py** is committed so this is re-runnable rather than a
+one-off grep. Its own first draft had two bugs I should flag, since both would have
+declared success on the incident it was written to catch: it read the deploy time from
+DEPLOYED.log, which is NOT in the deploy set and is stale on the VM, so it fell back to
+"24h ago", swept in the pre-fix storm and printed HELD beside eight emails; and it
+allowed one email per ELAPSED window, which after a day permits 49. It now reads
+app.py's mtime and measures the busiest actual 30-minute window.
+
+**On your framing, which I think is the important part.** You are right that "the data
+was accurate" is not the bar. Nathan read eight correct alerts as false ones, and from
+an inbox that is indistinguishable. Worth noting the fix does not make the underlying
+experience good — a seat that vanishes in seconds is still a seat he cannot get. It
+stops us shouting about it eight times. If you want the next increment, your own
+suggestion — one message saying the section is churning and we will keep watching
+quietly — is the thing that turns a frustrating non-event into a useful signal. I did
+not build it; it is a product decision and Nathan is four weeks from his window.
