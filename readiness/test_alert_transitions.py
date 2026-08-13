@@ -5,7 +5,7 @@ seed a real watch, capture the delivery channels (send nothing), and drive the a
 app.run_cycle() cycle by cycle. Asserts the core promise:
 
   closed->closed : silent
-  closed->open   : EXACTLY ONE alert
+  closed->open   : HELD until the seat survives CONFIRM_SECONDS, then EXACTLY ONE alert
   open->open     : silent (latched)
   open->closed   : silent, re-arms
   closed->open   : re-alerts, but ONLY outside the repeat-alert cooldown
@@ -54,20 +54,43 @@ def run():
         c.execute("INSERT INTO watches(id,school,topic,course,section,term,alerted,created,user_id)"
                   " VALUES(1,'canary','t','CS 101','0101','202608',0,?,1)", (0,))
 
+    # Production runs with opening confirmation ON: a seat must still be there
+    # CONFIRM_SECONDS later before we send, because 14 of 18 measured openings died
+    # inside two minutes. Drive a fake clock so this suite exercises the REAL default
+    # rather than switching it off — every other suite switches it off, so if this one
+    # did too, nothing would test the shipped behaviour through run_cycle at all.
+    clock = [1_000_000.0]
+    app._now = lambda: clock[0]
+
     def set_state(open_):
         fake._data = {"CS 101": {"0101": {"open": open_, "seats": 5 if open_ else 0}}}
-    def cycle():
+    def cycle(advance=0):
         before = len(sent)
+        clock[0] += advance
         app.run_cycle()
         return len(sent) - before
+    def confirmed_cycle():
+        """A cycle far enough past the rising edge that the seat has proven itself."""
+        return cycle(app.CONFIRM_SECONDS + 1)
+    def reopen_confirmed():
+        """Re-open a section and carry it PAST confirmation, returning total alerts.
+
+        Two cycles, not one: the first records the rising edge at the current clock, the
+        second runs after it. Advancing before the edge exists just moves the edge, so a
+        single confirmed_cycle() would still be held — and a check for silence would then
+        pass because of the HOLD rather than the thing it means to test.
+        """
+        return cycle() + confirmed_cycle()
 
     # closed -> closed : silent
     set_state(False); cycle()
     check("closed->closed silent", cycle() == 0)
-    # closed -> open : exactly ONE alert
+    # closed -> open : HELD first, then exactly ONE alert
     set_state(True)
-    n = cycle()
-    check("closed->open = exactly ONE alert", n == 1, f"got {n}")
+    check("a brand-new opening is HELD, not sent", cycle() == 0,
+          "sending instantly is how a 23-second seat becomes a broken promise")
+    n = confirmed_cycle()
+    check("closed->open = exactly ONE alert once confirmed", n == 1, f"got {n}")
     # open -> open : silent (latched)
     check("open->open silent (latched)", cycle() == 0)
     check("open->open silent again", cycle() == 0)
@@ -80,7 +103,10 @@ def run():
     # test that only checked one half would call either the storm or a permanent mute
     # "correct".
     set_state(True)
-    n = cycle()
+    # reopen_confirmed, NOT cycle: the seat must clear the confirmation hold so that the
+    # COOLDOWN is what suppresses it. Otherwise this passes for the wrong reason and
+    # quietly stops testing the storm fix at all.
+    n = reopen_confirmed()
     check("a re-open INSIDE the cooldown does not re-alert", n == 0,
           f"got {n} — this is how one contested section produced eight emails")
 
@@ -90,7 +116,7 @@ def run():
         c.execute("UPDATE watches SET alerted=0 WHERE id=1")
     set_state(False); cycle()
     set_state(True)
-    n = cycle()
+    n = reopen_confirmed()
     check("...but OUTSIDE it, a genuine new opening still alerts", n == 1,
           f"got {n} — a permanent mute would lose every later seat in the term")
 

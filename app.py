@@ -3399,6 +3399,61 @@ _stale_logged = set()  # (school, watch_term, cur_term) already reported — log
 _ALLOPEN = {}          # school_id -> {"n": int, "closed": int, "flagged": bool}
 _ALLOPEN_MIN = 400     # sections observed before an all-open school is suspicious
 
+# --- opening confirmation (a CORRECT alert nobody can act on is still a bad alert) ---
+# Measured on the live UMD watches, 2026-08: 18 real openings, median life 35 SECONDS.
+# 14 of the 18 were gone inside two minutes; the other 4 stayed open about an HOUR.
+# NOTHING at all landed between 94 seconds and 58 minutes — the distribution is bimodal,
+# blip or genuine. A student needs 2-5 minutes to read the mail, open the portal, log in
+# and register, so a sub-minute seat is a promise we cannot keep, and eight of them in an
+# hour (watch 27, CMSC216 0102) is how somebody learns to ignore SeatWatch before the
+# opening that would have worked.
+#
+# The first build of this gated on churn HISTORY — alert instantly, then require proof
+# only from sections that had already flickered. Replaying the true production timeline
+# killed it: every parameterisation removed exactly ONE of eight emails, because the
+# blips that reach a student are each the FIRST on their section inside a cooldown
+# window, and history cannot catch a first occurrence.
+#
+# The same replay found the thing that actually matters: blips were not merely noise,
+# they were CROWDING OUT real seats. A 23-second blip fired, spent the 30-minute repeat
+# cooldown, and when the 58-minute opening arrived there was no budget left — so only
+# 2 of the 4 genuine openings ever reached anybody. Confirming EVERY opening takes that
+# timeline from 8 emails to 4 while raising real seats delivered from 2 to 4: strictly
+# fewer alerts and strictly more seats, which is why this overrides the "never delay the
+# first alert" instinct the earlier design was built around.
+#
+# The cost is bounded and paid only by seats with runway to spare — 2 minutes out of a
+# 58-102 minute window — and a seat too short to confirm is one the student could never
+# have reached. Caveat kept in the open: 18 openings, ONE school, one add/drop period.
+# CONFIRM_SECONDS=0 disables this entirely and restores the previous behavior exactly.
+CONFIRM_SECONDS = int(os.environ.get("CONFIRM_SECONDS", "120"))   # 0 = off
+_OPEN_SINCE = {}       # "school:course:section" -> ts of the rising edge; absent = shut
+_OPEN_SINCE_MAX = 20000
+_now = time.time       # indirection so tests can drive the clock
+
+
+def _confirm_hold(key, is_open, now=None):
+    """Track one section's open/shut edges; return (hold, open_for).
+
+    hold=True means the seat is real but has not yet proven it will still be there when
+    a human actually arrives. Only currently-open sections are retained, so the table
+    stays the size of "sections open right now", not "sections ever seen".
+
+    Safe to call once per WATCH though it is keyed per SECTION: two students on the same
+    section make two identical calls per cycle, and only edges mutate state.
+    """
+    now = _now() if now is None else now
+    if not is_open:
+        _OPEN_SINCE.pop(key, None)         # falling edge — re-arm
+        return False, 0.0
+    if len(_OPEN_SINCE) > _OPEN_SINCE_MAX:
+        # Fail OPEN, never closed. Clearing the table here instead would reset every
+        # in-flight timer on every call, so nothing could ever reach CONFIRM_SECONDS and
+        # the product would go permanently silent — the one failure worse than noise.
+        return False, 0.0
+    open_for = now - _OPEN_SINCE.setdefault(key, now)
+    return (CONFIRM_SECONDS > 0 and open_for < CONFIRM_SECONDS), open_for
+
 # The daily-summary and weekly-drill timers are PERSISTED to a small state file so
 # they survive restarts. Without this, every restart reset them to 0 and re-fired both
 # operator alerts immediately — so a day of frequent redeploys spammed the operator with
@@ -3689,7 +3744,13 @@ def run_cycle():
             want = r["section"]
             if want == "":                  # watching ALL sections of the course
                 open_secs = [n for n, i in secs.items() if i["open"]]
-                if open_secs and not r["alerted"]:
+                hold, open_for = _confirm_hold(f"{school_id}:{course}:*", bool(open_secs))
+                if open_secs and not r["alerted"] and hold:
+                    # real, but not yet proven to still be there when a human arrives
+                    guardian.record(cyc, r["id"], "checked_unconfirmed",
+                                    adapter_term=cur_term, sections=len(open_secs),
+                                    open_for=round(open_for))
+                elif open_secs and not r["alerted"]:
                     guardian.queue_alert(cyc, r, f"Open in {course}: "
                                          f"{', '.join(sorted(open_secs))}", url,
                                          sections=open_secs)
@@ -3711,7 +3772,15 @@ def run_cycle():
                     guardian.record(cyc, r["id"], "section_missing",
                                     adapter_term=cur_term, sections_seen=len(secs))
                     continue
-                if info["open"] and not r["alerted"]:
+                hold, open_for = _confirm_hold(f"{school_id}:{course}:{want}", info["open"])
+                if info["open"] and not r["alerted"] and hold:
+                    # A real seat that has not yet proven it will outlive the walk from
+                    # inbox to registration page. Hold rather than send someone to a
+                    # section that will be full again before the portal finishes loading.
+                    guardian.record(cyc, r["id"], "checked_unconfirmed",
+                                    adapter_term=cur_term, seats=info.get("seats"),
+                                    open_for=round(open_for))
+                elif info["open"] and not r["alerted"]:
                     seats = info.get("seats")
                     msg = (f"{seats} seat(s) open in {course}-{want}!" if seats
                            else f"A seat opened in {course} section {want}!")

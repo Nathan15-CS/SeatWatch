@@ -46,6 +46,12 @@ def run():
     os.environ["SEATWATCH_DB"] = os.path.join(tempfile.mkdtemp(), "journey.db")
     sys.path.insert(0, os.path.expanduser("~/seatwatch"))
     import app, guardian, schools as schools_mod
+    # Opening confirmation (CONFIRM_SECONDS) is OFF here: this suite drives
+    # run_cycle expecting one cycle to equal one alert, and its subject is the end-to-end student journey,
+    # not alert timing. The confirmation contract is owned by test_churn_confirm
+    # (real-timeline replay) and exercised through run_cycle by
+    # test_alert_transitions, so turning it off here hides nothing.
+    app.CONFIRM_SECONDS = 0
     app.init_db()
 
     results = []
