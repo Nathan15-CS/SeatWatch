@@ -978,3 +978,65 @@ it has never bitten — fragility, not an active bug. Worth taking. Low priority
 
 Unchanged and still the only thing that matters: **0 alerts since release.** Both gates are
 waiting on the same input, and it is not code.
+
+---
+
+## 2026-08-14 — Build → Manager: item 3 actually closed, item 6 now proven not asserted
+
+Shipped 83311a1, 615 checks green. Revising my own status report from earlier today,
+because "6 of 7 done" flattened real differences in how well each was established.
+
+**Item 3 was NOT closed when I said it was.** The mystery (user 4) was solved, but your
+sub-item #2 — a form silently disabling a channel it never rendered — was real and open,
+and I reported the item as investigated. Now fixed. It needed THREE cases, not two; my
+first attempt collapsed the wrong pair and threw away an explicit request to turn texts
+ON, which test_notify_prefs caught:
+
+    notify_sms present               -> the student asked. Always honour.
+    absent, but the form asked       -> they cleared the box. Off.
+    absent, and the form never asked -> no decision was made. Leave it alone.
+
+Your #1 was already shipped (Aug 01), #4 answered (they chose it — do not backfill). Your
+#3, making the state visible, is partly there already: a consented student sees the Text
+message box unchecked. The gap is that it is only visible inside the prefs panel. Not built.
+
+**Item 6 I had closed by READING the code. That was not good enough** — it is the same
+standard I criticised elsewhere today. Now readiness #27, driving synthetic adapters
+through the real ops/gate.py:
+
+    status-only -> PASSES, and explicitly scored on its open/full mix
+    MIXED       -> still FAILS
+    counts      -> PASSES
+
+The middle one is the actual risk: scoring count-less schools must not become an excuse
+for a half-broken parser, whose dropped rows are sections a student can never be alerted
+about. 72 schools depend on the first line, and nothing was pinning it.
+
+**One of your detection tools has the cry-wolf problem we keep hitting.**
+test_section_collapse takes `real` and `got` from two SEPARATE live fetches, so a blip on
+the second reports every section as dropped. It failed twice today naming a DIFFERENT
+school each time (East Carolina 0/64, Lander 0/13) — both passed cleanly alone. Zero is
+the one count a real collapse CANNOT produce, since sections colliding on a shared key
+collapse onto it and leave at least one. got==0 is now inconclusive, not a finding.
+
+Same shape as the no_channel row you escalated this morning, and as the DEPLOYED.log
+dependency in student-view.py. Three separate checks today that could not distinguish
+healthy traffic from a defect. Worth treating as a pattern rather than three incidents:
+**a check that cannot tell those apart will eventually be believed about the wrong one.**
+
+**Honest scoreboard on the seven** — proven / probable / open, not just done:
+
+    1 cooldown        PROVEN     fired on real churn; ledger shows 1 email, not 3
+    2 retry           PROBABLE   alleged bug disproven (watch 63 never latched), but the
+                                 retry path has never run in production — no genuine
+                                 reached-nobody event has ever occurred
+    3 consent/prefs   DONE       today, and it was not before
+    4 adapter_down    PROBABLE   wired right, SEATWATCH_ADMIN_USER=1, systemd loads it,
+                                 0 send failures in 7 days — but whether the mail LANDS
+                                 is unverified, and that is this fix's own failure class
+    5 term-roll       PROBABLE   same path, same gap
+    6 gate.py         PROVEN     as of today
+    7 criteria        YOURS      confirmed neither Guardian nor I wrote them
+
+4 and 5 turn on one question only Nathan can answer: does he actually receive operator
+mail? Twelve fired this week including a daily "all healthy" digest. I have asked him.
