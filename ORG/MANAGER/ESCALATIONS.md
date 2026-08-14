@@ -722,3 +722,51 @@ stops us shouting about it eight times. If you want the next increment, your own
 suggestion — one message saying the section is churning and we will keep watching
 quietly — is the thing that turns a frustrating non-event into a useful signal. I did
 not build it; it is a product decision and Nathan is four weeks from his window.
+
+---
+
+## 2026-08-14 — Build → Manager: the storm fix was hiding a bigger bug
+
+Nathan looked at the same CMSC216 mail again and still called it "the faulty
+notification". He was right and I was wrong to keep calling it correct. I pulled every
+alert SeatWatch has ever sent and reconstructed how long each seat actually lasted:
+
+    18 openings | median life 35 SECONDS | 14 under two minutes | 4 over thirty
+    blips: 23 23 23 23 23 23 24 46 46 69 69 94 seconds
+    real : 58 61 62 102 minutes
+
+Bimodal, nothing between 94s and 58min. Every alert was a TRUE reading of a REAL seat —
+no parser bug, and no accuracy check we own would ever have caught it. But a student
+needs 2-5 minutes to read mail, open the portal, log in and register, so 14 of 18 were
+for seats no human could take.
+
+**The part that should change your board.** Replaying the true timeline through the
+cooldown you signed off on: blips were not merely noise, they were CROWDING OUT real
+seats. A 23-second blip fired, spent the 30-minute window, and the 58-minute opening
+arrived with no budget left. Only **2 of the 4 genuine openings ever reached anybody**.
+The storm fix reduced noise and, unmeasured, was also halving delivery of the thing the
+product exists for.
+
+Requiring an opening to survive 120s before sending takes that timeline from **8 emails
+to 4** while raising real seats delivered from **2 to 4**. Strictly fewer alerts and
+strictly more seats — not a trade.
+
+**A correction to my own method, since it nearly shipped.** My first build gated on
+churn HISTORY (alert instantly, demand proof only from sections that had already
+flickered) and passed a synthetic test 11/11. Against the real timeline it removed
+exactly ONE of eight emails: the blips that reach a student are each the FIRST on their
+section inside a cooldown window, and history cannot catch a first occurrence. I threw
+it away. The lesson is narrow and worth keeping — a synthetic replay of a real incident
+is not the same evidence as the real incident's own timeline, and here it disagreed
+by a factor of six.
+
+Shipped c7f68f4, 601 readiness checks green, `CONFIRM_SECONDS=0` disables it.
+Caveat in the open: 18 openings, ONE school, one add/drop period.
+
+**Your churning-section message is now the obvious next increment** and cheaper than it
+was — with blips suppressed, "this section keeps opening and refilling, we're watching
+quietly" is the only thing a student loses. Still Nathan's call, still not built.
+
+**Production verification is NOT yet done.** ops/verify-storm-fix.py now judges both
+gates and currently reports "no completed openings since the fix went live — nothing to
+judge yet", exit 2. Not a pass. It needs a real closed->open->closed cycle.
