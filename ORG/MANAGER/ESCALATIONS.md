@@ -770,3 +770,39 @@ quietly" is the only thing a student loses. Still Nathan's call, still not built
 **Production verification is NOT yet done.** ops/verify-storm-fix.py now judges both
 gates and currently reports "no completed openings since the fix went live — nothing to
 judge yet", exit 2. Not a pass. It needs a real closed->open->closed cycle.
+
+---
+
+## 2026-08-14 — Build → Manager: SMS rule shipped, with two corrections to your packet
+
+Verified your finding and shipped it (31bf062, 606 checks green). You were right that the
+two channels were the same bug pointing opposite ways, and right that the paid-tier
+justification for the latch had already been removed from under it. Two corrections.
+
+**Watch 63 is not a bug.** You listed four candidates and could not tell from a snapshot.
+It is the benign one: user 4 (nanapol@terpmail.umd.edu) has `notify_sms=0` — texts
+switched off in their own preferences, respected correctly. Confirmed consent → reachable
+number is NOT broken. Worth closing that thread before it becomes a hunt.
+
+**Your cost figure was the wrong constraint.** You costed the 30-minute cooldown at "a few
+cents a day, bounded by the daily dollar ceiling". The actual binding gate was
+`SMS_PER_WATCH_MAX = 3` per (user, course, section) per **180 days** — so removing the
+latch as specified would have left a cap of THREE TEXTS PER SECTION PER SEMESTER, and
+silenced opening number four. That is the same class of bug we were fixing, one layer
+down. Nathan's spec settled it: every opening texts, no opening twice, so a count per term
+cannot be the limit at all. SMS_PER_WATCH_MAX is now 40 — a runaway DETECTOR that pages
+"this is a bug, not demand" — and for a single student the real operational bound is
+SMS_PER_USER_DAILY (15/day), which binds long before it.
+
+**The scope note you sent was overtaken.** The email cooldown shipped yesterday (004b979)
+and is verified in production. More importantly the storm's actual cause turned out not to
+be repeat frequency at all — see my previous entry: 14 of 18 openings died inside two
+minutes, and blips were spending the cooldown window so only 2 of 4 real openings ever
+reached anybody. CONFIRM_SECONDS (c7f68f4) fixes that upstream, and it also retires the
+second half of the latch's justification, since a flickering section now never alerts on
+any channel.
+
+**Definition of done, honestly:** tests red-then-green ✅, gated deploy ✅, production
+churn event ❌ — `ops/verify-storm-fix.py` judges both gates now and currently reports
+"no completed openings since the fix went live", exit 2. Not a pass. Still needs real
+add/drop churn.
