@@ -205,9 +205,24 @@ def run():
           "push satisfying the floor is what left a paying student unreachable")
     check("...and push-only did not persist", app.notify_prefs(uid) == (False, True, True))
 
-    body = post([("notify_email", "1")])
+    # sms_offered is the hidden field the browser sends whenever the SMS row was actually
+    # rendered, so this is the real "student unchecked texts" post.
+    body = post([("notify_email", "1"), ("sms_offered", "1")])
     check("POST with email only is accepted", app.notify_prefs(uid)[1:] == (True, False),
           f"got {app.notify_prefs(uid)}")
+
+    # ...and the inverse, which is the bug. An unchecked box and a box that was never on
+    # the page are BOTH just absent from a form post. The SMS row only renders once consent
+    # is confirmed, so without this a save from a page that never offered texts would read
+    # as "switch texts off" — silently disabling a channel the student never touched.
+    with app.db() as c:
+        c.execute("UPDATE users SET notify_sms=1 WHERE id=?", (uid,))
+    post([("notify_email", "1")])            # no sms_offered: the row was never rendered
+    check("a form that never ASKED about texts cannot switch them off",
+          app.notify_prefs(uid)[2] is True,
+          f"got {app.notify_prefs(uid)} — absence of a field is not a decision")
+    with app.db() as c:                      # restore the state the next checks expect
+        c.execute("UPDATE users SET notify_sms=0 WHERE id=?", (uid,))
 
     # Text alone counts only for someone who actually consented — otherwise a student could
     # switch off their only real channel by ticking a box for a number we do not have.
@@ -221,11 +236,22 @@ def run():
     check("text-only IS accepted once consent exists", app.notify_prefs(uid)[1:] == (False, True),
           f"got {app.notify_prefs(uid)}")
 
-    # having saved a single-channel state, try to remove the last one
-    body = post([])
+    # having saved a single-channel state, try to remove the last one. sms_offered is what
+    # the browser sends when the SMS row is on the page, so THIS is a student clearing every
+    # box — a real decision to go dark, which must be refused. (A bare post with no
+    # sms_offered is a different thing entirely and is covered below: it leaves texts alone,
+    # so it cannot strand anyone and there is nothing to refuse.)
+    body = post([("sms_offered", "1")])
     check("cannot remove the LAST remaining channel", "at least one" in body.lower()
           and app.notify_prefs(uid)[1:] == (False, True),
           "a student could end up with no reachable channel at all")
+
+    # The bare post: no boxes AND no sms_offered. It must not be read as "go dark", and
+    # crucially it must not be able to strand anyone either — texts are preserved, so the
+    # student is still reachable and the floor has nothing to defend against.
+    body = post([])
+    check("a bare post leaves the surviving channel alone", app.notify_prefs(uid)[2] is True,
+          f"got {app.notify_prefs(uid)} — absence of a field must never mean 'switch it off'")
 
     bad = urllib.request.Request(
         f"http://127.0.0.1:{port}/notify-prefs",

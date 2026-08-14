@@ -28,6 +28,8 @@ SUITES = [
      "malformed/missing/timeout/unreachable/WAF never fabricate an open seat"),
     ("Parser fake-open lock-in (per family)", "test_parser_fakeopen",
      "seatsAvailable/AvailabilityStatus/Remaining rules pinned; openSection lies caught"),
+    ("Accuracy gate judges status-only schools", "test_gate_statusonly",
+     "72 count-less schools are scored, not skipped — and a MIXED parse still fails"),
     ("Crash-safety & idempotency", "test_crash_safety",
      "DB latch + ledger survive restart; no duplicate alerts"),
     ("Single-poller lease", "test_poll_lease",

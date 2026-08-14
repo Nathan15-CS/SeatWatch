@@ -88,6 +88,20 @@ def run():
         if real == 0:                      # course not offered right now — nothing to assert
             skipped += 1
             continue
+        if got == 0:
+            # `real` and `got` come from two SEPARATE live fetches, so a transient failure
+            # on the second one reports every section as dropped. On 2026-08-14 this failed
+            # twice in a row naming a DIFFERENT school each time (East Carolina 0/64, then
+            # Lander 0/13), both of which passed cleanly on their own — the signature of a
+            # flaky fetch, not a parser bug.
+            #
+            # Zero is the one count a genuine collapse CANNOT produce: sections colliding on
+            # a shared key collapse onto that key, leaving at least one. So got==0 with
+            # real>0 means the fetch came back empty, which is inconclusive, not a finding.
+            # A check that cries wolf on healthy traffic is how a suite gets ignored on the
+            # day it is right.
+            skipped += 1
+            continue
         checked += 1
         lost = real - got
         results.append((f"no section collapse: {name} ({got}/{real} sections)",

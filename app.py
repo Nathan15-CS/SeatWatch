@@ -2303,7 +2303,11 @@ def notify_prefs_block(user, tok):
                             "IS NOT NULL AND revoked_at IS NULL LIMIT 1",
                             (user["id"],)).fetchone() is not None
     ck = ' checked'
+    # sms_offered marks that this form ASKED about texts. Without it the handler cannot
+    # tell an unchecked box from a box that was never rendered, and would read the second
+    # as "switch texts off" — silently disabling a channel the student never touched.
     sms_row = ('' if not has_sms else
+               '<input type="hidden" name="sms_offered" value="1">'
                '<label style="display:flex;gap:9px;align-items:center;font-weight:400;'
                'font-size:13px;text-transform:none;letter-spacing:0;margin:6px 0 0">'
                f'<input type="checkbox" name="notify_sms" value="1"{ck if want_sms else ""} '
@@ -3011,7 +3015,6 @@ class Handler(BaseHTTPRequestHandler):
             if not hmac.compare_digest(nform.get("csrf", [""])[0], csrf_token(user["id"])):
                 return self._notice("That form expired, please try again.", 403, user=user)
             want_email = bool(nform.get("notify_email"))
-            want_sms = bool(nform.get("notify_sms"))
             # Someone with a consented number and every box cleared would be unreachable,
             # so text counts toward the floor for them. For anyone without a number it
             # cannot count, or they could switch off their only real channel and be stranded.
@@ -3019,6 +3022,27 @@ class Handler(BaseHTTPRequestHandler):
                 has_sms = c.execute("SELECT 1 FROM sms_consent WHERE user_id=? AND "
                                     "confirmed_at IS NOT NULL AND revoked_at IS NULL LIMIT 1",
                                     (user["id"],)).fetchone() is not None
+                cur_sms = bool(c.execute("SELECT notify_sms FROM users WHERE id=?",
+                                         (user["id"],)).fetchone()["notify_sms"])
+            # An UNCHECKED checkbox and a checkbox that was never on the page look identical
+            # in a form post — both are simply absent. The SMS row is only rendered once
+            # consent is confirmed, so reading "absent" as "turn texts off" lets a save from
+            # a page that never offered the choice silently disable a channel the student
+            # never touched. Today that self-heals, because confirming consent sets
+            # notify_sms=1, which is the only reason it has never bitten. Depending on one
+            # fix to cover another is not a guarantee. The form now states explicitly
+            # whether it asked, and a form that did not ask cannot answer.
+            # Three cases, not two. Collapsing the last two is the bug; collapsing the
+            # FIRST two throws away an explicit request to switch texts ON.
+            #   notify_sms present            -> the student asked for texts. Always honour.
+            #   absent, but the form asked    -> they cleared the box. Off.
+            #   absent, and the form never asked -> no decision was made. Leave it alone.
+            if nform.get("notify_sms"):
+                want_sms = True
+            elif bool(nform.get("sms_offered")):
+                want_sms = False
+            else:
+                want_sms = cur_sms
             # THE FLOOR, enforced here and not in the browser. An account with every
             # channel off is an account whose watches can never fire: the alert would be
             # generated, delivered nowhere, and nobody — including us — would be told the
