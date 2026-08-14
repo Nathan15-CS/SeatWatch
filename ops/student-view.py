@@ -49,7 +49,6 @@ def main():
         print("NO DATA. No snapshot found under ~/seatwatch-backups/.")
         print("That is itself a finding: you cannot verify a system you cannot read.")
         return 2
-    age_h = (time.time() - os.path.getmtime(db)) / 3600.0
 
     c = sqlite3.connect("file:%s?mode=ro" % db, uri=True)
     c.row_factory = sqlite3.Row
@@ -73,7 +72,7 @@ def main():
     print("=" * 72)
     print("  WOULD A STUDENT BE ANNOYED, MISLED, OR IGNORED?")
     print("  source %s" % os.path.basename(db))
-    print("  data is %.1f hours old · window %dh" % (age_h, a.hours))
+    print("  window %dh" % a.hours)
     print("=" * 72)
 
     # BLIND WINDOW. The data ends at `newest`; everything after it is invisible. On
