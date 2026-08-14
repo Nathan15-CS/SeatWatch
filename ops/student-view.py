@@ -143,17 +143,21 @@ def main():
                    time.strftime("%H:%M", time.localtime(s["a"])),
                    time.strftime("%H:%M", time.localtime(s["b"]))),
                 "Per-watch repeat-alert cooldown. SMS already has one; email does not.")
+            FINDINGS[-1]["at"] = s["b"]
     else:
         print("  OK    no alert storms in the last %dh" % a.hours)
 
     # ---- 2. ALERTS THAT REACHED NOBODY
     try:
-        nob = c.execute("SELECT COUNT(*) n FROM alert_attempt WHERE (channel IS NULL OR "
-                        "outcome='no_channel') AND attempted_at > ?", (cut,)).fetchone()["n"]
+        nr = c.execute("SELECT COUNT(*) n, MAX(attempted_at) t FROM alert_attempt "
+                       "WHERE (channel IS NULL OR outcome='no_channel') AND attempted_at > ?",
+                       (cut,)).fetchone()
+        nob = nr["n"]
         if nob:
             add("BAD", "%d alert(s) reached nobody" % nob,
                 "A seat opened, we tried, and no channel delivered. The student was never told.",
                 "Check SMTP and VAPID config; the watch should still be retrying.")
+            FINDINGS[-1]["at"] = nr["t"]
         else:
             print("  OK    every alert reached a human (0 silent failures)")
     except sqlite3.Error as e:
@@ -223,6 +227,32 @@ def main():
         "No automated check walks signup -> pick school -> create watch -> receive alert.",
         "Watch someone do it who has never seen it before.")
 
+    # ---- DEPLOY AWARENESS. A finding from before the current release is damage already
+    # done, not proof the product is still broken — but it is not proof of a fix either.
+    # Without this the tool shouts DO NOT LAUNCH for a full 24h after every fix, which is
+    # how a checker gets ignored. Three states, not two: still happening / fixed and proven
+    # by real traffic / fixed but nothing has exercised it yet.
+    deploy_t, deploy_sha = 0, ""
+    try:
+        import calendar
+        for line in open(os.path.join(os.path.dirname(os.path.dirname(
+                os.path.abspath(__file__))), "DEPLOYED.log")):
+            p = line.split()
+            if len(p) >= 2 and p[1].startswith("sha="):
+                deploy_t = calendar.timegm(time.strptime(p[0], "%Y-%m-%dT%H:%M:%SZ"))
+                deploy_sha = p[1][4:]
+    except Exception:
+        pass
+
+    for f in FINDINGS:
+        f["pre_deploy"] = bool(deploy_t and f.get("at") and f["at"] < deploy_t)
+
+    since_h = (newest - deploy_t) / 3600.0 if deploy_t else 0.0
+    alerts_since = 0
+    if deploy_t:
+        alerts_since = c.execute("SELECT COUNT(*) n FROM alert_log WHERE sent_at>?",
+                                 (deploy_t,)).fetchone()["n"]
+
     # ---- verdict
     bad = [f for f in FINDINGS if f["sev"] == "BAD"]
     warn = [f for f in FINDINGS if f["sev"] == "WARN"]
@@ -244,8 +274,18 @@ def main():
               % blind_h)
         print("  Pull a fresh backup and run it again. A clean result from stale data is")
         print("  how you get told everything is fine on the night something broke.")
+    elif bad and all(f["pre_deploy"] for f in bad):
+        print("  VERDICT: UNPROVEN. All %d issue(s) above happened BEFORE the current" % len(bad))
+        print("  release (%s, deployed %s). None has recurred since — but only"
+              % (deploy_sha[:7], time.strftime("%b %d %H:%M", time.localtime(deploy_t))))
+        print("  %.1f hours and %d alert(s) of production have happened since, which is not"
+              % (since_h, alerts_since))
+        print("  enough to call it fixed. Re-run after real alerts have fired.")
     elif bad:
-        print("  VERDICT: DO NOT POINT STUDENTS AT THIS YET — %d issue(s) above." % len(bad))
+        live = [f for f in bad if not f["pre_deploy"]]
+        print("  VERDICT: DO NOT POINT STUDENTS AT THIS YET — %d issue(s), %d of them AFTER"
+              % (len(bad), len(live)))
+        print("  the current release. Those are not old damage; they are happening now.")
     else:
         print("  VERDICT: nothing here would upset a student, in the last %dh, in what this"
               % a.hours)
