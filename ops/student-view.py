@@ -70,10 +70,26 @@ def main():
     print("  data is %.1f hours old · window %dh" % (age_h, a.hours))
     print("=" * 72)
 
-    if age_h > 26:
-        add("WARN", "You are looking at stale data",
-            "This snapshot is %.0f hours old, so anything after that is invisible here." % age_h,
-            "Run ops/pull_backup.sh, then re-run this.")
+    # BLIND WINDOW. The data ends at `newest`; everything after it is invisible. On
+    # 2026-08-14 this file printed a clean verdict from a snapshot whose data stopped 16
+    # hours BEFORE the alert storm Nathan had just lived through — "no alerts in this
+    # window" meant "not in this file", and read as "nothing went wrong". A checker that
+    # can say OK about a period it cannot see is worse than no checker, so a blind window
+    # is a finding in its own right and it suppresses the clean verdict entirely.
+    blind_h = (time.time() - newest) / 3600.0
+    BLIND = blind_h > 3
+    print("  data covers  %s  ->  %s" % (
+        time.strftime("%b %d %H:%M", time.localtime(cut)),
+        time.strftime("%b %d %H:%M", time.localtime(newest))))
+    if BLIND:
+        print("  BLIND to the last %.1f hours — nothing below can speak for that period"
+              % blind_h)
+        add("BAD", "Cannot see the last %.1f hours" % blind_h,
+            "The newest record here is from %s. Anything after that — including any alert "
+            "sent today — is not in this file. Every OK below is about the period shown "
+            "above and says nothing about right now."
+            % time.strftime("%b %d %H:%M", time.localtime(newest)),
+            "sh ops/pull_backup.sh   then re-run this.")
 
     # ---- 1. ALERT STORMS. The defect of 2026-08-08: 8 emails, one watch, one hour.
     # SLIDING 60-minute window, not clock-hour buckets. The real storm of 2026-08-08 was at
@@ -218,7 +234,12 @@ def main():
                     print("        FIX: %s" % f["fix"])
 
     print("\n" + "=" * 72)
-    if bad:
+    if BLIND:
+        print("  VERDICT: NO VERDICT POSSIBLE. This file cannot see the last %.1f hours."
+              % blind_h)
+        print("  Pull a fresh backup and run it again. A clean result from stale data is")
+        print("  how you get told everything is fine on the night something broke.")
+    elif bad:
         print("  VERDICT: DO NOT POINT STUDENTS AT THIS YET — %d issue(s) above." % len(bad))
     else:
         print("  VERDICT: nothing here would upset a student, in the last %dh, in what this"
