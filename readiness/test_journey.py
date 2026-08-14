@@ -222,12 +222,25 @@ def run():
     check("6. email is now silent", not mails, f"{len(mails)} emails after opting out")
     check("6. ...and push did not quietly take over", not pushes,
           "a retired channel firing as a fallback is a channel nobody chose")
-    # NOT a bug that no text arrives: SMS is capped at one per watch, ever, because each
-    # one costs real money and a flickering section would otherwise bill repeatedly.
-    # Email re-arms freely; it is free. Asserting "text fires again" here would
-    # have pinned the opposite of the cost control we actually want.
-    check("6. text does NOT re-fire for the same watch (one paid text per watch)",
-          not texts, f"{len(texts)} texts — the per-watch SMS cap is not holding")
+    # Nathan's rule (2026-08-14): every genuine opening texts; the same opening never
+    # texts twice. Inside the shared repeat window, silence is correct.
+    check("6. a repeat inside the cooldown does NOT re-text", not texts,
+          f"{len(texts)} texts — the shared repeat window is not holding")
+    # BOTH halves, because they look identical from here and are not. This check used to
+    # read "one paid text per watch" and passed against a permanent ONE-TEXT-PER-WATCH-
+    # EVER latch, which is why four texts is SeatWatch's entire sending history. Age the
+    # ledger past the window: a genuinely NEW opening must text, or the differentiator is
+    # a one-shot per semester again and the suite would call that correct.
+    with app.db() as c:
+        c.execute("UPDATE alert_log SET sent_at=? WHERE channel='sms'",
+                  (time.time() - app.SMS_DEDUP_SECS - 60,))
+    school.state["0101"] = {"open": False, "seats": 0}
+    app.run_cycle()                                   # section shuts: re-arm the latch
+    texts.clear()
+    school.state["0101"] = {"open": True, "seats": 3}
+    app.run_cycle()
+    check("6. ...but a genuinely NEW opening outside it DOES text", bool(texts),
+          "a student watching one class would get one text all semester")
 
     code, body, _ = http("/notify-prefs", [("csrf", csrf)], cookie=cookie)
     check("6. turning EVERYTHING off is refused", "at least one" in body.lower(),

@@ -161,9 +161,16 @@ SMS_COST_CENTS = int(os.environ.get("SMS_COST_CENTS", "1"))          # cost PER 
 # Cost-safety knobs — env vars, not constants: they are stage-appropriate catastrophe
 # floors Nathan raises in seconds as real volume grows, never permanent growth ceilings.
 SMS_DAILY_CAP_CENTS = int(os.environ.get("SMS_DAILY_CAP_CENTS", "2000"))   # $20/day site-wide
-SMS_PER_WATCH_MAX = int(os.environ.get("SMS_PER_WATCH_MAX", "3"))    # >3 on one watch = a bug
+# Runaway DETECTOR, not a product limit: every genuine opening must text, so any number
+# small enough to be a "cap" would silence a real seat. Real sections opened 4 times in
+# two weeks at the busiest UMD course, so 40 in 180 days is unreachable without a bug.
+SMS_PER_WATCH_MAX = int(os.environ.get("SMS_PER_WATCH_MAX", "40"))
 SMS_PER_USER_DAILY = int(os.environ.get("SMS_PER_USER_DAILY", "15"))
-SMS_DEDUP_SECS = int(os.environ.get("SMS_DEDUP_SECS", "3600"))       # retry-storm shield
+# ONE repeat rule for BOTH channels, defined once here so the two can never drift into
+# separate regimes. Email had no cap at all (eight messages in an hour) while SMS had a
+# permanent one-per-watch latch (four texts, ever) — the same bug pointing opposite ways.
+REPEAT_ALERT_COOLDOWN_S = int(os.environ.get("REPEAT_ALERT_COOLDOWN_S", "1800"))
+SMS_DEDUP_SECS = int(os.environ.get("SMS_DEDUP_SECS", str(REPEAT_ALERT_COOLDOWN_S)))
 SMS_VELOCITY_PER_MIN = int(os.environ.get("SMS_VELOCITY_PER_MIN", "30"))
 SMS_VELOCITY_FLOOR = int(os.environ.get("SMS_VELOCITY_FLOOR", "50"))  # breaker can't trip under
                                                                       # this many sends today
@@ -4101,15 +4108,30 @@ def send_sms(user_id, r, message, url):
     never suppresses the student's alert (the existing DELIVERED-TO-NOBODY page still
     covers the nobody-reachable case).
 
+    THE RULE (Nathan, 2026-08-14): every time a section genuinely opens, the student is
+    texted; the same opening is never texted twice. So the limit is per OPENING, not a
+    count per term — a cap of N texts per semester silences opening N+1, which is exactly
+    the seat somebody was waiting for.
+
+    "No repeats" is not enforced here. It is the watch's `alerted` latch: set when an
+    alert fires, cleared only when the section is observed CLOSED, and persisted in the
+    DB so a restart cannot re-fire it. One alert per closed->open transition, by
+    construction. This function's job is cost catastrophe, not product behaviour.
+
+    What was removed and why: a permanent ONE-TEXT-PER-WATCH-EVER latch, justified on
+    texts being the paid tier's headline feature. SMS moved to the free tier and the
+    justification went with it, but the latch stayed — so the differentiator fired once
+    per watch per SEMESTER, and four texts is SeatWatch's entire sending history. The
+    other half of that justification, that a flickering section would bill repeatedly,
+    is now handled upstream: CONFIRM_SECONDS means a seat that dies inside two minutes
+    never alerts on ANY channel, which is where 14 of 18 measured openings went.
+
     Order of gates (cheapest first, all ledger-derived):
       dormant -> channel preference (the student's own notify_sms switch) -> consent
-      (confirmed double opt-in, no STOP) -> per-watch latch
-      (ONE text per watch: a flickering section costs exactly one SMS — push/email keep
-      re-arming, they're free; another SMS requires the user to re-create the watch,
-      and even then the per-(course,section) cap below bounds total spend) -> 1h dedup
-      (retry storms) -> per-course cap -> per-user daily -> daily $ ceiling -> velocity
-      breaker (a loop is a vertical spike; growth is a slope — the floor keeps tiny
-      legitimate volume from ever tripping it)."""
+      (confirmed double opt-in, no STOP) -> repeat cooldown (SHARED with email, so the
+      two channels obey one rule instead of two regimes) -> runaway detector -> per-user
+      daily -> daily $ ceiling -> velocity breaker (a loop is a vertical spike; growth is
+      a slope — the floor keeps tiny legitimate volume from ever tripping it)."""
     if not (SMS_LIVE or SMS_DRYRUN):       # dormant, or dry-run for pipeline proving
         return False
     if not user_id:
@@ -4137,26 +4159,29 @@ def send_sms(user_id, r, message, url):
     day0 = _day_start(now)
     wid = r["id"]
     with db() as c:
-        # one SMS per watch, ever (manual re-create is the only re-arm)
-        if c.execute("SELECT 1 FROM alert_log WHERE watch_id=? AND channel='sms' LIMIT 1",
-                     (wid,)).fetchone():
-            return False
-        # retry-storm dedup: same user+course+section within the window
+        # Repeat cooldown, SHARED with email (SMS_DEDUP_SECS defaults to
+        # REPEAT_ALERT_COOLDOWN_S). Two distinct openings more than the window apart are
+        # two notifications, which is the rule; the same opening re-observed inside it is
+        # one. Keyed on (user, course, section) rather than watch_id so deleting and
+        # re-creating a watch cannot be used to re-send the same alert.
         if c.execute("SELECT 1 FROM alert_log WHERE user_id=? AND course=? AND section=? "
                      "AND channel='sms' AND sent_at>? LIMIT 1",
                      (user_id, r["course"], r["section"], now - SMS_DEDUP_SECS)).fetchone():
             return False
-        # per-(user,course,section) cap — survives watch re-creation, which is what
-        # makes SMS_PER_WATCH_MAX reachable rather than dead code behind the latch
+        # Runaway detector, NOT a product limit. The old value (3 per 180 days) became the
+        # binding cap the moment the permanent latch was removed, and would have silenced
+        # the fourth genuine opening of the semester. SMS_PER_WATCH_MAX is now set where
+        # only a bug can reach it, and it pages instead of failing quietly.
         n = c.execute("SELECT COUNT(*) FROM alert_log WHERE user_id=? AND course=? AND "
                       "section=? AND channel='sms' AND sent_at>?",
                       (user_id, r["course"], r["section"], now - 180 * 86400)).fetchone()[0]
         if n >= SMS_PER_WATCH_MAX:
             if (user_id, r["course"], "watchcap") not in _sms_paged:
                 _sms_paged.add((user_id, r["course"], "watchcap"))
-                operator_alert(f"SMS per-watch cap hit: user {user_id} {r['course']}-"
-                               f"{r['section'] or 'ALL'} reached {SMS_PER_WATCH_MAX} texts "
-                               "— almost certainly a bug, investigate.")
+                operator_alert(f"SMS runaway: user {user_id} {r['course']}-"
+                               f"{r['section'] or 'ALL'} hit {SMS_PER_WATCH_MAX} texts in "
+                               "180 days. One section does not open that often — this is "
+                               "a bug, not demand. Investigate before raising the cap.")
             return False
         # per-user daily
         n = c.execute("SELECT COUNT(*) FROM alert_log WHERE user_id=? AND channel='sms' "
@@ -4357,11 +4382,12 @@ def notify_prefs(user_id):
 _undelivered = set()   # watch_ids whose last alert reached NOBODY (retrying each cycle)
 
 
-# Bursts on one contested section arrive ~45-70s apart, and the two bursts observed on
-# 2026-08-13 were about an hour apart. Thirty minutes collapses a burst to a single alert
-# while still letting a genuinely new opening an hour later through. Longer would start
-# hiding real second chances; shorter would not have stopped the storm that prompted this.
-REPEAT_ALERT_COOLDOWN_S = int(os.environ.get("REPEAT_ALERT_COOLDOWN_S", "1800"))
+# REPEAT_ALERT_COOLDOWN_S is defined up with the SMS constants, because SMS shares it —
+# one repeat rule for both channels rather than two regimes that drift apart. Rationale
+# for 1800: bursts on one contested section arrive ~45-70s apart, and the two bursts
+# observed on 2026-08-13 were about an hour apart. Thirty minutes collapses a burst to a
+# single alert while still letting a genuinely new opening an hour later through. Longer
+# would start hiding real second chances; shorter would not have stopped the storm.
 
 
 def _repeat_suppressed(watch_id):

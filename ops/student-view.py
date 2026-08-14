@@ -58,10 +58,16 @@ def main():
     # a six-day-old snapshot with a 24h wall-clock window silently examines nothing and
     # prints a clean bill of health — the worst possible output. I made this exact mistake
     # twice while writing this file, which is why the rule is now applied in one place.
+    # NEVER use file mtime here. mtime is when the file was COPIED, not when its data ends.
+    # A snapshot pulled just now reports "0.0 hours old" while its contents stop at 03:00,
+    # which made this file claim to be current about a period it could not see — the third
+    # time the same class of error appeared while writing it. Only row timestamps count.
     newest = max(
         c.execute("SELECT COALESCE(MAX(sent_at),0) t FROM alert_log").fetchone()["t"] or 0,
-        c.execute("SELECT COALESCE(MAX(started),0) t FROM guardian_cycles").fetchone()["t"] or 0,
-        os.path.getmtime(db))
+        c.execute("SELECT COALESCE(MAX(started),0) t FROM guardian_cycles").fetchone()["t"] or 0)
+    if not newest:
+        print("NO USABLE DATA: this snapshot has no alerts and no guardian cycles.")
+        return 2
     cut = newest - a.hours * 3600
 
     print("=" * 72)

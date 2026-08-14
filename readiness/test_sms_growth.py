@@ -116,6 +116,52 @@ def run():
     check("a user WITHOUT consent still receives none", ok2 is False and not sent,
           "the tier gate was removed; the consent gate must NOT have been")
 
+    # ---- THE RULE (Nathan, 2026-08-14): every opening texts, no opening texts twice ----
+    # Until today a permanent per-watch latch meant one text per watch PER SEMESTER —
+    # four texts is SeatWatch's entire sending history — while email had no cap at all.
+    # The same bug pointing in opposite directions on the two channels.
+    sent.clear()
+    dup = app.send_sms(u_free, r, "CHEM231-0101: 2 seats open.", "https://x.test/r")
+    check("the SAME opening never texts twice", dup is False and not sent,
+          "a student re-texted about a seat they already heard about learns to ignore us")
+
+    def age_sms(secs):
+        with app.db() as c:
+            c.execute("UPDATE alert_log SET sent_at=sent_at-? WHERE channel='sms'", (secs,))
+
+    sent.clear()
+    age_sms(app.SMS_DEDUP_SECS + 60)
+    ok3 = app.send_sms(u_free, r, "CHEM231-0101: 1 seat open.", "https://x.test/r")
+    check("a genuinely NEW opening DOES text", ok3 is True and bool(sent),
+          "this is the whole point — a cap per term silences the seat somebody wanted")
+
+    # and it must keep working, not quietly stop at some hidden number
+    n_ok = 0
+    for _ in range(8):
+        age_sms(app.SMS_DEDUP_SECS + 60)
+        if app.send_sms(u_free, r, "CHEM231-0101: seat open.", "https://x.test/r"):
+            n_ok += 1
+    check("...and the tenth opening of the term texts like the first", n_ok == 8,
+          f"only {n_ok}/8 got through — the old per-term cap of 3 would stop at 2")
+
+    # the runaway detector is still armed: only a BUG reaches it, and it pages
+    paged = []
+    _op, app.operator_alert = app.operator_alert, lambda m: paged.append(m)
+    app._sms_paged.clear()
+    # Age by more than a DAY per send, not just past the dedup window: SMS_PER_USER_DAILY
+    # (15) binds long before the 180-day runaway count reaches 40, so aging by 31 minutes
+    # stalls at the daily cap and never exercises the detector at all. Worth knowing in
+    # its own right — for one student the daily cap is the real operational bound, and
+    # SMS_PER_WATCH_MAX is a slow backstop against a loop that survives days.
+    for _ in range(app.SMS_PER_WATCH_MAX + 2):
+        age_sms(86400 + 60)
+        app.send_sms(u_free, r, "CHEM231-0101: seat open.", "https://x.test/r")
+    check("a runaway is still stopped AND paged, not silently swallowed",
+          bool(paged) and "runaway" in " ".join(paged).lower(),
+          f"cap={app.SMS_PER_WATCH_MAX}, paged={len(paged)} — an unbounded channel that "
+          f"spends money must fail loudly")
+    app.operator_alert = _op
+
     # ---- the 7-day promo ----
     old1 = mkuser("g_old1", days_old=9, email="old1@umd.edu")
     old2 = mkuser("g_old2", days_old=9, email="old2@umd.edu")
