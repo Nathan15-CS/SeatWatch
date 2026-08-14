@@ -24,6 +24,7 @@ import argparse, glob, os, sqlite3, sys, time
 DAY = 86400
 STORM_PER_HOUR = 2          # more than this to one watch in an hour reads as spam
 DARK_SECS = 900             # a school silent this long with live watches is dark
+RAPID_REPEAT_SECS = 600     # two mails about the same class inside this is a bad experience
 
 FINDINGS = []
 
@@ -52,7 +53,16 @@ def main():
 
     c = sqlite3.connect("file:%s?mode=ro" % db, uri=True)
     c.row_factory = sqlite3.Row
-    cut = time.time() - a.hours * 3600
+
+    # The window is measured from the NEWEST DATA IN THE FILE, not from wall-clock. Reading
+    # a six-day-old snapshot with a 24h wall-clock window silently examines nothing and
+    # prints a clean bill of health — the worst possible output. I made this exact mistake
+    # twice while writing this file, which is why the rule is now applied in one place.
+    newest = max(
+        c.execute("SELECT COALESCE(MAX(sent_at),0) t FROM alert_log").fetchone()["t"] or 0,
+        c.execute("SELECT COALESCE(MAX(started),0) t FROM guardian_cycles").fetchone()["t"] or 0,
+        os.path.getmtime(db))
+    cut = newest - a.hours * 3600
 
     print("=" * 72)
     print("  WOULD A STUDENT BE ANNOYED, MISLED, OR IGNORED?")
@@ -66,17 +76,45 @@ def main():
             "Run ops/pull_backup.sh, then re-run this.")
 
     # ---- 1. ALERT STORMS. The defect of 2026-08-08: 8 emails, one watch, one hour.
-    storms = c.execute("""
-        SELECT watch_id, course, section, COUNT(*) n,
-               MIN(sent_at) a, MAX(sent_at) b
-        FROM alert_log
+    # SLIDING 60-minute window, not clock-hour buckets. The real storm of 2026-08-08 was at
+    # 03:32, 04:33 and 04:34 — bucketing by hour split it across two buckets and the check
+    # saw nothing. A storm does not wait for the top of the hour, and the first version of
+    # this file made exactly the mistake it was written to catch.
+    rows = c.execute("""SELECT watch_id, course, section, sent_at FROM alert_log
         WHERE sent_at > ? AND channel IN ('email','webpush','ntfy') AND watch_id IS NOT NULL
-        GROUP BY watch_id, strftime('%Y-%m-%d %H', sent_at, 'unixepoch')
-        HAVING n > ?""", (cut, STORM_PER_HOUR)).fetchall()
+        ORDER BY watch_id, sent_at""", (cut,)).fetchall()
+    by_watch = {}
+    for r in rows:
+        by_watch.setdefault(r["watch_id"], []).append(r)
+    storms = []
+    for wid, rs in by_watch.items():
+        ts = [r["sent_at"] for r in rs]
+        best, lo = 0, 0
+        for hi in range(len(ts)):                     # widest count inside any 3600s window
+            while ts[hi] - ts[lo] > 3600:
+                lo += 1
+            if hi - lo + 1 > best:
+                best, span = hi - lo + 1, (ts[lo], ts[hi])
+        if best > STORM_PER_HOUR:
+            storms.append({"watch_id": wid, "course": rs[0]["course"],
+                           "section": rs[0]["section"], "n": best,
+                           "a": span[0], "b": span[1]})
+        # Volume over an hour is not the only shape a storm takes. Two mails about the same
+        # class 69 seconds apart is already a bad experience and it can hide under any
+        # hourly threshold — that is precisely how the 2026-08-08 case slipped past the
+        # first version of this check. Rapid repeats get flagged on their own terms.
+        gaps = [(ts[i] - ts[i - 1], ts[i - 1], ts[i]) for i in range(1, len(ts))]
+        tight = [g for g in gaps if g[0] < RAPID_REPEAT_SECS]
+        if tight and not any(s["watch_id"] == wid for s in storms):
+            g = min(tight)
+            storms.append({"watch_id": wid, "course": rs[0]["course"],
+                           "section": rs[0]["section"], "n": len(tight) + 1,
+                           "a": g[1], "b": g[2], "rapid": int(g[0])})
     if storms:
         for s in storms:
-            add("BAD", "Alert storm — a student got %d messages about one class in an hour"
-                % s["n"],
+            add("BAD", "Alert storm — a student got %d messages about one class within an hour"
+                % s["n"] if not s.get("rapid") else
+                "Rapid repeat — two messages about one class %ds apart" % s["rapid"],
                 "%s %s (watch %s), %s to %s. Each may have followed a real seat opening, but "
                 "from an inbox this is indistinguishable from spam, and the student "
                 "unsubscribes — then never hears about the seat they would have gotten."
@@ -101,15 +139,20 @@ def main():
         add("UNVERIFIED", "Could not check silent delivery failures", str(e)[:80])
 
     # ---- 3. SCHOOLS DARK WHILE SOMEONE IS WATCHING THEM
+    # Measured against the SNAPSHOT's own clock, not wall-clock. A backup is hours old by
+    # the time anyone reads it, so comparing to now() reports every school dark — which is
+    # exactly the false alarm that teaches you to ignore a checker.
     try:
+        snap = c.execute("SELECT MAX(started) t FROM guardian_cycles").fetchone()["t"] \
+            or os.path.getmtime(db)
         dark = c.execute("""
             SELECT w.school, COUNT(DISTINCT w.id) watches, MAX(g.created) last
             FROM watches w LEFT JOIN guardian_watch_results g ON g.watch_id = w.id
             GROUP BY w.school HAVING last IS NULL OR last < ?""",
-                         (time.time() - DARK_SECS,)).fetchall()
+                         (snap - DARK_SECS,)).fetchall()
         for d in dark:
             when = ("never" if not d["last"] else
-                    "%.0f min ago" % ((time.time() - d["last"]) / 60))
+                    "%.0f min before the snapshot ended" % ((snap - d["last"]) / 60))
             add("BAD", "%s has not been checked (%s)" % (d["school"], when),
                 "%d live watch(es) there. If a seat opens, nobody is told. The student sees "
                 "silence and assumes the class is still full." % d["watches"],
