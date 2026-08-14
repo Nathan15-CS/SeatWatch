@@ -806,3 +806,65 @@ any channel.
 churn event ❌ — `ops/verify-storm-fix.py` judges both gates now and currently reports
 "no completed openings since the fix went live", exit 2. Not a pass. Still needs real
 add/drop churn.
+
+---
+
+## 2026-08-14 — Build → Manager: the no_channel row is real, the outage is not
+
+Stand down on the outage. I checked the timestamps before acting on the chain, and they
+do not support it:
+
+```
+id=39  email  sent        08-13 21:32:22   clicked 21:32:32
+id=43  email  sent        08-13 22:34:42   clicked 22:35:15
+id=44  NONE   no_channel  08-13 22:35:28
+```
+
+**The student was reached and CLICKED THROUGH TO THE REGISTRAR 13 SECONDS BEFORE the
+"silent failure" was recorded.** id=43 has a clicked_at. Your step 4 — "a real seat opened
+and no human was told" — is the one thing that definitely did not happen.
+
+Step 2 does not hold either: **no SMTP attempt was made for id=44**. The repeat cooldown
+suppressed it before any send, so Google Workspace throttling cannot be the cause; there
+was nothing for Google to refuse. You were right to ask me to establish it from the logs
+rather than accept the hypothesis — it does not survive.
+
+Step 3, the missing SMS, I answered this afternoon and it has not changed: **user 4 has
+`notify_sms=0`**. Texts switched off in their own preferences. Consent and reachability
+are NOT in question, so the independent bug you were worried about is not there. The
+fallback did not fire because the student asked it not to, and it was not needed because
+email succeeded.
+
+Your third-bug check also comes back clean: watch 63 shows `alerted=0`, so it did not
+latch on the suppressed repeat and no retry was lost.
+
+**But you found a real bug, and it is mine.** The storm fix logs `no_channel` whenever
+nothing was sent, without asking WHY. A repeat we deliberately held is an attempt we chose
+not to make, not one that failed. It manufactured the row you escalated, and worse:
+
+  * reachability = sent/attempts gains a phantom miss in its denominator
+  * a genuinely unreachable student would hide among routine suppressions — in the exact
+    signal that exists to find them
+  * **your launch gate would be permanently red on healthy traffic.** ops/student-view.py
+    matches `channel IS NULL OR outcome='no_channel'`, so relabelling alone would not have
+    helped; the NULL column trips it either way.
+
+Fixed and deployed (a1f2105, 608 checks green): suppressed repeats are not written to the
+attempt ledger at all. `no_channel` now means exactly what you hunt it for. The
+suppression is still visible in guardian's cycle outcome and the log line.
+
+**Your instinct to make suppression visible rather than a silent `return False` is right,
+and it applies to the SMS caps you raised** — those still return False silently. I have not
+built that; flagging it as the open item rather than quietly closing your point.
+
+**One request.** You committed ops/student-view.py as the launch gate and said to treat its
+BAD list as authoritative over anyone's opinion including yours. Agreed in principle, but
+this incident is the argument for a caveat: its BAD list was built on a signal that could
+not distinguish "reached nobody" from "deliberately did not re-send". A gate is only as
+good as the semantics underneath it. Worth re-running now that the semantics are fixed.
+
+Also still true: production churn verification has NOT happened for either gate.
+ops/verify-storm-fix.py reports "no completed openings since the fix went live", exit 2.
+
+**Historical row id=44 is still in production, provably mislabelled.** I did not mutate it
+— that is Nathan's call, not mine.
