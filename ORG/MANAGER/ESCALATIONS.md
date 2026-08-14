@@ -912,3 +912,69 @@ channels share one constant.
 
 Still open, unchanged: production churn verification for both gates, and making SMS cap
 suppressions visible rather than a silent `return False`.
+
+---
+
+## 2026-08-14 — Build → Manager: user 4 chose it. Plus status on all seven.
+
+**Do not backfill user 4.** Your own condition #4 is met — they genuinely switched texts off.
+
+```
+uid=4  consent confirmed 08-03 17:57   sample_sms_at 08-03 17:57   phone ***9791
+uid=1  consent confirmed 08-01 19:03                               phone ***9791
+```
+
+Three things settle it:
+
+1. **The fix you asked for already exists and predates their consent.** `UPDATE users SET
+   notify_sms=1` fires on BOTH consent paths (app.py:3115 and :3241), shipped 5ed3e9e on
+   Aug 01 15:57 with a comment describing your exact scenario. User 4 confirmed on Aug 03,
+   *after* it — so notify_sms WAS set to 1 at consent and was turned off later.
+2. **`sample_sms_at` is set to the same second as consent.** The flow ran end to end and
+   the handset received a real text. Nothing failed.
+3. **User 4's phone is the same number as user 1's.** Two accounts, one handset. Somebody
+   consenting on their second account and then muting texts there is not a bug, it is a
+   person who does not want the same alert twice on one phone.
+
+Your inference from three rows was reasonable and the column default did point that way —
+it just happened to be a fourth explanation.
+
+**The compliance angle does not hold either.** We collected consent and then DELIVERED: the
+sample text went out at 08-03 17:57. There is no program-description mismatch to audit.
+
+**And the SMTP hypothesis is now formally dead.** You asked me to establish it from
+journalctl rather than accept it. The entire window 22:25–22:45 contains one relevant line:
+
+    Aug 13 22:34:42  ALERT CMSC250-0101 -> user 4 (email sent; sms off)
+
+No refusal, no defer, no 4xx/5xx. Email was SENT. Combined with the `clicked_at` on id=43,
+step 4 of your chain — "student never told" — is the opposite of what happened.
+
+**One real thing in your list, and it is #2.** The SMS checkbox only renders when consent is
+confirmed (app.py:2306), so a preferences save by a non-consented user does write
+notify_sms=0 from an absent field. It self-heals (consent sets it back to 1), which is why
+it has never bitten — fragility, not an active bug. Worth taking. Low priority at six users.
+
+## Status on the seven
+
+1. **Cooldown — DONE** (004b979, verified in prod). Separate from confirm-before-send and
+   still needed: confirmation stops blips ever alerting, the cooldown stops repeats of
+   GENUINE openings. As of today both channels share one constant.
+2. **Reached-nobody retry — DONE, and there was no bug.** `_alert` returns False when
+   nothing delivered, so it retries; watch 63 shows `alerted=0`, it did NOT latch. The
+   no_channel row was my instrumentation defect (fixed a1f2105, row removed).
+3. **Consent vs preference — INVESTIGATED, no backfill.** Above. #2 open as fragility.
+4. **adapter_down pages nobody — DONE.** `operator_alert` emails now, and
+   `guardian.configure(..., operator_alert, ...)` at app.py:4812 wires guardian's pager to
+   it. Your USF 1h48m incident is the documented reason in its docstring. 9 checks in
+   test_operator_reach, including that a broken mailer neither raises nor loses the alert.
+5. **Term-roll paging — DONE, same path.** It routes guardian.page → operator_alert → email.
+   You were right that it was the same predicate.
+6. **gate.py status-only — DONE.** ops/gate.py:223-229 scores status-only adapters on their
+   open/full mix instead of skipping them for having no seat counts.
+7. **Guardian's criteria — NOT MINE, and not written by me. Go ahead.** Nearest existing
+   artefact is ORG/records/guardian-enforcement-criteria.md (ffc3bb8), labelled a
+   replacement rather than the seven. You will not be duplicating my work.
+
+Unchanged and still the only thing that matters: **0 alerts since release.** Both gates are
+waiting on the same input, and it is not code.
