@@ -106,6 +106,33 @@ def run():
           app._alert(wc, "seat", "https://umd.edu/z") and len(sent) == n + 1,
           "the cooldown must never have applied to a watch that was never reached")
 
+    # ------------------------------------------- a HELD repeat is not a silent failure
+    # On 2026-08-13 the storm fix wrote a 'no_channel' row for a suppressed repeat and
+    # produced the product's first-ever silent-delivery-failure record — 13 seconds after
+    # that same student clicked through to the registrar from the email we DID send. It
+    # was reported up the chain as a real outage. Two distinct harms:
+    #   * reachability = sent/attempts gains a phantom miss in its denominator
+    #   * a truly unreachable student hides among routine suppressions, in the exact
+    #     signal that exists to find them
+    with app.db() as c:
+        c.execute("DELETE FROM alert_attempt")
+    sent.clear()
+    app.send_email = lambda to, subj, body, url=None: (sent.append((to, subj)) or True)
+    app._alert(wb, "A seat opened in CMSC132 0201.", "https://umd.edu/y")   # delivers
+    app._alert(wb, "A seat opened in CMSC132 0201.", "https://umd.edu/y")   # HELD
+    with app.db() as c:
+        nc = c.execute("SELECT COUNT(*) FROM alert_attempt WHERE outcome='no_channel'"
+                       ).fetchone()[0]
+        nulls = c.execute("SELECT COUNT(*) FROM alert_attempt WHERE channel IS NULL"
+                          ).fetchone()[0]
+    check("a suppressed repeat is NOT logged as a silent failure", nc == 0,
+          f"{nc} no_channel row(s) — this is how a held repeat got reported as an outage")
+    # ops/student-view.py and ops/data-report.py both match `channel IS NULL OR
+    # outcome='no_channel'`, so a NULL-channel row trips the launch gate whatever it is
+    # called. Asserting the column too, not just the label.
+    check("...and leaves no NULL-channel row for the launch gate to trip on", nulls == 0,
+          f"{nulls} NULL-channel row(s) — student-view.py would flag this account BAD")
+
     # ------------------------------------------------------- the window does expire
     # getattr, not a direct read: against PRE-FIX code the constant does not exist, and a
     # suite that dies on an AttributeError proves only that the attribute is missing. It

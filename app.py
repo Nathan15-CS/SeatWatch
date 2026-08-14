@@ -4473,7 +4473,16 @@ def _alert(r, message, url):
     for ch, sent_ok in (("email", emailed), ("sms", texted)):
         if sent_ok:
             _log_attempt(r, ch, "sent", tok[ch] if ch != "sms" else None)
-    if not (emailed or texted):
+    # A repeat we deliberately HELD is not an attempt that failed — it is an attempt we
+    # chose not to make, because the student was told minutes ago. Logging it as
+    # 'no_channel' manufactured SeatWatch's first-ever "silent delivery failure" (id=44,
+    # watch 63) THIRTEEN SECONDS AFTER that student had already clicked through to the
+    # registrar from the email we did send. Two costs, and the second is the real one:
+    # reachability (sent/attempts) gets a phantom miss in its denominator, and a genuinely
+    # unreachable student would be buried among routine suppressions in the one signal we
+    # hunt for exactly that. The suppression is still recorded — guardian's cycle outcome
+    # and the "repeat within cooldown — not re-sent" log line both carry it.
+    if not (emailed or texted) and not suppressed:
         _log_attempt(r, None, "no_channel")
     # Latch only on a channel that reached a person. With ntfy_ok/pushed pinned False the
     # honest and legacy rules collapse to the same answer — "email or text delivered" —

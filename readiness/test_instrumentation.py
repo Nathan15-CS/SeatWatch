@@ -86,6 +86,13 @@ def run():
     app.send_email = lambda *a, **k: False
     with app.db() as c:
         c.execute("UPDATE watches SET alerted=0 WHERE id=?", (WID,))
+        # Age the ledger past the repeat cooldown. This watch was successfully alerted a
+        # moment ago, so without this the next alert is HELD as a repeat and no channel is
+        # ever ATTEMPTED — a deliberate decision, not a failure to reach anyone. The suite
+        # would then be asserting suppression while claiming to test unreachability, and
+        # the two are opposites: one is the system working, the other is the thing we hunt.
+        c.execute("UPDATE alert_log SET sent_at=sent_at-?",
+                  (getattr(app, "REPEAT_ALERT_COOLDOWN_S", 1800) + 60,))
     app.run_cycle()
     with app.db() as c:
         nc = c.execute("SELECT COUNT(*) FROM alert_attempt WHERE outcome='no_channel'").fetchone()[0]
