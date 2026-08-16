@@ -927,6 +927,29 @@ def summary_line():
         return f"Guardian[{_CFG['mode']}]: summary unavailable (telemetry fault)"
 
 
+def summary_needs_attention():
+    """Is there anything in Guardian a human actually has to look at?
+
+    The daily digest is silent when clean, so this decides whether it speaks at all. It
+    must fail toward SPEAKING: if the check itself is broken we cannot claim health, and
+    an unnecessary mail is a far cheaper mistake than a silent one. That asymmetry is the
+    whole reason the digest is allowed to go quiet in the first place.
+    """
+    if not _active():
+        return False
+    try:
+        with _CFG["db"]() as c:
+            if c.execute("SELECT COUNT(*) FROM guardian_incidents "
+                         "WHERE status='open'").fetchone()[0]:
+                return True
+            cyc = c.execute("SELECT status FROM guardian_cycles WHERE finished IS NOT NULL "
+                            "ORDER BY finished DESC LIMIT 1").fetchone()
+        return bool(cyc) and cyc["status"] != "GREEN"
+    except Exception as e:
+        _telemetry_mark(f"needs_attention:{type(e).__name__}")
+        return True                       # cannot tell -> say something, never stay quiet
+
+
 def report_block():
     """Machine block for /admin/stats — aggregates only, no PII."""
     if not _active():

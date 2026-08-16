@@ -28,6 +28,8 @@ SUITES = [
      "malformed/missing/timeout/unreachable/WAF never fabricate an open seat"),
     ("Parser fake-open lock-in (per family)", "test_parser_fakeopen",
      "seatsAvailable/AvailabilityStatus/Remaining rules pinned; openSection lies caught"),
+    ("Operator is mailed about problems, not weather", "test_operator_noise",
+     "a self-healing blip and a clean daily digest send NOTHING; a real outage still does"),
     ("Accuracy gate judges status-only schools", "test_gate_statusonly",
      "72 count-less schools are scored, not skipped — and a MIXED parse still fails"),
     ("Crash-safety & idempotency", "test_crash_safety",

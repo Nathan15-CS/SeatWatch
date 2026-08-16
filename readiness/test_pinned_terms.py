@@ -18,8 +18,25 @@ import os, sys, re, urllib.request, urllib.error, concurrent.futures as cf
 
 _UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
        "(KHTML, like Gecko) Chrome/126 Safari/537.36")
+# Schools phrase an outage however they like, and this pattern only ever has to be wide
+# enough to stop us BLAMING THE TERM for someone else's downtime. On 2026-08-16 Cleveland
+# State served, with HTTP 200:
+#
+#     "CampusNet is currently not available due to regular maintenance.
+#      It will be available next on: SUNDAY at 10:00 AM"
+#
+# None of the four original alternatives matched "not available due to regular
+# maintenance", so the report announced "the host is HEALTHY — term rolled past its pin"
+# about a school that was simply closed for the weekend. Acting on that means bumping a
+# term that was never wrong, and an early roll silently starves everyone watching the
+# current one — the most expensive edit this repo can make from a false report.
+#
+# Hence the deliberately loose final alternative: the bare word "maintenance". A page
+# that both serves no course data AND says "maintenance" is not a page to draw
+# conclusions from, and being wrong in this direction only costs a re-check.
 _MAINT = re.compile(r"down for maintenance|scheduled (?:downtime|maintenance)|"
-                    r"temporarily unavailable|under maintenance", re.I)
+                    r"temporarily unavailable|under maintenance|"
+                    r"will be (?:back|available)\b|\bmaintenance\b", re.I)
 
 
 def _probe(url, timeout=15):
@@ -65,7 +82,13 @@ def _diagnose(s):
                 f"platforms; this adapter needs re-research, not a term bump")
     if status >= 500:
         return f"host erroring (HTTP {status} on {origin}) — their fault, not a stale pin"
-    return f"0 sections and the host is HEALTHY (HTTP {status}) — term rolled past its pin"
+    # Everything above RULED SOMETHING OUT. This branch has ruled nothing out — it is the
+    # leftover, and it is stated as a likelihood rather than a finding. "HEALTHY" was the
+    # wrong word for an HTTP 200 that carried a maintenance notice, and reading it as a
+    # diagnosis is what sends someone to edit a term code that was never wrong.
+    return (f"0 sections; host answers HTTP {status} with no outage notice — MOST LIKELY "
+            f"the term rolled past its pin, but confirm against the school's own term "
+            f"list before bumping it. An early roll starves every current watcher.")
 
 
 def run():
@@ -91,13 +114,29 @@ def run():
     with cf.ThreadPoolExecutor(7) as ex:
         rows = sorted(ex.map(check, pinned))
 
+    unchecked = []
     for name, n, err in rows:
+        if n == 0 and "MAINTENANCE" in (err or ""):
+            # THEIR outage, on their schedule. We did not verify the pin, so we must not
+            # claim it is live — but neither is it a defect of ours to fail on. Asserting
+            # FAIL here paints the suite red for a school that is closed for the weekend,
+            # and a suite that is red for reasons nobody can act on is a suite that stops
+            # being read. Skipped and COUNTED, the same discipline test_section_collapse
+            # uses, so "not checked" can never be mistaken for "checked and fine".
+            unchecked.append(name[:38])
+            continue
         results.append((f"pinned school still live: {name[:38]}", n > 0, f"({err})" if err else ""))
+
+    if unchecked:
+        # Visible as its own line rather than folded into silence: if a school stays in
+        # "maintenance" for a week, that is no longer maintenance and somebody must look.
+        results.append((f"NOT CHECKED — host in maintenance: {', '.join(unchecked)}",
+                        True, ""))
 
     # A pinned school is a standing maintenance obligation; make the count visible so it
     # can't quietly grow without anyone owning the bumps.
-    results.append((f"pinned-school count is tracked ({len(pinned)} need manual term bumps)",
-                    True, ""))
+    results.append((f"pinned-school count is tracked ({len(pinned)} need manual term bumps, "
+                    f"{len(rows) - len(unchecked)} verified live)", True, ""))
 
     p = sum(ok for _, ok, _ in results)
     f = sum(not ok for _, ok, _ in results)

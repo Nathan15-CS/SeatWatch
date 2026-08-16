@@ -192,6 +192,14 @@ PLAN_MSG = ("Your free plan covers 1 class, up to 2 of its sections. Stop watchi
 OPERATOR_TOPIC = os.environ.get("SEATWATCH_ADMIN_TOPIC", "seatwatch-admin-q7x2k9m4")
 HEALTHCHECK_URL = os.environ.get("HEALTHCHECK_URL", "")
 FAIL_THRESHOLD = int(os.environ.get("FAIL_THRESHOLD", "5"))
+# How long a school must stay unreadable before the OPERATOR is emailed. The pause itself
+# still happens at FAIL_THRESHOLD (~100s) — that is correctness, and no false alert can
+# escape meanwhile. This governs only the mail. Every operator page Nathan received in the
+# week of 2026-08-14 was a school that healed itself: MUSC204 down and "recovered ✅" 24
+# SECONDS later, Towson ENGL102 twice in one day. Two mails apiece for an outage nobody
+# could act on and that was over before either was read. A page a human cannot act on
+# isn't a page, it is training to ignore the next one.
+OUTAGE_CONFIRM_S = int(os.environ.get("OUTAGE_CONFIRM_S", "900"))   # 15 min; 0 = mail at once
 SUMMARY_EVERY_HOURS = 24
 DRILL_EVERY_HOURS = 168        # automated end-to-end fire drill, weekly
 # Reliable, always-on schools to drill against (rotated through until one delivers).
@@ -3603,8 +3611,21 @@ def maybe_daily_summary():
         n_watches = c.execute("SELECT COUNT(*) FROM watches").fetchone()[0]
         n_users = c.execute("SELECT COUNT(DISTINCT topic) FROM watches").fetchone()[0]
     broken = [crs for crs, h in health.items() if h.get("alerted")]
-    status = "all healthy ✅" if not broken else "NEEDS ATTENTION ⚠️: " + ", ".join(broken)
     gline = guardian.summary_line()
+    try:
+        quiet = not broken and not guardian.summary_needs_attention()
+    except Exception:
+        quiet = False          # cannot tell whether anything is wrong -> say something
+    if quiet:
+        # SILENT WHEN CLEAN. A daily "all healthy ✅" is a mail that, by definition, never
+        # needs opening — and its real cost is that it trains the reader to archive
+        # SeatWatch mail unread, including the one that matters. The healthy state is still
+        # recorded in the log and is available on demand from ops/triage.py, which answers
+        # the same question without arriving uninvited.
+        sw.log(f"  [daily] watching {n_watches} class(es) for {n_users} user(s). "
+               f"all healthy — not mailed" + (f" — {gline}" if gline else ""))
+        return
+    status = "NEEDS ATTENTION ⚠️: " + (", ".join(broken) if broken else "see Guardian")
     operator_alert(f"Daily check — watching {n_watches} class(es) for {n_users} user(s). "
                    f"{status}" + (f" — {gline}" if gline else ""))
 
@@ -3744,18 +3765,35 @@ def run_cycle():
             # GUARD — course returned no data (fetch failed / format changed / blocked)
             if not secs:
                 h["fails"] += 1
-                if h["fails"] >= FAIL_THRESHOLD and not h["alerted"]:
-                    operator_alert(f"{school.name} {course}: no data {h['fails']}x in a row "
-                                   "— possible block or format change. Paused (NO false "
-                                   "alerts go out). I'll report when it recovers.")
+                if h["fails"] >= FAIL_THRESHOLD and not h.get("down_since"):
+                    h["down_since"] = time.time()      # pause starts NOW; mail waits
+                # The PAUSE is immediate at FAIL_THRESHOLD — that is correctness and has
+                # not changed; no false alert can escape while a school is unreadable.
+                # The EMAIL waits for OUTAGE_CONFIRM_S, because a page a human cannot act
+                # on is not a page. Every operator mail Nathan received this week was a
+                # school that came back on its own: MUSC204 down and "recovered ✅" 24
+                # SECONDS later, Towson ENGL102 twice the same day. Two mails each, for an
+                # outage that resolved before either could be read. Same lesson as the seat
+                # alerts one screen up — make it prove it is real before you shout.
+                if (h.get("down_since") and not h["alerted"]
+                        and time.time() - h["down_since"] >= OUTAGE_CONFIRM_S):
+                    mins = int((time.time() - h["down_since"]) / 60)
+                    operator_alert(f"{school.name} {course}: no data for {mins} min "
+                                   f"({h['fails']}x in a row) — possible block or format "
+                                   "change. Paused (NO false alerts go out). I'll report "
+                                   "when it recovers.")
                     h["alerted"] = True
                 guardian.record(cyc, r["id"], "adapter_failed",
                                 fails=h["fails"], adapter_term=cur_term)
                 continue
 
+            # "Recovered" is only worth an email if we actually mailed about the outage.
+            # Sending it after a blip we deliberately stayed quiet about would reintroduce
+            # exactly the noise this removes — and would be the more confusing half, since
+            # it reports the end of something the reader never heard had begun.
             if h["alerted"]:
                 operator_alert(f"{school.name} {course}: recovered ✅")
-            h.update(fails=0, alerted=False, last_count=len(secs))
+            h.update(fails=0, alerted=False, down_since=0, last_count=len(secs))
 
             # fake-all-open watchdog — count real sections at STATUS-ONLY schools only
             # (exclude the "none" not-offered sentinel; numeric-seat schools are immune).
