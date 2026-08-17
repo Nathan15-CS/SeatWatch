@@ -65,6 +65,31 @@ GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
 GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
 BASE_URL = os.environ.get("SEATWATCH_BASE_URL", "https://seatwatchapp.com")
 
+# --- Meta Pixel -----------------------------------------------------------------------
+# DEFAULT OFF. Production sets META_PIXEL_ID explicitly in /etc/seatwatch.env; every other
+# environment — a laptop, a test run, a restored backup, a future host somebody forgets to
+# configure — sends Meta nothing at all. A hardcoded production id would follow the code
+# everywhere it is ever copied.
+META_PIXEL_ID = os.getenv("META_PIXEL_ID", "")
+
+# autoConfig=false is the load-bearing line, not a nicety. Left on, Meta's script runs
+# Automatic Advanced Matching: it scrapes the page's own form fields and sends back
+# whatever looks like an email address or a phone number. SeatWatch renders BOTH — the
+# signed-in address and the SMS opt-in phone box — so the default behaviour would ship
+# exactly the identifiers the privacy policy promises never to share. Set BEFORE init,
+# because by the time init runs the first PageView has already gone out.
+META_PIXEL_BASE = ("""<script>
+!function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,
+document,'script','https://connect.facebook.net/en_US/fbevents.js');
+fbq('set','autoConfig',false,'__PIXELID__');
+fbq('init','__PIXELID__');fbq('track','PageView');</script>
+<noscript><img height="1" width="1" style="display:none" alt=""
+src="https://www.facebook.com/tr?id=__PIXELID__&ev=PageView&noscript=1"></noscript>"""
+                   .replace("__PIXELID__", META_PIXEL_ID) if META_PIXEL_ID else "")
+
 # --- Sign in with Apple (2nd provider; REQUIRED for the iOS app by App Store rule 4.8:
 # an app offering Google login must offer Apple's too). Invisible until ALL pieces are
 # in the server env: Apple issues them when the developer account exists. The private
@@ -287,6 +312,24 @@ def init_db():
             c.execute("ALTER TABLE users ADD COLUMN free_eligible INTEGER NOT NULL DEFAULT 1")
         if "signup_ip" not in ucols:
             c.execute("ALTER TABLE users ADD COLUMN signup_ip TEXT")
+        if "pixel_activated_at" not in ucols:
+            # Stamped the first time a student successfully creates a watch, and
+            # never again. The ad conversion is meant to count an ACTIVATED NEW
+            # USER; without it, one student adding four classes reports as four
+            # acquisitions and every cost-per-signup figure is wrong by 4x.
+            c.execute("ALTER TABLE users ADD COLUMN pixel_activated_at REAL")
+        # BACKFILL — runs on every start, not just the one that adds the column.
+        # The column arrives NULL for accounts that have been watching classes for
+        # weeks, so without this the next watch an EXISTING student creates would flip
+        # that NULL and report them to Meta as a newly acquired user. Their real
+        # activation moment is their first watch, so that is the value written.
+        # Idempotent by construction: the IS NULL predicate matches nothing on a second
+        # run, and a student with no watches is deliberately left NULL so their genuine
+        # first watch still converts.
+        c.execute("UPDATE users SET pixel_activated_at="
+                  "(SELECT MIN(w.created) FROM watches w WHERE w.user_id=users.id) "
+                  "WHERE pixel_activated_at IS NULL "
+                  "AND EXISTS(SELECT 1 FROM watches w WHERE w.user_id=users.id)")
         c.execute("""CREATE TABLE IF NOT EXISTS device_markers(
             device_id  TEXT NOT NULL,
             user_id    INTEGER NOT NULL,
@@ -1081,6 +1124,7 @@ def get_or_create_user(sub, email, ip=None, device_id=None):
 
 # ------------------------------------------------------------------------- html
 PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
+__METAPIXEL__
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SeatWatch: Get a text the second a full class opens | __COUNT__ universities</title>
 <meta name="description" content="SeatWatch alerts you the instant a seat opens in a full college class, across __COUNT__ universities. Watch the exact section you want and get the professor you want. Free to start.">
@@ -1256,7 +1300,7 @@ PAGE = """<!doctype html><html lang="en"><head><meta charset="utf-8">
 </style></head><body>
 <header><div class="nav"><svg class="mark" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg"><defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="1" stop-color="#2563eb"/></linearGradient></defs><path d="M40 14 H80 Q104 14 104 38 V72 Q104 96 80 96 H64 L54 110 L49 96 H36 Q12 96 12 72 V38 Q12 14 36 14 Z" fill="#fff" stroke="#2563eb" stroke-width="9" stroke-linejoin="round"/><rect x="42" y="32" width="28" height="24" rx="7" fill="url(#b)"/><rect x="38" y="56" width="40" height="11" rx="5.5" fill="url(#b)"/><rect x="42" y="67" width="8" height="15" rx="3" fill="url(#b)"/><rect x="66" y="67" width="8" height="15" rx="3" fill="url(#b)"/><circle cx="100" cy="20" r="11" fill="#10b981" stroke="#fff" stroke-width="5"/><path d="M100 4 V1 M111 9 L114 6 M116 20 H119" stroke="#10b981" stroke-width="4.5" stroke-linecap="round"/></svg><span class="word"><i>Seat</i>Watch</span><span class="spacer"></span><a class="signin" href="/login"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>Sign in</a></div></header>
 <main>__BODY__</main>
-<footer><span class="tagline">We watch seats. <em>You get the class.</em></span>__FEEDBACK__<br>© 2026 SeatWatch &nbsp;·&nbsp; <a href="/terms">Terms</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="/text-alerts">Text Alerts</a> &nbsp;·&nbsp; <a href="/sms-terms">SMS Terms</a><br>Not affiliated with any university.</footer>
+<footer><span class="tagline">We watch seats. <em>You get the class.</em></span>__FEEDBACK__<br>© 2026 SeatWatch &nbsp;·&nbsp; <a href="/terms">Terms</a> &nbsp;·&nbsp; <a href="/privacy">Privacy</a> &nbsp;·&nbsp; <a href="/privacy#adchoices">Privacy &amp; Ad Choices</a> &nbsp;·&nbsp; <a href="/text-alerts">Text Alerts</a> &nbsp;·&nbsp; <a href="/sms-terms">SMS Terms</a><br>Not affiliated with any university.</footer>
 <script>
 (function(){/* durable device marker: cookie + localStorage mirror (soft signal only) */
 try{
@@ -1586,13 +1630,14 @@ PRIVACY = """<h2 style="font-size:20px;margin:6px 0 2px">Privacy Policy</h2>
 <p><b>The short version:</b> we collect the bare minimum needed to run your alerts: your email (from sign-in) and the classes you watch, plus a little more only to stop people from abusing the free plan. We never sell your data or use it for ads.</p>
 <p><b>1. What we collect.</b> (a) your email address and account ID, via &ldquo;Sign in with Google&rdquo; or &ldquo;Sign in with Apple&rdquo; (we never see or store your password); (b) the classes and sections you ask us to watch; (c) if you choose to receive text alerts, the mobile number you give us, together with a record of your consent (the wording you agreed to, and the date, time, and IP address it was given); (d) your IP address, used to keep the service secure, including rate-limiting and helping us spot abuse such as one person creating many accounts to get around free-plan limits; (e) a device identifier, a random ID we generate and store in your browser (a cookie and local storage) used <b>solely</b> to detect fraud and free-plan abuse (for example, many accounts from one device). It is not an advertising ID and is never used to track you across other websites.</p>
 <p><b>2. Payment information.</b> If you buy a paid plan, our payment provider (Stripe) processes your payment. We never see or store your full card number; we keep only a record of the transaction (such as amount, date, plan, and a payment reference) to run the service, prevent fraud, and meet legal and tax obligations.</p>
-<p><b>3. What we do NOT collect.</b> No password (sign-in is handled by Google/Apple) and we never see or store your card details (payment, if any, is handled by Stripe); no location, no browsing history, and no browser &ldquo;fingerprinting&rdquo; or cross-site tracking.</p>
+<p><b>3. What we do NOT collect.</b> No password (sign-in is handled by Google/Apple) and we never see or store your card details (payment, if any, is handled by Stripe); no location, no browsing history, and no browser &ldquo;fingerprinting&rdquo;. We do run one third-party advertising tag, the Meta Pixel, which is cross-site tracking &mdash; see 7b below for exactly what it sees and how to stop it.</p>
 <p><b>4. How alerts are delivered.</b> Alerts are sent by email, and by text message if you have given consent for texts. Email is delivered through our email provider, and texts through our SMS provider (Twilio); each receives only what is needed to deliver your alert. You can change which of these you receive at any time from your account page, and you can stop texts at any time by replying STOP.</p>
 <p><b>5. How we use your data.</b> To run the watch-and-alert service, and to keep it secure and fair (see below). Nothing else.</p>
 <p><b>6. Preventing abuse of the free plan.</b> So we can keep offering a free plan, we look for signs that one person is using multiple accounts to bypass the free limit, for example accounts that share a device, network/IP address, or email, or that together watch more of a class than one free account is meant to. To do this we use only the data described above (the device identifier, IP address, sign-in email, any mobile number you gave us, and your watch activity), the minimum needed, and no invasive fingerprinting. This protects our legitimate interest in preventing fraud. If we find likely abuse, we may remove the extra watches or accounts, as permitted by our <a href="/terms">Terms of Service</a>. These checks are reviewed by a person before any action. <b>If you believe you were flagged by mistake, email <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a> and a human will help sort it out.</b></p>
-<p><b>7. Sharing.</b> We do not sell, rent, or share your data for advertising. Ever.</p>
+<p><b>7. Sharing.</b> We do not sell or rent your data. The one exception is the Meta Pixel described in 7b, which reports page views and first-time signups to Meta so we can measure and target our advertising. We share nothing else for advertising &mdash; not your email address, not your phone number, not the classes you watch.</p>
+<p id="adchoices"><b>7b. Advertising &amp; Ad Choices (Meta Pixel).</b> Our pages load the Meta Pixel, code provided by Meta Platforms. <b>Why we use it:</b> to measure whether our advertising works &mdash; it tells Meta that a browser visited SeatWatch and, when someone creates their first class alert, that a signup was completed &mdash; and to let us target and optimise ads on Facebook and Instagram. <b>What Meta receives:</b> your IP address, browser and device information, and the address of the page. Meta may combine this with information it already holds about you. <b>What Meta never receives from us:</b> your name, your email address, your mobile number, your school, or any course, section or professor you watch. We have switched off Meta&rsquo;s automatic matching feature, which would otherwise read those details out of the page. <b>How to opt out.</b> Two controls actually stop this, and both sit with you rather than with us: block the pixel in your browser &mdash; Firefox and Safari do it by default, and any ad blocker or a browser extension will do it in Chrome &mdash; or use the &ldquo;Off-Facebook activity&rdquo; and ad-preference controls in your Meta account to limit what Meta does with what it receives. <b>We cannot switch Meta off for you from our end</b>, so we are not going to promise it: the pixel runs in your browser, not on our server. What we can do, if you email <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a>, is delete your account and everything attached to it. Blocking the pixel never changes your alerts or your plan &mdash; SeatWatch works exactly the same with it blocked.</p>
 <p><b>7a. Text-message (SMS) alerts.</b> If you opt in to text alerts, we collect your mobile number and a record of your consent: the exact wording you agreed to, the date and time, and the originating IP address, used <b>solely</b> to send the course seat-availability alerts you requested and to honor your STOP and HELP replies. <b>SeatWatch does not share or sell mobile phone numbers, SMS opt-in, or consent information with third parties or affiliates for marketing or promotional purposes.</b> We disclose your mobile number only to our SMS delivery provider (Twilio), strictly to transmit the alerts you asked for. Message frequency varies based on the courses you monitor; message and data rates may apply. Reply STOP to any alert to unsubscribe, or HELP for help. Opting in is never a condition of purchase. SeatWatch works fully without a phone number on every plan, using web push and email. See our <a href="/sms-terms">SMS Terms &amp; Conditions</a>.</p>
-<p><b>Your California privacy rights.</b> If you are a California resident, you have the right to know what personal information we collect and how we use it; to request a copy, correction, or deletion of it; and to not be treated differently for exercising these rights. <b>We do not sell or share your personal information, and have not done so.</b> To exercise any right, email <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a>; we will verify and respond as the law requires.</p>
+<p><b>California residents.</b> Where these rights apply to you, you may ask what personal information we hold about you and how it is used, and request a copy, a correction, or deletion, without being treated differently for asking. <b>We do not sell your personal information.</b> We do disclose limited identifiers (IP address and browser information) to Meta for advertising measurement, described in 7b, and you can opt out of that at any time by the means listed there or by emailing us. To exercise any right, email <a href="mailto:support@seatwatchapp.com">support@seatwatchapp.com</a>. Nothing here is a statement about which privacy laws apply to SeatWatch; we offer these choices to everyone who asks, whether or not a statute requires it.</p>
 <p><b>8. Retention.</b> A watch is kept only while it is active. Stop it (or ask us) and it is removed. Abuse-prevention signals are kept only as long as needed to protect the service.</p>
 <p><b>9. Security.</b> We use reasonable safeguards to protect the service, but no system is 100% secure.</p>
 <p><b>Data breaches.</b> If a breach affects your personal information, we will notify you and any authorities as required by applicable law.</p>
@@ -1623,6 +1668,7 @@ SMS_TERMS = """<h2 style="font-size:20px;margin:6px 0 2px">SMS Terms &amp; Condi
 
 
 LANDING = """<!doctype html><html lang="en"><head><meta charset="utf-8">
+__METAPIXEL__
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>SeatWatch: Get into the class you actually need | __COUNT__ universities</title>
 <meta name="description" content="SeatWatch alerts you the instant a seat opens in a full college class, across __COUNT__ universities. Watch the exact section you want and get the professor you want. Free to start.">
@@ -1889,7 +1935,7 @@ __PRICING__
     <div style="display:flex;gap:22px;font-size:13.5px;color:#6b7a92;align-items:center;flex-wrap:wrap;">
       <span>© 2026 SeatWatch LLC</span>
       <a href="/terms" style="color:#6b7a92;">Terms</a>
-      <a href="/privacy" style="color:#6b7a92;">Privacy</a>
+      <a href="/privacy" style="color:#6b7a92;">Privacy</a> &nbsp;·&nbsp; <a href="/privacy#adchoices" style="color:#6b7a92;">Privacy &amp; Ad Choices</a>
       <span style="color:#9aa7ba;">Not affiliated with any university.</span>
     </div>
   </div>
@@ -2028,7 +2074,8 @@ def pricing_section():
 def landing_page():
     """The redesigned marketing landing page (logged-out home). Fills the live
     school count; all CTAs route to /login (Google sign-in)."""
-    return (LANDING.replace("__COUNT__", str(proven_count()))
+    return (LANDING.replace("__METAPIXEL__", META_PIXEL_BASE)
+            .replace("__COUNT__", str(proven_count()))
             .replace("__PRICING__", pricing_section())
             .replace("__ADVIDEOV__", _media_ver("tour.mp4"))
             .replace("__ADPOSTERV__", _media_ver("tour-poster.jpg")))
@@ -2042,6 +2089,7 @@ def page(body, feedback=""):
     # page (terms, privacy, notices) strips the placeholder rather than leaking it.
     return (PAGE.replace("__BODY__", body)
             .replace("__FEEDBACK__", feedback)
+            .replace("__METAPIXEL__", META_PIXEL_BASE)
             .replace("__COUNT__", str(proven_count())))
 
 
@@ -2470,6 +2518,32 @@ def done_page(what, user):
     body = (DONE.replace("__WHAT__", html.escape(what))
                 .replace("__ALERTINTRO__", alert_intro(user))
                 .replace("__PUSHBLOCK__", notify_prefs_block(user, tok)))
+    # The ONLY place CompleteRegistration fires, and it fires at most ONCE PER STUDENT,
+    # ever — on their first successful watch. Meta is being asked "did this person become
+    # a user?", so a student who adds four classes must not read as four acquisitions.
+    #
+    # The atomic UPDATE is the whole mechanism. Exactly one statement can flip a NULL
+    # pixel_activated_at, so rowcount==1 happens once and only once per account however
+    # the page is reached: refresh, Back, a replayed flash cookie, or two tabs racing.
+    # That is stronger than the client-side eventID this used to carry, and it needs no
+    # identifier derived from the student or from what they are watching.
+    # Stamped whether or not a pixel is configured. "When did this student first create
+    # a watch" is a fact about the product, not about advertising — and recording it only
+    # while tracking happens to be enabled would leave a hole: anyone who activated during
+    # a pixel-off period keeps a NULL, and their SECOND watch would later be reported as
+    # a first. The pixel only ever READS this flag.
+    fire = False
+    try:
+        with db() as c:
+            fire = c.execute("UPDATE users SET pixel_activated_at=? WHERE id=? AND "
+                             "pixel_activated_at IS NULL",
+                             (time.time(), user["id"])).rowcount == 1
+    except Exception:
+        fire = False              # tracking must never be able to break the success page
+    if fire and META_PIXEL_ID:
+        # No parameters. Meta gets the fact of a conversion and nothing else: no email,
+        # no phone, no school, course, section or professor, and no id derived from them.
+        body += "<script>window.fbq&&fbq('track','CompleteRegistration');</script>"
     return page(body)
 
 

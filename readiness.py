@@ -30,6 +30,8 @@ SUITES = [
      "seatsAvailable/AvailabilityStatus/Remaining rules pinned; openSection lies caught"),
     ("Operator is mailed about problems, not weather", "test_operator_noise",
      "a self-healing blip and a clean daily digest send NOTHING; a real outage still does"),
+    ("Meta Pixel fires on a created watch, nothing else", "test_meta_pixel",
+     "base on every page; CompleteRegistration only after a committed watch, once, deduped"),
     ("Accuracy gate judges status-only schools", "test_gate_statusonly",
      "72 count-less schools are scored, not skipped — and a MIXED parse still fails"),
     ("Crash-safety & idempotency", "test_crash_safety",
