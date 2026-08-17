@@ -58,6 +58,34 @@ def run():
           app.META_PIXEL_BASE.index("autoConfig") < app.META_PIXEL_BASE.index("fbq('init'"),
           "after init the first PageView has already been sent")
 
+    # ---------------------------------------------------------------------- CSP
+    # The policy is default-src 'none' with an explicit allowlist, and it is why the pixel
+    # sent nothing for its first hour: connect.facebook.net was refused by script-src,
+    # fbevents.js never initialised, and every call including PageView sat queued in the
+    # browser with no error the server could observe. Chrome's console was the only place
+    # it was visible. These checks exist so the allowlist cannot silently regress, and
+    # equally so nobody widens it beyond the three exact hosts Meta needs.
+    csp = app.CSP
+    check("script-src allows Meta's script host, exactly",
+          "script-src 'self' 'unsafe-inline' https://connect.facebook.net" in csp,
+          "without this fbevents.js is refused and every event queues forever")
+    check("img-src allows the /tr beacon host", 
+          "img-src 'self' data: https://www.facebook.com" in csp)
+    check("connect-src allows the same host for fetch/sendBeacon delivery",
+          "connect-src 'self' https://www.facebook.com" in csp,
+          "modern fbevents prefers sendBeacon over an Image for delivery")
+    check("NO wildcard anywhere in the policy", "*" not in csp,
+          "a wildcard would allow far more than Meta")
+    check("default-src is still 'none'", csp.startswith("default-src 'none'"))
+    check("connect.facebook.net is NOT in connect-src", 
+          "connect-src 'self' https://www.facebook.com;" in csp,
+          "it serves the script; the script talks to www.facebook.com. Add only on a "
+          "real console violation naming it")
+    for keep in ("worker-src 'self'", "manifest-src 'self'", "form-action 'self'",
+                 "base-uri 'none'", "frame-ancestors 'none'",
+                 "font-src https://fonts.gstatic.com"):
+        check("...and %s is untouched" % keep, keep in csp)
+
     # ------------------------------------------------------------------- PLACEMENT
     landing, form = app.landing_page(), app.form_page(user=u)
     check("base pixel loads on the logged-out landing page", BASE in landing)

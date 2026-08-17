@@ -78,6 +78,37 @@ META_PIXEL_ID = os.getenv("META_PIXEL_ID", "")
 # signed-in address and the SMS opt-in phone box — so the default behaviour would ship
 # exactly the identifiers the privacy policy promises never to share. Set BEFORE init,
 # because by the time init runs the first PageView has already gone out.
+# --- Content-Security-Policy ---------------------------------------------------------
+# default-src 'none' with an explicit allowlist. This policy is why the Meta Pixel sent
+# nothing for its first hour: connect.facebook.net was refused by script-src, fbevents.js
+# never initialised, and every call — including PageView — sat queued in the browser with
+# no error the server could see.
+#
+# The three Meta hosts are added ONLY when a pixel is configured, so an environment with
+# META_PIXEL_ID unset keeps the original, tighter policy. Exact hosts, no wildcards, and
+# nothing else is relaxed:
+#
+#   script-src  https://connect.facebook.net  loads fbevents.js
+#   img-src     https://www.facebook.com      the /tr beacon, and the <noscript> pixel
+#   connect-src https://www.facebook.com      the same /tr endpoint via fetch/sendBeacon,
+#                                             which modern fbevents prefers over an Image
+#
+# connect.facebook.net is deliberately NOT in connect-src: it serves the script, and the
+# script talks to www.facebook.com. Add it only if a real console violation names it.
+_META_HOSTS = bool(META_PIXEL_ID)
+CSP = ("default-src 'none'; "
+       "style-src 'unsafe-inline' https://fonts.googleapis.com; "
+       "font-src https://fonts.gstatic.com; "
+       "script-src 'self' 'unsafe-inline'"
+       + (" https://connect.facebook.net" if _META_HOSTS else "") + "; "
+       "worker-src 'self'; "
+       "connect-src 'self'"
+       + (" https://www.facebook.com" if _META_HOSTS else "") + "; "
+       "manifest-src 'self'; "
+       "img-src 'self' data:"
+       + (" https://www.facebook.com" if _META_HOSTS else "") + "; "
+       "form-action 'self'; base-uri 'none'; frame-ancestors 'none'")
+
 META_PIXEL_BASE = ("""<script>
 !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
 n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
@@ -2586,14 +2617,7 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Strict-Transport-Security", "max-age=15552000")
         for ck in extra_cookies:            # e.g. clearing a consumed flash message
             self.send_header("Set-Cookie", ck)
-        self.send_header("Content-Security-Policy",
-                         "default-src 'none'; "
-                         "style-src 'unsafe-inline' https://fonts.googleapis.com; "
-                         "font-src https://fonts.gstatic.com; "
-                         "script-src 'self' 'unsafe-inline'; worker-src 'self'; "
-                         "connect-src 'self'; manifest-src 'self'; "
-                         "img-src 'self' data:; "
-                         "form-action 'self'; base-uri 'none'; frame-ancestors 'none'")
+        self.send_header("Content-Security-Policy", CSP)
         self.end_headers()
         self.wfile.write(data)
 
