@@ -2330,9 +2330,11 @@ def notify_prefs_block(user, tok):
         '<label style="margin-bottom:7px">How should we alert you?</label>'
         '<label style="display:flex;gap:9px;align-items:center;font-weight:400;font-size:13px;'
         'text-transform:none;letter-spacing:0;margin:0">'
+        # Just "Email". The address was printed here beside the checkbox, which told the
+        # signed-in student nothing they did not already know — they are looking at their
+        # own account — and put a live address on screen during screen-shares and demos.
         f'<input type="checkbox" name="notify_email" value="1"{ck if want_email else ""} '
-        f'style="flex:none;width:auto"><span>Email &mdash; '
-        f'{html.escape(user["email"] or "")}</span></label>'
+        f'style="flex:none;width:auto"><span>Email</span></label>'
         + sms_row +
         f'<p class="note" style="margin:8px 0 0;font-size:12px">{floor}</p>'
         '<button type="submit" style="margin-top:9px">Save</button></form></div>')
