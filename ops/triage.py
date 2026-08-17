@@ -75,11 +75,22 @@ p("users", c.execute("SELECT COUNT(*) FROM users").fetchone()[0])
 last = c.execute("SELECT MAX(created) FROM guardian_watch_results").fetchone()[0] or 0
 p("poller_idle_s", int(now-last) if last else -1)
 
-# Adapters that failed repeatedly in the last day = schools effectively dark.
-for r in c.execute("SELECT school, COUNT(*) n FROM guardian_watch_results "
-                   "WHERE outcome='adapter_failed' AND created>? GROUP BY school "
-                   "HAVING n>=20 ORDER BY n DESC LIMIT 6", (now-86400,)):
-    p("dark", "%s|%s"%(r[0],r[1]))
+# A school is DARK if it is failing RIGHT NOW — not if it accumulated failures all day.
+# The first version counted adapter_failed over 24h with a threshold of 20, and reported
+# umd as dark on 52 failures. UMD serves ~2,000 checks an HOUR: 52 in a day is 0.1%,
+# spread over five courses, and in the last hour it had 2,002 successes and zero
+# failures. Transient blips are the normal weather of scraping 890 registrars.
+#
+# So: look at a short recent window, and require failures AND no successes in it. A
+# school that is answering at all is not dark, however many blips it had at breakfast.
+WIN = 900
+for r in c.execute(
+        "SELECT school,"
+        " SUM(outcome='adapter_failed') fails,"
+        " SUM(outcome!='adapter_failed') oks"
+        " FROM guardian_watch_results WHERE created>? GROUP BY school"
+        " HAVING fails>=5 AND oks=0 ORDER BY fails DESC LIMIT 6", (now-WIN,)):
+    p("dark", "%s|%s fail / 0 ok in last %dmin"%(r[0], r[1], WIN//60))
 
 # Alert gates: were there COMPLETED openings to judge since the running app went live?
 since = os.path.getmtime("/home/ubuntu/seatwatch/app.py")
