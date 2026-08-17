@@ -92,6 +92,17 @@ for r in c.execute(
         " HAVING fails>=5 AND oks=0 ORDER BY fails DESC LIMIT 6", (now-WIN,)):
     p("dark", "%s|%s fail / 0 ok in last %dmin"%(r[0], r[1], WIN//60))
 
+# Sections whose detail page could not be read even after a retry. These are the fetches
+# that used to be dropped silently, making a section a student was watching look deleted.
+try:
+    import importlib.util as _il
+    _sp = _il.spec_from_file_location("_sch", "/home/ubuntu/seatwatch/schools.py")
+    _m = _il.module_from_spec(_sp); _sp.loader.exec_module(_m)
+    for ts, sch, crs, crn, why in list(getattr(_m, "FETCH_FAILURES", []))[-6:]:
+        p("fetchfail", "%s|%s|%s|%s" % (sch, crs, crn, why))
+except Exception:
+    pass
+
 # Alert gates: were there COMPLETED openings to judge since the running app went live?
 since = os.path.getmtime("/home/ubuntu/seatwatch/app.py")
 p("release_age_h", round((now-since)/3600.0,1))
@@ -117,7 +128,7 @@ def main():
         print("  VERDICT: UNKNOWN. This is NOT 'fine'; production was not reached.")
         return 2
 
-    d, multi = {}, {"incident": [], "dark": []}
+    d, multi = {}, {"incident": [], "dark": [], "fetchfail": []}
     for line in r.stdout.splitlines():
         if "\t" not in line:
             continue
@@ -148,6 +159,10 @@ def main():
     if idle < 0 or idle > 300:
         findings.append(("POLLER", "no cycle for %ss" % idle,
                          ["nothing is being watched at all"]))
+    if multi["fetchfail"]:
+        findings.append(("UNREADABLE SECTIONS",
+                         "%d section detail page(s) failed after retry" % len(multi["fetchfail"]),
+                         multi["fetchfail"] + ["a watched section here goes blind until it recovers"]))
     if multi["dark"]:
         findings.append(("SCHOOLS DARK", "%d school(s) failing repeatedly"
                          % len(multi["dark"]), multi["dark"]))

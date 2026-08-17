@@ -19,6 +19,11 @@ import json
 import re
 import threading
 import time
+
+# Per-section detail fetches that failed even after a retry: (ts, school, course, crn, why).
+# Read by ops/triage.py. Kept in memory deliberately — it is a diagnostic breadcrumb, not
+# a ledger, and it must never be able to fail a poll cycle by touching the database.
+FETCH_FAILURES = []
 import urllib.parse
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -2036,17 +2041,36 @@ class Purdue:
             op = self._session()
             listing = self._listing(op, term, subj, num)
         except Exception:
-            return {}
+            return None                     # could not READ — not the same as "not offered"
         crns = self._crns(listing, subj, num)
         if not crns:
             return {}
         secs = {}
+        unreachable = 0
         for crn in dict.fromkeys(crns):        # unique, preserve order
-            try:
-                d = op.open(self.base + f"/bwckschd.p_disp_detail_sched?term_in={term}&crn_in={crn}",
-                            timeout=30).read().decode("utf-8", "replace")
-            except Exception:
-                continue                        # a missing detail -> skip that section, never guess
+            # One HTTP GET per CRN, so a five-section course is five requests every poll.
+            # Hosts throttle that: on 2026-08-17 Purdue served ECE 29401 complete to a
+            # laptop three times running while the VM — hitting it every 20s — got 3 of 5,
+            # and the two dropped sections looked EXACTLY like sections deleted from the
+            # catalogue. One of them was a real student's watch.
+            d, why = None, None
+            for _ in range(2):                  # one retry; most transients are momentary
+                try:
+                    d = op.open(self.base + f"/bwckschd.p_disp_detail_sched?term_in={term}"
+                                f"&crn_in={crn}", timeout=30).read().decode("utf-8", "replace")
+                    break
+                except Exception as e:
+                    d, why = None, f"{type(e).__name__}: {str(e)[:60]}"
+            if d is None:
+                # RECORD WHY. The first time this happened in production the cause was
+                # never captured, so the diagnosis was inference: I blamed throttling from
+                # the 20s poll loop, then found _TTL=600 means we rebuild once per ten
+                # minutes — about 0.6 requests/min, which is not aggressive. The honest
+                # position was "unknown". This exists so the next occurrence answers it.
+                unreachable += 1
+                FETCH_FAILURES.append((time.time(), self.id, f"{subj} {num}", crn, why))
+                del FETCH_FAILURES[:-200]       # bounded; newest 200 kept
+                continue
             if not self._section_ok(d):         # shared-host campus guard
                 continue
             m = re.search(r'>Seats</SPAN></th>\s*<td[^>]*>(\d+)</td>\s*<td[^>]*>(\d+)</td>\s*<td[^>]*>(-?\d+)</td>', d)
@@ -2054,6 +2078,14 @@ class Purdue:
                 continue
             rem = int(m.group(3))
             secs[crn] = {"open": rem > 0, "seats": max(rem, 0)}
+        if unreachable:
+            # NEVER publish a partial catalogue. Returning what we managed to reach says
+            # "these are the sections", when the truth is "these are the ones we could
+            # load" — and the poller cannot tell those apart, so it reports a section a
+            # student is watching as deleted and that watch goes dead. An empty result is
+            # honest: it fails closed, no false alert can escape, the health guard pauses
+            # the course, and the operator is told there is a fetch problem.
+            return None                     # incomplete — see below
         if secs:
             self._cache[(term, subj, num)] = (time.time(), secs)
         return secs
@@ -2078,9 +2110,21 @@ class Purdue:
                 if again and time.time() - again[0] < self._TTL:
                     secs = again[1]
                 else:
-                    secs = self._build(*key) or (again[1] if again else {})
+                    built = self._build(*key)
+                    if built is None:
+                        # Could not read the catalogue. Prefer the last good answer; with
+                        # no cache, leave the course OUT of the result entirely. That is
+                        # what makes run_cycle record adapter_failed and pause the course,
+                        # instead of concluding the student's section was deleted — the
+                        # two are indistinguishable once an empty dict is returned, and
+                        # that ambiguity is what killed a real Purdue watch on 2026-08-17.
+                        secs = again[1] if again else None
+                    else:
+                        secs = built
             finally:
                 self._lock.release()
+            if secs is None:
+                continue
             out[course] = secs if secs else {"none": {"open": False, "seats": None}}
         return out
 
