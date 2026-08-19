@@ -172,6 +172,7 @@ def run():
     app.send_email = lambda to, s, b, u: (mails.append((to, s, b)), True)[1]
     app.EMAIL_ENABLED = True
 
+    app.PROMO_ENABLED = True   # standby in prod; exercised here on purpose
     app.PAID_ENABLED = False
     app._promo_sweep_at[0] = 0
     n = app.send_promo_emails()

@@ -166,6 +166,12 @@ def run():
         c.execute("UPDATE users SET plan_tier=0, plan_term=NULL WHERE id=?", (uid,))
 
     # ---- NEVER MAIL A DEAD CODE ----
+    # PROMO_ENABLED defaults to OFF in production (Nathan discontinued the send on
+    # 2026-08-19; the offer is on standby for the registration window). This suite turns
+    # it on deliberately, because standby code still has to be proven — a promo that sits
+    # untested for three months and is switched back on in November is untested code
+    # meeting real students. The shipped default is asserted separately below.
+    app.PROMO_ENABLED = True
     app.EMAIL_ENABLED = app.PAID_ENABLED = True
     mails = []
     app.send_email = lambda to, s, b, u=None: (mails.append((to, b)), True)[1]
@@ -218,6 +224,16 @@ def run():
           "discounting someone who already bought is money thrown away")
     check("a student who joined today is not offered it yet", "new@umd.edu" not in to,
           "the offer is meant to reward a week of use")
+
+    # THE KILL SWITCH ITSELF. Production must ship with the promo off; only an explicit
+    # env var may resume mailing. A truthy default would quietly restart the campaign on
+    # the next deploy, to every eligible student at once.
+    _src = open(os.path.expanduser("~/seatwatch/app.py")).read()
+    check("the shipped default is PROMO OFF",
+          'PROMO_ENABLED = os.environ.get("PROMO_ENABLED") == "1"' in _src,
+          "anything truthier resumes the campaign on the next restart")
+    check("...and the sweep is gated on it", "if not (PROMO_ENABLED and" in _src,
+          "the flag must actually block the send, not just exist")
 
     p = sum(ok for _, ok, _ in results)
     f = sum(not ok for _, ok, _ in results)

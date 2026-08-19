@@ -4840,6 +4840,17 @@ def retry_unsent_feedback():
         sw.log(f"  [feedback] retry sweep failed: {type(e).__name__}")
 
 
+# KILL SWITCH — default OFF. Nathan discontinued the 7-day $5 offer on 2026-08-19: with
+# five non-family accounts and one activated user, a discount on extra capacity reaches
+# nobody who has hit the free limit yet, and it spends the single marketing email you get
+# per student at the wrong moment. Everything else stays built and tested: the Stripe
+# coupon, the per-student code minting, the tier lock, the preference check. Set
+# PROMO_ENABLED=1 in /etc/seatwatch.env and restart to resume.
+#
+# Re-enabling sends to EVERY eligible student at once (promo_sent_at is still NULL for
+# them, capped at 50 per sweep) — which is what you want for a timed campaign, but know
+# it is a batch, not a trickle.
+PROMO_ENABLED = os.environ.get("PROMO_ENABLED") == "1"
 PROMO_CODE = os.environ.get("PROMO_CODE", "SEATWATCH5")
 PROMO_AFTER_DAYS = int(os.environ.get("PROMO_AFTER_DAYS", "7"))
 PROMO_SWEEP_SECS = 3600            # look for eligible students at most once an hour
@@ -4858,7 +4869,7 @@ def send_promo_emails():
     pollers racing can never mail the same person twice. Never raises: a marketing job
     must not be able to interfere with seat alerts.
     """
-    if not (PAID_ENABLED and EMAIL_ENABLED):
+    if not (PROMO_ENABLED and PAID_ENABLED and EMAIL_ENABLED):
         return 0
     now = time.time()
     if now < _promo_sweep_at[0]:
