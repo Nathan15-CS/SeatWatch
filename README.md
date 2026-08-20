@@ -1,7 +1,7 @@
 # SeatWatch
 
 Get an instant phone alert the second a seat opens in a full college class —
-across 120+ universities. Live at **https://seatwatchapp.com**.
+across 880+ universities. Live at **https://seatwatchapp.com**.
 
 SeatWatch watches the *specific section* a student wants and pushes them a
 notification the moment a real seat opens, so they get the class, professor, and
