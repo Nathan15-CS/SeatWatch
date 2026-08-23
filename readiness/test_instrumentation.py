@@ -156,9 +156,27 @@ def run():
     check("...and an organic signup is recorded as empty, not NULL-crashing", got2 == "",
           f"got {got2!r}")
     _src = open(os.path.expanduser("~/seatwatch/app.py")).read()
-    check("BOTH sign-in paths capture it (Google and Apple)",
+    check("BOTH sign-in paths read the cookie (Google and Apple)",
           _src.count('source=self._cookie("sw_src")') == 2,
           "capturing on one provider only would under-report whichever a campaign favours")
+
+    # Reading the cookie at both call sites is NOT the same as receiving it at both. Apple
+    # returns with response_mode=form_post — a cross-site POST — and a SameSite=Lax cookie
+    # is not sent on one. Apple is off today, so this costs nothing now; the day it is
+    # switched on, a Lax cookie would make every Apple signup look organic. That is a
+    # silent miss with no error to notice, so it is asserted rather than remembered.
+    _apple_was = app.APPLE_ENABLED
+    try:
+        app.APPLE_ENABLED = True
+        check("with Apple ENABLED the cookie is SameSite=None (survives its POST)",
+              "SameSite=None" in (_H("/?utm_source=x")._source_cookie() or ""),
+              "Lax here would silently blank the source on every Apple signup")
+        app.APPLE_ENABLED = False
+        check("...and stays Lax while Google is the only live path",
+              "SameSite=Lax" in (_H("/?utm_source=x")._source_cookie() or ""),
+              "it need not travel further than the sign-in round-trip")
+    finally:
+        app.APPLE_ENABLED = _apple_was
 
     p = sum(ok for _, ok, _ in results); f = sum(not ok for _, ok, _ in results)
     return p, f, results

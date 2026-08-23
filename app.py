@@ -2703,7 +2703,15 @@ class Handler(BaseHTTPRequestHandler):
         src = (q.get("utm_source") or q.get("src") or q.get("ref") or [""])[0][:64]
         if not src or not self._SRC_RE.match(src):
             return None
-        return f"sw_src={src}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax"
+        # SameSite follows the sign-in that is actually enabled. Apple returns with
+        # response_mode=form_post, a CROSS-SITE POST, and a Lax cookie is not sent on one
+        # — sw_astate right below is already SameSite=None for exactly this reason. With
+        # Lax and Apple on, every Apple signup would record a blank source and look
+        # organic: a silent miss, not an error. Lax stays the default while Google is the
+        # only live path, because this needs to travel no further than the round-trip.
+        same = "None" if APPLE_ENABLED else "Lax"
+        return (f"sw_src={src}; Path=/; Max-Age=2592000; "
+                f"HttpOnly; Secure; SameSite={same}")
 
     def _cookie(self, name):
         for part in (self.headers.get("Cookie") or "").split(";"):
