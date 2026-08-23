@@ -372,6 +372,14 @@ def init_db():
             user_id    INTEGER NOT NULL,
             first_seen REAL NOT NULL,
             UNIQUE(device_id, user_id))""")
+        # Operator mail damping, on DISK rather than in memory. The in-memory version
+        # forgot everything on restart, so a redeploy during a long outage re-mailed
+        # instantly, and a poller that restarts often mails as if nothing were damped.
+        c.execute("""CREATE TABLE IF NOT EXISTS operator_mail(
+            key       TEXT PRIMARY KEY,
+            last_sent REAL NOT NULL,
+            last_seen REAL NOT NULL,
+            streak    INTEGER NOT NULL DEFAULT 0)""")
         # --- paid tiers (dormant until PAID_ENABLED) ---
         if "plan_tier" not in ucols:
             c.execute("ALTER TABLE users ADD COLUMN plan_tier INTEGER NOT NULL DEFAULT 0")
@@ -3668,9 +3676,18 @@ ADMIN_USER_ID = int(os.environ.get("SEATWATCH_ADMIN_USER", "0") or 0)
 # escalating outage is one message, short enough that a NEW problem is not muted
 # behind an old one — the keys are per-message, so they damp independently.
 OPERATOR_MAIL_COOLDOWN_S = int(os.environ.get("OPERATOR_MAIL_COOLDOWN_S", "1800"))
+# A problem does not become more informative by being repeated. The FIRST report of an
+# outage is urgent; the ninety-sixth report of the same unchanged outage is noise that
+# trains you to ignore the channel — which is how a real one gets missed. So the gap
+# doubles each time a condition keeps firing, up to a daily floor: loud when new, quiet
+# when chronic, never actually silent. Towson was mailing every 30 minutes for 19 days.
+OPERATOR_MAIL_MAX_COOLDOWN_S = int(os.environ.get("OPERATOR_MAIL_MAX_COOLDOWN_S", "86400"))
+# If a condition stops recurring for this long it is treated as over, and the next
+# occurrence is loud again. Without this a school that broke in August would still be
+# on a 24-hour backoff in December, and its next outage would be reported a day late.
+OPERATOR_MAIL_RESET_S = int(os.environ.get("OPERATOR_MAIL_RESET_S", "3600"))
 
 
-_op_mail_last = {}          # normalised message -> last time we emailed it
 
 
 def operator_alert(message):
@@ -3708,9 +3725,22 @@ def operator_alert(message):
         if not (EMAIL_ENABLED and ADMIN_USER_ID):
             return
         key = re.sub(r"\d+", "#", message)[:120]
-        now = time.time()
-        if now - _op_mail_last.get(key, 0) < OPERATOR_MAIL_COOLDOWN_S:
-            return
+        now = _now()
+        with db() as c:
+            prev = c.execute("SELECT last_sent,last_seen,streak FROM operator_mail "
+                             "WHERE key=?", (key,)).fetchone()
+            if prev and now - prev["last_seen"] > OPERATOR_MAIL_RESET_S:
+                prev = None                      # went quiet; treat the next one as new
+            streak = prev["streak"] if prev else 0
+            wait = min(OPERATOR_MAIL_COOLDOWN_S * (2 ** max(0, streak - 1)),
+                       OPERATOR_MAIL_MAX_COOLDOWN_S) if streak else 0
+            # last_seen is stamped on every occurrence, mailed or not — it is what tells
+            # a chronic condition apart from one that stopped and came back.
+            c.execute("INSERT INTO operator_mail(key,last_sent,last_seen,streak) "
+                      "VALUES(?,0,?,0) ON CONFLICT(key) DO UPDATE SET last_seen=?",
+                      (key, now, now))
+            if prev and now - prev["last_sent"] < wait:
+                return
         with db() as c:
             row = c.execute("SELECT email FROM users WHERE id=?", (ADMIN_USER_ID,)).fetchone()
         if not (row and row["email"]):
@@ -3722,7 +3752,11 @@ def operator_alert(message):
         if send_email(row["email"], "SeatWatch: something needs you",
                       message + "\n\nThis is an operator alert — students were not "
                                 "contacted.\n\n— SeatWatch health", BASE_URL):
-            _op_mail_last[key] = now
+            # Stamped only on SUCCESS, and the streak advances only when mail actually
+            # went out, so a failing SMTP cannot silently escalate you into a 24-hour gap.
+            with db() as c:
+                c.execute("UPDATE operator_mail SET last_sent=?, streak=streak+1 "
+                          "WHERE key=?", (now, key))
     except Exception as e:
         sw.log(f"  [OPERATOR ALERT] could not email: {type(e).__name__}")
 

@@ -38,6 +38,8 @@ def run():
     def check(n, c, d=""): results.append((n, bool(c), d))
 
     mails = []
+    _real_operator_alert = app.operator_alert   # the damping section below needs
+                                               # the REAL one, not this stub
     app.operator_alert = lambda m: mails.append(m)
     app.OUTAGE_CONFIRM_S = 900
     app.FAIL_THRESHOLD = 5
@@ -119,6 +121,77 @@ def run():
     check("a BROKEN health check still mails (fails toward speaking)", len(mails) == 1,
           "if we cannot tell whether anything is wrong we must not claim it is fine — "
           "that asymmetry is what makes a silent digest safe at all")
+
+    # --- CHRONIC OUTAGES: loud when new, quiet when chronic, never silent -------------
+    # Towson blocked the server's IP on 2026-08-04 and was still dark on 2026-08-23. The
+    # cooldown was 30 minutes and held in memory, so it mailed Nathan roughly 48 times a
+    # day for 19 days about one thing he already knew and could not fix from a keyboard,
+    # and every redeploy reset the damping and mailed again immediately. That is how an
+    # operator learns to ignore the channel — and then misses the one that mattered.
+    mails2 = []
+    app.operator_alert = _real_operator_alert      # stop mocking the thing under test
+    app.send_email = lambda to, t, b, u=None, **k: (mails2.append(t), True)[1]
+    app.sw.notify = lambda *a, **k: True
+    app.send_web_push = lambda *a, **k: True
+    app.EMAIL_ENABLED = True
+    app.ADMIN_USER_ID = 1
+    with app.db() as c:
+        c.execute("INSERT OR IGNORE INTO users(id,google_sub,email,topic,created) "
+                  "VALUES(1,'g_ops','ops@x','t_ops',0)")
+        c.execute("DELETE FROM operator_mail")
+    T = [5_000_000.0]
+    _real_now = app._now
+    app._now = lambda: T[0]
+    try:
+        DAYS, POLL = 19, 20
+        for step in range(int(DAYS * 86400 / POLL)):
+            T[0] += POLL
+            app.operator_alert(f"Towson University ENGL 102: no data for {step} min")
+        check("19 days of one dark school is a couple of dozen emails, not ~900",
+              len(mails2) <= 40,
+              f"sent {len(mails2)}; the old 30-minute timer would have sent "
+              f"{int(DAYS * 86400 / 1800)}")
+        check("...and it is NOT silenced entirely (a chronic fault still reports daily)",
+              len(mails2) >= DAYS - 2,
+              f"sent {len(mails2)} over {DAYS} days — silence would hide a real outage")
+        check("the first day is still LOUD (backoff starts fast, not slow)",
+              len(mails2) >= 5,
+              "a new outage must not be damped into a 24-hour gap on its first report")
+
+        before = len(mails2)
+        with app.db() as c:                      # a redeploy cannot forget the damping
+            pass
+        T[0] += POLL
+        app.operator_alert("Towson University ENGL 102: no data for 27360 min")
+        check("damping survives a RESTART (it is on disk, not in memory)",
+              len(mails2) == before,
+              "the in-memory version re-mailed instantly on every redeploy")
+
+        before = len(mails2)
+        T[0] += 60
+        app.operator_alert("Purdue CS 180: no data for 5 min")
+        check("a DIFFERENT problem is still reported immediately", len(mails2) == before + 1,
+              "backing off one fault must never mute an unrelated new one")
+
+        before = len(mails2)
+        T[0] += app.OPERATOR_MAIL_RESET_S + 60   # stopped recurring == over
+        app.operator_alert("Towson University ENGL 102: no data for 5 min")
+        check("a fault that went quiet and RETURNED is loud again",
+              len(mails2) == before + 1,
+              "otherwise August's outage would still be on a 24-hour backoff in December")
+
+        before = len(mails2)
+        app.send_email = lambda *a, **k: False   # SMTP down
+        for _ in range(3):
+            T[0] += 60
+            app.operator_alert("Salisbury BIOL 101: no data for 9 min")
+        app.send_email = lambda to, t, b, u=None, **k: (mails2.append(t), True)[1]
+        T[0] += 60
+        app.operator_alert("Salisbury BIOL 101: no data for 12 min")
+        check("failed sends do NOT advance the backoff", len(mails2) == before + 1,
+              "an SMTP hiccup must not escalate a fault into a 24-hour gap unreported")
+    finally:
+        app._now = _real_now
 
     p = sum(x for _, x, _ in results)
     f = sum(not x for _, x, _ in results)

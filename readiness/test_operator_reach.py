@@ -48,7 +48,8 @@ def run():
     app.send_email = lambda to, subj, body, url=None: (sent.append((to, subj, body)) or True)
     app.send_web_push = lambda *a, **k: 0
     app.sw.notify = lambda *a, **k: True
-    app._op_mail_last.clear()
+    with app.db() as _c:                 # damping now lives on disk, not in a dict
+        _c.execute("DELETE FROM operator_mail")
 
     # ------------------------------------------------------------------ reaches
     app.operator_alert("usf: 5 consecutive failed or empty fetches")
@@ -79,7 +80,8 @@ def run():
     def boom(*a, **k):
         raise RuntimeError("smtp is down")
     app.send_email = boom
-    app._op_mail_last.clear()
+    with app.db() as _c:                 # damping now lives on disk, not in a dict
+        _c.execute("DELETE FROM operator_mail")
     try:
         app.operator_alert("umd: 5 consecutive failed or empty fetches")
         crashed = False
