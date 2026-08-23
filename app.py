@@ -343,6 +343,12 @@ def init_db():
             c.execute("ALTER TABLE users ADD COLUMN free_eligible INTEGER NOT NULL DEFAULT 1")
         if "signup_ip" not in ucols:
             c.execute("ALTER TABLE users ADD COLUMN signup_ip TEXT")
+        if "signup_source" not in ucols:
+            # Where this student came from, captured at signup. Six accounts arrived in
+            # August 2026 and the acquisition channel for every one was unknown: the site
+            # sends Referrer-Policy: no-referrer by design, and nothing stored the UTM. So
+            # a post that works and a post that does nothing looked identical afterwards.
+            c.execute("ALTER TABLE users ADD COLUMN signup_source TEXT")
         if "pixel_activated_at" not in ucols:
             # Stamped the first time a student successfully creates a watch, and
             # never again. The ad conversion is meant to count an ACTIVATED NEW
@@ -1113,7 +1119,7 @@ def normalize_email(email):
     return f"{local}@{domain}"
 
 
-def get_or_create_user(sub, email, ip=None, device_id=None):
+def get_or_create_user(sub, email, ip=None, device_id=None, source=None):
     """Returns the user row; on FIRST creation also records the soft abuse signals
     (device marker, IP signup velocity, duplicate normalized email). Signals only
     ever flag/score — the single hard rule is free_eligible=0 when this normalized
@@ -1143,9 +1149,10 @@ def get_or_create_user(sub, email, ip=None, device_id=None):
             if other:
                 risk += 2                     # same device already created an account
         c.execute("INSERT INTO users(google_sub,email,topic,created,normalized_email,"
-                  "risk_score,free_eligible,signup_ip) VALUES(?,?,?,?,?,?,?,?)",
+                  "risk_score,free_eligible,signup_ip,signup_source) "
+                  "VALUES(?,?,?,?,?,?,?,?,?)",
                   (sub, email, "seatwatch-" + secrets.token_hex(6), time.time(),
-                   norm, risk, 0 if dup else 1, ip or ""))
+                   norm, risk, 0 if dup else 1, ip or "", (source or "")[:64]))
         row = c.execute("SELECT * FROM users WHERE google_sub=?", (sub,)).fetchone()
         if device_id:
             c.execute("INSERT OR IGNORE INTO device_markers(device_id,user_id,first_seen) "
@@ -2680,6 +2687,24 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", "0")
         self.end_headers()
 
+    _SRC_RE = re.compile(r"^[A-Za-z0-9._-]{1,64}$")
+
+    def _source_cookie(self):
+        """A utm_source on the landing URL, turned into a cookie so it survives the Google
+        round-trip. The parameter is on the page they land on; the user row is created
+        after OAuth returns, by which point the query string is gone — a cookie is the only
+        thing that spans both.
+
+        Whitelisted to [A-Za-z0-9._-] and truncated: this is attacker-supplied text that
+        ends up in a database and on an admin page, so it is treated as hostile. Returns a
+        Set-Cookie value, or None when there is nothing to record.
+        """
+        q = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query)
+        src = (q.get("utm_source") or q.get("src") or q.get("ref") or [""])[0][:64]
+        if not src or not self._SRC_RE.match(src):
+            return None
+        return f"sw_src={src}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax"
+
     def _cookie(self, name):
         for part in (self.headers.get("Cookie") or "").split(";"):
             k, _, v = part.strip().partition("=")
@@ -2786,7 +2811,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(form_page(
                     "<div class='ok'>Google sign-in failed, please try again.</div>"))
             user = get_or_create_user(info["sub"], info["email"],
-                                      ip=self._client_ip(), device_id=self._device_id())
+                                      ip=self._client_ip(), device_id=self._device_id(),
+                                      source=self._cookie("sw_src"))
             return self._redirect("/", cookies=[session_cookie(user["id"]), clear])
         if path == "/logout":
             return self._redirect("/", cookies=[
@@ -2872,7 +2898,8 @@ class Handler(BaseHTTPRequestHandler):
             return self._send(page("<p>Not found. <a href='/'>Home</a></p>"), 404)
         u = self._user()
         if u is None:
-            return self._send(landing_page())
+            src = self._source_cookie()
+            return self._send(landing_page(), extra_cookies=(src,) if src else ())
         kind, code, msg = self._flash_take()
         if kind == "done":
             return self._send(done_page(msg, u), extra_cookies=(self._FLASH_CLEAR,))
@@ -3109,7 +3136,8 @@ class Handler(BaseHTTPRequestHandler):
                 return self._send(form_page(
                     "<div class='ok'>Apple sign-in failed, please try again.</div>"))
             user = get_or_create_user(info["sub"], info["email"],
-                                      ip=self._client_ip(), device_id=self._device_id())
+                                      ip=self._client_ip(), device_id=self._device_id(),
+                                      source=self._cookie("sw_src"))
             return self._redirect("/", cookies=[session_cookie(user["id"]), clear])
 
         # (2) WHO IS THIS? Signed session cookie or nothing. Entitlements are

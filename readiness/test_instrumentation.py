@@ -116,6 +116,50 @@ def run():
     check("price_probe table ready", {"user_id", "shown_at", "purchased_at"} <= set(cols))
     check("price probe DORMANT (no rows until Nathan's go)", rows == 0)
 
+    # --- SIGNUP ATTRIBUTION -------------------------------------------------------
+    # Six accounts arrived in August 2026 and the channel for every one was unknown: the
+    # site sends Referrer-Policy: no-referrer by design, so a UTM parameter is the only
+    # signal there is — and nothing stored it. A post that works and a post that does
+    # nothing looked identical afterwards.
+    #
+    # The value is attacker-supplied text that lands in the database and on an admin page,
+    # so the whitelist matters as much as the capture.
+    class _H(app.Handler):
+        def __init__(self, path): self.path = path
+
+    check("a utm_source becomes a cookie that survives the OAuth round-trip",
+          (_H("/?utm_source=reel_07")._source_cookie() or "").startswith("sw_src=reel_07"),
+          "the parameter is on the landing page; the user row is created after Google "
+          "returns, so only a cookie spans both")
+    for alias in ("src", "ref"):
+        check(f"...and the {alias}= alias works too",
+              (_H(f"/?{alias}=tiktok-bio")._source_cookie() or "").startswith("sw_src=tiktok-bio"))
+    check("no parameter records nothing", _H("/")._source_cookie() is None)
+    check("a script tag is REFUSED, not stored",
+          _H("/?utm_source=<script>alert(1)</script>")._source_cookie() is None,
+          "this string reaches a database and an admin page")
+    check("a semicolon is REFUSED (cookie header injection)",
+          _H("/?utm_source=a;b=c")._source_cookie() is None,
+          "an unescaped ; would let a visitor forge additional Set-Cookie attributes")
+    long = _H("/?utm_source=" + "A" * 200)._source_cookie()
+    check("an overlong value is truncated, not rejected",
+          long is not None and len(long.split(";")[0]) <= len("sw_src=") + 64,
+          "a real but sloppy campaign name should still be recorded, just bounded")
+
+    app.get_or_create_user("g_src", "src@umd.edu", ip="1.2.3.4", source="reel_07")
+    with app.db() as c:
+        got = c.execute("SELECT signup_source FROM users WHERE google_sub='g_src'").fetchone()[0]
+    check("the source lands on the user row", got == "reel_07", f"got {got!r}")
+    app.get_or_create_user("g_nosrc", "nosrc@umd.edu", ip="1.2.3.4")
+    with app.db() as c:
+        got2 = c.execute("SELECT signup_source FROM users WHERE google_sub='g_nosrc'").fetchone()[0]
+    check("...and an organic signup is recorded as empty, not NULL-crashing", got2 == "",
+          f"got {got2!r}")
+    _src = open(os.path.expanduser("~/seatwatch/app.py")).read()
+    check("BOTH sign-in paths capture it (Google and Apple)",
+          _src.count('source=self._cookie("sw_src")') == 2,
+          "capturing on one provider only would under-report whichever a campaign favours")
+
     p = sum(ok for _, ok, _ in results); f = sum(not ok for _, ok, _ in results)
     return p, f, results
 
