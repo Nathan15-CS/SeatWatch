@@ -221,6 +221,21 @@ def run():
                                ).fetchone()["detail"]
         check("a signal written without detail stays NULL", legacy is None,
               "an empty string would read as 'we looked and found nothing'")
+
+        # A kind the app emits but the report does not know about would be collected and
+        # then silently dropped from the summary — measured, invisible, and worse than not
+        # measuring, because the funnel would look complete while omitting the answer.
+        import re as _re
+        src = open(os.path.expanduser("~/seatwatch/app.py")).read()
+        emitted = set(_re.findall(r'_conv_signal\(\s*["\']([a-z_]+)["\']', src))
+        rep = open(os.path.expanduser("~/seatwatch/ops/funnel.py")).read()
+        known = set(_re.findall(r'\(\s*["\']([a-z_]+)["\']\s*,\s*["\']', rep))
+        # watch_created is the success row, reported as its own funnel stage, not a reason.
+        missing = emitted - known - {"watch_created", "dash_view"}
+        check("every signal the app emits is named in ops/funnel.py",
+              not missing, f"report would silently drop: {sorted(missing)}")
+        check("...and the suite found the emitters at all (not an empty-set pass)",
+              len(emitted) >= 8, f"only found {sorted(emitted)}")
     finally:
         app._now = _real_now
         srv.shutdown()

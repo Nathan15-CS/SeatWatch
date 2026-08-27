@@ -59,9 +59,13 @@ except Exception as e:
 
 cols = {r[1] for r in c.execute("PRAGMA table_info(conv_signals)")}
 p("has_detail", int("detail" in cols))
-# The earliest signal of ANY kind bounds what this data can honestly answer.
-first = c.execute("SELECT MIN(created) FROM conv_signals").fetchone()[0]
-p("first_signal_age_d", round((now-first)/86400.0, 1) if first else -1)
+# PER KIND, not per table. conv_signals held wall_hit rows from 45 days before dash_view
+# existed, so a table-wide "we have been measuring for 45d" made a brand-new stage print a
+# confident 0 — and the report then concluded students never reached the form. They had;
+# nothing was watching. A stage is measured only from the first row OF ITS OWN KIND.
+for kind in ("dash_view", "watch_created"):
+    f = c.execute("SELECT MIN(created) FROM conv_signals WHERE kind=?", (kind,)).fetchone()[0]
+    p("first_%s_age_d" % kind, round((now-f)/86400.0, 1) if f else -1)
 
 p("signups", c.execute("SELECT COUNT(*) FROM users WHERE created>?", (since,)).fetchone()[0])
 p("signups_all", c.execute("SELECT COUNT(*) FROM users").fetchone()[0])
@@ -132,15 +136,21 @@ def main():
         except ValueError:
             return default
 
-    age = float(d.get("first_signal_age_d", -1))
-    measured = age >= 0
+    age_v = float(d.get("first_dash_view_age_d", -1))
+    age_c = float(d.get("first_watch_created_age_d", -1))
+    seen_views, seen_created = age_v >= 0, age_c >= 0
+    measured = seen_views          # the denominator is what most conclusions rest on
     signups, viewers, creators = n("signups"), n("viewers"), n("creators")
     holders = n("holders")
 
-    print(f"\n  ACTIVATION FUNNEL — last {days} days"
-          f"   (signals recorded for {age:.1f}d)" if measured else
-          f"\n  ACTIVATION FUNNEL — last {days} days")
+    print(f"\n  ACTIVATION FUNNEL — last {days} days")
     print("  " + "=" * 66)
+    if not seen_views:
+        print("  Form views have NEVER been recorded — that stage reads UNMEASURED below,")
+        print("  not 0. Data starts accruing from the next visitor.")
+    elif age_v < float(days):
+        print(f"  NOTE: form views have only been recorded for {age_v:.1f} of these "
+              f"{days} days.")
 
     def bar(label, value, note=""):
         if value is None:
@@ -152,14 +162,14 @@ def main():
         print(f"  {label:<34} {value:>9}  {pct}  {note}")
 
     bar("signed up", signups)
-    bar("...shown the add-a-class form", viewers if measured else None,
-        "" if measured else "instrumentation shipped 2026-08-27")
-    bar("...created a watch", creators if measured else None,
-        "" if measured else "instrumentation shipped 2026-08-27")
+    bar("...shown the add-a-class form", viewers if seen_views else None,
+        "" if seen_views else "never recorded — not zero")
+    bar("...created a watch", creators if seen_created else None,
+        "" if seen_created else "never recorded — not zero")
     print(f"  {'holding a watch right now':<34} {holders:>9}"
           f"          (ground truth, independent of signals)")
 
-    if measured and viewers and not creators:
+    if seen_views and seen_created and viewers and not creators:
         print("\n  Everyone who saw the form left without adding a class.")
 
     print("\n  WHY THEY STOPPED")
@@ -201,8 +211,13 @@ def main():
             uid, email, views, src = row.split("|", 3)
             shown = views if measured else "?"
             print(f"  {uid:<4} {email[:34]:<34} {shown:>10}  {src}")
-        print("\n  'form views 0' means they never even reached the form — the drop is at")
-        print("  sign-in or immediately after, not at the class picker.")
+        if measured:
+            print("\n  'form views 0' means they never even reached the form — the drop is")
+            print("  at sign-in or immediately after, not at the class picker.")
+        else:
+            print("\n  Form views were not being recorded while these students visited, so")
+            print("  WHERE they dropped is still unknown. This list is who to watch next,")
+            print("  not an answer about them.")
     print()
     return 0
 
