@@ -460,6 +460,13 @@ def init_db():
             kind    TEXT NOT NULL,
             user_id INTEGER,
             created REAL NOT NULL)""")
+        # detail: WHICH school, WHICH course. Seven strangers signed in during August 2026
+        # and six left without ever creating a watch. Nothing recorded what they saw or
+        # tried, so "our coverage failed them", "they mistyped a code" and "they looked at
+        # the form and lost interest" were indistinguishable — three different problems
+        # with three different fixes, and no way to tell which one we had.
+        if "detail" not in {r[1] for r in c.execute("PRAGMA table_info(conv_signals)")}:
+            c.execute("ALTER TABLE conv_signals ADD COLUMN detail TEXT")
         c.execute("""CREATE TABLE IF NOT EXISTS push_subs(
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id  INTEGER NOT NULL,
@@ -679,11 +686,34 @@ def tier_courses(tier):
     return TIER_COURSES.get(tier, 1)
 
 
-def _conv_signal(kind, user_id):
+def _conv_signal(kind, user_id, detail=None):
+    """Record one step of the activation funnel. NEVER raises and never blocks: an
+    analytics write that could break watch creation would cost more than it measures."""
     try:
         with db() as c:
-            c.execute("INSERT INTO conv_signals(kind,user_id,created) VALUES(?,?,?)",
-                      (kind, user_id, time.time()))
+            c.execute("INSERT INTO conv_signals(kind,user_id,created,detail) VALUES(?,?,?,?)",
+                      (kind, user_id, _now(), (detail or "")[:80] or None))
+    except Exception:
+        pass
+
+
+# One row per student per this many seconds, so a refresh or a back-button does not read
+# as fresh interest. Without it a single bored visitor outweighs a real cohort.
+DASH_VIEW_DEDUP_S = int(os.environ.get("DASH_VIEW_DEDUP_S", "300"))
+
+
+def _dash_view(user_id):
+    """A signed-in student looked at the add-a-class form. This is the denominator the
+    funnel was missing: without it, 'never tried' and 'tried and was refused' look the
+    same from the database, and they are opposite problems."""
+    try:
+        with db() as c:
+            last = c.execute("SELECT MAX(created) FROM conv_signals WHERE kind='dash_view' "
+                             "AND user_id=?", (user_id,)).fetchone()[0] or 0
+            if _now() - last < DASH_VIEW_DEDUP_S:
+                return
+            c.execute("INSERT INTO conv_signals(kind,user_id,created) VALUES('dash_view',?,?)",
+                      (user_id, _now()))
     except Exception:
         pass
 
@@ -2919,6 +2949,10 @@ class Handler(BaseHTTPRequestHandler):
         kind, code, msg = self._flash_take()
         if kind == "done":
             return self._send(done_page(msg, u), extra_cookies=(self._FLASH_CLEAR,))
+        # Recorded BELOW the success page on purpose: a student reading "added ✓" is not
+        # looking at the add-a-class form, and counting that view would quietly inflate the
+        # denominator with the very people who already converted.
+        _dash_view(u["id"])
         if kind == "notice":
             err = code >= 400
             icon = self._ERR_ICON if err else self._OK_ICON
@@ -3363,11 +3397,14 @@ class Handler(BaseHTTPRequestHandler):
         # the ONE hard abuse rule: a normalized email that already claimed its free
         # class on another account doesn't mint a fresh allotment (sign-in still works)
         if not user["free_eligible"]:
+            _conv_signal("free_ineligible", user["id"])
             return self._notice("Your free class is already in use on your other account, "
                                 "sign in there to manage it.", user=user)
 
-        school = schools.SCHOOLS.get(form.get("school", [""])[0].strip())
+        _raw_school = form.get("school", [""])[0].strip()
+        school = schools.SCHOOLS.get(_raw_school)
         if not school:
+            _conv_signal("school_invalid", user["id"], _raw_school)
             return self._notice("Please choose a valid school.", 400, user=user)
         # Enforced HERE, not just by leaving it out of the picker: the picker is a JSON
         # blob in the page, and anyone who can craft a POST can name a school that is not
@@ -3375,6 +3412,10 @@ class Handler(BaseHTTPRequestHandler):
         # produce silence — the student would wait all term for an alert that cannot come.
         # Say so plainly instead, and never create the row.
         if not school_listed(school.id):
+            # The most expensive rejection we have: their college IS supported, we simply
+            # cannot read it today (Towson blocked our IP on 2026-08-04 and stayed dark for
+            # weeks). Every one of these is a student we could have had.
+            _conv_signal("school_unlisted", user["id"], school.id)
             return self._notice(
                 f"We can't read {school.name}'s seat data right now, so we can't watch a "
                 "class there yet — and we'd rather tell you than take the request and go "
@@ -3440,6 +3481,7 @@ class Handler(BaseHTTPRequestHandler):
         all_sections = tier >= 1 and not sections
         if not all_sections:
             if not sections:
+                _conv_signal("no_sections_given", user["id"], school.id)
                 return self._notice("Please add the section number(s) you want to watch, e.g. 0101.",
                                     user=user)
             if tier == 0 and len(sections) > FREE_SECTIONS_PER_COURSE:
@@ -3452,6 +3494,7 @@ class Handler(BaseHTTPRequestHandler):
 
         # (3) per-school FORMAT validation — no junk reaches a fetch
         if not school.valid_course(course):
+            _conv_signal("course_format_bad", user["id"], f"{school.id}:{course}")
             return self._notice(f"That doesn't look like a {school.name} course code "
                                 f"(e.g. {school.example}).", user=user)
         for s in sections:
@@ -3475,10 +3518,15 @@ class Handler(BaseHTTPRequestHandler):
         # an all-sections watch on a typo'd code would slip past this check as a phantom.
         secs = {k: v for k, v in school.fetch({course}).get(course, {}).items() if k != "none"}
         if not secs:
+            # Either they mistyped, or our adapter cannot see a course that really exists.
+            # Those need opposite fixes, and the course code recorded here is what tells
+            # them apart when the same code shows up from several different students.
+            _conv_signal("course_not_found", user["id"], f"{school.id}:{course}")
             return self._notice(f"Couldn't find {course} at {school.name} this term, check the code?",
                                 user=user)
         bad = [s for s in sections if s and s not in secs]
         if bad:
+            _conv_signal("section_not_found", user["id"], f"{school.id}:{course}")
             return self._notice(
                 f"{course} has no section(s): {', '.join(bad)}. "
                 f"Real ones include: {', '.join(sorted(secs)[:8])}…", user=user)
@@ -3551,6 +3599,7 @@ class Handler(BaseHTTPRequestHandler):
         # number, show them RIGHT NOW what the alert will look like — the single best
         # moment to demonstrate the product is the moment they start needing it. Once per
         # account, never per watch, and it can never break watch creation.
+        _conv_signal("watch_created", user["id"], f"{school.id}:{course}")
         send_sample_sms(user["id"])
         send_sample_email(user["id"])
         # Same treatment for the success page: a student who presses Back after adding a

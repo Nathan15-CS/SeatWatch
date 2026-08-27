@@ -78,6 +78,9 @@ SUITES = [
      "email, not just push/ntfy; escalation damped to one; a broken mailer never raises"),
     ("Term auto-roll never lands on a dead term", "test_term_autoroll",
      "empty term rejected; live one adopted; no backward/early roll; opt-out absolute"),
+    ("The activation funnel says WHY a student never watched", "test_activation_funnel",
+     "every rejection recorded with what they typed; 'never looked' told apart from "
+     "'we refused them'; a broken analytics write never costs a watch"),
 ]
 
 
