@@ -83,14 +83,22 @@ p("poller_idle_s", int(now-last) if last else -1)
 #
 # So: look at a short recent window, and require failures AND no successes in it. A
 # school that is answering at all is not dark, however many blips it had at breakfast.
+# Read from guardian_adapter_health, NOT by counting guardian_watch_results rows.
+# Successful polls are no longer written per watch (they were 99% of the table and 38M
+# rows/hour at scale), so "SUM(outcome != 'adapter_failed')" would now be 0 for EVERY
+# school and this check would report all of them dark — the exact cry-wolf failure this
+# file exists to avoid, reintroduced by a change three files away.
+#
+# adapter_health is better evidence anyway: consec_fail and last_ok are maintained per
+# school on every cycle, so "failing right now" no longer has to be inferred from the
+# volume of rows in a time window.
 WIN = 900
 for r in c.execute(
-        "SELECT school,"
-        " SUM(outcome='adapter_failed') fails,"
-        " SUM(outcome!='adapter_failed') oks"
-        " FROM guardian_watch_results WHERE created>? GROUP BY school"
-        " HAVING fails>=5 AND oks=0 ORDER BY fails DESC LIMIT 6", (now-WIN,)):
-    p("dark", "%s|%s fail / 0 ok in last %dmin"%(r[0], r[1], WIN//60))
+        "SELECT school, consec_fail, last_ok, last_fail FROM guardian_adapter_health"
+        " WHERE consec_fail>=5 AND (last_ok IS NULL OR last_ok < ?)"
+        " ORDER BY consec_fail DESC LIMIT 6", (now-WIN,)):
+    quiet = ("never" if not r[2] else "%.0f min" % ((now-r[2])/60.0))
+    p("dark", "%s|%s consecutive failures, last success %s ago"%(r[0], r[1], quiet))
 
 # Sections whose detail page could not be read even after a retry. These are the fetches
 # that used to be dropped silently, making a section a student was watching look deleted.

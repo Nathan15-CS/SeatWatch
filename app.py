@@ -3903,18 +3903,56 @@ def run_fire_drill():
 
 
 # ------------------------------------------------------------------------ poller
-def _school_fetch(school_id, items):
-    """Network I/O for one school. Never raises — returns {} so the guard handles it."""
+# How many requests may be in flight AT ONE REGISTRAR. This is a politeness budget, not a
+# performance knob: Towson blocked this server outright, and a university that decides we
+# are a nuisance is a school we lose for every student, permanently. Four is deliberately
+# modest — the throughput below comes from having many schools in flight, not from leaning
+# on any one of them.
+SCHOOL_CONCURRENCY = int(os.environ.get("SCHOOL_CONCURRENCY", "4"))
+# Global ceiling across all schools. These threads sit blocked on socket reads, where
+# Python releases the GIL, so this costs almost nothing in CPU.
+POLL_WORKERS = int(os.environ.get("POLL_WORKERS", "64"))
+
+
+def _plan_fetches(by_school):
+    """Flatten one cycle's work into independent (school, courses-chunk) units.
+
+    FLAT ON PURPOSE. The obvious shape — a task per school that itself submits a task per
+    chunk — deadlocks: with every worker holding a school task and waiting on chunk tasks
+    that need a worker to run, the pool waits on itself forever. It would have survived
+    every small test and hung the poller in production at exactly the scale this change
+    was written for. So the split happens HERE, before anything is submitted, and the
+    executor only ever sees independent leaf work.
+    """
+    plan = []
+    for school_id, items in by_school.items():
+        courses = sorted({r["course"] for r in items})
+        n = min(SCHOOL_CONCURRENCY, len(courses)) or 1
+        # Round-robin, so one slow course cannot pile up behind others in its chunk.
+        for i in range(n):
+            chunk = courses[i::n]
+            if chunk:
+                plan.append((school_id, chunk))
+    return plan
+
+
+def _chunk_fetch(job):
+    """Network I/O for a slice of ONE school. Never raises — {} lets the guard handle it."""
+    school_id, courses = job
     school = schools.SCHOOLS.get(school_id)
     if not school:
         return school_id, {}, 0
     t0 = time.time()
     try:
-        return (school_id, school.fetch({r["course"] for r in items}),
-                int((time.time() - t0) * 1000))
+        return school_id, school.fetch(set(courses)), int((time.time() - t0) * 1000)
     except Exception as e:
         sw.log(f"  [warn] {school_id} fetch crashed (treated as no-data): {e}")
         return school_id, {}, int((time.time() - t0) * 1000)
+
+
+def _school_fetch(school_id, items):
+    """Single-school fetch, kept for callers and tests that ask for one school directly."""
+    return _chunk_fetch((school_id, sorted({r["course"] for r in items})))
 
 
 def run_cycle():
@@ -3931,10 +3969,17 @@ def run_cycle():
     # Fetch every school CONCURRENTLY so cycle time stays flat as schools scale
     # (sequential would grow linearly). Alert logic below stays sequential + safe.
     data_by_school, fetch_ms = {}, {}
-    with ThreadPoolExecutor(max_workers=min(12, len(by_school))) as ex:
-        for school_id, data, ms in ex.map(lambda kv: _school_fetch(*kv), by_school.items()):
-            data_by_school[school_id] = data
-            fetch_ms[school_id] = ms
+    # One shared pool for everything in flight. Schools run concurrently AND each school's
+    # courses run concurrently inside it, so the cycle is bounded by total work over
+    # POLL_WORKERS rather than by whichever single school happens to be the largest.
+    plan = _plan_fetches(by_school)
+    n_workers = max(1, min(POLL_WORKERS, len(plan)))
+    with ThreadPoolExecutor(max_workers=n_workers) as ex:
+        for school_id, data, ms in ex.map(_chunk_fetch, plan):
+            # Chunks of the same school merge; a failed chunk contributes {} and the
+            # guard treats the courses it was carrying as unread, never as deleted.
+            data_by_school.setdefault(school_id, {}).update(data or {})
+            fetch_ms[school_id] = max(fetch_ms.get(school_id, 0), ms)
 
     cur_terms, fetched_at = {}, {}     # per-school context the alert gate re-checks
     for school_id, items in by_school.items():

@@ -78,6 +78,9 @@ SUITES = [
      "email, not just push/ntfy; escalation damped to one; a broken mailer never raises"),
     ("Term auto-roll never lands on a dead term", "test_term_autoroll",
      "empty term rejected; live one adopted; no backward/early roll; opt-out absolute"),
+    ("The poller scales without losing a watch", "test_poller_scale",
+     "courses fetched in parallel chunks return identical data; a failed chunk loses only "
+     "its own; quiet outcomes stop being written but reconciliation still catches a miss"),
     ("The CA bundle adds reach, never new trust", "test_ca_bundle",
      "no cert in it anchors trust the system lacks; it parses (a malformed one silently "
      "drops every intermediate); it adds to the system store instead of replacing it"),

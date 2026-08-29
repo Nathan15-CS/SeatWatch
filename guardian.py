@@ -636,6 +636,11 @@ def finalize(cycle):
         return "RED"
 
 
+# Outcomes that mean "checked it, nothing happened". Everything NOT in here is written
+# per watch. Adding to this set removes evidence — do it only with the same audit as above.
+QUIET_OUTCOMES = frozenset(("checked_no_change", "checked_open_already"))
+
+
 def _finalize_inner(cycle):
     now = _now()
     # identity reconciliation — every expected watch needs a terminal outcome
@@ -670,6 +675,21 @@ def _finalize_inner(cycle):
                    json.dumps({"outcomes": outcomes,
                                "would_block": cycle.would_block[:20]})))
         for wid, (oc, d) in cycle.results.items():
+            # THE WEATHER IS NOT THE NEWS. A row per watch per cycle is 152 rows per watch
+            # per HOUR — 38 million rows an hour at 250k watches, which no SQLite survives
+            # and no human ever reads. In steady state ~99% of them say "nothing happened".
+            #
+            # Dropping them costs no safety property, and each one was checked:
+            #   · reconciliation (unaccounted) is computed IN MEMORY above, from
+            #     cycle.results vs cycle.expected, before anything is written here;
+            #   · the per-outcome COUNTS are persisted in full on the guardian_cycles row;
+            #   · per-school health (checks/failures/consec_fail/last_ok) is maintained by
+            #     _update_adapter_health on every cycle, for every school;
+            #   · anything actionable — a failure, a block, an alert, an anomaly — is NOT
+            #     quiet, so it still gets its row here AND an incident below.
+            # What is lost is per-watch forensics for cycles where nothing occurred.
+            if oc in QUIET_OUTCOMES:
+                continue
             ident = cycle.expected.get(wid, {})
             c.execute("""INSERT INTO guardian_watch_results(cycle_id,watch_id,user_id,
                 school,course,section,term,outcome,adapter_term,fetched_at,seats,
