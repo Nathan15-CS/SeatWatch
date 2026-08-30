@@ -86,26 +86,44 @@ def gather_evidence(c, cycle, now, tuning, started_at=None, deploy_sha="",
         ev["adapters"][r["school"]] = dict(r)
     watch_rows = {r["id"]: r for r in c.execute(
         "SELECT id, user_id, school, term, alerted FROM watches")}
+
+    # BULK, not per watch. This loop used to issue FOUR queries for every watch in the
+    # cycle — history, push_subs, users, alert_log — so a cycle cost 4N round trips:
+    # measured at 501,511 sqlite executes for a single 100,000-watch cycle, about 1.6s of
+    # pure overhead per cycle and rising linearly with users.
+    #
+    # Three of the four asked about the USER, and users repeat across their watches, so
+    # they were re-asking the same question. Each is replaced by one query with identical
+    # semantics: an EXISTS check becomes membership in a set, and a per-row lookup becomes
+    # a dict. Nothing about what is decided changes — only how many times it is asked.
+    hist_by_wid = {}
+    for h in c.execute("SELECT watch_id, outcome, adapter_term, created "
+                       "FROM guardian_watch_results WHERE created>? "
+                       "ORDER BY watch_id, created DESC", (win0,)):
+        # LIMIT 200 per watch was in the original query and is preserved here. Rows arrive
+        # newest-first within a watch, so truncating keeps the same 200 rows it kept.
+        lst = hist_by_wid.setdefault(h["watch_id"], [])
+        if len(lst) < 200:
+            lst.append({"outcome": h["outcome"], "adapter_term": h["adapter_term"],
+                        "created": h["created"]})
+    push_uids = {r[0] for r in c.execute("SELECT DISTINCT user_id FROM push_subs")}
+    emails = {r[0]: r[1] for r in c.execute("SELECT id, email FROM users")}
+    try:
+        proof_uids = {r[0] for r in c.execute(
+            "SELECT DISTINCT user_id FROM alert_log WHERE channel IN "
+            "('webpush','webpush_test','email','sms')")}
+    except Exception:
+        proof_uids = set()                   # alert_log absent (pre-deploy DB)
+
     for wid, ident in cycle.expected.items():
         w = watch_rows.get(wid)
-        hist = [dict(h) for h in c.execute(
-            "SELECT outcome, adapter_term, created FROM guardian_watch_results "
-            "WHERE watch_id=? AND created>? ORDER BY created DESC LIMIT 200",
-            (wid, win0))]
+        hist = hist_by_wid.get(wid, [])
         uid = ident.get("user_id")
         has_push = has_email = push_proof = False
         if uid:
-            has_push = c.execute("SELECT 1 FROM push_subs WHERE user_id=? LIMIT 1",
-                                 (uid,)).fetchone() is not None
-            u = c.execute("SELECT email FROM users WHERE id=?", (uid,)).fetchone()
-            has_email = bool(u and u["email"])
-            try:
-                push_proof = c.execute(
-                    "SELECT 1 FROM alert_log WHERE user_id=? AND channel IN "
-                    "('webpush','webpush_test','email','sms') LIMIT 1",
-                    (uid,)).fetchone() is not None
-            except Exception:
-                push_proof = False           # alert_log absent (pre-deploy DB)
+            has_push = uid in push_uids
+            has_email = bool(emails.get(uid))
+            push_proof = uid in proof_uids
         ev["watches"][wid] = {
             "ident": ident, "exists": w is not None,
             "alerted": (w["alerted"] if w else 0),

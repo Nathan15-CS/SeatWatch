@@ -717,7 +717,7 @@ def _finalize_inner(cycle):
                               contained="alert suppressed by existing fail-closed skip"
                               if oc != "alert_undelivered" else "retrying every cycle")
         _maybe_prune(c, now)
-        conf = _compute_confidence(c, cycle, now)
+        conf = _confidence_cached(c, cycle, now, status)
     if status == "RED":
         page("cycle_red", f"🚨 Guardian cycle RED: {binding}. Evidence in guardian_* "
              "tables, cycle " + cycle.id, "red")
@@ -842,6 +842,37 @@ def _update_adapter_health(c, cycle, now):
                       (now, school))
 
 
+# Last (day, score, tier, binding) actually written per entity, so an unchanged snapshot
+# is not rewritten every cycle. Bounded; see the clear() below for why overflow is safe.
+_CONF_LAST = {}
+_CONF_LAST_MAX = 300000
+
+# The confidence engine reads history for EVERY watch and scores it. That ran on every
+# cycle — three times a minute — to maintain what its own docstring calls a once-a-day
+# snapshot. At 300,000 watches it was the dominant cost in the cycle and it grew faster
+# than linearly, because each pass allocates a dict per watch and the garbage collector
+# then has to walk them all.
+#
+# Its only consumer is a field in the status report, which already tolerates None. So it
+# now runs on an interval instead of every cycle, and the last result is reused in
+# between — the report stays populated, the daily snapshot still lands.
+CONF_EVERY_S = int(os.environ.get("GUARDIAN_CONF_EVERY_S", "300"))
+_CONF_CACHE = {"at": 0.0, "result": None}
+
+
+def _confidence_cached(c, cycle, now, status):
+    """Compute confidence on an interval — but ALWAYS when the cycle is not GREEN.
+
+    Skipping work is only safe while nothing is wrong. The moment a cycle reports a
+    problem, the evidence behind it has to be current, or the cheap path would be
+    withholding exactly the diagnosis the operator needs. Cost follows concern."""
+    stale = (now - _CONF_CACHE["at"]) >= CONF_EVERY_S
+    if status != "GREEN" or stale or _CONF_CACHE["result"] is None:
+        _CONF_CACHE["result"] = _compute_confidence(c, cycle, now)
+        _CONF_CACHE["at"] = now
+    return _CONF_CACHE["result"]
+
+
 def _compute_confidence(c, cycle, now):
     """Assemble evidence and hand it to the pure engine. Snapshot once/day."""
     try:                                  # P6 maturity anchor: persisted first-run stamp,
@@ -860,9 +891,27 @@ def _compute_confidence(c, cycle, now):
                                divergences=len(cycle.would_block) + len(_LAST_DIVERGENCE))
     result = _conf.compute(ev, TUNING)
     day = time.strftime("%Y-%m-%d", time.localtime(now))
+    # WRITE ON CHANGE, not every cycle. The row is keyed (type, id, day) and written with
+    # INSERT OR REPLACE, so re-writing an unchanged value produces a byte-identical row —
+    # and this ran for EVERY watch on EVERY cycle: 100,000 inserts plus 100,000 json.dumps
+    # three times a minute, to leave the table exactly as it was. The docstring above
+    # already says "snapshot once/day"; this makes the code agree with it.
+    #
+    # Change is judged on the stored columns, so any real movement in score, tier or
+    # binding is still persisted the moment it happens, on the day it happens.
     for ent_type, ent_id, score, tier, binding, factors in result["snapshots"]:
+        k = (ent_type, ent_id)
+        sig = (day, score, tier, binding)
+        if _CONF_LAST.get(k) == sig:
+            continue
         c.execute("INSERT OR REPLACE INTO guardian_confidence VALUES(?,?,?,?,?,?,?)",
                   (ent_type, ent_id, day, score, tier, binding, json.dumps(factors)))
+        # Bounded, and it FAILS TOWARD WRITING: if the cache is full we forget rather than
+        # skip, so the worst case is the old behaviour (a redundant write), never a lost
+        # snapshot. Silence is the failure mode that would matter here.
+        if len(_CONF_LAST) >= _CONF_LAST_MAX:
+            _CONF_LAST.clear()
+        _CONF_LAST[k] = sig
     return result
 
 

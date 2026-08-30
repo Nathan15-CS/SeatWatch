@@ -170,6 +170,79 @@ def run():
           and "SUM(outcome!='adapter_failed')" not in tri,
           "counting rows that are no longer written would report every school dark")
 
+    # ---------- the confidence engine: cheap when calm, fresh when not ----------
+    # It reads history for EVERY watch and scores it, and it ran on every cycle to
+    # maintain what its own docstring calls a once-a-day snapshot. At 300k watches that
+    # was the dominant cost AND grew faster than linearly. It is now interval-gated — but
+    # skipping work is only safe while nothing is wrong, so a cycle that is not GREEN must
+    # still get current evidence. Otherwise the cheap path withholds exactly the diagnosis
+    # the operator needs, which is this codebase's oldest mistake in a new costume.
+    calls = []
+    real_compute = guardian._compute_confidence
+    guardian._compute_confidence = lambda c, cy, now: (calls.append(now), {"summary": "x"})[1]
+    guardian._CONF_CACHE.update(at=0.0, result=None)
+    try:
+        t = 1_000_000.0
+        guardian._confidence_cached(None, None, t, "GREEN")
+        check("first call always computes (nothing cached yet)", len(calls) == 1)
+
+        guardian._confidence_cached(None, None, t + 5, "GREEN")
+        guardian._confidence_cached(None, None, t + 10, "GREEN")
+        check("a calm cycle reuses the cached result", len(calls) == 1,
+              f"computed {len(calls)}x — this is the whole saving")
+
+        guardian._confidence_cached(None, None, t + guardian.CONF_EVERY_S + 1, "GREEN")
+        check("...and refreshes once the interval elapses", len(calls) == 2,
+              "a snapshot that never updates is not a snapshot")
+
+        before = len(calls)
+        guardian._confidence_cached(None, None, t + guardian.CONF_EVERY_S + 2, "YELLOW")
+        check("a YELLOW cycle forces FRESH evidence, interval or not",
+              len(calls) == before + 1,
+              "stale evidence behind a real problem is worse than no shortcut at all")
+        before = len(calls)
+        guardian._confidence_cached(None, None, t + guardian.CONF_EVERY_S + 3, "RED")
+        check("...and so does RED", len(calls) == before + 1)
+
+        cached = guardian._confidence_cached(None, None, t + guardian.CONF_EVERY_S + 4, "GREEN")
+        check("the report still receives a result between computations",
+              cached is not None and cached.get("summary") == "x",
+              "gating must not blank the status report")
+    finally:
+        guardian._compute_confidence = real_compute
+        guardian._CONF_CACHE.update(at=0.0, result=None)
+
+    # ---------- bulk evidence must equal what per-watch queries returned ----------
+    import confidence as _conf
+    with app.db() as c:
+        c.execute("INSERT OR IGNORE INTO users(id,google_sub,email,topic,created) "
+                  "VALUES(2,'g_e','has@mail','t_e',0)")
+        c.execute("INSERT OR IGNORE INTO users(id,google_sub,email,topic,created) "
+                  "VALUES(3,'g_n','','t_n',0)")
+        c.execute("INSERT INTO alert_log(user_id,watch_id,school,course,section,channel,"
+                  "sent_at,cost_cents) VALUES(2,1,'sch','C00','0101','email',?,0)",
+                  (time.time(),))
+        rows2 = c.execute("SELECT * FROM watches LIMIT 2").fetchall()
+
+    class _Cyc:
+        expected = {}
+        would_block = []
+    cy = _Cyc()
+    cy.expected = {rows2[0]["id"]: {"user_id": 2, "school": "sch", "term": "202608"},
+                   rows2[1]["id"]: {"user_id": 3, "school": "sch", "term": "202608"}}
+    with app.db() as c:
+        ev = _conf.gather_evidence(c, cy, time.time(), guardian.TUNING, started_at=0)
+    w2 = ev["watches"][rows2[0]["id"]]
+    w3 = ev["watches"][rows2[1]["id"]]
+    check("bulk lookup: a user WITH an email is has_email", w2["has_email"] is True)
+    check("bulk lookup: a user with an EMPTY email is not", w3["has_email"] is False,
+          "an empty string must not read as a reachable address")
+    check("bulk lookup: a user with a delivered alert has push_proof",
+          w2["push_proof"] is True)
+    check("bulk lookup: a user with none does NOT", w3["push_proof"] is False)
+    check("bulk lookup: no push subscription reads False", w2["has_push"] is False)
+    check("history is attached per watch", isinstance(w2["history"], list))
+
     p = sum(x for _, x, _ in results)
     f = sum(not x for _, x, _ in results)
     return p, f, results
