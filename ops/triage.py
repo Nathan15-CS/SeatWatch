@@ -71,8 +71,16 @@ except Exception: p("stranded","?")
 p("watches", c.execute("SELECT COUNT(*) FROM watches").fetchone()[0])
 p("users", c.execute("SELECT COUNT(*) FROM users").fetchone()[0])
 
-# Is the poller actually running? Last guardian result is the freshest proof of life.
-last = c.execute("SELECT MAX(created) FROM guardian_watch_results").fetchone()[0] or 0
+# Is the poller actually running? Read the CYCLE table, not the per-watch results.
+# guardian_watch_results is written only for outcomes worth keeping, so on a healthy
+# system with nothing wrong it receives NOTHING — and this check read that silence as a
+# dead poller and reported "nothing is being watched at all" while 40 watches were being
+# polled normally. Second time this exact dependency bit: the dark-school check below had
+# it too. A cycle row is written every cycle regardless of outcome, so it is proof of life
+# that cannot be confused with proof of quiet.
+last = c.execute("SELECT MAX(finished) FROM guardian_cycles").fetchone()[0] or 0
+if not last:
+    last = c.execute("SELECT MAX(started) FROM guardian_cycles").fetchone()[0] or 0
 p("poller_idle_s", int(now-last) if last else -1)
 
 # A school is DARK if it is failing RIGHT NOW — not if it accumulated failures all day.

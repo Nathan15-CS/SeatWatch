@@ -169,6 +169,17 @@ def run():
           "guardian_adapter_health" in tri
           and "SUM(outcome!='adapter_failed')" not in tri,
           "counting rows that are no longer written would report every school dark")
+    # This dependency bit TWICE. The dark-school check was fixed with the same commit that
+    # stopped writing quiet rows; the liveness check was missed, shipped, and told the
+    # operator "nothing is being watched at all" while 40 watches polled normally on a
+    # GREEN cycle. Both now read tables written unconditionally. Asserted together so the
+    # next thing that stops writing a table has to come here and think.
+    check("triage does not infer POLLER LIVENESS from per-watch rows either",
+          "MAX(created) FROM guardian_watch_results" not in tri,
+          "a healthy system writes no quiet rows, so that silence read as a dead poller")
+    check("...it reads the cycle table, which is written every cycle regardless",
+          "FROM guardian_cycles" in tri,
+          "proof of life must not be confusable with proof of quiet")
 
     # ---------- the confidence engine: cheap when calm, fresh when not ----------
     # It reads history for EVERY watch and scores it, and it ran on every cycle to
