@@ -3910,8 +3910,21 @@ def run_fire_drill():
 # on any one of them.
 SCHOOL_CONCURRENCY = int(os.environ.get("SCHOOL_CONCURRENCY", "4"))
 # Global ceiling across all schools. These threads sit blocked on socket reads, where
-# Python releases the GIL, so this costs almost nothing in CPU.
-POLL_WORKERS = int(os.environ.get("POLL_WORKERS", "64"))
+# Python releases the GIL, so an idle one costs a few tens of KB and no CPU.
+#
+# 256 is chosen for the CURRENT box, not for a benchmark. The production VM has 956 MB of
+# RAM and 2 cores, and the pool is sized min(POLL_WORKERS, len(plan)) — so at today's 20
+# watches this allocates about five threads and the number is simply headroom that no
+# longer requires a redeploy to use.
+#
+# Do not read the 600k figure from the load test as a property of that VM. It was measured
+# on a laptop with far more memory: at ~1.8 KB per watch per cycle, 600k watches alone is
+# over a gigabyte, and the box would be killed by the OOM reaper long before the poller
+# ran out of threads. On this hardware MEMORY binds first, at roughly 150k watches, and
+# with 2 cores the TLS handshakes of very high concurrency compete for CPU in a way that
+# sleeping benchmark threads never show. More than this needs a bigger machine, not a
+# bigger number.
+POLL_WORKERS = int(os.environ.get("POLL_WORKERS", "256"))
 
 
 def _plan_fetches(by_school):
