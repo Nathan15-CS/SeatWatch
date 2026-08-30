@@ -198,9 +198,18 @@ def main():
     print(f"    {G}PASS{X}     disaster drill: restored from the off-server copy, app opened it")
     print(f"    {G}PASS{X}     crash/restart resumes polling; lease prevents double-alert")
     print(f"    {Y}UNTESTED{X} full host rebuild end-to-end (documented in ops/RECOVERY.md, never rehearsed)")
-    print(f"    {R}GAP{X}      /etc/seatwatch.env secrets are NOT backed up — losing the SMTP")
-    print(f"             and Twilio credentials would stop every alert reaching anyone.")
-    print(f"             {DIM}Keep a copy in a password manager (operator action).{X}")
+    # This printed "secrets are NOT backed up" unconditionally — a hardcoded string, not a
+    # check — while ops/RECOVERY.md records the gap CLOSED on 2026-07-30 and
+    # seatwatch.service.template points at the password-manager copy for the admin topic.
+    # A permanent red line that contradicts the runbook is the cry-wolf rule in its least
+    # useful form: it cannot be acted on, it never changes, and it teaches the reader to
+    # skip the section. readiness cannot see inside a password manager, so it now reports
+    # what is actually known — operator-attested, unverifiable from here — instead of
+    # asserting the opposite.
+    print(f"    {Y}ATTESTED{X} /etc/seatwatch.env copied to a password manager 2026-07-30")
+    print(f"             (ops/RECOVERY.md). NOT verifiable from here — re-confirm before")
+    print(f"             any host move: without it a new box cannot sign anyone in or")
+    print(f"             {DIM}send any alert, and the VAPID keys are unrecoverable.{X}")
 
     print(f"\n{B}{'-'*74}{X}\n{B}  KNOWN UNTESTED / OUT OF SCOPE{X}\n{B}{'-'*74}{X}")
     for line in [
