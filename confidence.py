@@ -115,7 +115,11 @@ def gather_evidence(c, cycle, now, tuning, started_at=None, deploy_sha="",
     except Exception:
         proof_uids = set()                   # alert_log absent (pre-deploy DB)
 
-    for wid, ident in cycle.expected.items():
+    # cycle.expected holds compact tuples (guardian._ident); this is the one place that
+    # wants all of them by name, and it runs on an interval rather than every cycle.
+    import guardian as _g
+    for wid, _tup in cycle.expected.items():
+        ident = _g._ident(_tup)
         w = watch_rows.get(wid)
         hist = hist_by_wid.get(wid, [])
         uid = ident.get("user_id")

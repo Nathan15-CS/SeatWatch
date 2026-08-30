@@ -239,8 +239,11 @@ def run():
         expected = {}
         would_block = []
     cy = _Cyc()
-    cy.expected = {rows2[0]["id"]: {"user_id": 2, "school": "sch", "term": "202608"},
-                   rows2[1]["id"]: {"user_id": 3, "school": "sch", "term": "202608"}}
+    # Compact identity TUPLES, matching begin_cycle: (user_id, school, course, section,
+    # term). Built as dicts here originally, which _ident() then zipped against the field
+    # names and silently produced nonsense — a fixture drifting from the real shape.
+    cy.expected = {rows2[0]["id"]: (2, "sch", "C00", "0101", "202608"),
+                   rows2[1]["id"]: (3, "sch", "C01", "0101", "202608")}
     with app.db() as c:
         ev = _conf.gather_evidence(c, cy, time.time(), guardian.TUNING, started_at=0)
     w2 = ev["watches"][rows2[0]["id"]]
@@ -253,6 +256,21 @@ def run():
     check("bulk lookup: a user with none does NOT", w3["push_proof"] is False)
     check("bulk lookup: no push subscription reads False", w2["has_push"] is False)
     check("history is attached per watch", isinstance(w2["history"], list))
+
+    # The snapshot's SHAPE is the memory story: 312 bytes per watch as a dict against 80
+    # as a tuple, which is 312 MB vs 80 MB at a million watches on a 956 MB box. Asserted
+    # because the saving is invisible in whole-process measurements and would be silently
+    # undone by anyone who found a dict more convenient.
+    import guardian as _g
+    probe = _g.begin_cycle(rows[:3])
+    vals = list(probe.expected.values())
+    check("begin_cycle stores TUPLES, not dicts", vals and isinstance(vals[0], tuple),
+          f"got {type(vals[0]).__name__ if vals else 'nothing'} — a dict here costs 4x")
+    check("...and _ident round-trips one back to named fields",
+          _g._ident(vals[0]).get("school") == "sch",
+          "the compact form must stay readable where names are needed")
+    check("_ident on a missing watch returns an empty mapping, not a crash",
+          _g._ident(None) == {})
 
     p = sum(x for _, x, _ in results)
     f = sum(not x for _, x, _ in results)

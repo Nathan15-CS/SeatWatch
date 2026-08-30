@@ -187,7 +187,7 @@ class Cycle:
 
     def __init__(self, cid, t0, mode_, expected):
         self.id, self.t0, self.mode = cid, t0, mode_
-        self.expected = expected      # watch_id -> identity dict
+        self.expected = expected      # watch_id -> compact identity TUPLE (_ident)
         self.results = {}             # watch_id -> (outcome, detail dict)
         self.fetches = {}             # school -> {ok, ms, courses, sections}
         self.pending = []             # queued (row, msg, url) alert candidates
@@ -202,6 +202,15 @@ _SEQ = [0]   # per-process monotonic tiebreaker: two cycles in the same second m
              # never share an id, or the later row silently REPLACEs the earlier one
 
 
+_IDENT_FIELDS = ("user_id", "school", "course", "section", "term")
+
+
+def _ident(t):
+    """A compact identity tuple as a named mapping. Materialised ON DEMAND, never for
+    every watch: the callers below want one only when writing a row or an incident."""
+    return dict(zip(_IDENT_FIELDS, t)) if t else {}
+
+
 def begin_cycle(rows):
     """Snapshot the expected active-watch identities. Called first thing in
     run_cycle; returns a Cycle in every mode (off-mode cycles are inert
@@ -212,12 +221,18 @@ def begin_cycle(rows):
            f"{hashlib.sha1(repr(sorted(r['id'] for r in rows)).encode()).hexdigest()[:8]}")
     expected = {}
     if _active():
+        # TUPLES, not dicts. This snapshot is built fresh every cycle and held for the
+        # whole of it, so its shape is the dominant allocation in the poller: a five-key
+        # dict costs roughly 230 bytes against 96 for a five-tuple, and at a million
+        # watches that is the difference between ~300 MB and ~130 MB of live objects on a
+        # box with 956 MB of RAM. The fields are fixed and positional; _ident() turns one
+        # back into a mapping at the few places that actually need names, which — now that
+        # quiet outcomes are not written — is a handful of rows per cycle rather than all
+        # of them.
         for r in rows:
-            expected[r["id"]] = {
-                "user_id": r["user_id"] if "user_id" in r.keys() else None,
-                "school": r["school"], "course": r["course"],
-                "section": r["section"], "term": r["term"],
-            }
+            expected[r["id"]] = (
+                r["user_id"] if "user_id" in r.keys() else None,
+                r["school"], r["course"], r["section"], r["term"])
         _close_orphan_cycles()
     cyc = Cycle(cid, t0, _CFG["mode"], expected)
     _CUR["cycle"] = cyc
@@ -690,7 +705,7 @@ def _finalize_inner(cycle):
             # What is lost is per-watch forensics for cycles where nothing occurred.
             if oc in QUIET_OUTCOMES:
                 continue
-            ident = cycle.expected.get(wid, {})
+            ident = _ident(cycle.expected.get(wid))
             c.execute("""INSERT INTO guardian_watch_results(cycle_id,watch_id,user_id,
                 school,course,section,term,outcome,adapter_term,fetched_at,seats,
                 detail,created) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)""",
@@ -702,7 +717,7 @@ def _finalize_inner(cycle):
                        now))
         _update_adapter_health(c, cycle, now)
         for wid in unaccounted:
-            ident = cycle.expected.get(wid, {})
+            ident = _ident(cycle.expected.get(wid))
             _incident(c, "unaccounted_watch", "red", ident.get("school", ""), wid,
                       f"cycle {cycle.id}: watch {wid} had no terminal outcome")
         for oc, kind, sev in (("school_missing", "orphan_watch", "red"),
@@ -711,7 +726,7 @@ def _finalize_inner(cycle):
                               ("alert_undelivered", "undelivered_alert", "red")):
             for wid, (o, d) in cycle.results.items():
                 if o == oc:
-                    ident = cycle.expected.get(wid, {})
+                    ident = _ident(cycle.expected.get(wid))
                     _incident(c, kind, sev, ident.get("school", ""), wid,
                               f"cycle {cycle.id}: {json.dumps(d)[:200]}",
                               contained="alert suppressed by existing fail-closed skip"
@@ -748,7 +763,7 @@ def _finalize_inner(cycle):
     ):
         n = outcomes.get(oc)
         if n:
-            schools_hit = sorted({(cycle.expected.get(w) or {}).get("school", "?")
+            schools_hit = sorted({_ident(cycle.expected.get(w)).get("school", "?")
                                   for w, (o, _d) in cycle.results.items() if o == oc})
             page(f"{key}:{','.join(schools_hit)[:60]}",
                  f"⚠️ {n} watch(es) at {', '.join(schools_hit) or '?'}: {why}. "
