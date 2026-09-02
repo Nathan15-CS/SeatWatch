@@ -30,8 +30,11 @@ EXIT CODES
     1  something needs attention (details printed)
     2  could NOT check — treat exactly as "unknown", never as "fine"
 """
+import calendar
+import os
 import subprocess
 import sys
+import time
 
 VM = "ubuntu@141.148.27.134"
 KEY = "~/.ssh/seatwatch-vm.key"
@@ -119,6 +122,15 @@ try:
 except Exception:
     pass
 
+# When did the secrets file last CHANGE? Not its contents — just the timestamp. The
+# password-manager copy was taken 2026-07-30 and the file was modified 2026-08-17, and
+# nothing anywhere noticed for eighteen days. A stale credential backup is invisible until
+# the exact moment it is needed, which is always the worst one.
+try:
+    p("env_mtime", int(os.path.getmtime("/etc/seatwatch.env")))
+except Exception:
+    pass
+
 # Alert gates: were there COMPLETED openings to judge since the running app went live?
 since = os.path.getmtime("/home/ubuntu/seatwatch/app.py")
 p("release_age_h", round((now-since)/3600.0,1))
@@ -131,7 +143,7 @@ print("\n".join(out))
 def main():
     try:
         r = subprocess.run(
-            ["ssh", "-i", KEY.replace("~", __import__("os").path.expanduser("~")),
+            ["ssh", "-i", os.path.expanduser(KEY),
              "-o", "IdentitiesOnly=yes", "-o", "ConnectTimeout=20", VM,
              "sudo python3 - <<'PYEOF'\n" + REMOTE + "\nPYEOF"],
             capture_output=True, text=True, timeout=120)
@@ -182,6 +194,34 @@ def main():
     if multi["dark"]:
         findings.append(("SCHOOLS DARK", "%d school(s) failing repeatedly"
                          % len(multi["dark"]), multi["dark"]))
+
+    # Credential backup drift. Compares two dates and nothing else: this never reads the
+    # secrets, only when the file changed against when a human last recorded copying it.
+    env_mtime = n("env_mtime", 0)
+    marker = os.path.join(os.path.dirname(os.path.abspath(__file__)), "ENV-BACKED-UP")
+    backed = 0
+    try:
+        with open(marker) as f:
+            for line in f:
+                line = line.strip()
+                if line and not line.startswith("#"):
+                    backed = int(calendar.timegm(time.strptime(line[:10], "%Y-%m-%d")))
+                    break
+    except Exception:
+        backed = 0
+    if env_mtime and backed and env_mtime > backed + 86400:
+        findings.append((
+            "CREDENTIAL BACKUP STALE",
+            "/etc/seatwatch.env changed %s, last recorded backup %s"
+            % (time.strftime("%Y-%m-%d", time.gmtime(env_mtime)),
+               time.strftime("%Y-%m-%d", time.gmtime(backed))),
+            ["a new host cannot sign anyone in or send anything without a CURRENT copy",
+             "re-copy it into the password manager, then update ops/ENV-BACKED-UP"]))
+    elif env_mtime and not backed:
+        findings.append((
+            "CREDENTIAL BACKUP UNRECORDED",
+            "no ops/ENV-BACKED-UP marker — cannot tell if the copy is current",
+            ["this is 'unknown', not 'fine' — the same rule the rest of this file follows"]))
 
     print("  production: %s watch(es), %s user(s), poller idle %ss, "
           "release %sh old, %s alert(s) since"

@@ -1,0 +1,6 @@
+# Date (YYYY-MM-DD) the operator last copied /etc/seatwatch.env into the password
+# manager. ops/triage.py compares this against the file's real mtime on the server and
+# says so when the live file has moved on. It holds NO secrets — only a date.
+#
+# After re-taking the backup, replace the date below.
+2026-07-30
