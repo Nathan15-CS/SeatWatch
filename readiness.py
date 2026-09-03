@@ -183,12 +183,19 @@ def main():
     else:
         print(f"\n  {R}EMAIL ALERTS: NOT READY{X} — core suites not all green (see above).")
 
-    # SMS
-    print(f"\n  {R}SMS: BLOCKED — NOT READY, NOT PROVEN{X}")
-    print(f"    {DIM}BLOCKED  real end-to-end send: never sent one live SMS{X}")
-    print(f"    {DIM}BLOCKED  carrier verification (toll-free / 10DLC) not approved{X}")
-    print(f"    {DIM}UNTESTED inbound STOP/HELP signature against a REAL Twilio request{X}")
-    print(f"    {DIM}Cost caps/consent/opt-out logic is tested, but logic != delivery.{X}")
+    # SMS. These lines used to ASSERT "never sent one live SMS" as a hardcoded string.
+    # It was true when written and false for weeks afterwards: production has sent real
+    # texts, at real cost, to a real student. A report that states a fact it never checks
+    # is the same defect as a monitor that cannot tell quiet from broken — and worse here,
+    # because someone asking "are we ready" was being told a channel was dead while it was
+    # delivering. This tool is LOCAL and synthetic; it cannot see production delivery, so
+    # it now says what it actually knows and names where the live answer lives.
+    print(f"\n  {Y}SMS: LOGIC PROVEN LOCALLY — DELIVERY NOT VISIBLE FROM HERE{X}")
+    print(f"    {G}PASS{X}     cost caps, consent, opt-out and STOP handling, against the real code")
+    print(f"    {Y}UNKNOWN{X}  live delivery, carrier status (toll-free / 10DLC), and the")
+    print(f"             inbound STOP signature against a REAL Twilio request")
+    print(f"    {DIM}Logic != delivery. For what actually went out: alert_log on the server,{X}")
+    print(f"    {DIM}or ops/triage.py. Do not read this section as 'no SMS has been sent'.{X}")
 
     # RECOVERY
     off = _offsite_status()
@@ -209,15 +216,19 @@ def main():
     print(f"    {Y}ATTESTED{X} /etc/seatwatch.env copied to a password manager 2026-07-30")
     print(f"             (ops/RECOVERY.md). NOT verifiable from here — re-confirm before")
     print(f"             any host move: without it a new box cannot sign anyone in or")
-    print(f"             {DIM}send any alert, and the VAPID keys are unrecoverable.{X}")
+    print(f"             {DIM}send any alert. What hurts most is SMTP + Twilio, then the{X}")
+    print(f"             {DIM}Google secret. NOT the VAPID keys — push was retired 2026-08-04.{X}")
 
     print(f"\n{B}{'-'*74}{X}\n{B}  KNOWN UNTESTED / OUT OF SCOPE{X}\n{B}{'-'*74}{X}")
     for line in [
         "Real SMS delivery + real Twilio inbound signature (blocked on carrier approval)",
         "Behaviour with real concurrent users at scale (zero external users so far)",
-        "Live payment capture (PAID_ENABLED=0 by choice; refund handler tested, not live-run)",
+        "Refund handler: tested, never live-run. (PAID_ENABLED is read from the LOCAL env "
+        "here and is NOT the production value — check the server before believing it.)",
         "Full server-loss rebuild (documented manually, never rehearsed)",
-        "Per-adapter live regression for all 793 schools (families are locked in, not each host)",
+        "Per-adapter live regression for every school in the registry (families are locked "
+        "in, not each host). The count on the site comes from ops/coverage.json, measured "
+        "nightly on the server — never from a number typed here.",
     ]:
         print(f"  {Y}·{X} {line}")
 
