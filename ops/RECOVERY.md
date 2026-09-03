@@ -71,7 +71,12 @@ DNS. Run it before students depend on the service.
 
 **Rehearsed?** The *data* half (steps 3–4) is proven — a drill restored the off-server copy
 and the app opened it cleanly. Steps 1–2 and 5–8 are documented but **never rehearsed
-end-to-end**; expect a few hours, not minutes.
+end-to-end**.
+
+`ops/provision.sh` (2026-08-31) now performs steps 2–6 as one command on a blank Ubuntu
+box, which is what makes rehearsing them realistic. It refuses rather than improvises: it
+stops on a missing env file, a missing database, or an unfilled systemd unit, and it never
+touches DNS. Every import is stdlib, so x86 → ARM needs no changes.
 
 ---
 
@@ -83,7 +88,18 @@ kept as the standing reason it matters:
 
 **Originally:** `/etc/seatwatch.env` holds the Google OAuth client,
 VAPID push keys, Stripe keys, and Twilio credentials. If the server is lost, they must be
-re-created/re-issued from each provider's console. Losing the **VAPID keys specifically**
+re-created/re-issued from each provider's console.
+
+⚠️ **The VAPID warning below is now STALE — do not let it set your priorities.** It was
+written when web push was a student alert channel. Push was **retired on 2026-08-04**
+(it reports success while reaching nobody), alerts are email and text only, and just
+**2 push subscriptions** remain. Losing the VAPID keys today costs almost nothing.
+
+What actually hurts now, in order: `SMTP_PASS` and the Twilio pair (every alert stops
+reaching anyone until re-issued), `GOOGLE_CLIENT_SECRET` (nobody can sign in), and
+`SEATWATCH_SECRET` (recoverable, but regenerating it logs every student out).
+
+*Stale, kept for the reasoning:* Losing the **VAPID keys specifically**
 would silently break every existing web-push subscription (students would stop getting
 alerts and wouldn't know why).
 
