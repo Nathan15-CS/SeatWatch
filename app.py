@@ -58,6 +58,63 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 DB = os.environ.get("SEATWATCH_DB", os.path.join(HERE, "watches.db"))
 PORT = int(os.environ.get("PORT", "8080"))
 POLL_SECONDS = int(os.environ.get("POLL_SECONDS", "20"))
+# ADAPTIVE INTERVAL. The floor above is what we poll at when there is room; this is the
+# most we will ever stretch to under load. Past the ceiling the honest choices are to slow
+# alerts further or to stop taking watches, and that is a product decision, not something
+# an algorithm should make quietly at 3am.
+#
+# Why adapt at all: past capacity the interval ALREADY stretches. The poll lease prevents
+# overlapping cycles, so a long cycle simply delays the next one — 20s becomes 40s becomes
+# 90s with nothing watching and nobody told. That is the same silent-degradation failure
+# this codebase keeps finding, so this makes it bounded, deliberate and loud instead.
+#
+# 300s is chosen against the product, not the hardware: worst case seat-to-alert becomes
+# ~7 minutes (cycle + the 120s confirmation hold). Measured seat lifetimes are bimodal —
+# median 35 seconds, with the takeable ones open about an hour — so a 7-minute worst case
+# still catches every seat a human could realistically act on.
+POLL_MAX_S = int(os.environ.get("POLL_MAX_S", "300"))
+# Grow when a cycle eats more than this share of its interval; shrink below the lower one.
+# The gap between them is hysteresis: without it the interval oscillates every cycle.
+POLL_GROW_AT = float(os.environ.get("POLL_GROW_AT", "0.60"))
+POLL_SHRINK_AT = float(os.environ.get("POLL_SHRINK_AT", "0.30"))
+_poll_interval = [float(POLL_SECONDS)]     # current, adaptive
+_poll_saturated_since = [0.0]              # when we first hit the ceiling AND overran
+
+
+def _adapt_interval(cycle_s, now=None):
+    """Pick the next sleep from how long this cycle actually took.
+
+    Returns (interval, note). `note` is non-empty only when something a human should know
+    happened — a stretch, a recovery, or saturation — so the caller can log or page
+    without this function deciding policy.
+    """
+    now = _now() if now is None else now
+    cur = _poll_interval[0]
+    note = ""
+    if cycle_s > cur * POLL_GROW_AT:
+        grown = min(cur * 1.5, float(POLL_MAX_S))
+        if grown > cur:
+            note = ("[poll] cycle took %.1fs — stretching interval %.0fs -> %.0fs"
+                    % (cycle_s, cur, grown))
+        cur = grown
+        # SATURATED: at the ceiling and still overrunning. Capacity is genuinely exceeded,
+        # and from here alerts get later with every added watch. This is the one state
+        # worth waking someone for, and it is latched so it pages once, not every cycle.
+        if cur >= POLL_MAX_S and cycle_s > POLL_MAX_S * POLL_GROW_AT:
+            if not _poll_saturated_since[0]:
+                _poll_saturated_since[0] = now
+                note = ("[poll] SATURATED — cycle %.0fs at the %ds ceiling. Alerts are now "
+                        "as slow as they are allowed to get; adding watches makes them "
+                        "later, not slower to notice." % (cycle_s, POLL_MAX_S))
+    elif cycle_s < cur * POLL_SHRINK_AT and cur > POLL_SECONDS:
+        shrunk = max(cur * 0.8, float(POLL_SECONDS))
+        note = ("[poll] cycle %.1fs — recovering interval %.0fs -> %.0fs"
+                % (cycle_s, cur, shrunk))
+        cur = shrunk
+        if cur <= POLL_SECONDS:
+            _poll_saturated_since[0] = 0.0
+    _poll_interval[0] = cur
+    return cur, note
 
 # --- accounts / auth (Google sign-in; secrets come from the server env) ---
 SECRET = os.environ.get("SEATWATCH_SECRET") or secrets.token_hex(32)  # random fallback = dev only
@@ -684,6 +741,55 @@ def effective_tier(user):
 
 def tier_courses(tier):
     return TIER_COURSES.get(tier, 1)
+
+
+# At most this many near-miss codes are probed after a failed lookup. It is a politeness
+# budget: a student's typo must never turn into a burst of requests at a registrar.
+COURSE_SUGGEST_MAX = int(os.environ.get("COURSE_SUGGEST_MAX", "4"))
+
+
+def _suggest_courses(school, course):
+    """Codes NEAR what they typed that actually exist at this school. Best-effort, [] on
+    anything unexpected, and only ever called once a lookup has already failed.
+
+    On 2026-09-15 a real student typed CMSC121 at UMD. No such course — but CMSC122,
+    CMSC125 and CMSC131 all exist, we had already loaded the catalogue page, and we said
+    "check the code?" and let them leave. One character, and the whole activation.
+
+    No adapter can list its courses, so the alternatives have to be probed. That is bounded
+    hard: four candidates, adjacent numbers only, and never on the success path.
+    """
+    try:
+        m = re.match(r"^([A-Za-z]{2,5})(\s*)0*(\d{2,4})([A-Za-z]?)$", course.strip())
+        if not m:
+            return []
+        subj, gap, num, suffix = m.group(1).upper(), m.group(2), m.group(3), m.group(4).upper()
+        width, n = len(num), int(num)
+        seen, cands = set(), []
+        for delta in (1, -1, 10, -10):          # a wrong last digit, or a wrong tens digit
+            v = n + delta
+            if v <= 0:
+                continue
+            code = "%s%s%s%s" % (subj, gap, str(v).zfill(width), suffix)
+            if code != course.strip().upper() and code not in seen:
+                seen.add(code)
+                cands.append(code)
+        cands = cands[:COURSE_SUGGEST_MAX]
+        if not cands:
+            return []
+
+        def _exists(c):
+            try:
+                d = school.fetch({c}).get(c, {}) or {}
+                return c if any(k != "none" for k in d) else None
+            except Exception:
+                return None
+
+        with ThreadPoolExecutor(max_workers=len(cands)) as ex:
+            hits = [c for c in ex.map(_exists, cands) if c]
+        return sorted(hits)[:3]
+    except Exception:
+        return []            # a suggestion is a courtesy; it must never break the form
 
 
 def _conv_signal(kind, user_id, detail=None):
@@ -3522,6 +3628,11 @@ class Handler(BaseHTTPRequestHandler):
             # Those need opposite fixes, and the course code recorded here is what tells
             # them apart when the same code shows up from several different students.
             _conv_signal("course_not_found", user["id"], f"{school.id}:{course}")
+            near = _suggest_courses(school, course)
+            if near:
+                return self._notice(
+                    f"Couldn't find {course} at {school.name} this term. "
+                    f"Did you mean {', '.join(near)}?", user=user)
             return self._notice(f"Couldn't find {course} at {school.name} this term, check the code?",
                                 user=user)
         bad = [s for s in sections if s and s not in secs]
@@ -5142,7 +5253,14 @@ def poller():
                 # read as "the poller is dead" during an incident. Say when we take over.
                 sw.log("[lease] took over the lease — this process is now polling")
             _stood_down[0] = False
+            _cycle_t0 = time.time()
             cyc = run_cycle()
+            _cycle_s = time.time() - _cycle_t0
+            _iv, _note = _adapt_interval(_cycle_s)
+            if _note:
+                sw.log(_note)
+                if "SATURATED" in _note:
+                    operator_alert(_note)
             if guardian.ping_ok(cyc):   # enforce: only a reconciled, non-RED cycle may
                 ping_healthcheck()      # claim success; off/shadow: semantics unchanged
             maybe_daily_summary()
@@ -5152,7 +5270,7 @@ def poller():
         except Exception as e:
             sw.log(f"[poller error, recovering] {e}")
             guardian.poller_recover(e)  # evidence + damped page, not a 20s page storm
-        time.sleep(POLL_SECONDS)
+        time.sleep(_poll_interval[0])
 
 
 def main():

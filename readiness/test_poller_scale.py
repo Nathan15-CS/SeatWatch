@@ -272,6 +272,54 @@ def run():
     check("_ident on a missing watch returns an empty mapping, not a crash",
           _g._ident(None) == {})
 
+    # ---------- ADAPTIVE INTERVAL ----------
+    # Past capacity the interval ALREADY stretched: the poll lease prevents overlapping
+    # cycles, so a long cycle just delays the next one — silently, with nobody told. This
+    # makes that bounded and loud. The risk is the opposite failure: an algorithm quietly
+    # deciding students can wait five minutes.
+    app._poll_interval[0] = float(app.POLL_SECONDS)
+    app._poll_saturated_since[0] = 0.0
+    T = [1000.0]
+
+    iv, note = app._adapt_interval(2.3, now=T[0])          # today's real cycle time
+    check("a fast cycle leaves the interval at the floor",
+          iv == app.POLL_SECONDS and not note,
+          f"got {iv}s — at 20 watches this must be a no-op")
+
+    iv, note = app._adapt_interval(app.POLL_SECONDS * 0.9, now=T[0])
+    check("a cycle eating most of its interval stretches it", iv > app.POLL_SECONDS,
+          f"got {iv}s")
+    check("...and says so, rather than drifting silently", bool(note), "no log line")
+
+    for _ in range(40):                                     # hammer it well past the cap
+        iv, note = app._adapt_interval(10_000.0, now=T[0])
+    check("the interval NEVER exceeds the ceiling", iv == app.POLL_MAX_S,
+          f"got {iv}s vs cap {app.POLL_MAX_S}s — past this, slower alerts must be a "
+          f"human decision, not an algorithm's")
+    check("saturation is latched, so it pages once and not every cycle",
+          app._poll_saturated_since[0] > 0)
+
+    for _ in range(60):                                     # load goes away
+        iv, note = app._adapt_interval(1.0, now=T[0])
+    check("it recovers all the way back to the floor when load drops",
+          iv == app.POLL_SECONDS, f"stuck at {iv}s — a spike must not slow alerts forever")
+    check("...and clears the saturation latch on the way down",
+          app._poll_saturated_since[0] == 0.0)
+
+    # Hysteresis: a cycle sitting between the two thresholds must move nothing, or the
+    # interval oscillates every cycle and the alert latency students see is noise.
+    app._poll_interval[0] = 100.0
+    steady = 100.0 * (app.POLL_GROW_AT + app.POLL_SHRINK_AT) / 2.0
+    iv, note = app._adapt_interval(steady, now=T[0])
+    check("a cycle between the thresholds changes nothing (no oscillation)",
+          iv == 100.0 and not note, f"moved to {iv}s")
+    check("the growth threshold is above the shrink threshold",
+          app.POLL_GROW_AT > app.POLL_SHRINK_AT)
+    check("the ceiling keeps worst-case seat-to-alert under ~8 minutes",
+          app.POLL_MAX_S + app.CONFIRM_SECONDS <= 480,
+          f"{app.POLL_MAX_S}s cycle + {app.CONFIRM_SECONDS}s confirm — measured seat "
+          f"lifetimes are bimodal and the takeable ones last about an hour")
+
     p = sum(x for _, x, _ in results)
     f = sum(not x for _, x, _ in results)
     return p, f, results

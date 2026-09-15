@@ -236,6 +236,58 @@ def run():
               not missing, f"report would silently drop: {sorted(missing)}")
         check("...and the suite found the emitters at all (not an empty-set pass)",
               len(emitted) >= 8, f"only found {sorted(emitted)}")
+
+        # ---------- DID YOU MEAN ----------
+        # 2026-09-15: a real student typed CMSC121 at UMD. No such course — but CMSC122,
+        # CMSC125 and CMSC131 all exist. We said "check the code?" and they left. The
+        # funnel caught it, which is what it was for; this is the fix it pointed at.
+        class Catalog(FakeSchool):
+            """Answers for a small real-looking catalogue, so a near miss has somewhere
+            to land and a far miss genuinely has nowhere."""
+            def fetch(self, courses):
+                real = {"CHEM231", "CHEM232", "CHEM241"}
+                return {c: ({"0101": {"open": False, "seats": 0}} if c in real else {})
+                        for c in courses}
+
+        cat = Catalog()
+        near = app._suggest_courses(cat, "CHEM230")
+        check("a one-digit typo gets a real suggestion", "CHEM231" in near, f"got {near}")
+        check("...and only codes that ACTUALLY exist are offered",
+              all(x in ("CHEM231", "CHEM232", "CHEM241") for x in near), f"got {near}")
+        check("the code they typed is never suggested back to them",
+              "CHEM230" not in near)
+        check("a code with nothing near it suggests nothing",
+              app._suggest_courses(cat, "ZZZZ999") == [],
+              "a wrong guess is worse than no guess")
+        for junk in ("!!!", "", "12345678", "CHEM", "'; DROP TABLE"):
+            check(f"malformed input {junk!r} returns [] without raising",
+                  app._suggest_courses(cat, junk) == [])
+
+        class Exploding(Catalog):
+            def fetch(self, courses): raise RuntimeError("registrar down")
+        check("an adapter that throws costs the student a suggestion, not the form",
+              app._suggest_courses(Exploding(), "CHEM230") == [])
+
+        # The politeness budget. A typo must never become a burst at a registrar.
+        probed = []
+        class Counting(Catalog):
+            def fetch(self, courses):
+                probed.extend(courses)
+                return Catalog.fetch(self, courses)
+        app._suggest_courses(Counting(), "CHEM230")
+        check("a failed lookup probes at most COURSE_SUGGEST_MAX candidates",
+              len(probed) <= app.COURSE_SUGGEST_MAX,
+              f"probed {len(probed)}: {probed} — a student's typo must not become a "
+              f"burst of requests at a registrar")
+
+        # And it must never run when the course was found.
+        probed.clear()
+        uid4, cookie4, csrf4 = new_student("g_hit")
+        schools_mod.SCHOOLS = {"testu": school, "darku": dark}
+        http("/watch", [("csrf", csrf4), ("school", "testu"),
+                        ("course", "CHEM231"), ("sections", "0101")], cookie=cookie4)
+        check("a SUCCESSFUL lookup triggers no suggestion probing at all",
+              not probed, f"wasted {len(probed)} requests on the happy path")
     finally:
         app._now = _real_now
         srv.shutdown()
