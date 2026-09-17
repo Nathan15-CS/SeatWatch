@@ -129,6 +129,61 @@ def run():
     check("the adapter page names the school", any("utk" in p for p in pages),
           "an unattributed page cannot be acted on")
 
+    # --- PER-SCHOOL PAGES ------------------------------------------------------------
+    # A real student arrived 2026-09-15 from ChatGPT, which found the ONE landing page in
+    # a web index. 899 school pages give it 899 things to match — but 899 pages differing
+    # only by a NAME is what Google's spam policy calls scaled content abuse, and it
+    # demotes the whole domain. What makes these legitimate is that every number on them
+    # is that school's own, re-measured nightly. So these checks are mostly about honesty:
+    # real data, no invented data, and no page for a school we cannot serve.
+    _cov, _cs, _blk = app.coverage, app.coverage_stats, app.blocked_schools
+    app.coverage = lambda: {"umd": "OK", "dark": "EMPTY"}
+    app.coverage_stats = lambda: {
+        "umd": {"name": "University of Maryland",
+                "stats": {"sections": 17, "open": 4, "full": 13}},
+        "dark": {"name": "Dark University", "stats": {}}}
+    app.blocked_schools = lambda: set()
+    try:
+        import schools as _s
+        check("the suite has a real school to render (not a vacuous pass)",
+              "umd" in _s.SCHOOLS)
+        body = app.school_page("umd") or ""
+        check("a covered school renders a page", bool(body))
+        check("...naming the school", "University of Maryland" in body)
+        check("...carrying ITS OWN measured numbers, not boilerplate",
+              "17 sections" in body and "4 open" in body,
+              "pages differing only by a name are doorway pages")
+        check("...showing that school's real course-code format",
+              getattr(_s.SCHOOLS["umd"], "example", "?") in body)
+        check("...and disclaiming affiliation", "not affiliated" in body)
+        check("a school we CANNOT read has NO page",
+              app.school_page("dark") is None,
+              "a live URL promising alerts at a dark school is a promise we break")
+        check("an unknown id has no page", app.school_page("no-such-school") is None)
+        for junk in ("x'; DROP TABLE--", "../../etc/passwd", "", "%2e%2e"):
+            check(f"hostile id {junk!r} yields no page", app.school_page(junk) is None)
+        sm = app.sitemap_xml()
+        check("the sitemap is GENERATED from coverage, not hardcoded", "/s/umd" in sm)
+        check("...a dark school is absent from it", "/s/dark" not in sm)
+        check("...and it is still valid XML",
+              sm.startswith("<?xml") and sm.strip().endswith("</urlset>"))
+        idx = app.schools_index_page()
+        check("the index links the per-school pages (else they are orphans)",
+              "/s/umd" in idx and "University of Maryland" in idx)
+        # The failure mode that matters: a broken sweep must not print zeros as fact.
+        app.coverage_stats = lambda: {}
+        b2 = app.school_page("umd") or ""
+        check("with NO measured data it falls back to prose, never '0 sections'",
+              bool(b2) and "0 sections" not in b2,
+              "an unmeasured zero printed as a seat count is a page lying confidently")
+        app.coverage_stats = lambda: (_ for _ in ()).throw(RuntimeError("sweep broken"))
+        check("a THROWING stats reader still yields a page, not a 500",
+              app.school_page("umd") is not None)
+        check("...and the sitemap survives it",
+              app.sitemap_xml().strip().endswith("</urlset>"))
+    finally:
+        app.coverage, app.coverage_stats, app.blocked_schools = _cov, _cs, _blk
+
     p_ = sum(ok for _, ok, _ in results)
     f_ = sum(not ok for _, ok, _ in results)
     return p_, f_, results

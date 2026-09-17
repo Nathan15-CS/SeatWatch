@@ -1765,13 +1765,113 @@ Disallow: /dev-login
 Sitemap: https://seatwatchapp.com/sitemap.xml
 """
 
-SITEMAP = """<?xml version="1.0" encoding="UTF-8"?>
+_SITEMAP_HEAD = """<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
  <url><loc>https://seatwatchapp.com/</loc><changefreq>daily</changefreq><priority>1.0</priority></url>
+ <url><loc>https://seatwatchapp.com/schools</loc><changefreq>daily</changefreq><priority>0.8</priority></url>
  <url><loc>https://seatwatchapp.com/terms</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
  <url><loc>https://seatwatchapp.com/privacy</loc><changefreq>monthly</changefreq><priority>0.3</priority></url>
-</urlset>
 """
+
+
+def sitemap_xml():
+    """Built from coverage, not hardcoded. A school appears only while its data is good,
+    so a school that goes dark (Towson, 23 days) drops out instead of leaving a live URL
+    promising a service we cannot deliver there."""
+    out = [_SITEMAP_HEAD]
+    try:
+        for sid in sorted(coverage()):
+            if school_listed(sid) and sid in schools.SCHOOLS:
+                out.append(" <url><loc>https://seatwatchapp.com/s/%s</loc>"
+                           "<changefreq>daily</changefreq><priority>0.6</priority></url>\n"
+                           % html.escape(sid))
+    except Exception:
+        pass                      # a broken sweep yields the core sitemap, never a 500
+    out.append("</urlset>\n")
+    return "".join(out)
+
+
+def school_page(sid):
+    """One page per school, carrying that school's OWN measured numbers.
+
+    WHY THIS IS NOT A DOORWAY PAGE, which is the real risk here. 899 pages differing only
+    by a name is what Google's spam policy calls scaled content abuse, and it can demote
+    the whole domain — worse than not building this. What makes these legitimate is that
+    every number on them is specific, true, and re-measured nightly by ops/sweep-schools:
+    this school's own course-code format, its real section count, how many were open versus
+    full when last read, and when that was. It is a store locator with live inventory, not
+    a city name swapped into a template.
+
+    It also refuses to exist for schools we cannot serve: school_listed() gates it, so a
+    dark school 404s rather than ranking for a promise we would break.
+    """
+    if sid not in schools.SCHOOLS or not school_listed(sid):
+        return None
+    sc = schools.SCHOOLS[sid]
+    try:
+        cov = coverage_stats().get(sid) or {}
+    except Exception:
+        cov = {}          # a broken sweep costs the NUMBERS on this page, never the page
+    st = cov.get("stats") or {}
+    name = html.escape(cov.get("name") or getattr(sc, "name", sid))
+    ex = html.escape(getattr(sc, "example", "") or "")
+    secs, op, full = st.get("sections"), st.get("open"), st.get("full")
+
+    # Only claim what was actually measured. "0 open of 0" is what a broken sweep looks
+    # like, and printing it as fact is how a page lies confidently.
+    if secs:
+        measured = (f"<p>Last automated check of <strong>{ex}</strong> read "
+                    f"<strong>{secs} sections</strong> — {op} open, {full} full.</p>")
+    else:
+        measured = (f"<p>We read {name}'s live schedule for course codes like "
+                    f"<strong>{ex}</strong>.</p>")
+
+    try:
+        term = html.escape(str(sc.cur_term()))
+        termline = f"<p class='muted'>Currently watching term <code>{term}</code>.</p>"
+    except Exception:
+        termline = ""
+
+    return page(
+        f"<div class='hero' style='padding-top:30px;padding-bottom:0'>"
+        f"<h1 style='font-size:30px;letter-spacing:-1.2px'>Course seat alerts for {name}</h1>"
+        f"</div>"
+        f"<div class='card'>"
+        f"<p>SeatWatch checks {name}'s course schedule automatically and emails or texts "
+        f"you the moment a seat opens in a class you are waiting on.</p>"
+        f"{measured}{termline}"
+        f"<p>Enter a course code in {name}'s own format — for example "
+        f"<code>{ex}</code> — plus the section numbers you need.</p>"
+        f"<p><a class='btn' href='/'>Watch a class at {name}</a></p>"
+        f"</div>"
+        f"<div class='card'><p class='muted'>Seat counts above come from {name}'s public "
+        f"schedule of classes and are re-checked nightly. SeatWatch is not affiliated with "
+        f"{name}.</p></div>")
+
+
+def schools_index_page():
+    """A real index, so the per-school pages are reachable by a crawler AND a human."""
+    rows = []
+    try:
+        st = coverage_stats()
+        listed = [k for k in coverage()
+                  if school_listed(k) and k in schools.SCHOOLS]
+        def _nm(k):
+            return (st.get(k) or {}).get("name") or getattr(schools.SCHOOLS[k], "name", k)
+        for sid in sorted(listed, key=_nm):
+            nm = html.escape(_nm(sid))
+            rows.append(f"<li><a href='/s/{html.escape(sid)}'>{nm}</a></li>")
+    except Exception:
+        pass
+    n = len(rows)
+    return page(
+        f"<div class='hero' style='padding-top:30px;padding-bottom:0'>"
+        f"<h1 style='font-size:30px;letter-spacing:-1.2px'>Schools SeatWatch covers</h1></div>"
+        f"<div class='card'><p>{n} colleges and universities, each re-verified nightly "
+        f"against its own registration system. A school is listed only while we can "
+        f"actually read its seat data.</p>"
+        f"<ul style='columns:2;-webkit-columns:2;line-height:1.9'>{''.join(rows)}</ul>"
+        f"</div>")
 
 
 DONE = """<div class="hero" style="padding-top:34px;padding-bottom:0"><h1 class="reveal" style="font-size:34px;letter-spacing:-1.4px">You're all set 🎉</h1></div>
@@ -2304,6 +2404,24 @@ BLOCKED_PATH = os.environ.get("BLOCKED_PATH", os.path.join(HERE, "ops", "blocked
 COUNTED_VERDICTS = ("OK",)
 LISTED_VERDICTS = ("OK", "ALL_OPEN")
 _cov = {"mtime": -1.0, "data": {}}
+_cov_stats = {"mtime": -1.0, "data": {}}
+
+
+def coverage_stats():
+    """{school_id: {name, stats}} from the last sweep. coverage() deliberately keeps only
+    the verdict — the school pages need the measured numbers too, and re-reading the file
+    per request would be wasteful, so this caches on mtime the same way. Fails to {} so a
+    school page falls back to prose rather than printing a confident zero."""
+    try:
+        m = os.path.getmtime(COVERAGE_PATH)
+        if m != _cov_stats["mtime"]:
+            with open(COVERAGE_PATH) as f:
+                raw = json.load(f)
+            _cov_stats["data"] = {k: v for k, v in raw.items() if isinstance(v, dict)}
+            _cov_stats["mtime"] = m
+    except Exception:
+        return {}
+    return _cov_stats["data"]
 _blocked = {"mtime": -1.0, "data": {}}
 
 
@@ -2932,8 +3050,22 @@ class Handler(BaseHTTPRequestHandler):
             return self._send_bytes(ROBOTS.encode(), "text/plain; charset=utf-8",
                                     cache="public, max-age=86400")
         if path == "/sitemap.xml":
-            return self._send_bytes(SITEMAP.encode(), "application/xml; charset=utf-8",
+            return self._send_bytes(sitemap_xml().encode(), "application/xml; charset=utf-8",
                                     cache="public, max-age=86400")
+        if path == "/schools":
+            return self._send_bytes(schools_index_page().encode(),
+                                    "text/html; charset=utf-8",
+                                    cache="public, max-age=3600")
+        if path.startswith("/s/"):
+            # Anonymous and cacheable, so the edge absorbs a traffic spike rather than
+            # the poller's box. A school we cannot serve 404s instead of ranking for a
+            # promise we would break.
+            body = school_page(urllib.parse.unquote(path[3:]).strip().lower())
+            if body is None:
+                return self._send(page("<p>We don't cover that school yet. "
+                                       "<a href='/schools'>See the list</a></p>"), 404)
+            return self._send_bytes(body.encode(), "text/html; charset=utf-8",
+                                    cache="public, max-age=3600")
         if path in ("/login", "/login/google"):
             if not GOOGLE_CLIENT_ID:
                 return self._send(form_page(
